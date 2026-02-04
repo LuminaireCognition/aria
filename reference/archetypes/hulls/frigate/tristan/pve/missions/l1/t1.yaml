@@ -1,0 +1,98 @@
+# Tristan L1 Missions - Low Skill Variant
+#
+# Entry-level fit for brand new pilots.
+# Drone-focused with armor tank.
+
+archetype:
+  hull: Tristan
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Tristan, L1 Missions - Low Skills]
+
+  Small Armor Repairer I
+  Damage Control I
+  Drone Damage Amplifier I
+
+  1MN Afterburner I
+  Small Compact Pb-Acid Cap Battery
+  Stasis Webifier I
+
+  125mm Gatling AutoCannon I
+  125mm Gatling AutoCannon I
+  [Empty High slot]
+
+  Small Auxiliary Nano Pump I
+  Small Auxiliary Nano Pump I
+  Small Auxiliary Nano Pump I
+
+  Hobgoblin I x5
+  Hobgoblin I x3
+
+  Fusion S x500
+
+skill_requirements:
+  required:
+    Drones: 3
+    Light Drone Operation: 2
+    Gallente Frigate: 2
+    Armor Repair Systems: 1
+  recommended:
+    Drone Durability: 2
+    Hull Upgrades: 2
+    Mechanics: 2
+
+stats:
+  dps: 95
+  ehp: 2800
+  tank_sustained: 45
+  capacitor_stable: true
+  align_time: 4.5
+  speed_ab: 650
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: thermal  # Hobgoblin drones
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      drones:
+        primary: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal - default drones work"
+    angel_cartel:
+      drones:
+        primary: "Warrior I"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      drones:
+        primary: "Acolyte I"
+      notes: "Blood Raiders weak to EM"
+    guristas:
+      drones:
+        primary: "Hornet I"
+      notes: "Guristas weak to Kinetic"
+    rogue_drones:
+      drones:
+        primary: "Acolyte I"
+      notes: "Rogue Drones weak to EM"
+
+notes:
+  purpose: "Entry-level L1 mission runner for new Gallente pilots"
+  engagement: "Launch drones, orbit at 7.5km, web frigates"
+  warnings:
+    - "Watch drone HP - recall damaged drones before they die"
+    - "Always recall drones before warping"
+    - "Drones do 70%+ of your damage"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Hobgoblin I"
+      upgrade_to: "Hobgoblin II"
+      skill_required: "Light Drone Operation 5"
+    - ship: "Algos (Destroyer)"
+      notes: "More drones, faster L1 clears"
+    - ship: "Vexor (Cruiser)"
+      notes: "L2 missions, medium drones"

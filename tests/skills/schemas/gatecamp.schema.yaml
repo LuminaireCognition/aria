@@ -1,0 +1,209 @@
+# JSON Schema for /gatecamp skill output validation
+# Validates two output types: single system activity OR route analysis
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: GatecampSkillOutput
+description: Output schema for the /gatecamp skill (activity or gatecamp_risk action)
+
+oneOf:
+  - $ref: "#/$defs/SingleSystemActivity"
+  - $ref: "#/$defs/GatecampRiskResult"
+
+$defs:
+  # Single system query returns ActivityResult (same as threat-assessment)
+  SingleSystemActivity:
+    type: object
+    description: Activity data for a single system query
+    required:
+      - systems
+      - cache_age_seconds
+      - data_period
+    properties:
+      systems:
+        type: array
+        description: Activity data for queried systems
+        items:
+          $ref: "#/$defs/SystemActivity"
+
+      cache_age_seconds:
+        type: ["integer", "null"]
+        description: Age of activity data in seconds
+        minimum: 0
+
+      data_period:
+        type: string
+        description: Time period for activity data
+        enum: ["last_hour", "last_24h"]
+
+      warnings:
+        type: array
+        description: Any warnings about the data
+        items:
+          type: string
+
+  SystemActivity:
+    type: object
+    description: Activity data for a single system
+    required:
+      - name
+      - system_id
+      - security
+      - security_class
+    properties:
+      name:
+        type: string
+        description: System name
+        minLength: 1
+
+      system_id:
+        type: integer
+        description: EVE system ID
+        minimum: 30000000
+        maximum: 32000000
+
+      security:
+        type: number
+        description: Security status
+        minimum: -1.0
+        maximum: 1.0
+
+      security_class:
+        type: string
+        description: Security classification
+        enum: ["HIGH", "LOW", "NULL"]
+
+      ship_kills:
+        type: integer
+        description: Ship kills in the data period
+        minimum: 0
+
+      pod_kills:
+        type: integer
+        description: Pod kills in the data period
+        minimum: 0
+
+      npc_kills:
+        type: integer
+        description: NPC kills in the data period
+        minimum: 0
+
+      ship_jumps:
+        type: integer
+        description: Ship jumps in the data period
+        minimum: 0
+
+      activity_level:
+        type: string
+        description: Activity classification
+        enum: ["none", "low", "medium", "high", "extreme"]
+
+  # Route analysis returns GatecampRiskResult
+  GatecampRiskResult:
+    type: object
+    description: Gatecamp risk analysis for a route
+    required:
+      - origin
+      - destination
+      - total_jumps
+      - overall_risk
+      - chokepoints
+    properties:
+      origin:
+        type: string
+        description: Starting system
+        minLength: 1
+
+      destination:
+        type: string
+        description: Destination system
+        minLength: 1
+
+      total_jumps:
+        type: integer
+        description: Total jumps in the route
+        minimum: 0
+
+      overall_risk:
+        type: string
+        description: Overall route risk level
+        enum: ["low", "medium", "high", "extreme"]
+
+      chokepoints:
+        type: array
+        description: Identified chokepoints along the route
+        items:
+          $ref: "#/$defs/GatecampRisk"
+
+      high_risk_systems:
+        type: array
+        description: Systems with risk_level >= high for avoid_systems
+        items:
+          type: string
+
+      recommendation:
+        type: string
+        description: Travel recommendation based on risk analysis
+
+      cache_age_seconds:
+        type: ["integer", "null"]
+        description: Age of activity data in seconds
+        minimum: 0
+
+      corrections:
+        type: object
+        description: Auto-corrected system names
+        additionalProperties:
+          type: string
+
+  GatecampRisk:
+    type: object
+    description: Risk assessment for a single chokepoint
+    required:
+      - system
+      - system_id
+      - security
+      - chokepoint_type
+      - recent_kills
+      - recent_pods
+      - risk_level
+    properties:
+      system:
+        type: string
+        description: System name
+        minLength: 1
+
+      system_id:
+        type: integer
+        description: EVE system ID
+        minimum: 30000000
+        maximum: 32000000
+
+      security:
+        type: number
+        description: Security status
+        minimum: -1.0
+        maximum: 1.0
+
+      chokepoint_type:
+        type: string
+        description: Type of chokepoint
+        enum: ["lowsec_entry", "lowsec_exit", "pipe", "hub"]
+
+      recent_kills:
+        type: integer
+        description: Recent ship kills
+        minimum: 0
+
+      recent_pods:
+        type: integer
+        description: Recent pod kills
+        minimum: 0
+
+      risk_level:
+        type: string
+        description: Risk level for this chokepoint
+        enum: ["low", "medium", "high", "extreme"]
+
+      warning:
+        type: ["string", "null"]
+        description: Warning message if risk is elevated

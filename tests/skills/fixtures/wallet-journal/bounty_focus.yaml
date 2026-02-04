@@ -1,0 +1,99 @@
+# Test fixture: Bounty-filtered wallet journal
+# Tests filtering by bounty transaction type
+
+name: "Bounty Income Focus"
+skill: wallet-journal
+description: |
+  Display wallet journal filtered to bounty income only.
+  Shows NPC bounties from ratting activities.
+
+input:
+  command: summary
+  days: 7
+  type: bounty
+
+expected_facts:
+  - path: "type_filter"
+    equals: "bounty"
+
+  - path: "summary.total_income"
+    range: [1000000, 50000000]
+
+  - path: "journal[0].ref_type"
+    equals: "bounty_prizes"
+
+expected_output:
+  query_timestamp: "2026-01-31T12:30:00Z"
+  volatility: "semi_stable"
+  period_days: 7
+  type_filter: "bounty"
+  summary:
+    total_income: 8500000.00
+    total_expenses: 0
+    net_change: 8500000.00
+    income_breakdown:
+      bounty_prizes: 8500000.00
+    expense_breakdown: {}
+  journal:
+    - date: "2026-01-31T10:30:00Z"
+      ref_type: "bounty_prizes"
+      amount: 125000.00
+      balance: 15234567.89
+      description: "For killing pirates in Essence"
+    - date: "2026-01-31T09:45:00Z"
+      ref_type: "bounty_prizes"
+      amount: 87500.00
+      balance: 15109567.89
+      description: "For killing pirates in Essence"
+    - date: "2026-01-30T23:15:00Z"
+      ref_type: "bounty_prizes"
+      amount: 312500.00
+      balance: 15022067.89
+      description: "For killing pirates in Sinq Laison"
+    - date: "2026-01-30T21:30:00Z"
+      ref_type: "bounty_prizes"
+      amount: 475000.00
+      balance: 14709567.89
+      description: "For killing pirates in Essence"
+    - date: "2026-01-29T19:00:00Z"
+      ref_type: "bounty_prizes"
+      amount: 2500000.00
+      balance: 14234567.89
+      description: "For killing pirates in Verge Vendor"
+  transactions: []
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  wallet_journal:
+    - id: 1001
+      date: "2026-01-31T10:30:00Z"
+      ref_type: "bounty_prizes"
+      amount: 125000.00
+      balance: 15234567.89
+      description: "For killing pirates in Essence"
+    - id: 1002
+      date: "2026-01-31T09:45:00Z"
+      ref_type: "bounty_prizes"
+      amount: 87500.00
+      balance: 15109567.89
+      description: "For killing pirates in Essence"
+    - id: 1003
+      date: "2026-01-30T23:15:00Z"
+      ref_type: "bounty_prizes"
+      amount: 312500.00
+      balance: 15022067.89
+      description: "For killing pirates in Sinq Laison"
+    - id: 1004
+      date: "2026-01-30T21:30:00Z"
+      ref_type: "bounty_prizes"
+      amount: 475000.00
+      balance: 14709567.89
+      description: "For killing pirates in Essence"
+    - id: 1005
+      date: "2026-01-29T19:00:00Z"
+      ref_type: "bounty_prizes"
+      amount: 2500000.00
+      balance: 14234567.89
+      description: "For killing pirates in Verge Vendor"

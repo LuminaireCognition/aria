@@ -1,0 +1,98 @@
+# Test fixture: Gallente pilot standings overview
+# Tests overview response with faction standings and agent access
+
+name: "Gallente pilot standings overview"
+skill: standings
+description: |
+  Standings overview for a Gallente-aligned pilot.
+  Tests overview response with skills, faction standings, and agent access summary.
+
+input:
+  query_type: overview
+
+expected_output:
+  pilot_name: "Test Pilot"
+  skills:
+    connections: 5
+    diplomacy: 3
+  faction_standings:
+    - faction_id: 500004
+      faction_name: "Gallente Federation"
+      raw_standing: 5.5
+      effective_standing: 6.4
+      status: "friendly"
+    - faction_id: 500001
+      faction_name: "Caldari State"
+      raw_standing: -2.0
+      effective_standing: -1.04
+      status: "unfriendly"
+    - faction_id: 500003
+      faction_name: "Amarr Empire"
+      raw_standing: 0.5
+      effective_standing: 1.45
+      status: "neutral"
+    - faction_id: 500002
+      faction_name: "Minmatar Republic"
+      raw_standing: 3.0
+      effective_standing: 4.4
+      status: "friendly"
+  corporation_standings:
+    - corporation_id: 1000125
+      corporation_name: "Federal Intelligence Office"
+      raw_standing: 6.0
+      effective_standing: 6.8
+      faction: "Gallente Federation"
+  agent_access_summary:
+    max_security_level: 4
+    max_distribution_level: 4
+    max_research_level: 3
+  warnings:
+    - "Caldari standing below -2.0 - some Caldari corps may be hostile"
+
+expected_facts:
+  # Pilot name present
+  - path: "pilot_name"
+    equals: "Test Pilot"
+
+  # Connections V
+  - path: "skills.connections"
+    equals: 5
+
+  # Diplomacy III
+  - path: "skills.diplomacy"
+    equals: 3
+
+  # Has faction standings
+  - path: "faction_standings"
+    length: 4
+
+  # Gallente is first and friendly
+  - path: "faction_standings[0].faction_name"
+    equals: "Gallente Federation"
+
+  - path: "faction_standings[0].status"
+    equals: "friendly"
+
+  # Raw standing of 5.5
+  - path: "faction_standings[0].raw_standing"
+    equals: 5.5
+
+  # Effective standing with Connections V: 5.5 + (10 - 5.5) * 0.20 = 6.4
+  - path: "faction_standings[0].effective_standing"
+    range: [6.3, 6.5]
+
+  # Caldari is unfriendly
+  - path: "faction_standings[1].status"
+    equals: "unfriendly"
+
+  # Corporation standings present
+  - path: "corporation_standings"
+    length: 1
+
+  # Agent access summary
+  - path: "agent_access_summary.max_security_level"
+    equals: 4
+
+  # Has warnings about Caldari
+  - path: "warnings"
+    length: 1

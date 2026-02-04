@@ -1,0 +1,136 @@
+# Test fixture: Asset valuation
+# Tests assets with market value calculations
+
+name: "Asset Valuation"
+skill: assets
+description: |
+  Show assets with market valuation using Jita sell prices.
+  Tests the /assets --value option with market dispatcher integration.
+
+input:
+  command: value
+  include_value: true
+
+expected_facts:
+  - path: "total_estimated_value"
+    range: [1000000000, 5000000000]
+
+  - path: "price_source"
+    equals: "Jita sell orders"
+
+  - path: "locations_by_value"
+    length: 3
+
+  - path: "locations_by_value[*].estimated_value"
+    all_satisfy: ">= 0"
+
+expected_output:
+  filter: "value"
+  valuation_date: "2026-01-31T12:30:00Z"
+  price_source: "Jita sell orders"
+  total_estimated_value: 1615000000
+  locations_by_value:
+    - location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+      estimated_value: 1245000000
+      item_count: 312
+    - location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+      estimated_value: 342000000
+      item_count: 186
+    - location_id: 60014137
+      location_name: "Arnon IX - Moon 3 - Sisters of EVE Bureau"
+      estimated_value: 28000000
+      item_count: 45
+  top_value_items:
+    - type_name: "Gila"
+      quantity: 1
+      unit_price: 280000000
+      total_value: 280000000
+    - type_name: "Vexor Navy Issue"
+      quantity: 1
+      unit_price: 95000000
+      total_value: 95000000
+    - type_name: "PLEX"
+      quantity: 15
+      unit_price: 4500000
+      total_value: 67500000
+    - type_name: "Hammerhead II"
+      quantity: 50
+      unit_price: 1200000
+      total_value: 60000000
+    - type_name: "Ogre II"
+      quantity: 10
+      unit_price: 5500000
+      total_value: 55000000
+  warnings:
+    - "Values are estimates based on current Jita sell prices"
+    - "Actual sale value may vary"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  assets:
+    - item_id: 1234567890
+      type_id: 17715
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1000000010
+      type_id: 44992
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 15
+      is_singleton: false
+    - item_id: 1000000012
+      type_id: 2456
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 50
+      is_singleton: false
+    - item_id: 1000000013
+      type_id: 2476
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 10
+      is_singleton: false
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  market_valuation:
+    total_value: 1615000000
+    price_source: "Jita sell orders"
+    item_values:
+      - name: "Gila"
+        type_id: 17715
+        quantity: 1
+        unit_price: 280000000
+        total: 280000000
+      - name: "Vexor Navy Issue"
+        type_id: 17709
+        quantity: 1
+        unit_price: 95000000
+        total: 95000000
+      - name: "PLEX"
+        type_id: 44992
+        quantity: 15
+        unit_price: 4500000
+        total: 67500000
+      - name: "Hammerhead II"
+        type_id: 2456
+        quantity: 50
+        unit_price: 1200000
+        total: 60000000
+      - name: "Ogre II"
+        type_id: 2476
+        quantity: 10
+        unit_price: 5500000
+        total: 55000000

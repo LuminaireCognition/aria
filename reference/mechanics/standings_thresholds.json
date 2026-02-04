@@ -1,0 +1,169 @@
+{
+  "_meta": {
+    "description": "EVE Online standings requirements for agents, missions, and content access",
+    "sources": [
+      "https://wiki.eveuniversity.org/Standings",
+      "https://wiki.eveuniversity.org/NPC_agent",
+      "https://wiki.eveuniversity.org/Epic_arcs"
+    ],
+    "last_verified": "2026-01-29",
+    "notes": "Standings are modified by Connections and Diplomacy skills. Derived standings use the higher of faction or corp standing."
+  },
+
+  "agent_levels": {
+    "1": {
+      "standing_required": null,
+      "description": "No standing requirement",
+      "notes": "Available to all pilots"
+    },
+    "2": {
+      "standing_required": 1.0,
+      "description": "Requires 1.0 effective standing with faction or corporation",
+      "notes": "Achievable from a few L1 missions"
+    },
+    "3": {
+      "standing_required": 3.0,
+      "description": "Requires 3.0 effective standing with faction or corporation",
+      "notes": "Significant mission grinding or storyline missions"
+    },
+    "4": {
+      "standing_required": 5.0,
+      "description": "Requires 5.0 effective standing with faction or corporation",
+      "notes": "Major time investment. Storyline missions help significantly."
+    },
+    "5": {
+      "standing_required": 7.0,
+      "description": "Requires 7.0 effective standing with faction or corporation",
+      "notes": "Very high requirement. COSMOS/epic arcs recommended."
+    }
+  },
+
+  "agent_divisions": {
+    "security": {
+      "mission_type": "Combat",
+      "description": "Kill missions against NPC pirates or enemy factions",
+      "notes": "Most common agent type for combat pilots"
+    },
+    "distribution": {
+      "mission_type": "Courier",
+      "description": "Haul cargo between stations",
+      "notes": "Fast standing gains, low risk. Good for industrialists."
+    },
+    "mining": {
+      "mission_type": "Mining",
+      "description": "Mine ore and deliver to station",
+      "notes": "Slow but provides ore. Less common."
+    },
+    "research": {
+      "mission_type": "Research Points",
+      "description": "Passive RP generation for datacores",
+      "notes": "Requires Science skills. Standing determines RP/day."
+    }
+  },
+
+  "derived_standings_formula": {
+    "connections_skill": {
+      "effect": "+4% per level to effective standing (positive standings only)",
+      "formula": "effective = raw + (10 - raw) * connections_level * 0.04",
+      "example": "4.0 raw + Connections V = 4.0 + (10-4.0) * 0.20 = 5.2 effective"
+    },
+    "diplomacy_skill": {
+      "effect": "+4% per level to effective standing (negative standings only)",
+      "formula": "effective = raw + (raw + 10) * diplomacy_level * 0.04",
+      "notes": "Only applies when raw standing is negative"
+    },
+    "notes": "Effective standing is what matters for agent access. Train Connections V for mission runners."
+  },
+
+  "standing_gains": {
+    "regular_mission": {
+      "corporation": "Small gain to agent's corporation",
+      "faction": "None",
+      "frequency": "Every mission"
+    },
+    "storyline_mission": {
+      "corporation": "Moderate gain to agent's corporation",
+      "faction": "Moderate gain to agent's faction",
+      "frequency": "Every 16 regular missions of same level for same faction",
+      "notes": "Primary source of faction standing"
+    },
+    "epic_arc": {
+      "corporation": "None",
+      "faction": "Large gain to chosen faction (10% of remaining)",
+      "frequency": "Once per 90 days",
+      "notes": "No derived losses to enemy factions"
+    },
+    "cosmos_mission": {
+      "corporation": "Large one-time gain",
+      "faction": "Large one-time gain",
+      "frequency": "Once ever per character",
+      "notes": "Cannot be repeated. Plan carefully."
+    },
+    "data_center": {
+      "corporation": "Moderate one-time gain",
+      "faction": "Moderate one-time gain",
+      "frequency": "Once ever per tag type",
+      "notes": "Requires pirate tags. Good early boost."
+    }
+  },
+
+  "special_access_requirements": {
+    "jump_clone_installation": {
+      "standing_required": 8.0,
+      "entity_type": "corporation",
+      "description": "Install jump clone at NPC station",
+      "notes": "Obsolete - use Upwell structures instead"
+    },
+    "locator_agent": {
+      "standing_required": "L2+ agent access",
+      "entity_type": "corporation",
+      "description": "Locate players anywhere in New Eden",
+      "notes": "Higher level agents = faster locate"
+    },
+    "faction_warfare": {
+      "standing_required": 0.0,
+      "entity_type": "faction",
+      "description": "Enlist in Faction Warfare",
+      "notes": "Cannot enlist if standing is below 0.0"
+    },
+    "empire_highsec": {
+      "standing_required": -5.0,
+      "entity_type": "faction",
+      "description": "Below -5.0 faction standing = attacked by faction navy in their space",
+      "notes": "Can still use gates, just chased by NPCs"
+    }
+  },
+
+  "derived_standing_losses": {
+    "description": "Killing enemy faction NPCs or running missions against them causes standing losses",
+    "pirate_missions": "Killing empire NPCs causes faction standing loss with that empire",
+    "empire_missions": "Missions against pirates don't cause pirate faction loss",
+    "faction_crossfire": "Killing Gallente NPCs hurts Minmatar standing (allied factions)",
+    "notes": "Epic arcs avoid derived losses - use them for hostile faction repair"
+  },
+
+  "repair_strategies": {
+    "epic_arc": {
+      "method": "Run faction's epic arc, choose their faction at end",
+      "standing_gain": "~10% of remaining (e.g., -2.0 to -1.0)",
+      "cooldown": "90 days",
+      "notes": "Best option for repairing hostile faction standings"
+    },
+    "career_agents": {
+      "method": "Run career agents for target faction",
+      "standing_gain": "Small but no cooldown",
+      "requirements": "Can only do once per career agent",
+      "notes": "Good for initial boost"
+    },
+    "diplomacy_skill": {
+      "method": "Train Diplomacy skill",
+      "standing_gain": "Improves effective standing for negative values",
+      "notes": "Doesn't change raw standing, just derived"
+    },
+    "faction_warfare": {
+      "method": "Enlist with allied faction and run FW missions",
+      "standing_gain": "LP can buy faction standing boosters",
+      "notes": "FW standings are separate from regular standings"
+    }
+  }
+}

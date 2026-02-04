@@ -1,0 +1,152 @@
+# Vexor L2 Missions - Medium Skill Variant
+#
+# Solid mid-level fit for established pilots.
+# Good balance of performance and accessibility.
+
+archetype:
+  hull: Vexor
+  skill_tier: meta
+  omega_required: false
+
+eft: |
+  [Vexor, L2 Missions - Medium Skills]
+
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Medium Armor Repairer I
+  Multispectrum Energized Membrane I
+  Reactive Armor Hardener
+
+  50MN Microwarpdrive I
+  Large Compact Pb-Acid Cap Battery
+  Cap Recharger I
+  Drone Navigation Computer I
+
+  Drone Link Augmentor I
+  [Empty High slot]
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Nanobot Accelerator I
+
+  Hammerhead I x5
+  Hobgoblin I x5
+  Hornet I x5
+
+skill_requirements:
+  required:
+    Drones: 4
+    Medium Drone Operation: 3
+    Gallente Cruiser: 3
+    Armor Repair Systems: 3
+    Hull Upgrades: 3
+  recommended:
+    Drone Interfacing: 3
+    Capacitor Management: 4
+    Mechanics: 4
+    Armor Compensation Skills: 3
+
+stats:
+  dps: 210
+  ehp: 12500
+  tank_sustained: 95
+  capacitor_stable: true
+  align_time: 8.2
+  speed_mwd: 1180
+  drone_control_range: 56000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: armor_active
+
+  # Faction-specific module overrides
+  overrides:
+    serpentis:
+      # Serpentis deal Kin/Therm, weak to Thermal
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor Kinetic Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Armor Thermal Hardener I"
+      drones:
+        primary: "Hammerhead I"
+        anti_frigate: "Hobgoblin I"
+      notes: "Serpentis use sensor damps - stay within 30km"
+
+    angel_cartel:
+      # Angels deal Exp/Kin, weak to Explosive
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor Explosive Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Armor Kinetic Hardener I"
+      drones:
+        primary: "Valkyrie I"
+        anti_frigate: "Warrior I"
+      rigs:
+        - from: "Medium Auxiliary Nano Pump I"
+          to: "Medium Anti-Explosive Pump I"
+      notes: "Angels are fast - use MWD to maintain range"
+
+    blood_raiders:
+      # Blood Raiders deal EM/Therm, weak to EM
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor EM Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Armor Thermal Hardener I"
+      drones:
+        primary: "Infiltrator I"
+        anti_frigate: "Acolyte I"
+      notes: "Blood Raiders use neuts - watch capacitor"
+
+    guristas:
+      # Guristas deal Kin/Therm, weak to Kinetic
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor Kinetic Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Armor Thermal Hardener I"
+      drones:
+        primary: "Vespa I"
+        anti_frigate: "Hornet I"
+
+    rogue_drones:
+      # Drones deal omni damage, weak to EM
+      drones:
+        primary: "Infiltrator I"
+        anti_frigate: "Acolyte I"
+      notes: "Rogue Drones deal all damage types - keep omni tank"
+
+    mercenaries:
+      # Mercenaries deal Kin/Therm, weak to Thermal
+      drones:
+        primary: "Hammerhead I"
+        anti_frigate: "Hobgoblin I"
+      notes: "Mixed enemy types - default fit works well"
+
+notes:
+  purpose: "General-purpose L2 mission runner for pilots with moderate skills"
+  engagement: "Orbit at 30-40km, let drones do the work"
+  warnings:
+    - "Not cap stable with MWD running continuously"
+    - "Recall drones before warping"
+
+upgrade_path:
+  next_tier: high
+  key_upgrades:
+    - module: "Drone Damage Amplifier I"
+      upgrade_to: "Drone Damage Amplifier II"
+      skill_required: "Weapon Upgrades 4"
+    - module: "Hammerhead I"
+      upgrade_to: "Hammerhead II"
+      skill_required: "Medium Drone Operation 5"
+    - module: "Hobgoblin I"
+      upgrade_to: "Hobgoblin II"
+      skill_required: "Light Drone Operation 5"
+    - module: "Medium Armor Repairer I"
+      upgrade_to: "Medium Armor Repairer II"
+      skill_required: "Repair Systems 5"

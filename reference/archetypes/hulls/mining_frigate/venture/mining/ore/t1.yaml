@@ -1,0 +1,67 @@
+# Venture Ore Mining - Low Skill Variant
+#
+# Entry-level highsec mining fit with survey scanner.
+
+archetype:
+  hull: Venture
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Venture, Highsec Mining - Low Skills]
+
+  Mining Laser Upgrade I
+  Damage Control I
+
+  5MN Microwarpdrive I
+  Medium Shield Extender I
+  Survey Scanner I
+
+  Miner I
+  Miner I
+  [Empty High slot]
+
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+  Hobgoblin I x2
+
+skill_requirements:
+  required:
+    Mining Frigate: 1
+    Mining: 3
+    Shield Operation: 2
+  recommended:
+    Mining: 4
+    Mining Upgrades: 3
+    Hull Upgrades: 3
+
+stats:
+  mining_yield: 200  # m3/min approximate
+  ore_hold: 5000
+  ehp: 3500
+  align_time: 4.0
+  speed_mwd: 2500
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Entry-level highsec ore mining"
+  engagement: "Warp to belt, survey asteroids, mine largest first"
+  warnings:
+    - "Stay aligned to station/safe while mining"
+    - "Watch local - new pilots may be threats"
+    - "Don't AFK in busy systems"
+    - "+2 warp core strength helps against single scramblers"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Miner I"
+      upgrade_to: "Miner II"
+      skill_required: "Mining 4"
+    - module: "Mining Laser Upgrade I"
+      upgrade_to: "Mining Laser Upgrade II"
+      skill_required: "Mining Upgrades 4"
+    - ship: "Retriever (Mining Barge)"
+      notes: "Much higher yield, larger ore hold"

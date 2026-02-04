@@ -1,0 +1,264 @@
+#!/bin/bash
+# ARIA Configuration Validator
+# Checks pilot profile and operational profile for common configuration issues
+# V2 multi-pilot structure only
+
+# Don't use set -e - we need to continue even when checks "fail"
+
+# Use CLAUDE_PROJECT_DIR if set, otherwise try to find project root
+if [ -n "$CLAUDE_PROJECT_DIR" ]; then
+    PROJECT_DIR="$CLAUDE_PROJECT_DIR"
+else
+    # Try to find the project root by looking for CLAUDE.md
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+fi
+
+# ─────────────────────────────────────────────────────────────────────
+# Path Resolution (V2 Structure)
+# ─────────────────────────────────────────────────────────────────────
+
+CONFIG_FILE="$PROJECT_DIR/.aria-config.json"
+PILOTS_DIR="$PROJECT_DIR/pilots"
+PILOT_PROFILE=""
+OPERATIONAL_PROFILE=""
+ACTIVE_PILOT_ID=""
+
+resolve_paths() {
+    # Get active pilot ID from environment or config
+    if [[ -n "$ARIA_PILOT" ]]; then
+        ACTIVE_PILOT_ID="$ARIA_PILOT"
+    elif [[ -f "$CONFIG_FILE" ]]; then
+        ACTIVE_PILOT_ID=$(grep -o '"active_pilot"[[:space:]]*:[[:space:]]*"[^"]*"' "$CONFIG_FILE" 2>/dev/null | cut -d'"' -f4)
+    fi
+
+    if [[ -n "$ACTIVE_PILOT_ID" ]]; then
+        # Find pilot directory by ID prefix
+        local pilot_dir
+        pilot_dir=$(ls -d "$PILOTS_DIR/${ACTIVE_PILOT_ID}_"* 2>/dev/null | head -1)
+        if [[ -n "$pilot_dir" ]] && [[ -d "$pilot_dir" ]]; then
+            PILOT_PROFILE="$pilot_dir/profile.md"
+            OPERATIONAL_PROFILE="$pilot_dir/operations.md"
+        fi
+    fi
+
+    # Fallback: try first pilot in registry if no active pilot found
+    if [[ -z "$PILOT_PROFILE" ]] || [[ ! -f "$PILOT_PROFILE" ]]; then
+        local first_pilot_dir
+        first_pilot_dir=$(ls -d "$PILOTS_DIR"/[0-9]*_* 2>/dev/null | head -1)
+        if [[ -n "$first_pilot_dir" ]] && [[ -d "$first_pilot_dir" ]]; then
+            PILOT_PROFILE="$first_pilot_dir/profile.md"
+            OPERATIONAL_PROFILE="$first_pilot_dir/operations.md"
+            ACTIVE_PILOT_ID=$(basename "$first_pilot_dir" | cut -d'_' -f1)
+        fi
+    fi
+}
+
+# Initialize paths
+resolve_paths
+
+# Output format: json for structured parsing, text for human reading
+OUTPUT_FORMAT="${1:-text}"
+
+# Track issues
+CRITICAL_ISSUES=()
+WARNINGS=()
+INFO=()
+
+# ============================================================================
+# Validation Functions
+# ============================================================================
+
+check_file_exists() {
+    local file="$1"
+    local name="$2"
+
+    if [ ! -f "$file" ]; then
+        CRITICAL_ISSUES+=("$name not found at expected path")
+        return 1
+    fi
+    return 0
+}
+
+check_placeholder() {
+    local file="$1"
+    local pattern="$2"
+    local field_name="$3"
+    local severity="$4"  # critical, warning, info
+
+    if grep -q "$pattern" "$file" 2>/dev/null; then
+        case "$severity" in
+            critical) CRITICAL_ISSUES+=("$field_name contains unfilled placeholder") ;;
+            warning)  WARNINGS+=("$field_name may need updating") ;;
+            info)     INFO+=("$field_name has template content") ;;
+        esac
+        return 1
+    fi
+    return 0
+}
+
+check_field_present() {
+    local file="$1"
+    local pattern="$2"
+    local field_name="$3"
+
+    if ! grep -q "$pattern" "$file" 2>/dev/null; then
+        CRITICAL_ISSUES+=("$field_name not found in profile")
+        return 1
+    fi
+    return 0
+}
+
+# ============================================================================
+# Run Validations
+# ============================================================================
+
+# Display names for error messages
+PILOT_PROFILE_NAME="pilot profile (${ACTIVE_PILOT_ID:-unknown})"
+OPERATIONAL_PROFILE_NAME="operational profile (${ACTIVE_PILOT_ID:-unknown})"
+
+# --- Check pilot profile ---
+
+if check_file_exists "$PILOT_PROFILE" "$PILOT_PROFILE_NAME"; then
+
+    # Critical: Character Name must exist and not be a placeholder
+    if check_field_present "$PILOT_PROFILE" "Character Name:" "Character Name"; then
+        # Check for the specific template placeholder
+        if grep -q "\[YOUR CHARACTER NAME\]" "$PILOT_PROFILE" 2>/dev/null; then
+            CRITICAL_ISSUES+=("Character Name contains unfilled placeholder")
+        fi
+    fi
+
+    # Critical: Primary Faction (needed for ARIA persona)
+    if grep -q "Primary Faction:" "$PILOT_PROFILE" 2>/dev/null; then
+        if grep -q "\[GALLENTE/CALDARI/MINMATAR/AMARR\]" "$PILOT_PROFILE" 2>/dev/null; then
+            CRITICAL_ISSUES+=("Primary Faction not selected (needed for ARIA persona)")
+        fi
+    else
+        # Check if faction is implied by other fields (e.g., "Gallente Federation" standing is positive)
+        if grep -q "Federation Navy\|Gallente" "$PILOT_PROFILE" 2>/dev/null; then
+            : # Faction can be inferred
+        else
+            WARNINGS+=("Primary Faction not explicitly set - ARIA will use neutral persona")
+        fi
+    fi
+
+    # Warning: Common template placeholders
+    check_placeholder "$PILOT_PROFILE" "\[YOUR CORPORATION\]" "Corporation" "warning"
+    check_placeholder "$PILOT_PROFILE" "\[YOUR ALLIANCE" "Alliance" "info"
+    check_placeholder "$PILOT_PROFILE" "\[YOUR SEC STATUS\]" "Security Status" "warning"
+    check_placeholder "$PILOT_PROFILE" "\[JOIN DATE" "Capsuleer Since" "info"
+    check_placeholder "$PILOT_PROFILE" "\[YOUR PRIMARY MISSION CORP\]" "Mission Provider" "warning"
+
+    # Warning: Empty standing tables
+    if grep -q "| Gallente Federation | |" "$PILOT_PROFILE" 2>/dev/null; then
+        WARNINGS+=("Empire faction standings appear empty")
+    fi
+
+    # Warning: Generic activity placeholders
+    check_placeholder "$PILOT_PROFILE" "^\s*1\. \[Activity\]" "Primary Activities" "warning"
+    check_placeholder "$PILOT_PROFILE" "\[Goal 1\]" "Current Goals" "info"
+    check_placeholder "$PILOT_PROFILE" "\[Achievement 1\]" "Achievements" "info"
+
+    # Info: YES/NO not filled
+    if grep -q "| YES/NO |" "$PILOT_PROFILE" 2>/dev/null; then
+        INFO+=("Operational restrictions table has unfilled YES/NO fields")
+    fi
+
+fi
+
+# --- Check operational profile ---
+
+if check_file_exists "$OPERATIONAL_PROFILE" "$OPERATIONAL_PROFILE_NAME"; then
+
+    # Warning: Home base not set
+    check_placeholder "$OPERATIONAL_PROFILE" "\[YOUR REGION\]" "Home Region" "warning"
+    check_placeholder "$OPERATIONAL_PROFILE" "\[STATION NAME\]" "Primary Station" "warning"
+
+    # Info: Ship roster empty
+    if grep -q "| \[Name\] | \[Hull\] |" "$OPERATIONAL_PROFILE" 2>/dev/null; then
+        INFO+=("Ship roster contains template entries")
+    fi
+
+    # Check for at least one real ship entry
+    SHIP_COUNT=$(grep -E "^\| [^|\[]+ \| [^|\[]+ \| [^|\[]+ \|" "$OPERATIONAL_PROFILE" 2>/dev/null | grep -v "Ship\|Hull\|Role\|Name" | wc -l || echo "0")
+    if [ "$SHIP_COUNT" -eq 0 ]; then
+        INFO+=("No ships in roster - consider adding your vessels")
+    fi
+
+fi
+
+# ============================================================================
+# Output Results
+# ============================================================================
+
+CRITICAL_COUNT=${#CRITICAL_ISSUES[@]}
+WARNING_COUNT=${#WARNINGS[@]}
+INFO_COUNT=${#INFO[@]}
+
+if [ "$OUTPUT_FORMAT" = "json" ]; then
+    # JSON output for programmatic parsing
+    echo "{"
+    echo "  \"valid\": $([ $CRITICAL_COUNT -eq 0 ] && echo "true" || echo "false"),"
+    [[ -n "$ACTIVE_PILOT_ID" ]] && echo "  \"active_pilot\": \"$ACTIVE_PILOT_ID\","
+    echo "  \"critical_count\": $CRITICAL_COUNT,"
+    echo "  \"warning_count\": $WARNING_COUNT,"
+    echo "  \"info_count\": $INFO_COUNT,"
+
+    echo "  \"critical\": ["
+    for i in "${!CRITICAL_ISSUES[@]}"; do
+        printf '    "%s"' "${CRITICAL_ISSUES[$i]}"
+        [ $i -lt $((CRITICAL_COUNT - 1)) ] && echo "," || echo ""
+    done
+    echo "  ],"
+
+    echo "  \"warnings\": ["
+    for i in "${!WARNINGS[@]}"; do
+        printf '    "%s"' "${WARNINGS[$i]}"
+        [ $i -lt $((WARNING_COUNT - 1)) ] && echo "," || echo ""
+    done
+    echo "  ],"
+
+    echo "  \"info\": ["
+    for i in "${!INFO[@]}"; do
+        printf '    "%s"' "${INFO[$i]}"
+        [ $i -lt $((INFO_COUNT - 1)) ] && echo "," || echo ""
+    done
+    echo "  ]"
+
+    echo "}"
+else
+    # Human-readable text output
+    if [ $CRITICAL_COUNT -eq 0 ] && [ $WARNING_COUNT -eq 0 ]; then
+        echo "CONFIG_STATUS:OK"
+    elif [ $CRITICAL_COUNT -gt 0 ]; then
+        echo "CONFIG_STATUS:CRITICAL"
+        echo "CRITICAL_ISSUES:"
+        for issue in "${CRITICAL_ISSUES[@]}"; do
+            echo "  - $issue"
+        done
+    else
+        echo "CONFIG_STATUS:WARNINGS"
+    fi
+
+    if [ $WARNING_COUNT -gt 0 ]; then
+        echo "WARNINGS:"
+        for warning in "${WARNINGS[@]}"; do
+            echo "  - $warning"
+        done
+    fi
+
+    if [ $INFO_COUNT -gt 0 ]; then
+        echo "INFO:"
+        for info in "${INFO[@]}"; do
+            echo "  - $info"
+        done
+    fi
+fi
+
+# Exit with appropriate code (0 = ok, 1 = critical issues)
+if [ $CRITICAL_COUNT -gt 0 ]; then
+    exit 1
+else
+    exit 0
+fi

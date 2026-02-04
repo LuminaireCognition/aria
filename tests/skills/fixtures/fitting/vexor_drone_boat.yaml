@@ -1,0 +1,262 @@
+# Test fixture: Vexor drone boat with damage profile
+# Tests /fitting with drone-focused combat fit and custom damage profile
+
+name: "Vexor drone boat with damage profile"
+skill: fitting
+description: |
+  Vexor Navy Issue equivalent fit as a drone boat.
+  Tests damage profile input for EHP calculation against specific damage types.
+
+input:
+  eft: |
+    [Vexor, Ratting VNI]
+
+    Drone Damage Amplifier II
+    Drone Damage Amplifier II
+    Drone Damage Amplifier II
+    Medium Armor Repairer II
+
+    100MN Y-S8 Compact Afterburner
+    Omnidirectional Tracking Link I
+    Omnidirectional Tracking Link I
+    Cap Recharger II
+
+    Drone Link Augmentor I
+
+    Medium Auxiliary Nano Pump I
+    Medium Auxiliary Nano Pump I
+    Medium Auxiliary Nano Pump I
+
+    Hammerhead II x5
+    Hobgoblin II x5
+
+  damage_profile:
+    em: 0
+    thermal: 50
+    kinetic: 50
+    explosive: 0
+
+expected_output:
+  ship:
+    type_id: 626
+    type_name: "Vexor"
+    fit_name: "Ratting VNI"
+  dps:
+    total: 450.0
+    em: 0.0
+    thermal: 225.0
+    kinetic: 225.0
+    explosive: 0.0
+  tank:
+    shield:
+      hp: 1100
+      ehp: 1320
+      resists:
+        em: 0.0
+        thermal: 20.0
+        kinetic: 40.0
+        explosive: 50.0
+    armor:
+      hp: 2400
+      ehp: 4200
+      resists:
+        em: 50.0
+        thermal: 45.0
+        kinetic: 25.0
+        explosive: 10.0
+    hull:
+      hp: 2200
+      ehp: 2200
+      resists:
+        em: 0.0
+        thermal: 0.0
+        kinetic: 0.0
+        explosive: 0.0
+    total_hp: 5700
+    total_ehp: 7720
+  resources:
+    cpu:
+      used: 280.0
+      output: 350.0
+      percent: 80.0
+      remaining: 70.0
+      overloaded: false
+    powergrid:
+      used: 750.0
+      output: 900.0
+      percent: 83.3
+      remaining: 150.0
+      overloaded: false
+    calibration:
+      used: 225.0
+      output: 400.0
+      percent: 56.3
+      remaining: 175.0
+      overloaded: false
+  capacitor:
+    capacity: 1800.0
+    recharge_time: 280.0
+    recharge_rate: 6.43
+    peak_recharge_rate: 16.07
+  mobility:
+    max_velocity: 800.0
+    agility: 0.42
+    align_time: 8.5
+    mass: 11500000.0
+    warp_speed: 3.0
+  drones:
+    bandwidth:
+      used: 75.0
+      output: 75.0
+      percent: 100.0
+    bay:
+      used: 100.0
+      output: 125.0
+    launched: 5
+    max_active: 5
+  slots:
+    high:
+      used: 1
+      total: 4
+    mid:
+      used: 4
+      total: 4
+    low:
+      used: 4
+      total: 5
+    rig:
+      used: 3
+      total: 3
+  metadata:
+    skill_mode: "all_v"
+    validation_errors: []
+    warnings: []
+
+expected_facts:
+  # Ship identification
+  - path: "ship.type_name"
+    equals: "Vexor"
+
+  # Drone boat should have significant DPS
+  - path: "dps.total"
+    range: [300, 600]
+
+  # Vexor has 75 bandwidth for medium drones
+  - path: "drones.bandwidth.output"
+    equals: 75
+
+  # Should have 5 drones launched
+  - path: "drones.launched"
+    equals: 5
+
+  # Armor tank stats should be valid
+  - path: "tank.armor.hp"
+    range: [1500, 4000]
+
+  # EHP should be reasonable for cruiser
+  - path: "tank.total_ehp"
+    range: [5000, 15000]
+
+  # Rigs should be fully used
+  - path: "slots.rig.used"
+    equals: 3
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  fitting_calculate_stats:
+    ship:
+      type_id: 626
+      type_name: "Vexor"
+      fit_name: "Ratting VNI"
+    dps:
+      total: 450.0
+      em: 0.0
+      thermal: 225.0
+      kinetic: 225.0
+      explosive: 0.0
+    tank:
+      shield:
+        hp: 1100
+        ehp: 1320
+        resists:
+          em: 0.0
+          thermal: 20.0
+          kinetic: 40.0
+          explosive: 50.0
+      armor:
+        hp: 2400
+        ehp: 4200
+        resists:
+          em: 50.0
+          thermal: 45.0
+          kinetic: 25.0
+          explosive: 10.0
+      hull:
+        hp: 2200
+        ehp: 2200
+        resists:
+          em: 0.0
+          thermal: 0.0
+          kinetic: 0.0
+          explosive: 0.0
+      total_hp: 5700
+      total_ehp: 7720
+    resources:
+      cpu:
+        used: 280.0
+        output: 350.0
+        percent: 80.0
+        remaining: 70.0
+        overloaded: false
+      powergrid:
+        used: 750.0
+        output: 900.0
+        percent: 83.3
+        remaining: 150.0
+        overloaded: false
+      calibration:
+        used: 225.0
+        output: 400.0
+        percent: 56.3
+        remaining: 175.0
+        overloaded: false
+    capacitor:
+      capacity: 1800.0
+      recharge_time: 280.0
+      recharge_rate: 6.43
+      peak_recharge_rate: 16.07
+    mobility:
+      max_velocity: 800.0
+      agility: 0.42
+      align_time: 8.5
+      mass: 11500000.0
+      warp_speed: 3.0
+    drones:
+      bandwidth:
+        used: 75.0
+        output: 75.0
+        percent: 100.0
+      bay:
+        used: 100.0
+        output: 125.0
+      launched: 5
+      max_active: 5
+    slots:
+      high:
+        used: 1
+        total: 4
+      mid:
+        used: 4
+        total: 4
+      low:
+        used: 4
+        total: 5
+      rig:
+        used: 3
+        total: 3
+    metadata:
+      skill_mode: "all_v"
+      validation_errors: []
+      warnings: []

@@ -1,0 +1,71 @@
+# Test fixture: Jita to Amarr shortest route
+# Tests shortest path routing (may include lowsec)
+
+name: "Jita to Amarr shortest route"
+skill: route
+description: |
+  Shortest path between major trade hubs.
+  May pass through lowsec systems for efficiency.
+  Tests that shortest mode accepts lower security.
+
+input:
+  origin: Jita
+  destination: Amarr
+  mode: shortest
+
+expected_facts:
+  - path: "origin"
+    equals: "Jita"
+
+  - path: "destination"
+    equals: "Amarr"
+
+  - path: "mode"
+    equals: "shortest"
+
+  # Shortest route should be fewer jumps than safe (historically ~25-35)
+  - path: "total_jumps"
+    range: [20, 40]
+
+  # First system must be origin
+  - path: "route[0].system"
+    equals: "Jita"
+
+  # Last system must be destination
+  - path: "route[-1].system"
+    equals: "Amarr"
+
+  # Route may contain lowsec - just verify valid security range
+  - path: "route[*].security"
+    all_satisfy: ">= -1.0"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_route:
+    origin: "Jita"
+    destination: "Amarr"
+    mode: "shortest"
+    total_jumps: 29
+    route:
+      - system: "Jita"
+        system_id: 30000142
+        security: 0.95
+      - system: "Perimeter"
+        system_id: 30000144
+        security: 0.90
+      - system: "Urlen"
+        system_id: 30000145
+        security: 0.86
+      # Shortest route passes through Niarja (lowsec)
+      - system: "Niarja"
+        system_id: 30003504
+        security: 0.50
+      - system: "Amarr"
+        system_id: 30002187
+        security: 1.0
+    security_profile:
+      highsec_jumps: 26
+      lowsec_jumps: 3
+      nullsec_jumps: 0

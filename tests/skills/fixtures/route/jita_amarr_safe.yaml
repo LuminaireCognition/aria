@@ -1,0 +1,84 @@
+# Test fixture: Jita to Amarr safe route
+# Tests long-distance highsec-only routing
+
+name: "Jita to Amarr safe route"
+skill: route
+description: |
+  Long-distance safe route between major trade hubs.
+  The safe route avoids all lowsec, adding jumps but maintaining security.
+  Expected to pass through Caldari/Domain highsec corridor.
+
+input:
+  origin: Jita
+  destination: Amarr
+  mode: safe
+
+# Note: expected_output not included as exact route depends on universe data
+# Use expected_facts for assertions that hold regardless of exact path
+
+expected_facts:
+  - path: "origin"
+    equals: "Jita"
+
+  - path: "destination"
+    equals: "Amarr"
+
+  - path: "mode"
+    equals: "safe"
+
+  # Safe route should be 40-50 jumps (avoiding Niarja/low-sec shortcuts)
+  - path: "total_jumps"
+    range: [35, 55]
+
+  # First system must be origin
+  - path: "route[0].system"
+    equals: "Jita"
+
+  # Last system must be destination
+  - path: "route[-1].system"
+    equals: "Amarr"
+
+  # All systems in safe route must be highsec (>= 0.45)
+  - path: "route[*].security"
+    all_satisfy: ">= 0.45"
+
+  # Security profile must show no lowsec
+  - path: "security_profile.lowsec_jumps"
+    equals: 0
+
+  - path: "security_profile.nullsec_jumps"
+    equals: 0
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_route:
+    origin: "Jita"
+    destination: "Amarr"
+    mode: "safe"
+    total_jumps: 45
+    route:
+      - system: "Jita"
+        system_id: 30000142
+        security: 0.95
+      - system: "Perimeter"
+        system_id: 30000144
+        security: 0.90
+      - system: "Urlen"
+        system_id: 30000145
+        security: 0.86
+      - system: "Sirppala"
+        system_id: 30000146
+        security: 0.72
+      # ... abbreviated for brevity, would have ~45 systems
+      - system: "Ashab"
+        system_id: 30002813
+        security: 0.63
+      - system: "Amarr"
+        system_id: 30002187
+        security: 1.0
+    security_profile:
+      highsec_jumps: 44
+      lowsec_jumps: 0
+      nullsec_jumps: 0

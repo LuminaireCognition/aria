@@ -1,0 +1,129 @@
+# Rupture L2 Missions - Low Skill Variant
+#
+# Entry-level fit for pilots just getting into cruisers.
+# Autocannons with armor tank. Cap-free guns very forgiving.
+
+archetype:
+  hull: Rupture
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Rupture, L2 Missions - Low Skills]
+
+  Gyrostabilizer I
+  Gyrostabilizer I
+  Damage Control I
+  Medium Armor Repairer I
+  Compact Multispectrum Energized Membrane
+
+  50MN Cold-Gas Enduring Microwarpdrive
+  Medium Compact Pb-Acid Cap Battery
+  Tracking Computer I
+
+  425mm AutoCannon I
+  425mm AutoCannon I
+  425mm AutoCannon I
+  425mm AutoCannon I
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Projectile Burst Aerator I
+
+  Hobgoblin I x3
+  Warrior I x3
+
+  EMP M x2000
+  Phased Plasma M x1000
+  Fusion M x1000
+  Titanium Sabot M x500
+  Tracking Speed Script x1
+
+skill_requirements:
+  required:
+    Minmatar Cruiser: 2
+    Medium Projectile Turret: 3
+    Gunnery: 3
+    Armor Repair Systems: 2
+    Hull Upgrades: 2
+  recommended:
+    Motion Prediction: 3
+    Surgical Strike: 2
+    Rapid Firing: 2
+    Mechanics: 3
+
+stats:
+  dps: 195
+  ehp: 9500
+  tank_sustained: 70
+  capacitor_stable: true
+  align_time: 8.5
+  speed_mwd: 1400
+  optimal_range: 2500
+  falloff: 12000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: em_kinetic  # EMP ammo
+  tank_profile: armor_active
+
+  # Ammo-specific damage selection
+  overrides:
+    serpentis:
+      ammo: "Phased Plasma M"  # Thermal/Kinetic
+      drones:
+        primary: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal"
+
+    angel_cartel:
+      ammo: "Fusion M"  # Explosive/Kinetic
+      drones:
+        primary: "Warrior I"
+      notes: "Angels weak to Explosive"
+
+    blood_raiders:
+      ammo: "EMP M"  # EM/Kinetic
+      drones:
+        primary: "Acolyte I"
+      notes: "Blood Raiders weak to EM - default ammo works"
+
+    guristas:
+      ammo: "Titanium Sabot M"  # Kinetic
+      drones:
+        primary: "Hornet I"
+      notes: "Guristas weak to Kinetic"
+
+    rogue_drones:
+      ammo: "EMP M"  # EM/Kinetic
+      drones:
+        primary: "Acolyte I"
+      notes: "Drones weak to EM"
+
+    mercenaries:
+      ammo: "Phased Plasma M"  # Thermal/Kinetic
+      drones:
+        primary: "Hobgoblin I"
+      notes: "Mercenaries weak to Thermal"
+
+notes:
+  purpose: "Entry-level L2 mission runner for Minmatar pilots"
+  engagement: "Close fast with MWD, orbit at 2-5km, swap ammo for target"
+  warnings:
+    - "Autocannons are close range - get in tight"
+    - "Swap ammo freely - no reload penalty"
+    - "Guns use NO capacitor - very forgiving"
+    - "Use tracking computer if struggling to hit frigates"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "425mm AutoCannon I"
+      upgrade_to: "425mm AutoCannon II"
+      skill_required: "Medium Projectile Turret 5"
+    - module: "Gyrostabilizer I"
+      upgrade_to: "Gyrostabilizer II"
+      skill_required: "Weapon Upgrades 4"
+    - module: "Medium Armor Repairer I"
+      upgrade_to: "Medium Armor Repairer II"
+      skill_required: "Repair Systems 5"

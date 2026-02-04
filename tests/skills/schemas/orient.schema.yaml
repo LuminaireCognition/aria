@@ -1,0 +1,299 @@
+# JSON Schema for /orient skill output validation
+# Validates the structure of universe(action="local_area") responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: OrientSkillOutput
+description: Output schema for the /orient skill (local area intelligence)
+type: object
+
+required:
+  - origin
+  - origin_id
+  - security
+  - security_class
+  - region
+  - threat_summary
+
+properties:
+  origin:
+    type: string
+    description: Origin system name
+    minLength: 1
+
+  origin_id:
+    type: integer
+    description: Origin system ID
+    minimum: 30000000
+    maximum: 32000000
+
+  security:
+    type: number
+    description: Security status
+    minimum: -1.0
+    maximum: 1.0
+
+  security_class:
+    type: string
+    description: Security classification
+    enum: ["HIGH", "LOW", "NULL"]
+
+  region:
+    type: string
+    description: Region name
+    minLength: 1
+
+  constellation:
+    type: string
+    description: Constellation name
+    minLength: 1
+
+  threat_summary:
+    $ref: "#/$defs/ThreatSummary"
+
+  hotspots:
+    type: array
+    description: High PvP activity systems to avoid or hunt
+    items:
+      $ref: "#/$defs/LocalSystemActivity"
+
+  quiet_zones:
+    type: array
+    description: Low/zero activity systems for stealth ops
+    items:
+      $ref: "#/$defs/LocalSystemActivity"
+
+  ratting_banks:
+    type: array
+    description: High NPC kill systems indicating ratting activity
+    items:
+      $ref: "#/$defs/LocalSystemActivity"
+
+  escape_routes:
+    type: array
+    description: Routes to safer space
+    items:
+      $ref: "#/$defs/EscapeRoute"
+
+  borders:
+    type: array
+    description: Security transition points
+    items:
+      $ref: "#/$defs/SecurityBorder"
+
+  systems_scanned:
+    type: integer
+    description: Number of systems in search radius
+    minimum: 0
+
+  search_radius:
+    type: integer
+    description: Search radius in jumps
+    minimum: 0
+
+  cache_age_seconds:
+    type: ["integer", "null"]
+    description: Age of activity data in seconds
+    minimum: 0
+
+  realtime_healthy:
+    type: boolean
+    description: Whether real-time gatecamp detection was available
+
+  warnings:
+    type: array
+    description: Any warnings about the data
+    items:
+      type: string
+
+  corrections:
+    type: object
+    description: Auto-corrected system names
+    additionalProperties:
+      type: string
+
+$defs:
+  ThreatSummary:
+    type: object
+    description: Aggregated threat assessment
+    required:
+      - level
+      - total_kills
+    properties:
+      level:
+        type: string
+        description: Overall threat level
+        enum: ["LOW", "MEDIUM", "HIGH", "EXTREME"]
+
+      total_kills:
+        type: integer
+        description: Total ship kills in search radius
+        minimum: 0
+
+      total_pods:
+        type: integer
+        description: Total pod kills in search radius
+        minimum: 0
+
+      active_camps:
+        type: array
+        description: System names with detected gatecamps
+        items:
+          type: string
+
+      hotspot_count:
+        type: integer
+        description: Number of high-activity systems
+        minimum: 0
+
+  LocalSystemActivity:
+    type: object
+    description: Activity data for a system
+    required:
+      - system
+      - system_id
+      - security
+      - security_class
+      - jumps
+    properties:
+      system:
+        type: string
+        description: System name
+        minLength: 1
+
+      system_id:
+        type: integer
+        description: System ID
+        minimum: 30000000
+        maximum: 32000000
+
+      security:
+        type: number
+        description: Security status
+        minimum: -1.0
+        maximum: 1.0
+
+      security_class:
+        type: string
+        description: Security classification
+        enum: ["HIGH", "LOW", "NULL"]
+
+      region:
+        type: string
+        description: Region name
+        minLength: 1
+
+      jumps:
+        type: integer
+        description: Distance from origin
+        minimum: 0
+
+      ship_kills:
+        type: integer
+        description: Ship kills
+        minimum: 0
+
+      pod_kills:
+        type: integer
+        description: Pod kills
+        minimum: 0
+
+      npc_kills:
+        type: integer
+        description: NPC kills
+        minimum: 0
+
+      ship_jumps:
+        type: integer
+        description: Ship jumps
+        minimum: 0
+
+      activity_level:
+        type: string
+        description: Activity classification
+        enum: ["none", "low", "medium", "high", "extreme"]
+
+      reason:
+        type: ["string", "null"]
+        description: Classification reason
+
+  EscapeRoute:
+    type: object
+    description: Route to safer space
+    required:
+      - destination
+      - destination_type
+      - jumps
+    properties:
+      destination:
+        type: string
+        description: Destination system name
+        minLength: 1
+
+      destination_type:
+        type: string
+        description: Type of escape destination
+        enum: ["lowsec", "highsec", "npc_station", "trade_hub"]
+
+      jumps:
+        type: integer
+        description: Total jumps to destination
+        minimum: 0
+
+      via_system:
+        type: ["string", "null"]
+        description: First waypoint system
+
+      route_security:
+        type: string
+        description: Security profile of the route
+        enum: ["highsec", "lowsec", "mixed"]
+
+  SecurityBorder:
+    type: object
+    description: Security transition point
+    required:
+      - system
+      - system_id
+      - security
+      - jumps
+      - border_type
+      - adjacent_system
+      - adjacent_security
+    properties:
+      system:
+        type: string
+        description: Border system name
+        minLength: 1
+
+      system_id:
+        type: integer
+        description: System ID
+        minimum: 30000000
+        maximum: 32000000
+
+      security:
+        type: number
+        description: Security status
+        minimum: -1.0
+        maximum: 1.0
+
+      jumps:
+        type: integer
+        description: Distance from origin
+        minimum: 0
+
+      border_type:
+        type: string
+        description: Security transition type
+        enum: ["null_to_low", "low_to_high", "high_to_low", "low_to_null"]
+
+      adjacent_system:
+        type: string
+        description: System on the other side
+        minLength: 1
+
+      adjacent_security:
+        type: number
+        description: Adjacent system security
+        minimum: -1.0
+        maximum: 1.0

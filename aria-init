@@ -1,0 +1,1448 @@
+#!/usr/bin/env bash
+#
+# ARIA Initialization Wizard
+# Sets up a new ARIA installation for Eve Online
+#
+# Usage: ./aria-init [options]
+#
+# Options:
+#   --help        Show this help message
+#   --version     Show version information
+#   --test        Run in non-interactive test mode (generates sample files)
+#
+
+set -e
+
+VERSION="1.0.0"
+
+# ============================================================================
+# Configuration
+# ============================================================================
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+TEMPLATES_DIR="$SCRIPT_DIR/templates"
+DATA_DIR="$SCRIPT_DIR/data"
+INDUSTRY_DIR="$DATA_DIR/industry"
+
+# Terminal colors (with fallback for no-color terminals)
+if [[ -t 1 ]] && [[ "${TERM:-}" != "dumb" ]]; then
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[0;33m'
+    BLUE='\033[0;34m'
+    CYAN='\033[0;36m'
+    BOLD='\033[1m'
+    DIM='\033[2m'
+    NC='\033[0m' # No Color
+else
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    CYAN=''
+    BOLD=''
+    DIM=''
+    NC=''
+fi
+
+# Box drawing characters
+BOX_TOP="═══════════════════════════════════════════════════════════════════"
+BOX_DIV="───────────────────────────────────────────────────────────────────"
+
+# ============================================================================
+# Faction Data
+# ============================================================================
+
+declare -A FACTION_AI_NAME=(
+    ["GALLENTE"]="ARIA Mk.IV"
+    ["CALDARI"]="AURA-C"
+    ["MINMATAR"]="VIND"
+    ["AMARR"]="THRONE"
+)
+
+declare -A FACTION_FULL_NAME=(
+    ["GALLENTE"]="Gallente Federation"
+    ["CALDARI"]="Caldari State"
+    ["MINMATAR"]="Minmatar Republic"
+    ["AMARR"]="Amarr Empire"
+)
+
+declare -A FACTION_STARTER_CORP=(
+    ["GALLENTE"]="Federal Navy Academy"
+    ["CALDARI"]="State War Academy"
+    ["MINMATAR"]="Republic Military School"
+    ["AMARR"]="Imperial Academy"
+)
+
+declare -A FACTION_MISSION_CORP=(
+    ["GALLENTE"]="Federation Navy"
+    ["CALDARI"]="Caldari Navy"
+    ["MINMATAR"]="Republic Fleet"
+    ["AMARR"]="Imperial Navy"
+)
+
+declare -A FACTION_HOME_REGION=(
+    ["GALLENTE"]="Sinq Laison"
+    ["CALDARI"]="The Forge"
+    ["MINMATAR"]="Heimatar"
+    ["AMARR"]="Domain"
+)
+
+declare -A FACTION_ENEMY_PIRATES=(
+    ["GALLENTE"]="Serpentis"
+    ["CALDARI"]="Guristas"
+    ["MINMATAR"]="Angel Cartel"
+    ["AMARR"]="Blood Raiders"
+)
+
+declare -A FACTION_HOSTILE_EMPIRE=(
+    ["GALLENTE"]="Caldari State"
+    ["CALDARI"]="Gallente Federation"
+    ["MINMATAR"]="Amarr Empire"
+    ["AMARR"]="Minmatar Republic"
+)
+
+declare -A FACTION_STYLE=(
+    ["GALLENTE"]="Liberty, democracy, cultural sophistication, dry wit"
+    ["CALDARI"]="Corporate efficiency, honor-bound duty, measured precision"
+    ["MINMATAR"]="Tribal solidarity, freedom fighter spirit, direct honesty"
+    ["AMARR"]="Divine purpose, imperial dignity, reverent formality"
+)
+
+declare -A FACTION_MOTTO=(
+    ["GALLENTE"]="Freedom through knowledge, Capsuleer."
+    ["CALDARI"]="Efficiency is the path to victory."
+    ["MINMATAR"]="We fly free."
+    ["AMARR"]="By God's light, we prevail."
+)
+
+declare -A FACTION_EXPLORATION_SHIP=(
+    ["GALLENTE"]="Imicus"
+    ["CALDARI"]="Heron"
+    ["MINMATAR"]="Probe"
+    ["AMARR"]="Magnate"
+)
+
+declare -A FACTION_COMBAT_FRIGATE=(
+    ["GALLENTE"]="Tristan"
+    ["CALDARI"]="Kestrel"
+    ["MINMATAR"]="Rifter"
+    ["AMARR"]="Punisher"
+)
+
+declare -A FACTION_COMBAT_CRUISER=(
+    ["GALLENTE"]="Vexor"
+    ["CALDARI"]="Caracal"
+    ["MINMATAR"]="Rupture"
+    ["AMARR"]="Omen"
+)
+
+# ============================================================================
+# Utility Functions
+# ============================================================================
+
+print_box_top() {
+    echo -e "${CYAN}${BOX_TOP}${NC}"
+}
+
+print_box_div() {
+    echo -e "${CYAN}${BOX_DIV}${NC}"
+}
+
+print_header() {
+    local title="$1"
+    print_box_top
+    echo -e "${BOLD}${title}${NC}"
+    print_box_div
+}
+
+print_footer() {
+    print_box_top
+    echo ""
+}
+
+print_success() {
+    echo -e "${GREEN}✓${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}✗${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}!${NC} $1"
+}
+
+print_info() {
+    echo -e "${DIM}$1${NC}"
+}
+
+prompt() {
+    local message="$1"
+    local default="$2"
+    local result
+
+    if [[ -n "$default" ]]; then
+        echo -en "${message} ${DIM}[${default}]${NC}: "
+    else
+        echo -en "${message}: "
+    fi
+
+    read -r result
+
+    if [[ -z "$result" && -n "$default" ]]; then
+        result="$default"
+    fi
+
+    echo "$result"
+}
+
+prompt_yes_no() {
+    local message="$1"
+    local default="${2:-n}"
+    local result
+
+    if [[ "$default" == "y" ]]; then
+        echo -en "${message} ${DIM}[Y/n]${NC}: "
+    else
+        echo -en "${message} ${DIM}[y/N]${NC}: "
+    fi
+
+    read -r result
+    result="${result:-$default}"
+
+    case "${result,,}" in
+        y|yes) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+select_option() {
+    local prompt_text="$1"
+    shift
+    local options=("$@")
+    local count=${#options[@]}
+    local selection
+
+    echo ""
+    for i in "${!options[@]}"; do
+        echo -e "  ${CYAN}$((i+1)))${NC} ${options[$i]}"
+    done
+    echo ""
+
+    while true; do
+        echo -en "${prompt_text} ${DIM}[1-${count}]${NC}: "
+        read -r selection
+
+        if [[ "$selection" =~ ^[0-9]+$ ]] && (( selection >= 1 && selection <= count )); then
+            echo "$selection"
+            return 0
+        fi
+
+        print_error "Please enter a number between 1 and ${count}"
+    done
+}
+
+progress_bar() {
+    local label="$1"
+    local duration="${2:-0.5}"
+    local width=40
+
+    echo -en "${label} ["
+    for ((i=0; i<width; i++)); do
+        echo -en "${GREEN}█${NC}"
+        sleep $(echo "$duration / $width" | bc -l 2>/dev/null || echo "0.01")
+    done
+    echo -e "] ${GREEN}OK${NC}"
+}
+
+# ============================================================================
+# Validation Functions
+# ============================================================================
+
+check_prerequisites() {
+    local errors=0
+
+    # Check templates directory
+    if [[ ! -d "$TEMPLATES_DIR" ]]; then
+        print_error "Templates directory not found: $TEMPLATES_DIR"
+        errors=$((errors + 1))
+    fi
+
+    # Check required template files
+    local required_templates=(
+        "pilot_profile.template.md"
+        "operational_profile.template.md"
+        "ship_status.template.md"
+        "mission_log.template.md"
+        "exploration_catalog.template.md"
+        "blueprint_library.template.md"
+    )
+
+    for template in "${required_templates[@]}"; do
+        if [[ ! -f "$TEMPLATES_DIR/$template" ]]; then
+            print_error "Missing template: $template"
+            errors=$((errors + 1))
+        fi
+    done
+
+    return $errors
+}
+
+check_existing_installation() {
+    local existing_files=()
+
+    local check_files=(
+        "$DATA_DIR/pilot_profile.md"
+        "$DATA_DIR/operational_profile.md"
+        "$DATA_DIR/ship_status.md"
+        "$DATA_DIR/mission_log.md"
+        "$DATA_DIR/exploration_catalog.md"
+        "$INDUSTRY_DIR/blueprint_library.md"
+    )
+
+    for file in "${check_files[@]}"; do
+        if [[ -f "$file" ]]; then
+            existing_files+=("$(basename "$file")")
+        fi
+    done
+
+    if [[ ${#existing_files[@]} -gt 0 ]]; then
+        return 0  # Files exist
+    else
+        return 1  # Clean installation
+    fi
+}
+
+# ============================================================================
+# File Generation Functions
+# ============================================================================
+
+generate_pilot_profile() {
+    local char_name="$1"
+    local corporation="$2"
+    local faction="$3"
+    local playstyle="$4"
+    local self_sufficient="$5"
+
+    local faction_full="${FACTION_FULL_NAME[$faction]}"
+    local mission_corp="${FACTION_MISSION_CORP[$faction]}"
+    local enemy_pirates="${FACTION_ENEMY_PIRATES[$faction]}"
+    local hostile_empire="${FACTION_HOSTILE_EMPIRE[$faction]}"
+
+    # Build playstyle checkboxes
+    local ps_market="[ ]"
+    local ps_selfsuff="[ ]"
+    local ps_industry="[ ]"
+    local ps_missions="[ ]"
+    local ps_explore="[ ]"
+    local ps_pvp="[ ]"
+    local ps_mining="[ ]"
+
+    case "$playstyle" in
+        1) ps_missions="[x]" ;;  # Mission Running
+        2) ps_mining="[x]"; ps_industry="[x]" ;;  # Mining/Industry
+        3) ps_explore="[x]" ;;  # Exploration
+        4) ps_missions="[x]"; ps_mining="[x]"; ps_explore="[x]" ;;  # Mixed
+    esac
+
+    if [[ "$self_sufficient" == "true" ]]; then
+        ps_selfsuff="[x]"
+    else
+        ps_market="[x]"
+    fi
+
+    # Build restrictions table
+    local market_perm="YES"
+    local contracts_perm="YES"
+    if [[ "$self_sufficient" == "true" ]]; then
+        market_perm="NO"
+        contracts_perm="NO"
+    fi
+
+    # Get current date in Eve format
+    local eve_date="YC$(date +%y).$(date +%m).$(date +%d)"
+
+    cat > "$DATA_DIR/pilot_profile.md" << EOF
+# Capsuleer Profile
+
+## Identity
+
+- **Character Name:** ${char_name}
+- **Corporation:** ${corporation}
+- **Alliance:** None
+- **Security Status:** 0.0
+- **Capsuleer Since:** ${eve_date}
+
+## Faction Alignment
+
+- **Primary Faction:** ${faction}
+<!--
+  ${FACTION_STYLE[$faction]}
+-->
+
+- **Mission Provider:** ${mission_corp}
+- **Hostile Factions:** ${hostile_empire}
+- **Target Pirates:** ${enemy_pirates}
+
+## Playstyle
+
+${ps_market} Market Trading (buy/sell with other players)
+${ps_selfsuff} Self-Sufficiency Mode (no player market, manufacturing focus)
+${ps_industry} Industry/Manufacturing Focus
+${ps_missions} Mission Running Focus
+${ps_explore} Exploration Focus
+${ps_pvp} PvP Focus
+${ps_mining} Mining Focus
+
+### Operational Restrictions
+
+| Transaction Type | Permitted | Notes |
+|------------------|-----------|-------|
+| Player market orders | ${market_perm} | |
+| Contracts | ${contracts_perm} | |
+| NPC-seeded BPOs | YES | |
+| NPC-seeded Skillbooks | YES | |
+| LP Store | YES | |
+| Loot/Drops | YES | |
+| Mission Rewards | YES | |
+| Manufacturing | YES | |
+
+## Standings
+
+### Empire Factions
+
+| Faction | Standing | Relation |
+|---------|----------|----------|
+| Gallente Federation | 0.00 | Neutral |
+| Caldari State | 0.00 | Neutral |
+| Minmatar Republic | 0.00 | Neutral |
+| Amarr Empire | 0.00 | Neutral |
+
+### Mission Corporations
+
+| Corporation | Standing | Access Level |
+|-------------|----------|--------------|
+| ${mission_corp} | 0.00 | L1 |
+
+### Pirate Factions
+
+| Faction | Standing | Notes |
+|---------|----------|-------|
+| Serpentis | 0.00 | |
+| Guristas | 0.00 | |
+| Angel Cartel | 0.00 | |
+| Blood Raiders | 0.00 | |
+| Sansha's Nation | 0.00 | |
+
+## Primary Activities
+
+1. Learning the ropes
+2. Building standings
+3. Acquiring resources
+
+## Skill Focus
+
+- [ ] Core skills (fitting, capacitor, navigation)
+- [ ] Combat skills (weapons, drones, tanking)
+- [ ] Support skills (scanning, industry)
+
+## Notable Achievements
+
+- Started the journey as a capsuleer
+
+## Current Goals
+
+- Reach L2 mission access with ${mission_corp}
+- Acquire core ship fittings
+- Learn the fundamentals of New Eden
+EOF
+}
+
+generate_operational_profile() {
+    local char_name="$1"
+    local faction="$2"
+    local home_region="$3"
+    local playstyle="$4"
+    local self_sufficient="$5"
+
+    local mission_corp="${FACTION_MISSION_CORP[$faction]}"
+    local enemy_pirates="${FACTION_ENEMY_PIRATES[$faction]}"
+    local hostile_empire="${FACTION_HOSTILE_EMPIRE[$faction]}"
+    local explore_ship="${FACTION_EXPLORATION_SHIP[$faction]}"
+    local combat_cruiser="${FACTION_COMBAT_CRUISER[$faction]}"
+    local faction_full="${FACTION_FULL_NAME[$faction]}"
+
+    # Build activity list based on playstyle
+    local activity1 activity2 activity3
+    case "$playstyle" in
+        1)  # Mission Running
+            activity1="Mission Running - Building standings with ${mission_corp}"
+            activity2="Salvaging - Recovering materials from wrecks"
+            activity3="Skill Training - Preparing for L3/L4 missions"
+            ;;
+        2)  # Mining/Industry
+            activity1="Mining - Gathering ore for manufacturing"
+            activity2="Manufacturing - Building ships and modules"
+            activity3="Mission Running - Supplemental income and standings"
+            ;;
+        3)  # Exploration
+            activity1="Exploration - Scanning and hacking sites"
+            activity2="Loot Analysis - Processing discoveries"
+            activity3="Mission Running - Supplemental standings work"
+            ;;
+        4)  # Mixed
+            activity1="Mission Running - Building standings with ${mission_corp}"
+            activity2="Mining - Gathering resources when missions are slow"
+            activity3="Exploration - Scanning sites for valuable discoveries"
+            ;;
+    esac
+
+    # Build restrictions section
+    local restrictions_section=""
+    if [[ "$self_sufficient" == "true" ]]; then
+        restrictions_section="## Operational Restrictions
+
+Self-imposed rules that define this capsuleer's playstyle:
+
+- No player market purchases (NPC-seeded items only)
+- No player contracts
+- All equipment must be manufactured, looted, or NPC-purchased
+- LP Store access permitted for faction items"
+    fi
+
+    cat > "$DATA_DIR/operational_profile.md" << EOF
+# Operational Profile
+
+<!--
+  VOLATILITY: STABLE
+  This file contains durable abstractions derived from operational patterns.
+  ARIA may reference ANY data in this file proactively without staleness concerns.
+-->
+
+## Home Base
+
+- **Home Region:** ${home_region}
+- **Home Constellation:** [To be determined]
+- **Primary Station:** [To be determined]
+
+## Operational Range
+
+- **Security Preference:** Highsec (0.5+)
+- **Typical Operating Area:** ${home_region} and adjacent regions
+- **Low/Null Comfort:** Cautious - learning phase
+
+## Ship Roster
+
+| Ship | Hull Class | Role | Home Station |
+|------|------------|------|--------------|
+| Rookie Ship | Corvette | Emergency backup | Home station |
+| Venture | Mining Frigate | Mining operations | Home station |
+| ${explore_ship} | Exploration Frigate | Scanning & hacking | Home station |
+
+## Primary Activities
+
+1. **${activity1}**
+2. **${activity2}**
+3. **${activity3}**
+
+## Asset Staging
+
+| Asset Type | Location | Notes |
+|------------|----------|-------|
+| Blueprint Originals | Home station | See blueprint_library.md |
+| Ore/Minerals | Home station | |
+| Mission Ships | Home station | |
+| Exploration Loot | Home station | |
+
+## Faction Alignment
+
+- **Primary Alignment:** ${faction_full}
+- **Mission Provider:** ${mission_corp}
+- **Hostile Factions:** ${hostile_empire}
+- **Target Pirates:** ${enemy_pirates}
+
+${restrictions_section}
+EOF
+}
+
+generate_ship_status() {
+    local faction="$1"
+    local home_region="$2"
+
+    local explore_ship="${FACTION_EXPLORATION_SHIP[$faction]}"
+    local combat_frigate="${FACTION_COMBAT_FRIGATE[$faction]}"
+    local combat_cruiser="${FACTION_COMBAT_CRUISER[$faction]}"
+
+    cat > "$DATA_DIR/ship_status.md" << EOF
+# Ship Status
+
+<!--
+  VOLATILITY: MIXED
+  - Ship roster and fittings: SEMI-STABLE (safe to reference)
+  - Current location/ship: DEPRECATED (use /esi-query for live data)
+-->
+
+## Ship Roster
+
+### Mining Frigate
+
+- **Hull:** Venture
+- **Name:** -
+- **Role:** Mining operations
+- **Home Station:** Home station, ${home_region}
+
+#### Fitting
+
+\`\`\`
+[Venture - Basic Mining]
+
+[High Slots]
+Miner I
+Miner I
+
+[Mid Slots]
+Survey Scanner I
+1MN Afterburner I
+
+[Low Slots]
+Mining Laser Upgrade I
+
+[Rigs]
+Small Cargohold Optimization I
+Small Cargohold Optimization I
+\`\`\`
+
+#### Notes
+
+- Standard starter mining fit
+- 5000m3 ore hold
+- Use Survey Scanner to find best rocks
+
+---
+
+### Exploration Frigate
+
+- **Hull:** ${explore_ship}
+- **Name:** -
+- **Role:** Scanning and hacking
+- **Home Station:** Home station, ${home_region}
+
+#### Fitting
+
+\`\`\`
+[${explore_ship} - Basic Exploration]
+
+[High Slots]
+Core Probe Launcher I
+[Empty]
+
+[Mid Slots]
+Data Analyzer I
+Relic Analyzer I
+5MN Microwarpdrive I
+
+[Low Slots]
+Nanofiber Internal Structure I
+Nanofiber Internal Structure I
+
+[Rigs]
+Small Gravity Capacitor Upgrade I
+Small Gravity Capacitor Upgrade I
+
+[Cargo]
+Core Scanner Probe I x16
+\`\`\`
+
+#### Notes
+
+- Probes in cargo, load into launcher before scanning
+- Use MWD to move quickly between containers
+- Cloak recommended when skills allow
+
+---
+
+## Hangar Summary
+
+| Ship | Class | Role | Station |
+|------|-------|------|---------|
+| Venture | Mining Frigate | Mining | Home station |
+| ${explore_ship} | Exploration Frigate | Exploration | Home station |
+
+## Future Acquisitions
+
+Ships to work toward:
+
+| Ship | Class | Role | Prerequisites |
+|------|-------|------|---------------|
+| ${combat_cruiser} | Cruiser | L2 Missions | Cruiser skill, weapons |
+| Procurer | Mining Barge | Mining | Mining Barge skill |
+
+## Manufacturing Queue
+
+| Item | Status | Notes |
+|------|--------|-------|
+| - | - | - |
+EOF
+}
+
+generate_mission_log() {
+    local faction="$1"
+    local mission_corp="${FACTION_MISSION_CORP[$faction]}"
+    local faction_full="${FACTION_FULL_NAME[$faction]}"
+
+    cat > "$DATA_DIR/mission_log.md" << EOF
+# Mission Log
+
+## Active Missions
+
+| Mission | Agent | Level | Target | Status |
+|---------|-------|-------|--------|--------|
+| | | | | |
+
+---
+
+## Mission Counter
+
+Track for storyline mission triggers (every 16 missions of same level):
+
+- **Level 1:** 0/16
+- **Level 2:** 0/16
+- **Level 3:** 0/16
+- **Level 4:** 0/16
+
+---
+
+## Recent Completions
+
+*No missions completed yet*
+
+---
+
+## Standing Progress
+
+### ${mission_corp}
+
+| Date | Standing | Change | Source |
+|------|----------|--------|--------|
+| | 0.00 | - | Starting |
+
+### ${faction_full}
+
+| Date | Standing | Change | Source |
+|------|----------|--------|--------|
+| | 0.00 | - | Starting |
+
+---
+
+## Mission Notes by Faction
+
+### Serpentis
+
+- Damage Dealt: Kinetic/Thermal
+- Damage to Deal: Kinetic (best), Thermal
+- Notes from experience:
+
+### Guristas
+
+- Damage Dealt: Kinetic/Thermal
+- Damage to Deal: Kinetic (best), Thermal
+- Notes from experience:
+
+### Angel Cartel
+
+- Damage Dealt: Explosive/Kinetic
+- Damage to Deal: Explosive (best), Kinetic
+- Notes from experience:
+
+### Blood Raiders
+
+- Damage Dealt: EM/Thermal
+- Damage to Deal: EM (best), Thermal
+- Notes from experience:
+
+### Sansha's Nation
+
+- Damage Dealt: EM/Thermal
+- Damage to Deal: EM (best), Thermal
+- Notes from experience:
+
+### Rogue Drones
+
+- Damage Dealt: All types (EM/Therm/Kin/Exp)
+- Damage to Deal: EM (best)
+- Notes from experience:
+
+---
+
+## Lessons Learned
+
+-
+EOF
+}
+
+generate_exploration_catalog() {
+    cat > "$DATA_DIR/exploration_catalog.md" << EOF
+# Exploration Catalog
+
+## Statistics
+
+- **Total Sites Run:** 0
+- **Relic Sites:** 0
+- **Data Sites:** 0
+- **Best Single Haul:** -
+
+---
+
+## Recent Discoveries
+
+*No discoveries logged yet*
+
+---
+
+## Loot Inventory
+
+### High Value
+
+| Item | Quantity | Use | Notes |
+|------|----------|-----|-------|
+| | | | |
+
+### Manufacturing Materials
+
+| Item | Quantity | Used For |
+|------|----------|----------|
+| | | |
+
+### Decryptors
+
+| Type | Quantity | Effect |
+|------|----------|--------|
+| | | |
+
+### Blueprint Copies
+
+| BPC | Runs | ME/TE | Notes |
+|-----|------|-------|-------|
+| | | | |
+
+---
+
+## Site Notes by Faction
+
+### Serpentis Sites (Gallente Space)
+
+- Common loot: Armor plates, nanite compounds
+- Tips: Standard relic sites, no combat
+
+### Angel Cartel Sites (Minmatar Space)
+
+- Common loot: Projectile components
+- Tips: Watch for ghost sites
+
+### Guristas Sites (Caldari Space)
+
+- Common loot: Shield components
+- Tips: High-value data sites
+
+### Blood Raider Sites (Amarr Space)
+
+- Common loot: Capacitor components
+- Tips: EM-focused components
+
+### Sansha Sites (Various)
+
+- Common loot: Intact armor plates (valuable)
+- Tips: Good ISK potential
+
+### Ghost Sites (WARNING)
+
+- **DANGER:** Explosion timer, can destroy ship
+- Have encountered: No
+- Notes: Warp out if timer appears and you're not ready
+
+---
+
+## Wormhole Log
+
+| Date | Entry System | WH Class | Outcome | Notes |
+|------|--------------|----------|---------|-------|
+| | | | | |
+
+---
+
+## Hacking Performance
+
+| Week | Attempts | Success | Rate |
+|------|----------|---------|------|
+| | | | |
+EOF
+}
+
+generate_blueprint_library() {
+    cat > "$INDUSTRY_DIR/blueprint_library.md" << EOF
+# Blueprint Library
+
+<!--
+  VOLATILITY: SEMI-STABLE
+  Updates when BPOs are purchased or research completes.
+  Refresh via: .claude/scripts/aria-esi blueprints
+-->
+
+## Summary
+
+| Category | Count |
+|----------|-------|
+| **Total BPOs** | **0** |
+| **Total BPCs** | **0** |
+
+## Blueprint Originals (BPOs)
+
+### Ships
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Drones
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Ammunition
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Weapons
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Armor
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Shield
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Propulsion
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Exploration
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Rigs
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+### Utility
+
+| Blueprint | ME | TE | Notes |
+|-----------|----|----|-------|
+| | | | |
+
+## Notable BPCs
+
+| Blueprint | Runs | ME | TE | Source |
+|-----------|------|----|----|--------|
+| | | | | |
+
+## Manufacturing Capability Assessment
+
+### Can Manufacture (BPO owned)
+
+- **Ships:** None yet
+- **Combat:** None yet
+- **Drones:** None yet
+- **Ammo:** None yet
+- **Other:** None yet
+
+### Priority Acquisitions
+
+1. Civilian modules BPOs - Basic equipment manufacturing
+2. Drone BPOs - Hobgoblin I for combat support
+
+---
+
+*Last updated: $(date +"%Y-%m-%d %H:%M")*
+*Refresh: \`.claude/scripts/aria-esi blueprints\`*
+EOF
+}
+
+# ============================================================================
+# Main Wizard Flow
+# ============================================================================
+
+show_intro() {
+    clear
+    print_box_top
+    echo -e "${BOLD}ARIA INITIALIZATION SEQUENCE${NC}"
+    echo -e "${DIM}Ship-Board AI Configuration Wizard${NC}"
+    print_box_div
+    echo ""
+    echo "  ___    ____  _________"
+    echo " /   |  / __ \\/  _/   |   Adaptive Reasoning & Intelligence Array"
+    echo "/ /| | / /_/ // // /| |   Ship-Board Tactical Assistant"
+    echo "/ ___ |/ _, _// // ___ |"
+    echo "/_/  |_/_/ |_/___/_/  |_|   \"Your faction. Your rules. Your AI.\""
+    echo ""
+    print_box_div
+    echo ""
+    echo "This wizard will configure ARIA for your Eve Online character."
+    echo ""
+    print_info "Prerequisites:"
+    echo "  - Claude Code installed (https://claude.com/claude-code)"
+    echo "  - An Eve Online character (any faction)"
+    echo ""
+}
+
+collect_character_info() {
+    print_header "CAPSULEER IDENTIFICATION"
+    echo ""
+
+    # Character Name
+    while true; do
+        CHAR_NAME=$(prompt "Character name" "")
+        if [[ -n "$CHAR_NAME" ]]; then
+            break
+        fi
+        print_error "Character name is required"
+    done
+
+    echo ""
+
+    # Faction Selection
+    echo "Select your primary faction. This determines ARIA's personality:"
+    echo ""
+    local faction_choice
+    faction_choice=$(select_option "Select faction" \
+        "Gallente Federation  - ${FACTION_AI_NAME[GALLENTE]} (${FACTION_STYLE[GALLENTE]})" \
+        "Caldari State        - ${FACTION_AI_NAME[CALDARI]} (${FACTION_STYLE[CALDARI]})" \
+        "Minmatar Republic    - ${FACTION_AI_NAME[MINMATAR]} (${FACTION_STYLE[MINMATAR]})" \
+        "Amarr Empire         - ${FACTION_AI_NAME[AMARR]} (${FACTION_STYLE[AMARR]})")
+
+    case "$faction_choice" in
+        1) FACTION="GALLENTE" ;;
+        2) FACTION="CALDARI" ;;
+        3) FACTION="MINMATAR" ;;
+        4) FACTION="AMARR" ;;
+    esac
+
+    AI_NAME="${FACTION_AI_NAME[$FACTION]}"
+
+    echo ""
+    print_success "Faction: ${FACTION_FULL_NAME[$FACTION]}"
+    print_success "AI Persona: ${AI_NAME}"
+    echo ""
+
+    # Corporation
+    local default_corp="${FACTION_STARTER_CORP[$FACTION]}"
+    CORPORATION=$(prompt "Corporation" "$default_corp")
+
+    echo ""
+    print_footer
+}
+
+collect_operational_info() {
+    print_header "OPERATIONAL PARAMETERS"
+    echo ""
+
+    # Home Region
+    local default_region="${FACTION_HOME_REGION[$FACTION]}"
+    echo "Your home region determines where ARIA assumes you operate."
+    HOME_REGION=$(prompt "Home region" "$default_region")
+
+    echo ""
+
+    # Primary Activity
+    echo "What is your primary focus in Eve?"
+    local activity_choice
+    activity_choice=$(select_option "Select activity" \
+        "Mission Running - Build standings, earn ISK through combat" \
+        "Mining/Industry - Gather resources, manufacture items" \
+        "Exploration     - Scan signatures, hack sites, discover loot" \
+        "Mixed           - A bit of everything")
+
+    PLAYSTYLE="$activity_choice"
+
+    echo ""
+
+    # Self-sufficiency Mode
+    echo "Self-sufficiency mode restricts you from using the player market."
+    echo "All equipment must be manufactured, looted, or purchased from NPCs."
+    echo ""
+
+    if prompt_yes_no "Enable self-sufficiency mode?"; then
+        SELF_SUFFICIENT="true"
+        print_info "Self-sufficiency mode enabled - no player market"
+    else
+        SELF_SUFFICIENT="false"
+        print_info "Standard mode - full market access"
+    fi
+
+    echo ""
+    print_footer
+}
+
+confirm_settings() {
+    print_header "CONFIGURATION SUMMARY"
+    echo ""
+    echo -e "  ${BOLD}Character:${NC}    ${CHAR_NAME}"
+    echo -e "  ${BOLD}Corporation:${NC}  ${CORPORATION}"
+    echo -e "  ${BOLD}Faction:${NC}      ${FACTION_FULL_NAME[$FACTION]}"
+    echo -e "  ${BOLD}AI Persona:${NC}   ${AI_NAME}"
+    echo -e "  ${BOLD}Home Region:${NC}  ${HOME_REGION}"
+    echo -e "  ${BOLD}Focus:${NC}        $(case $PLAYSTYLE in 1) echo "Mission Running";; 2) echo "Mining/Industry";; 3) echo "Exploration";; 4) echo "Mixed";; esac)"
+    echo -e "  ${BOLD}Self-Suff:${NC}    $(if [[ $SELF_SUFFICIENT == "true" ]]; then echo "Enabled"; else echo "Disabled"; fi)"
+    echo ""
+    print_box_div
+    echo ""
+
+    if ! prompt_yes_no "Proceed with this configuration?" "y"; then
+        echo ""
+        print_warning "Configuration cancelled"
+        exit 0
+    fi
+
+    echo ""
+    print_footer
+}
+
+generate_files() {
+    print_header "GENERATING CAPSULEER DATA FILES"
+    echo ""
+
+    # Create directories
+    mkdir -p "$DATA_DIR"
+    mkdir -p "$INDUSTRY_DIR"
+
+    # Generate each file with progress
+    echo -n "Pilot profile        "
+    generate_pilot_profile "$CHAR_NAME" "$CORPORATION" "$FACTION" "$PLAYSTYLE" "$SELF_SUFFICIENT"
+    echo -e "[${GREEN}OK${NC}]"
+
+    echo -n "Operational profile  "
+    generate_operational_profile "$CHAR_NAME" "$FACTION" "$HOME_REGION" "$PLAYSTYLE" "$SELF_SUFFICIENT"
+    echo -e "[${GREEN}OK${NC}]"
+
+    echo -n "Ship status          "
+    generate_ship_status "$FACTION" "$HOME_REGION"
+    echo -e "[${GREEN}OK${NC}]"
+
+    echo -n "Mission log          "
+    generate_mission_log "$FACTION"
+    echo -e "[${GREEN}OK${NC}]"
+
+    echo -n "Exploration catalog  "
+    generate_exploration_catalog
+    echo -e "[${GREEN}OK${NC}]"
+
+    echo -n "Blueprint library    "
+    generate_blueprint_library
+    echo -e "[${GREEN}OK${NC}]"
+
+    echo ""
+    print_success "All files generated successfully"
+    echo ""
+    print_footer
+}
+
+offer_esi_setup() {
+    print_header "SETUP COMPLETE!"
+    echo ""
+    print_success "ARIA is fully configured and ready to use."
+    echo ""
+    print_box_div
+    echo ""
+    echo -e "${BOLD}Optional Enhancement: ESI Integration${NC}"
+    echo ""
+    echo "ARIA works fully without ESI. All tactical features are ready now."
+    echo ""
+    echo "ESI adds convenience features (automatic data sync):"
+    echo "  - Location/ship detection (instead of telling ARIA)"
+    echo "  - Live standings sync (instead of updating files)"
+    echo "  - Wallet and skill tracking"
+    echo ""
+    print_info "Recommendation: Try ARIA first, add ESI later when comfortable."
+    echo ""
+
+    if prompt_yes_no "Set up ESI now? (You can always do this later)"; then
+        echo ""
+        print_info "Launching ESI setup wizard..."
+        echo ""
+
+        if [[ -f "$SCRIPT_DIR/.claude/scripts/aria-oauth-setup.py" ]]; then
+            python3 "$SCRIPT_DIR/.claude/scripts/aria-oauth-setup.py"
+        else
+            print_warning "ESI setup script not found"
+            echo "Run manually later: python3 .claude/scripts/aria-oauth-setup.py"
+        fi
+    else
+        echo ""
+        print_success "Great choice! You can add ESI anytime with:"
+        echo "  python3 .claude/scripts/aria-oauth-setup.py"
+    fi
+
+    echo ""
+    print_footer
+}
+
+show_completion() {
+    local ai_name="${FACTION_AI_NAME[$FACTION]}"
+    local motto="${FACTION_MOTTO[$FACTION]}"
+
+    print_box_top
+    echo -e "${BOLD}${ai_name} INITIALIZATION COMPLETE${NC}"
+    print_box_div
+    echo ""
+    echo "Files created:"
+    echo -e "  ${GREEN}✓${NC} data/pilot_profile.md"
+    echo -e "  ${GREEN}✓${NC} data/operational_profile.md"
+    echo -e "  ${GREEN}✓${NC} data/ship_status.md"
+    echo -e "  ${GREEN}✓${NC} data/mission_log.md"
+    echo -e "  ${GREEN}✓${NC} data/exploration_catalog.md"
+    echo -e "  ${GREEN}✓${NC} data/industry/blueprint_library.md"
+    echo ""
+    print_box_div
+    echo ""
+    echo "To start ARIA:"
+    echo ""
+    echo -e "  ${CYAN}cd $(pwd)${NC}"
+    echo -e "  ${CYAN}claude${NC}"
+    echo ""
+    print_box_div
+    echo ""
+    echo -e "${DIM}\"${motto}\"${NC}"
+    echo -e "${DIM}— ${ai_name}, on first activation${NC}"
+    echo ""
+    print_box_top
+    echo ""
+}
+
+handle_existing_installation() {
+    print_header "EXISTING INSTALLATION DETECTED"
+    echo ""
+    print_warning "Data files already exist in this directory."
+    echo ""
+    echo "Options:"
+    local choice
+    choice=$(select_option "Select action" \
+        "Overwrite all    - Delete existing files and start fresh" \
+        "Keep existing    - Cancel wizard, preserve current data" \
+        "Backup & replace - Create backup, then regenerate")
+
+    case "$choice" in
+        1)
+            echo ""
+            if prompt_yes_no "Are you sure? This will delete your existing data" "n"; then
+                rm -f "$DATA_DIR/pilot_profile.md"
+                rm -f "$DATA_DIR/operational_profile.md"
+                rm -f "$DATA_DIR/ship_status.md"
+                rm -f "$DATA_DIR/mission_log.md"
+                rm -f "$DATA_DIR/exploration_catalog.md"
+                rm -f "$INDUSTRY_DIR/blueprint_library.md"
+                print_success "Existing files removed"
+            else
+                print_warning "Cancelled"
+                exit 0
+            fi
+            ;;
+        2)
+            echo ""
+            print_info "Preserving existing installation"
+            exit 0
+            ;;
+        3)
+            local backup_dir="$SCRIPT_DIR/backup-$(date +%Y%m%d-%H%M%S)"
+            mkdir -p "$backup_dir"
+            cp -r "$DATA_DIR"/*.md "$backup_dir/" 2>/dev/null || true
+            cp -r "$INDUSTRY_DIR"/*.md "$backup_dir/" 2>/dev/null || true
+            print_success "Backup created: $backup_dir"
+            ;;
+    esac
+
+    echo ""
+    print_footer
+}
+
+# ============================================================================
+# Help and Version
+# ============================================================================
+
+show_help() {
+    cat << EOF
+ARIA Initialization Wizard v${VERSION}
+
+Usage: ./aria-init [options]
+
+Options:
+  --help        Show this help message
+  --version     Show version information
+  --test        Run in non-interactive test mode (generates sample files)
+
+Description:
+  Interactive wizard to configure ARIA, the ship-board AI for Eve Online.
+  Creates all necessary data files from templates based on your character
+  information, faction choice, and playstyle preferences.
+
+Examples:
+  ./aria-init              Run the interactive wizard
+  ./aria-init --test       Generate sample files for testing
+
+For more information, see FIRST_RUN.md or visit:
+  https://github.com/your-username/aria
+
+EOF
+}
+
+show_version() {
+    echo "aria-init version ${VERSION}"
+}
+
+run_test_mode() {
+    echo "Running in test mode..."
+    echo ""
+
+    # Use test values
+    CHAR_NAME="Test Capsuleer"
+    CORPORATION="Test Corporation"
+    FACTION="GALLENTE"
+    HOME_REGION="Sinq Laison"
+    PLAYSTYLE="4"
+    SELF_SUFFICIENT="false"
+    AI_NAME="${FACTION_AI_NAME[$FACTION]}"
+
+    # Create backup of existing files if any
+    local test_backup="$SCRIPT_DIR/.test-backup-$$"
+    if check_existing_installation; then
+        echo "Backing up existing files to $test_backup..."
+        mkdir -p "$test_backup"
+        cp "$DATA_DIR"/*.md "$test_backup/" 2>/dev/null || true
+        cp "$INDUSTRY_DIR"/*.md "$test_backup/" 2>/dev/null || true
+    fi
+
+    # Generate files
+    mkdir -p "$DATA_DIR"
+    mkdir -p "$INDUSTRY_DIR"
+
+    echo "Generating test files..."
+    generate_pilot_profile "$CHAR_NAME" "$CORPORATION" "$FACTION" "$PLAYSTYLE" "$SELF_SUFFICIENT"
+    echo "  Created: data/pilot_profile.md"
+
+    generate_operational_profile "$CHAR_NAME" "$FACTION" "$HOME_REGION" "$PLAYSTYLE" "$SELF_SUFFICIENT"
+    echo "  Created: data/operational_profile.md"
+
+    generate_ship_status "$FACTION" "$HOME_REGION"
+    echo "  Created: data/ship_status.md"
+
+    generate_mission_log "$FACTION"
+    echo "  Created: data/mission_log.md"
+
+    generate_exploration_catalog
+    echo "  Created: data/exploration_catalog.md"
+
+    generate_blueprint_library
+    echo "  Created: data/industry/blueprint_library.md"
+
+    echo ""
+    echo "Test files generated successfully!"
+    echo ""
+    echo "To verify, check:"
+    echo "  cat data/pilot_profile.md"
+    echo ""
+
+    if [[ -d "$test_backup" ]]; then
+        echo "Original files backed up to: $test_backup"
+    fi
+}
+
+# ============================================================================
+# Main Entry Point
+# ============================================================================
+
+main() {
+    # Parse arguments
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --help|-h)
+                show_help
+                exit 0
+                ;;
+            --version|-v)
+                show_version
+                exit 0
+                ;;
+            --test)
+                check_prerequisites || exit 1
+                run_test_mode
+                exit 0
+                ;;
+            *)
+                echo "Unknown option: $1"
+                echo "Use --help for usage information"
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    # Show intro
+    show_intro
+
+    # Check prerequisites
+    echo "Checking prerequisites..."
+    if ! check_prerequisites; then
+        print_error "Prerequisites check failed"
+        exit 1
+    fi
+    print_success "All prerequisites met"
+    echo ""
+
+    # Check for existing installation
+    if check_existing_installation; then
+        handle_existing_installation
+    fi
+
+    # Prompt to continue
+    if ! prompt_yes_no "Ready to configure ARIA?" "y"; then
+        echo ""
+        print_info "Setup cancelled"
+        exit 0
+    fi
+
+    echo ""
+
+    # Collect information
+    collect_character_info
+    collect_operational_info
+    confirm_settings
+
+    # Generate files
+    generate_files
+
+    # Offer ESI setup
+    offer_esi_setup
+
+    # Show completion
+    show_completion
+}
+
+# Run main function
+main "$@"

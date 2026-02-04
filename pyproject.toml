@@ -1,0 +1,280 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aria"
+version = "2.0.0"
+description = "ARIA - Adaptive Reasoning & Intelligence Array for EVE Online"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "httpx>=0.27.0",
+    "igraph>=0.11.0",
+    "numpy>=1.24.0",
+    "msgpack>=1.0.0",
+    "pyyaml>=6.0",
+    "anthropic>=0.76.0",
+    "keyring>=25.7.0",  # Secure credential storage (Tier II security)
+    "mcp>=1.0.0",  # MCP server for Claude Code integration
+    "aiosqlite>=0.20.0",  # Async SQLite for MCP server
+]
+
+[project.scripts]
+aria-esi = "aria_esi.__main__:main"
+aria-universe = "aria_esi.mcp.server:main"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aria_esi"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/aria_esi/**/*.py",
+    "pyproject.toml",
+    "README.md",
+    "LICENSE",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.5",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-benchmark>=4.0.0",
+    "pytest-httpx>=0.30",
+    "syrupy>=4.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+    "time-machine>=2.10.0",
+    "jsonschema>=4.20.0",  # Test harness schema validation
+]
+resilient = [
+    "tenacity>=9.1.2",  # Enhanced retry with exponential backoff (fallback exists without)
+]
+fitting = [
+    # EOS is now vendored at src/aria_esi/_vendor/eos/
+    # No external dependencies required
+]
+full = [
+    # All optional functionality
+    "tenacity>=9.1.2",
+    # EOS is now vendored at src/aria_esi/_vendor/eos/
+]
+test-semantic = [
+    # G-Eval LLM-as-judge evaluation framework for Layer 3 semantic tests
+    # These tests are slow and incur API costs (~$0.10/test)
+    # Run with: uv run pytest -m semantic (requires ANTHROPIC_API_KEY)
+    "deepeval>=0.21.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+python_files = ["test_*.py", "bench_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "-m", "not benchmark",
+    "--cov=src/aria_esi",
+    "--cov-report=term-missing:skip-covered",
+]
+markers = [
+    "unit: Unit tests (fast, no external dependencies)",
+    "integration: Integration tests (may require mocks)",
+    "slow: Slow tests (network calls, etc.)",
+    "benchmark: Performance benchmarks (requires real universe graph)",
+    "golden: Golden/snapshot tests for skill output quality",
+    "httpx: Tests requiring pytest-httpx for HTTP mocking",
+    "contract: Layer 1 - tool call contract validation",
+    "structure: Layer 2 - JSON schema and fact assertions",
+    "semantic: Layer 3 - LLM-as-judge evaluation (slow)",
+    "tier1: Integration Tier 1 - MCP layer tests (fast, no API cost)",
+    "tier2: Integration Tier 2 - API integration tests (weekly, ~$0.01/test)",
+    "tier3: Integration Tier 3 - CLI integration tests (manual, ~$0.03/test)",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:igraph",
+    # igraph path computation warnings when graph is disconnected
+    "ignore:Couldn't reach some vertices:RuntimeWarning",
+    # Mock database connections in tests - not a real resource leak
+    "ignore:unclosed database:ResourceWarning",
+    # pytest-benchmark warns when xdist is active (once per worker = spam)
+    "ignore::pytest_benchmark.logger.PytestBenchmarkWarning",
+    # Legacy pickle format tests - intentionally testing backward compatibility
+    "ignore:Loading legacy pickle format:DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src/aria_esi"]
+omit = [
+    "tests/*",
+    "*/__pycache__/*",
+    "*/__main__.py",
+    "*/tests/*",  # Exclude embedded test files in src/
+]
+branch = true
+
+[tool.coverage.report]
+# Note: Core modules (auth, client, retry) have 49-73% coverage
+# Command modules: clones 72%, skills 89%, industry 72%, mining 76%, contracts 50%
+# MCP tools have 71-100% coverage; overall project at ~60%
+# Phase 1 test coverage: archetypes companion modules (selection 79%, pricing 91%,
+# tuning 82%, validator 90%, migration 85%) added 175 tests
+fail_under = 60
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "@overload",
+]
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # Pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # do not perform function calls in argument defaults
+    "B904",   # raise from - TODO: add exception chaining throughout codebase
+    "B905",   # zip without strict= (Python 3.10+)
+    "C401",   # unnecessary generator - set(x for x) vs {x for x} is style preference
+    "UP007",  # Use X | Y for Union - keep Union[] for Python <3.10 cron compatibility
+    "UP045",  # Use X | None for Optional - keep Optional[] for compatibility
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__main__.py" = ["F401"]  # imports have side effects (register parsers)
+"__init__.py" = ["F401"]  # re-exports
+"retry.py" = ["F401"]     # conditional imports for tenacity fallback
+"auth.py" = ["E402"]      # TYPE_CHECKING import after code block
+
+[tool.ruff.lint.isort]
+known-first-party = ["aria_esi"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.mypy]
+python_version = "3.10"
+files = ["src/aria_esi"]
+exclude = ["tests/", "__pycache__"]
+
+# =============================================================================
+# GRADUAL TYPING ADOPTION ROADMAP
+# =============================================================================
+# Phase 1: Baseline - catches syntax errors, undefined names ✓
+# Phase 2: Enable union-attr, attr-defined ✓
+# Phase 3: Enable arg-type, return-value ✓
+# Phase 4 (in progress): Enable assignment ✓, index, operator
+# Phase 5: Enable disallow_untyped_defs on core modules
+# Phase 6: Strict mode on all modules
+# =============================================================================
+
+warn_unused_configs = true
+warn_redundant_casts = true
+
+# Permissive settings for initial adoption
+warn_return_any = false           # Too noisy with json.load() returns
+warn_unused_ignores = false       # Allow unused ignores during transition
+check_untyped_defs = false        # Skip checking inside untyped functions
+disallow_untyped_defs = false     # Allow functions without type hints
+disallow_incomplete_defs = false  # Allow partial type hints
+
+# Import handling - permissive for optional dependencies (keyring, tenacity)
+ignore_missing_imports = true
+
+# Error display
+show_error_codes = true
+show_column_numbers = true
+pretty = true
+
+# Phase 2 COMPLETE: union-attr and attr-defined now enabled
+# Phase 3 COMPLETE: arg-type and return-value now enabled
+# Phase 4 IN PROGRESS: assignment enabled (conditional imports use type: ignore)
+# Remaining codes disabled for future phases
+disable_error_code = [
+    "misc",          # Cannot assign to a type - conditional exception aliases
+    "var-annotated", # defaultdict/dict literals need type annotations
+    "index",         # Invalid index type for typed containers (75 errors)
+    "operator",      # Unsupported operand types for +, in, etc.
+    "call-overload", # dict[int, str] mistyped as list causing __getitem__ errors
+]
+
+[dependency-groups]
+dev = [
+    "tiktoken>=0.12.0",
+    "types-pyyaml>=6.0.12.20250915",
+]
+
+[tool.uv]
+preview = true
+
+# Per-module overrides for stricter checking and suppressions
+# MCP dispatcher modules have incomplete implementations with missing _impl functions
+# These need to be completed separately before enabling strict checking
+[[tool.mypy.overrides]]
+module = [
+    "aria_esi.mcp.dispatchers.sde",
+    "aria_esi.mcp.dispatchers.skills",
+    "aria_esi.mcp.dispatchers.market",
+]
+disable_error_code = ["attr-defined"]
+
+# Market tools modules with async client issues and hub type narrowing
+[[tool.mypy.overrides]]
+module = [
+    "aria_esi.mcp.market.tools_analysis",
+    "aria_esi.mcp.market.tools_nearby",
+    "aria_esi.mcp.market.tools_arbitrage",
+    "aria_esi.mcp.market.tools_prices",
+    "aria_esi.services.history_cache",
+    "aria_esi.services.market_refresh",
+]
+disable_error_code = ["attr-defined", "union-attr"]
+
+# =============================================================================
+# SECURITY-CRITICAL MODULES - STRICT TYPING ENFORCED
+# =============================================================================
+# Phase 5 (partial): Enable strict typing on security-critical auth modules
+# These modules handle credentials and must have complete type coverage
+# to reduce the risk of type-related bugs in sensitive code paths.
+# Per Gemini 3 Pro DevOps/Security Review 2026-01-31
+[[tool.mypy.overrides]]
+module = [
+    "aria_esi.core.auth",
+    "aria_esi.core.keyring_backend",
+]
+disallow_untyped_defs = true
+check_untyped_defs = true
+disallow_incomplete_defs = true
+warn_return_any = true

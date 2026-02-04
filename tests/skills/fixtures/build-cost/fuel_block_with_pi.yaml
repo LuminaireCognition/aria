@@ -1,0 +1,271 @@
+# Test fixture: Build cost with PI materials
+# This fixture catches bugs where PI-originating materials are excluded from cost calculations
+#
+# Nitrogen Fuel Block requires both ice products AND PI materials:
+# - Ice: Nitrogen Isotopes, Liquid Ozone, Heavy Water, Strontium Clathrates
+# - PI P1: Oxygen
+# - PI P2: Coolant, Enriched Uranium, Mechanical Parts
+# - PI P3: Robotics
+#
+# If PI materials are excluded, the build cost will be wildly underestimated.
+
+name: "Nitrogen Fuel Block with PI materials"
+skill: build-cost
+description: |
+  Manufacturing cost calculation for Nitrogen Fuel Block.
+  This item requires PI materials (Coolant, Enriched Uranium, Mechanical Parts, Robotics)
+  which represent a significant portion of the build cost.
+
+  If only ice products are counted and PI materials are excluded, the cost estimate
+  will be incorrect by ~200,000+ ISK per batch (40 blocks).
+
+input:
+  item: Nitrogen Fuel Block
+  me_level: 10
+  region: jita
+
+# Expected output shows PI materials included in the materials list
+expected_output:
+  blueprint:
+    type_id: 4314
+    type_name: "Nitrogen Fuel Block Blueprint"
+    product_type_id: 4051
+    product_name: "Nitrogen Fuel Block"
+    produces_quantity: 40
+  materials:
+    # Ice products
+    - type_id: 17888
+      type_name: "Nitrogen Isotopes"
+      base_quantity: 450
+      adjusted_quantity: 405
+      unit_price: 800.0
+      total_price: 324000.0
+    - type_id: 16273
+      type_name: "Liquid Ozone"
+      base_quantity: 350
+      adjusted_quantity: 315
+      unit_price: 450.0
+      total_price: 141750.0
+    - type_id: 16272
+      type_name: "Heavy Water"
+      base_quantity: 170
+      adjusted_quantity: 153
+      unit_price: 350.0
+      total_price: 53550.0
+    - type_id: 16275
+      type_name: "Strontium Clathrates"
+      base_quantity: 20
+      adjusted_quantity: 18
+      unit_price: 1200.0
+      total_price: 21600.0
+    # PI P1
+    - type_id: 3683
+      type_name: "Oxygen"
+      base_quantity: 22
+      adjusted_quantity: 20
+      unit_price: 400.0
+      total_price: 8000.0
+    # PI P2 materials - CRITICAL: These must be included
+    - type_id: 9832
+      type_name: "Coolant"
+      base_quantity: 9
+      adjusted_quantity: 9
+      unit_price: 11200.0
+      total_price: 100800.0
+    - type_id: 44
+      type_name: "Enriched Uranium"
+      base_quantity: 4
+      adjusted_quantity: 4
+      unit_price: 12960.0
+      total_price: 51840.0
+    - type_id: 3689
+      type_name: "Mechanical Parts"
+      base_quantity: 4
+      adjusted_quantity: 4
+      unit_price: 10370.0
+      total_price: 41480.0
+    # PI P3 material - CRITICAL: Must be included
+    - type_id: 9848
+      type_name: "Robotics"
+      base_quantity: 1
+      adjusted_quantity: 1
+      unit_price: 84000.0
+      total_price: 84000.0
+  total_material_cost: 827020.0
+  product_value: 745600.0  # 40 blocks * ~18,640 ISK
+  me_level: 10
+  runs: 1
+  region: "The Forge"
+  region_id: 10000002
+  source: "fuzzwork"
+  freshness: "fresh"
+  warnings: []
+
+expected_facts:
+  # ==========================================================================
+  # CRITICAL: Verify PI materials are present in the materials list
+  # These assertions will FAIL if PI materials are excluded from the calculation
+  # ==========================================================================
+
+  # Material count: 4 ice + 1 PI P1 + 3 PI P2 + 1 PI P3 = 9 materials
+  - path: "materials"
+    length: 9
+
+  # Verify specific PI materials are in the list by type_id
+  # Coolant (PI P2)
+  - path: "materials[*].type_id"
+    contains: 9832
+
+  # Enriched Uranium (PI P2)
+  - path: "materials[*].type_id"
+    contains: 44
+
+  # Mechanical Parts (PI P2)
+  - path: "materials[*].type_id"
+    contains: 3689
+
+  # Robotics (PI P3)
+  - path: "materials[*].type_id"
+    contains: 9848
+
+  # Oxygen (PI P1)
+  - path: "materials[*].type_id"
+    contains: 3683
+
+  # ==========================================================================
+  # Cost range assertions - will fail if PI materials are missing
+  # ==========================================================================
+
+  # Total cost WITH PI materials should be 600K-1M ISK for 40 blocks
+  # WITHOUT PI materials (ice only), would be ~350K-450K ISK
+  # This range ensures PI materials must be included
+  - path: "total_material_cost"
+    range: [600000, 1200000]
+
+  # PI materials alone cost ~280K ISK (Coolant + EU + Mech Parts + Robotics)
+  # Verify by checking that cost is significantly above ice-only estimate
+  # Ice products alone: ~500K ISK at ME10
+  # If total < 550K, PI materials are definitely missing
+
+  # ==========================================================================
+  # Verify PI material costs are non-trivial
+  # ==========================================================================
+
+  # All material prices should be positive (catches null/zero price bugs)
+  - path: "materials[*].unit_price"
+    all_satisfy: "> 0"
+
+  # All total prices should be positive
+  - path: "materials[*].total_price"
+    all_satisfy: "> 0"
+
+  # ==========================================================================
+  # Blueprint and basic validation
+  # ==========================================================================
+
+  - path: "blueprint.product_name"
+    equals: "Nitrogen Fuel Block"
+
+  - path: "blueprint.produces_quantity"
+    equals: 40
+
+  - path: "me_level"
+    equals: 10
+
+  # Region should be The Forge (Jita)
+  - path: "region_id"
+    equals: 10000002
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  sde_blueprint_info:
+    type_id: 4314
+    type_name: "Nitrogen Fuel Block Blueprint"
+    product_type_id: 4051
+    product_name: "Nitrogen Fuel Block"
+    produces_quantity: 40
+    materials:
+      - type_id: 17888
+        type_name: "Nitrogen Isotopes"
+        quantity: 450
+      - type_id: 16273
+        type_name: "Liquid Ozone"
+        quantity: 350
+      - type_id: 16272
+        type_name: "Heavy Water"
+        quantity: 170
+      - type_id: 16275
+        type_name: "Strontium Clathrates"
+        quantity: 20
+      - type_id: 3683
+        type_name: "Oxygen"
+        quantity: 22
+      - type_id: 9832
+        type_name: "Coolant"
+        quantity: 9
+      - type_id: 44
+        type_name: "Enriched Uranium"
+        quantity: 4
+      - type_id: 3689
+        type_name: "Mechanical Parts"
+        quantity: 4
+      - type_id: 9848
+        type_name: "Robotics"
+        quantity: 1
+
+  market_prices:
+    items:
+      - type_id: 17888
+        type_name: "Nitrogen Isotopes"
+        sell:
+          min_price: 800.0
+          volume: 50000000
+      - type_id: 16273
+        type_name: "Liquid Ozone"
+        sell:
+          min_price: 450.0
+          volume: 30000000
+      - type_id: 16272
+        type_name: "Heavy Water"
+        sell:
+          min_price: 350.0
+          volume: 40000000
+      - type_id: 16275
+        type_name: "Strontium Clathrates"
+        sell:
+          min_price: 1200.0
+          volume: 5000000
+      - type_id: 3683
+        type_name: "Oxygen"
+        sell:
+          min_price: 400.0
+          volume: 10000000
+      - type_id: 9832
+        type_name: "Coolant"
+        sell:
+          min_price: 11200.0
+          volume: 500000
+      - type_id: 44
+        type_name: "Enriched Uranium"
+        sell:
+          min_price: 12960.0
+          volume: 400000
+      - type_id: 3689
+        type_name: "Mechanical Parts"
+        sell:
+          min_price: 10370.0
+          volume: 600000
+      - type_id: 9848
+        type_name: "Robotics"
+        sell:
+          min_price: 84000.0
+          volume: 100000
+      - type_id: 4051
+        type_name: "Nitrogen Fuel Block"
+        sell:
+          min_price: 18640.0
+          volume: 20000000
+    region: "The Forge"
+    region_id: 10000002

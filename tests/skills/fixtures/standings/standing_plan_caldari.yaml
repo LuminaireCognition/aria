@@ -1,0 +1,95 @@
+# Test fixture: Standing improvement plan for Caldari
+# Tests standing plan generation with recommended path
+
+name: "Caldari standing improvement plan"
+skill: standings
+description: |
+  Plan to reach L4 agent access with Caldari State.
+  Tests standing plan with multiple improvement methods.
+
+input:
+  query_type: standing_plan
+  target_entity: "Caldari State"
+  target_standing: 5.0
+
+expected_output:
+  target_entity: "Caldari State"
+  target_standing: 5.0
+  current_standing: 2.0
+  effective_standing: 3.6
+  gap: 1.4
+  recommended_path:
+    - method: "storyline"
+      description: "Run L2/L3 missions to trigger storyline missions"
+      standing_gain: "~0.3-0.5 per storyline"
+      frequency: "Every 16 missions of same level for same faction"
+      requirements: "L2+ agent access"
+      priority: 1
+    - method: "epic_arc"
+      description: "Run Caldari epic arc 'Penumbra' for faction standing"
+      standing_gain: "~10% of remaining to 10.0"
+      frequency: "Once per 90 days"
+      requirements: "5.0 standing with Caldari State or Expert Distribution"
+      priority: 2
+    - method: "data_center"
+      description: "Turn in pirate tags at data centers"
+      standing_gain: "Moderate one-time gain"
+      frequency: "Once per tag type per character"
+      requirements: "Pirate tags (purchased or looted)"
+      priority: 3
+  estimated_missions: 48
+  can_use_epic_arc: false
+  epic_arc_info:
+    name: "Penumbra"
+    faction: "Caldari State"
+    starting_system: "Josameto"
+    standing_required: 5.0
+    estimated_gain: 0.8
+  notes: "You need 1.4 more effective standing. Storyline missions are the most efficient path. Epic arc requires 5.0 standing to start, so focus on storylines first."
+
+expected_facts:
+  # Target details
+  - path: "target_entity"
+    equals: "Caldari State"
+
+  - path: "target_standing"
+    equals: 5.0
+
+  # Current situation
+  - path: "current_standing"
+    equals: 2.0
+
+  # Effective standing with Connections V: 2.0 + (10 - 2.0) * 0.20 = 3.6
+  - path: "effective_standing"
+    equals: 3.6
+
+  # Gap to target (5.0 - 3.6 = 1.4)
+  - path: "gap"
+    equals: 1.4
+
+  # Has recommended path
+  - path: "recommended_path"
+    length: 3
+
+  # Storyline is top priority
+  - path: "recommended_path[0].method"
+    equals: "storyline"
+
+  - path: "recommended_path[0].priority"
+    equals: 1
+
+  # Epic arc is secondary
+  - path: "recommended_path[1].method"
+    equals: "epic_arc"
+
+  # Cannot use epic arc yet (need 5.0 to start)
+  - path: "can_use_epic_arc"
+    equals: false
+
+  # Epic arc standing requirement
+  - path: "epic_arc_info.standing_required"
+    equals: 5.0
+
+  # Estimated missions
+  - path: "estimated_missions"
+    range: [30, 100]

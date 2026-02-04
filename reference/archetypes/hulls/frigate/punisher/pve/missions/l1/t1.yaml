@@ -1,0 +1,82 @@
+# Punisher L1 Missions - Low Skill Variant
+#
+# Entry-level fit for brand new Amarr pilots.
+# Heavy armor tank with pulse lasers.
+
+archetype:
+  hull: Punisher
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Punisher, L1 Missions - Low Skills]
+
+  Small Armor Repairer I
+  Damage Control I
+  Heat Sink I
+  Adaptive Nano Plating I
+
+  1MN Afterburner I
+  Small Compact Pb-Acid Cap Battery
+
+  Small Focused Pulse Laser I
+  Small Focused Pulse Laser I
+  Small Focused Pulse Laser I
+  Small Focused Pulse Laser I
+
+  Small Auxiliary Nano Pump I
+  Small Auxiliary Nano Pump I
+  Small Energy Collision Accelerator I
+
+  Multifrequency S x4
+  Radio S x4
+
+skill_requirements:
+  required:
+    Amarr Frigate: 2
+    Small Energy Turret: 2
+    Gunnery: 2
+    Armor Repair Systems: 1
+  recommended:
+    Controlled Bursts: 2
+    Capacitor Management: 3
+    Hull Upgrades: 2
+
+stats:
+  dps: 82
+  ehp: 3500
+  tank_sustained: 50
+  capacitor_stable: false
+  align_time: 5.0
+  speed_ab: 600
+  optimal_range: 5000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: em_thermal  # Lasers - fixed damage type
+  tank_profile: armor_active
+
+  notes:
+    - "Lasers deal EM/Thermal damage - cannot change"
+    - "Swap crystals for range, not damage type"
+    - "Use cap booster to sustain laser fire"
+
+notes:
+  purpose: "Entry-level L1 mission runner for new Amarr pilots"
+  engagement: "Close to 2-5km, orbit, pulse repper"
+  warnings:
+    - "CRITICAL: Manage capacitor carefully"
+    - "Pulse the repper - don't run constantly"
+    - "Use cap booster at 40% cap, not 10%"
+    - "Swap to Radio S for longer range"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Small Focused Pulse Laser I"
+      upgrade_to: "Small Focused Pulse Laser II"
+      skill_required: "Small Energy Turret 5"
+    - ship: "Coercer (Destroyer)"
+      notes: "8 turrets, melts L1 missions"
+    - ship: "Omen (Cruiser)"
+      notes: "L2 missions, medium pulse lasers"

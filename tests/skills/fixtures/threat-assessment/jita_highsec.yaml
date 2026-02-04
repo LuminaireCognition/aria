@@ -1,0 +1,75 @@
+# Test fixture: Jita highsec threat assessment
+# Tests /threat-assessment for the main trade hub
+
+name: "Jita highsec threat assessment"
+skill: threat-assessment
+description: |
+  Threat assessment for Jita, the main trade hub.
+  Tests high traffic system with ganking activity.
+
+input:
+  systems:
+    - Jita
+  include_realtime: false
+
+expected_output:
+  systems:
+    - name: "Jita"
+      system_id: 30000142
+      security: 0.95
+      security_class: "HIGH"
+      ship_kills: 8
+      pod_kills: 5
+      npc_kills: 50
+      ship_jumps: 15000
+      activity_level: "high"
+  cache_age_seconds: 180
+  data_period: "last_hour"
+  warnings: []
+
+expected_facts:
+  # Should return exactly 1 system
+  - path: "systems"
+    length: 1
+
+  # System name
+  - path: "systems[0].name"
+    equals: "Jita"
+
+  # Highsec security class
+  - path: "systems[0].security_class"
+    equals: "HIGH"
+
+  # Highsec security range
+  - path: "systems[0].security"
+    range: [0.5, 1.0]
+
+  # Jita is extremely high traffic
+  - path: "systems[0].ship_jumps"
+    range: [1000, 50000]
+
+  # Even highsec trade hubs have some ganking
+  - path: "systems[0].ship_kills"
+    range: [0, 50]
+
+  # High activity due to traffic
+  - path: "systems[0].activity_level"
+    one_of: ["medium", "high", "extreme"]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_activity:
+    systems:
+      - system_id: 30000142
+        name: "Jita"
+        security: 0.95
+        security_class: "HIGH"
+        ship_kills: 8
+        pod_kills: 5
+        npc_kills: 50
+        ship_jumps: 15000
+        activity_level: "high"
+    cache_age_seconds: 180
+    data_period: "last_hour"

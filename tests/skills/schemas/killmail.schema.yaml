@@ -1,0 +1,257 @@
+# JSON Schema for /killmail skill output validation
+# Validates the structure of killmail analysis responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: KillmailSkillOutput
+description: Output schema for the /killmail skill - analyzes individual killmails
+type: object
+
+oneOf:
+  - $ref: "#/$defs/KillmailAnalysisResponse"
+  - $ref: "#/$defs/KillmailErrorResponse"
+
+$defs:
+  # Successful killmail analysis
+  KillmailAnalysisResponse:
+    type: object
+    required:
+      - killmail_id
+      - killmail_time
+      - system
+      - victim
+      - attackers
+    properties:
+      killmail_id:
+        type: integer
+        minimum: 1
+        description: Unique kill ID from ESI/zKillboard
+      killmail_time:
+        type: string
+        format: date-time
+        description: When the kill occurred
+
+      system:
+        $ref: "#/$defs/SystemInfo"
+        description: Solar system where kill occurred
+
+      victim:
+        $ref: "#/$defs/VictimInfo"
+        description: Information about the victim
+
+      fitting_analysis:
+        $ref: "#/$defs/FittingAnalysis"
+        description: Analysis of victim's fitting
+
+      attackers:
+        type: array
+        items:
+          $ref: "#/$defs/AttackerInfo"
+        description: List of attackers
+
+      attacker_count:
+        type: integer
+        minimum: 1
+        description: Total number of attackers
+
+      attacker_summary:
+        $ref: "#/$defs/AttackerSummary"
+        description: Aggregated attacker information
+
+      context:
+        $ref: "#/$defs/KillContext"
+        description: Tactical context (gatecamp, activity)
+
+      zkillboard_url:
+        type: string
+        format: uri
+        description: Link to the kill on zKillboard
+
+  # System information
+  SystemInfo:
+    type: object
+    required:
+      - system_id
+      - system_name
+      - security
+    properties:
+      system_id:
+        type: integer
+        minimum: 30000000
+        maximum: 32000000
+      system_name:
+        type: string
+        minLength: 1
+      security:
+        type: number
+        minimum: -1.0
+        maximum: 1.0
+      security_class:
+        type: string
+        enum: ["HIGH", "LOW", "NULL"]
+      region:
+        type: string
+
+  # Victim information
+  VictimInfo:
+    type: object
+    required:
+      - ship_type_id
+    properties:
+      character_id:
+        type: ["integer", "null"]
+        minimum: 1
+        description: May be null for NPC/structure kills
+      character_name:
+        type: ["string", "null"]
+      corporation_id:
+        type: integer
+        minimum: 1
+      corporation_name:
+        type: string
+      alliance_id:
+        type: ["integer", "null"]
+      alliance_name:
+        type: ["string", "null"]
+      ship_type_id:
+        type: integer
+        minimum: 1
+      ship_type_name:
+        type: string
+      total_value:
+        type: number
+        minimum: 0
+        description: Total ISK value of the kill
+
+  # Fitting analysis
+  FittingAnalysis:
+    type: object
+    properties:
+      ship_class:
+        type: string
+        description: Ship classification (Frigate, Cruiser, etc.)
+      fit_type:
+        type: string
+        description: Description of fitting type
+      tank_type:
+        type: string
+        enum: ["shield buffer", "shield active", "armor buffer", "armor active", "hull", "passive", "unknown"]
+      estimated_ehp:
+        type: ["integer", "null"]
+        minimum: 0
+      estimated_dps:
+        type: ["integer", "null"]
+        minimum: 0
+      notes:
+        type: string
+
+  # Attacker information
+  AttackerInfo:
+    type: object
+    properties:
+      character_id:
+        type: ["integer", "null"]
+      character_name:
+        type: ["string", "null"]
+      corporation_id:
+        type: integer
+      corporation_name:
+        type: string
+      alliance_id:
+        type: ["integer", "null"]
+      alliance_name:
+        type: ["string", "null"]
+      ship_type_id:
+        type: ["integer", "null"]
+      ship_type_name:
+        type: ["string", "null"]
+      weapon_type_name:
+        type: string
+      damage_done:
+        type: integer
+        minimum: 0
+      final_blow:
+        type: boolean
+
+  # Aggregated attacker summary
+  AttackerSummary:
+    type: object
+    properties:
+      corps:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            count:
+              type: integer
+              minimum: 1
+      alliances:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            count:
+              type: integer
+              minimum: 1
+      ships:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            count:
+              type: integer
+              minimum: 1
+
+  # Tactical context
+  KillContext:
+    type: object
+    properties:
+      is_gatecamp:
+        type: boolean
+        description: Whether kill is part of a gatecamp
+      gatecamp_kills:
+        type: integer
+        minimum: 0
+        description: Number of kills in current camp
+      gatecamp_duration_minutes:
+        type: integer
+        minimum: 0
+      system_kills_last_hour:
+        type: integer
+        minimum: 0
+      warnings:
+        type: array
+        items:
+          type: string
+        description: Tactical warnings and alerts
+
+  # Error response
+  KillmailErrorResponse:
+    type: object
+    required:
+      - error
+      - error_type
+      - error_message
+    properties:
+      error:
+        type: boolean
+        const: true
+      error_type:
+        type: string
+        enum: ["not_found", "api_error", "invalid_input", "rate_limited"]
+      error_message:
+        type: string
+        description: Human-readable error message
+      killmail_id:
+        type: ["integer", "null"]
+        description: The kill ID that was requested
+      suggestions:
+        type: array
+        items:
+          type: string
+        description: Suggestions for resolving the error

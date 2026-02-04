@@ -1,0 +1,70 @@
+# Procurer Fleet Mining - Low Skill Variant
+#
+# Tank-focused mining barge for fleet operations or dangerous space.
+
+archetype:
+  hull: Procurer
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Procurer, Fleet Tank - Low Skills]
+
+  Mining Laser Upgrade I
+  Damage Control I
+
+  Compact Multispectrum Shield Hardener
+  Medium Shield Extender I
+  Medium Shield Extender I
+  5MN Microwarpdrive I
+
+  Strip Miner I
+  Strip Miner I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Hobgoblin I x5
+  Mining Drone I x5
+
+skill_requirements:
+  required:
+    Mining Barge: 1
+    Astrogeology: 4
+    Mining: 4
+    Shield Operation: 4
+  recommended:
+    Mining Barge: 4
+    Shield Management: 4
+    Drone Interfacing: 3
+
+stats:
+  mining_yield: 900  # m3/min approximate
+  ore_hold: 16000
+  ehp: 35000
+  dps: 80  # Hobgoblins
+  align_time: 15.0
+  speed_mwd: 1000
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Tanky mining barge for fleet ops or dangerous space"
+  engagement: "Mine with fleet, use combat drones against NPCs"
+  warnings:
+    - "Massive tank makes gankers skip you for easier targets"
+    - "Smaller ore hold than Retriever - needs more trips or fleet hangar"
+    - "Overheat hardener if attacked"
+    - "Don't panic - you have time to react"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Strip Miner I"
+      upgrade_to: "Strip Miner II"
+      skill_required: "Mining 5, Astrogeology 5"
+    - module: "Compact Multispectrum Shield Hardener"
+      upgrade_to: "Multispectrum Shield Hardener II"
+      skill_required: "Tactical Shield Manipulation 4"
+    - ship: "Skiff (T2)"
+      notes: "More tank, more yield"

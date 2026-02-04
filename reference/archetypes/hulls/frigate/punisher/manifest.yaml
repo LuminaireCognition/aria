@@ -1,0 +1,54 @@
+# Punisher Hull Manifest
+#
+# The Punisher is an Amarr T1 frigate with exceptional armor tank.
+# 4 turret hardpoints with laser capacitor bonus.
+
+hull: Punisher
+class: frigate
+faction: amarr
+tech_level: 1
+
+slots:
+  high: 4
+  mid: 2
+  low: 4
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "5% bonus to Small Energy Turret capacitor use per Amarr Frigate level"
+  - "5% bonus to armor resistances per Amarr Frigate level"
+
+roles:
+  - turret_boat
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_active
+  weapons:
+    primary: lasers
+    secondary: null  # No drones
+
+  notes:
+    - "Heaviest tanked T1 frigate"
+    - "Lasers are cap hungry - manage capacitor"
+    - "4 low slots for maximum armor tank"
+    - "Only 2 mid slots - limited utility options"
+
+crystal_recommendations:
+  brawling: "Multifrequency S"
+  general: "Standard S"
+  sniping: "Radio S"
+  note: "Crystals change range, not damage type (always EM/Thermal)"
+
+capacitor:
+  stable_expected: false
+  notes: "Lasers + active tank are very cap hungry. Cap booster recommended."
+
+engagement:
+  range: "2-5km (pulse), 8-12km (beam)"
+  speed: "Brawl with AB"
+  notes: "Close range, maximum tank. Outlast enemies."

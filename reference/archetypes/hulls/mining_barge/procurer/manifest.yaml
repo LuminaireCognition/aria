@@ -1,0 +1,49 @@
+# Procurer Hull Manifest
+#
+# The Procurer is an ORE mining barge focused on durability.
+# Best tank of the barges with strong drone capabilities.
+
+hull: Procurer
+class: mining_barge
+faction: ore
+tech_level: 1
+
+slots:
+  high: 2
+  mid: 4
+  low: 2
+  rig: 3
+
+drones:
+  bandwidth: 25
+  bay: 50
+
+bonuses:
+  - "5% reduction in Strip Miner and Ice Harvester cycle time per Mining Barge level"
+  - "150% bonus to Mining Barge role bonus to drone hitpoints and damage"
+
+roles:
+  - mining
+  - ice_harvesting
+  - fleet_operations
+  - dangerous_space
+
+fitting_rules:
+  tank_type: shield_active
+  weapons:
+    primary: strip_miners
+    secondary: drones
+
+  notes:
+    - "16,000 m3 ore hold - smallest of barges"
+    - "Best tank of mining barges - ~45-55k EHP"
+    - "50 m3 drone bay, 25 m3 bandwidth - combat capable"
+    - "Survives ganks that kill other barges"
+    - "Gankers often skip Procurers"
+
+ore_hold: 16000
+
+engagement:
+  range: "Strip mining - within 15km of asteroid"
+  speed: "~100 m/s (no prop), ~1,000 m/s (MWD)"
+  notes: "Can defend self against belt rats. Stay aligned in dangerous space."

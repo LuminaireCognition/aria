@@ -1,0 +1,54 @@
+# Probe Hull Manifest
+#
+# The Probe is a Minmatar T1 exploration frigate.
+# Fastest T1 explorer - speed is the best defense.
+
+hull: Probe
+class: frigate
+faction: minmatar
+tech_level: 1
+role: exploration
+
+slots:
+  high: 3
+  mid: 4
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 5
+  bay: 10
+
+bonuses:
+  - "7.5% bonus to probe scan strength per Minmatar Frigate level"
+  - "5% bonus to salvager cycle time per Minmatar Frigate level"
+
+roles:
+  - exploration
+  - speed_tank
+
+fitting_rules:
+  tank_type: speed  # Speed is the tank
+  weapons:
+    primary: null
+    secondary: drones  # Minimal
+
+  notes:
+    - "Fastest aligning T1 explorer (~3.2s)"
+    - "Fastest MWD speed of T1 explorers"
+    - "Speed = survival in dangerous space"
+    - "Minimal tank - don't get caught"
+
+exploration_bonuses:
+  probe_strength: "+7.5%/level"
+  virus_strength: "30 (base 25 + 5 role)"
+  cargo: "400m3"
+
+capacitor:
+  stable_expected: true
+  notes: "Exploration modules use minimal cap."
+
+engagement:
+  range: "N/A - avoid combat"
+  speed: "~2800 m/s with MWD"
+  notes: "Can't catch what you can't hit. Outrun everything."

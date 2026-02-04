@@ -1,0 +1,115 @@
+# Omen L2 Missions - Low Skill Variant
+#
+# Entry-level fit for pilots just getting into cruisers.
+# Pulse lasers with armor tank. Cap management critical.
+
+archetype:
+  hull: Omen
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Omen, L2 Missions - Low Skills]
+
+  Heat Sink I
+  Heat Sink I
+  Damage Control I
+  Medium Armor Repairer I
+  Compact Multispectrum Energized Membrane
+  Reactive Armor Hardener
+
+  50MN Cold-Gas Enduring Microwarpdrive
+  Medium Compact Pb-Acid Cap Battery
+  Cap Recharger I
+
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Capacitor Control Circuit I
+
+  Hobgoblin I x3
+
+  Multifrequency M x4
+  Standard M x4
+  Radio M x4
+
+skill_requirements:
+  required:
+    Amarr Cruiser: 2
+    Medium Energy Turret: 3
+    Gunnery: 3
+    Armor Repair Systems: 2
+    Hull Upgrades: 3
+  recommended:
+    Controlled Bursts: 3
+    Capacitor Management: 3
+    Mechanics: 3
+
+stats:
+  dps: 200
+  ehp: 10500
+  tank_sustained: 75
+  capacitor_stable: false
+  align_time: 9.0
+  speed_mwd: 1250
+  optimal_range: 9000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: em_thermal  # Lasers deal EM/Thermal - fixed
+  tank_profile: armor_active
+
+  # Lasers cannot change damage type - only crystals change range
+  notes:
+    - "Lasers deal EM/Thermal damage regardless of crystal"
+    - "Multifrequency for close range, Radio for far"
+    - "Cannot exploit enemy weaknesses - use drones for that"
+
+  overrides:
+    blood_raiders:
+      notes: "Blood Raiders resist EM - expect slower kills"
+      drones:
+        primary: "Acolyte I"  # EM still good
+    sansha:
+      notes: "Sansha resist EM - expect slower kills"
+      drones:
+        primary: "Acolyte I"
+    serpentis:
+      notes: "Serpentis weak to Thermal - lasers work well"
+      drones:
+        primary: "Hobgoblin I"
+    angel_cartel:
+      notes: "Angels weak to Explosive - use Warrior drones"
+      drones:
+        primary: "Warrior I"
+    guristas:
+      notes: "Guristas weak to Kinetic - use Hornet drones"
+      drones:
+        primary: "Hornet I"
+
+notes:
+  purpose: "Entry-level L2 mission runner for Amarr pilots"
+  engagement: "Close to 10-15km, orbit, pulse lasers and repper"
+  warnings:
+    - "CRITICAL: Pulse the repper, don't run constantly"
+    - "Capacitor hungry - monitor cap at all times"
+    - "Swap to Radio crystals if you need range"
+    - "MWD drains cap fast - approach then turn off"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Focused Medium Pulse Laser I"
+      upgrade_to: "Focused Medium Pulse Laser II"
+      skill_required: "Medium Energy Turret 5"
+    - module: "Heat Sink I"
+      upgrade_to: "Heat Sink II"
+      skill_required: "Weapon Upgrades 4"
+    - module: "Medium Armor Repairer I"
+      upgrade_to: "Medium Armor Repairer II"
+      skill_required: "Repair Systems 5"

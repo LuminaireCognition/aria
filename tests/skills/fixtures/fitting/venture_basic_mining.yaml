@@ -1,0 +1,255 @@
+# Test fixture: Basic Venture mining fit
+# Tests /fitting with a simple T1 mining configuration
+
+name: "Venture basic mining fit"
+skill: fitting
+description: |
+  Simple Venture mining fit with T1 modules.
+  Tests basic fitting calculation with mining lasers.
+
+input:
+  eft: |
+    [Venture, Basic Mining]
+
+    Mining Laser Upgrade I
+
+    Survey Scanner I
+    1MN Monopropellant Enduring Afterburner
+
+    Miner I
+    Miner I
+
+    Small EM Shield Reinforcer I
+    Small EM Shield Reinforcer I
+
+    Hobgoblin I x2
+
+expected_output:
+  ship:
+    type_id: 32880
+    type_name: "Venture"
+    fit_name: "Basic Mining"
+  dps:
+    total: 12.5
+    em: 0.0
+    thermal: 12.5
+    kinetic: 0.0
+    explosive: 0.0
+  tank:
+    shield:
+      hp: 400
+      ehp: 480
+      resists:
+        em: 50.0
+        thermal: 40.0
+        kinetic: 40.0
+        explosive: 50.0
+    armor:
+      hp: 250
+      ehp: 280
+      resists:
+        em: 50.0
+        thermal: 45.0
+        kinetic: 25.0
+        explosive: 10.0
+    hull:
+      hp: 350
+      ehp: 350
+      resists:
+        em: 0.0
+        thermal: 0.0
+        kinetic: 0.0
+        explosive: 0.0
+    total_hp: 1000
+    total_ehp: 1110
+  resources:
+    cpu:
+      used: 80.0
+      output: 130.0
+      percent: 61.5
+      remaining: 50.0
+      overloaded: false
+    powergrid:
+      used: 8.0
+      output: 25.0
+      percent: 32.0
+      remaining: 17.0
+      overloaded: false
+    calibration:
+      used: 100.0
+      output: 400.0
+      percent: 25.0
+      remaining: 300.0
+      overloaded: false
+  capacitor:
+    capacity: 250.0
+    recharge_time: 125.0
+    recharge_rate: 2.0
+    peak_recharge_rate: 5.0
+  mobility:
+    max_velocity: 350.0
+    agility: 3.5
+    align_time: 4.5
+    mass: 1200000.0
+    warp_speed: 5.0
+  drones:
+    bandwidth:
+      used: 10.0
+      output: 10.0
+      percent: 100.0
+    bay:
+      used: 10.0
+      output: 10.0
+    launched: 2
+    max_active: 2
+  slots:
+    high:
+      used: 2
+      total: 2
+    mid:
+      used: 2
+      total: 2
+    low:
+      used: 1
+      total: 1
+    rig:
+      used: 2
+      total: 3
+  metadata:
+    skill_mode: "all_v"
+    validation_errors: []
+    warnings: []
+
+expected_facts:
+  # Ship identification
+  - path: "ship.type_name"
+    equals: "Venture"
+
+  - path: "ship.fit_name"
+    equals: "Basic Mining"
+
+  # Mining ships have low DPS
+  - path: "dps.total"
+    range: [0, 50]
+
+  # Venture has small drone bay - can launch light drones
+  - path: "drones.bandwidth.output"
+    equals: 10
+
+  - path: "drones.launched"
+    range: [0, 2]
+
+  # Resources should not be overloaded
+  - path: "resources.cpu.overloaded"
+    equals: false
+
+  - path: "resources.powergrid.overloaded"
+    equals: false
+
+  # Skill mode default
+  - path: "metadata.skill_mode"
+    equals: "all_v"
+
+  # No validation errors for valid fit
+  - path: "metadata.validation_errors"
+    length: 0
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  fitting_calculate_stats:
+    ship:
+      type_id: 32880
+      type_name: "Venture"
+      fit_name: "Basic Mining"
+    dps:
+      total: 12.5
+      em: 0.0
+      thermal: 12.5
+      kinetic: 0.0
+      explosive: 0.0
+    tank:
+      shield:
+        hp: 400
+        ehp: 480
+        resists:
+          em: 50.0
+          thermal: 40.0
+          kinetic: 40.0
+          explosive: 50.0
+      armor:
+        hp: 250
+        ehp: 280
+        resists:
+          em: 50.0
+          thermal: 45.0
+          kinetic: 25.0
+          explosive: 10.0
+      hull:
+        hp: 350
+        ehp: 350
+        resists:
+          em: 0.0
+          thermal: 0.0
+          kinetic: 0.0
+          explosive: 0.0
+      total_hp: 1000
+      total_ehp: 1110
+    resources:
+      cpu:
+        used: 80.0
+        output: 130.0
+        percent: 61.5
+        remaining: 50.0
+        overloaded: false
+      powergrid:
+        used: 8.0
+        output: 25.0
+        percent: 32.0
+        remaining: 17.0
+        overloaded: false
+      calibration:
+        used: 100.0
+        output: 400.0
+        percent: 25.0
+        remaining: 300.0
+        overloaded: false
+    capacitor:
+      capacity: 250.0
+      recharge_time: 125.0
+      recharge_rate: 2.0
+      peak_recharge_rate: 5.0
+    mobility:
+      max_velocity: 350.0
+      agility: 3.5
+      align_time: 4.5
+      mass: 1200000.0
+      warp_speed: 5.0
+    drones:
+      bandwidth:
+        used: 10.0
+        output: 10.0
+        percent: 100.0
+      bay:
+        used: 10.0
+        output: 10.0
+      launched: 2
+      max_active: 2
+    slots:
+      high:
+        used: 2
+        total: 2
+      mid:
+        used: 2
+        total: 2
+      low:
+        used: 1
+        total: 1
+      rig:
+        used: 2
+        total: 3
+    metadata:
+      skill_mode: "all_v"
+      validation_errors: []
+      warnings: []

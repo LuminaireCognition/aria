@@ -1,0 +1,110 @@
+# Caracal L2 Missions - Medium Skill Variant
+#
+# Solid mid-level fit for established pilots.
+# Improved tank and DPS over low skill variant.
+
+archetype:
+  hull: Caracal
+  skill_tier: meta
+  omega_required: false
+
+eft: |
+  [Caracal, L2 Missions - Medium Skills]
+
+  Ballistic Control System II
+  Ballistic Control System II
+  Damage Control II
+  Power Diagnostic System II
+
+  50MN Microwarpdrive I
+  Large Shield Extender II
+  Large Shield Extender II
+  Adaptive Invulnerability Shield Hardener I
+  EM Shield Hardener I
+
+  Rapid Light Missile Launcher I
+  Rapid Light Missile Launcher I
+  Rapid Light Missile Launcher I
+  Rapid Light Missile Launcher I
+  Rapid Light Missile Launcher I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Hobgoblin I x2
+
+  Scourge Light Missile x1000
+  Inferno Light Missile x500
+  Mjolnir Light Missile x500
+  Nova Light Missile x500
+
+skill_requirements:
+  required:
+    Caldari Cruiser: 3
+    Missile Launcher Operation: 4
+    Light Missiles: 4
+    Shield Upgrades: 4
+    Shield Management: 3
+    Weapon Upgrades: 4
+  recommended:
+    Rapid Launch: 3
+    Warhead Upgrades: 3
+    Target Navigation Prediction: 3
+    Guided Missile Precision: 3
+
+stats:
+  dps: 210
+  ehp: 18500
+  tank_sustained: 0  # Buffer tank
+  capacitor_stable: true
+  align_time: 8.0
+  speed_mwd: 1400
+  missile_range: 48000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_buffer
+
+  overrides:
+    serpentis:
+      ammo: "Inferno Light Missile"
+      notes: "Serpentis weak to Thermal"
+
+    angel_cartel:
+      ammo: "Nova Light Missile"
+      notes: "Angels weak to Explosive"
+
+    blood_raiders:
+      ammo: "Mjolnir Light Missile"
+      notes: "Blood Raiders weak to EM"
+
+    guristas:
+      ammo: "Scourge Light Missile"
+      notes: "Guristas weak to Kinetic - default ammo works"
+
+    rogue_drones:
+      ammo: "Mjolnir Light Missile"
+      notes: "Drones weak to EM"
+
+    mercenaries:
+      ammo: "Inferno Light Missile"
+      notes: "Mercenaries weak to Thermal"
+
+notes:
+  purpose: "General-purpose L2 mission runner for pilots with moderate skills"
+  engagement: "Orbit at 35-45km with MWD, let missiles do the work"
+  warnings:
+    - "Buffer tank - warp out when shields get low"
+    - "Pulse MWD to manage cap"
+
+upgrade_path:
+  next_tier: high
+  key_upgrades:
+    - module: "Rapid Light Missile Launcher I"
+      upgrade_to: "Rapid Light Missile Launcher II"
+      skill_required: "Light Missiles 5"
+    - module: "Adaptive Invulnerability Shield Hardener I"
+      upgrade_to: "Adaptive Invulnerability Shield Hardener II"
+      skill_required: "Tactical Shield Manipulation 4"

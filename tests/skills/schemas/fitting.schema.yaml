@@ -1,0 +1,423 @@
+# JSON Schema for /fitting skill output validation
+# Validates the structure of fitting(action="calculate_stats") responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: FittingSkillOutput
+description: Output schema for the /fitting skill (fitting calculate_stats action)
+type: object
+
+required:
+  - ship
+  - dps
+  - tank
+  - resources
+  - capacitor
+  - mobility
+  - drones
+  - slots
+  - metadata
+
+properties:
+  ship:
+    $ref: "#/$defs/ShipInfo"
+
+  dps:
+    $ref: "#/$defs/DPSBreakdown"
+
+  tank:
+    $ref: "#/$defs/TankStats"
+
+  resources:
+    $ref: "#/$defs/Resources"
+
+  capacitor:
+    $ref: "#/$defs/CapacitorStats"
+
+  mobility:
+    $ref: "#/$defs/MobilityStats"
+
+  drones:
+    $ref: "#/$defs/DroneStats"
+
+  slots:
+    $ref: "#/$defs/SlotUsage"
+
+  metadata:
+    $ref: "#/$defs/FitMetadata"
+
+$defs:
+  ShipInfo:
+    type: object
+    description: Ship identification
+    required:
+      - type_id
+      - type_name
+      - fit_name
+    properties:
+      type_id:
+        type: integer
+        description: Ship type ID
+        minimum: 0
+
+      type_name:
+        type: string
+        description: Ship type name
+        minLength: 1
+
+      fit_name:
+        type: string
+        description: Fit name from EFT
+
+  DPSBreakdown:
+    type: object
+    description: Damage per second breakdown by damage type
+    required:
+      - total
+    properties:
+      total:
+        type: number
+        description: Total DPS
+        minimum: 0
+
+      em:
+        type: number
+        description: EM damage DPS
+        minimum: 0
+
+      thermal:
+        type: number
+        description: Thermal damage DPS
+        minimum: 0
+
+      kinetic:
+        type: number
+        description: Kinetic damage DPS
+        minimum: 0
+
+      explosive:
+        type: number
+        description: Explosive damage DPS
+        minimum: 0
+
+  ResistProfile:
+    type: object
+    description: Resistance profile for a tank layer
+    required:
+      - em
+      - thermal
+      - kinetic
+      - explosive
+    properties:
+      em:
+        type: number
+        description: EM resist percentage
+        minimum: 0
+        maximum: 100
+
+      thermal:
+        type: number
+        description: Thermal resist percentage
+        minimum: 0
+        maximum: 100
+
+      kinetic:
+        type: number
+        description: Kinetic resist percentage
+        minimum: 0
+        maximum: 100
+
+      explosive:
+        type: number
+        description: Explosive resist percentage
+        minimum: 0
+        maximum: 100
+
+  LayerStats:
+    type: object
+    description: Stats for a single tank layer (shield/armor/hull)
+    required:
+      - hp
+      - ehp
+      - resists
+    properties:
+      hp:
+        type: number
+        description: Raw hit points
+        minimum: 0
+
+      ehp:
+        type: number
+        description: Effective hit points
+        minimum: 0
+
+      resists:
+        $ref: "#/$defs/ResistProfile"
+
+  TankStats:
+    type: object
+    description: Complete tank statistics
+    required:
+      - shield
+      - armor
+      - hull
+      - total_hp
+      - total_ehp
+    properties:
+      shield:
+        $ref: "#/$defs/LayerStats"
+
+      armor:
+        $ref: "#/$defs/LayerStats"
+
+      hull:
+        $ref: "#/$defs/LayerStats"
+
+      total_hp:
+        type: number
+        description: Total raw HP
+        minimum: 0
+
+      total_ehp:
+        type: number
+        description: Total effective HP
+        minimum: 0
+
+  ResourceUsage:
+    type: object
+    description: Resource usage (CPU, powergrid, calibration)
+    required:
+      - used
+      - output
+      - percent
+      - remaining
+      - overloaded
+    properties:
+      used:
+        type: number
+        description: Amount used
+
+      output:
+        type: number
+        description: Total available
+
+      percent:
+        type: number
+        description: Percentage used
+        minimum: 0
+
+      remaining:
+        type: number
+        description: Amount remaining
+
+      overloaded:
+        type: boolean
+        description: True if used > output
+
+  Resources:
+    type: object
+    description: Ship resources
+    required:
+      - cpu
+      - powergrid
+      - calibration
+    properties:
+      cpu:
+        $ref: "#/$defs/ResourceUsage"
+
+      powergrid:
+        $ref: "#/$defs/ResourceUsage"
+
+      calibration:
+        $ref: "#/$defs/ResourceUsage"
+
+  CapacitorStats:
+    type: object
+    description: Capacitor statistics
+    required:
+      - capacity
+      - recharge_time
+      - recharge_rate
+      - peak_recharge_rate
+    properties:
+      capacity:
+        type: number
+        description: Capacitor capacity in GJ
+        minimum: 0
+
+      recharge_time:
+        type: number
+        description: Full recharge time in seconds
+        minimum: 0
+
+      recharge_rate:
+        type: number
+        description: Base recharge rate in GJ/s
+        minimum: 0
+
+      peak_recharge_rate:
+        type: number
+        description: Peak recharge rate at 25% cap
+        minimum: 0
+
+  MobilityStats:
+    type: object
+    description: Ship mobility statistics
+    required:
+      - max_velocity
+      - agility
+      - align_time
+      - mass
+      - warp_speed
+    properties:
+      max_velocity:
+        type: number
+        description: Maximum velocity in m/s
+        minimum: 0
+
+      agility:
+        type: number
+        description: Agility factor (lower is better)
+        minimum: 0
+
+      align_time:
+        type: number
+        description: Align time in seconds
+        minimum: 0
+
+      mass:
+        type: number
+        description: Ship mass in kg
+        minimum: 0
+
+      warp_speed:
+        type: number
+        description: Warp speed in AU/s
+        minimum: 0
+
+  BandwidthUsage:
+    type: object
+    description: Drone bandwidth usage
+    required:
+      - used
+      - output
+      - percent
+    properties:
+      used:
+        type: number
+        description: Bandwidth used
+        minimum: 0
+
+      output:
+        type: number
+        description: Total bandwidth
+        minimum: 0
+
+      percent:
+        type: number
+        description: Percentage used
+        minimum: 0
+
+  BayCapacity:
+    type: object
+    description: Drone bay capacity
+    required:
+      - used
+      - output
+    properties:
+      used:
+        type: number
+        description: Bay space used
+        minimum: 0
+
+      output:
+        type: number
+        description: Total bay capacity
+        minimum: 0
+
+  DroneStats:
+    type: object
+    description: Drone bay and bandwidth statistics
+    required:
+      - bandwidth
+      - bay
+      - launched
+      - max_active
+    properties:
+      bandwidth:
+        $ref: "#/$defs/BandwidthUsage"
+
+      bay:
+        $ref: "#/$defs/BayCapacity"
+
+      launched:
+        type: integer
+        description: Number of drones launched
+        minimum: 0
+
+      max_active:
+        type: integer
+        description: Maximum active drones
+        minimum: 0
+
+  SlotCount:
+    type: object
+    description: Slot usage count
+    required:
+      - used
+      - total
+    properties:
+      used:
+        type: integer
+        description: Slots used
+        minimum: 0
+
+      total:
+        type: integer
+        description: Total slots
+        minimum: 0
+
+  SlotUsage:
+    type: object
+    description: Module slot usage
+    required:
+      - high
+      - mid
+      - low
+      - rig
+    properties:
+      high:
+        $ref: "#/$defs/SlotCount"
+
+      mid:
+        $ref: "#/$defs/SlotCount"
+
+      low:
+        $ref: "#/$defs/SlotCount"
+
+      rig:
+        $ref: "#/$defs/SlotCount"
+
+  FitMetadata:
+    type: object
+    description: Fit metadata and validation
+    required:
+      - skill_mode
+      - validation_errors
+      - warnings
+    properties:
+      skill_mode:
+        type: string
+        description: Skill calculation mode
+        enum: ["all_v", "pilot_skills"]
+
+      validation_errors:
+        type: array
+        description: Validation errors from fit parsing
+        items:
+          type: string
+
+      warnings:
+        type: array
+        description: Warnings about the fit
+        items:
+          type: string

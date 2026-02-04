@@ -1,0 +1,111 @@
+# Test fixture: Asset overview
+# Tests basic asset inventory without valuation
+
+name: "Asset Overview"
+skill: assets
+description: |
+  Basic asset inventory showing locations, item counts, and assembled ships.
+  Tests the default /assets command without filters.
+
+input:
+  command: overview
+
+expected_facts:
+  - path: "total_unique_items"
+    range: [100, 1000]
+
+  - path: "total_locations"
+    range: [1, 20]
+
+  - path: "locations"
+    length: 3
+
+  - path: "assembled_ships"
+    length: 5
+
+expected_output:
+  total_unique_items: 847
+  total_locations: 12
+  locations:
+    - location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+      location_type: "station"
+      item_count: 312
+      ship_count: 3
+    - location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+      location_type: "station"
+      item_count: 186
+      ship_count: 5
+    - location_id: 60014137
+      location_name: "Arnon IX - Moon 3 - Sisters of EVE Bureau"
+      location_type: "station"
+      item_count: 45
+      ship_count: 1
+  assembled_ships:
+    - item_id: 1234567890
+      type_id: 17715
+      type_name: "Gila"
+      location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+    - item_id: 1234567891
+      type_id: 17709
+      type_name: "Vexor Navy Issue"
+      location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+    - item_id: 1234567892
+      type_id: 32880
+      type_name: "Venture"
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+    - item_id: 1234567893
+      type_id: 605
+      type_name: "Heron"
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+    - item_id: 1234567894
+      type_id: 33468
+      type_name: "Astero"
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  assets:
+    - item_id: 1234567890
+      type_id: 17715
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1234567891
+      type_id: 17709
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1234567892
+      type_id: 32880
+      location_id: 60011866
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1000000001
+      type_id: 34
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 100000
+      is_singleton: false
+    - item_id: 1000000002
+      type_id: 2456
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 50
+      is_singleton: false

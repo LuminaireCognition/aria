@@ -1,0 +1,107 @@
+# Omen L2 Missions - Medium Skill Variant
+#
+# Solid mid-level fit for established pilots.
+# Better cap management and T2 modules where beneficial.
+
+archetype:
+  hull: Omen
+  skill_tier: meta
+  omega_required: false
+
+eft: |
+  [Omen, L2 Missions - Medium Skills]
+
+  Heat Sink II
+  Heat Sink II
+  Damage Control II
+  Medium Armor Repairer I
+  Multispectrum Energized Membrane I
+  Reactive Armor Hardener
+
+  50MN Microwarpdrive I
+  Medium Compact Pb-Acid Cap Battery
+  Cap Recharger II
+
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Capacitor Control Circuit I
+
+  Hobgoblin I x3
+
+  Multifrequency M x4
+  Standard M x4
+  Radio M x4
+
+skill_requirements:
+  required:
+    Amarr Cruiser: 3
+    Medium Energy Turret: 4
+    Gunnery: 4
+    Armor Repair Systems: 3
+    Hull Upgrades: 4
+    Weapon Upgrades: 4
+  recommended:
+    Controlled Bursts: 4
+    Capacitor Management: 4
+    Capacitor Systems Operation: 4
+    Mechanics: 4
+
+stats:
+  dps: 245
+  ehp: 12000
+  tank_sustained: 85
+  capacitor_stable: false
+  align_time: 8.5
+  speed_mwd: 1300
+  optimal_range: 10000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: em_thermal
+  tank_profile: armor_active
+
+  overrides:
+    blood_raiders:
+      notes: "Blood Raiders resist EM - expect slower kills"
+      drones:
+        primary: "Acolyte I"
+    sansha:
+      notes: "Sansha resist EM - expect slower kills"
+      drones:
+        primary: "Acolyte I"
+    serpentis:
+      notes: "Serpentis weak to Thermal - lasers work well"
+      drones:
+        primary: "Hobgoblin I"
+    angel_cartel:
+      notes: "Angels weak to Explosive - use Warrior drones"
+      drones:
+        primary: "Warrior I"
+    guristas:
+      notes: "Guristas weak to Kinetic - use Hornet drones"
+      drones:
+        primary: "Hornet I"
+
+notes:
+  purpose: "General-purpose L2 mission runner with moderate skills"
+  engagement: "Close to 10-15km, orbit, pulse lasers and repper"
+  warnings:
+    - "CRITICAL: Pulse the repper, don't run constantly"
+    - "T2 Heat Sinks improve both damage and cap efficiency"
+    - "Swap to Radio crystals if you need range"
+
+upgrade_path:
+  next_tier: high
+  key_upgrades:
+    - module: "Focused Medium Pulse Laser I"
+      upgrade_to: "Focused Medium Pulse Laser II"
+      skill_required: "Medium Energy Turret 5"
+    - module: "Medium Armor Repairer I"
+      upgrade_to: "Medium Armor Repairer II"
+      skill_required: "Repair Systems 5"

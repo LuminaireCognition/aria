@@ -1,0 +1,109 @@
+# Test fixture: Route through Tama lowsec pipe
+# Tests /gatecamp for lowsec entry/exit detection
+
+name: "Route through Tama lowsec pipe"
+skill: gatecamp
+description: |
+  Route analysis passing through Tama lowsec.
+  Tests lowsec entry/exit chokepoint detection.
+
+input:
+  origin: Jita
+  destination: Tama
+  mode: shortest
+
+expected_output:
+  origin: "Jita"
+  destination: "Tama"
+  total_jumps: 7
+  overall_risk: "extreme"
+  chokepoints:
+    - system: "Nourvukaiken"
+      system_id: 30002807
+      security: 0.70
+      chokepoint_type: "lowsec_entry"
+      recent_kills: 8
+      recent_pods: 5
+      risk_level: "high"
+      warning: "Lowsec gate camp risk"
+    - system: "Tama"
+      system_id: 30002813
+      security: 0.28
+      chokepoint_type: "hub"
+      recent_kills: 25
+      recent_pods: 12
+      risk_level: "extreme"
+      warning: "Notorious PvP hotspot"
+  high_risk_systems:
+    - "Tama"
+    - "Nourvukaiken"
+  recommendation: "Extreme caution - Tama is a known PvP hotspot"
+  cache_age_seconds: 60
+  corrections: {}
+
+expected_facts:
+  # Route endpoints
+  - path: "origin"
+    equals: "Jita"
+
+  - path: "destination"
+    equals: "Tama"
+
+  # Short route to Tama from Jita
+  - path: "total_jumps"
+    range: [5, 10]
+
+  # Extreme risk due to Tama
+  - path: "overall_risk"
+    equals: "extreme"
+
+  # Should detect lowsec entry
+  - path: "chokepoints[0].chokepoint_type"
+    equals: "lowsec_entry"
+
+  # Tama itself is a hub
+  - path: "chokepoints[1].system"
+    equals: "Tama"
+
+  - path: "chokepoints[1].chokepoint_type"
+    equals: "hub"
+
+  - path: "chokepoints[1].risk_level"
+    equals: "extreme"
+
+  # High risk systems should include Tama
+  - path: "high_risk_systems[0]"
+    equals: "Tama"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_gatecamp_risk:
+    origin: "Jita"
+    destination: "Tama"
+    total_jumps: 7
+    overall_risk: "extreme"
+    chokepoints:
+      - system: "Nourvukaiken"
+        system_id: 30002807
+        security: 0.70
+        chokepoint_type: "lowsec_entry"
+        recent_kills: 8
+        recent_pods: 5
+        risk_level: "high"
+        warning: "Lowsec gate camp risk"
+      - system: "Tama"
+        system_id: 30002813
+        security: 0.28
+        chokepoint_type: "hub"
+        recent_kills: 25
+        recent_pods: 12
+        risk_level: "extreme"
+        warning: "Notorious PvP hotspot"
+    high_risk_systems:
+      - "Tama"
+      - "Nourvukaiken"
+    recommendation: "Extreme caution - Tama is a known PvP hotspot"
+    cache_age_seconds: 60
+    corrections: {}

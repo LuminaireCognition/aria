@@ -1,0 +1,118 @@
+# Harbinger L3 Missions - Low Skill Variant
+#
+# Entry-level fit with beam lasers for range.
+# Active armor tank with cap management focus.
+
+archetype:
+  hull: Harbinger
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Harbinger, L3 Missions - Low Skills]
+
+  Heat Sink I
+  Heat Sink I
+  Medium Armor Repairer I
+  Compact Multispectrum Energized Membrane
+  Compact Multispectrum Energized Membrane
+  Reactive Armor Hardener
+  Damage Control I
+
+  10MN Afterburner I
+  Cap Recharger II
+  Cap Recharger II
+  Tracking Computer I
+
+  Heavy Modulated Energy Beam I
+  Heavy Modulated Energy Beam I
+  Heavy Modulated Energy Beam I
+  Heavy Modulated Energy Beam I
+  Heavy Modulated Energy Beam I
+  Heavy Modulated Energy Beam I
+  [Empty High slot]
+
+  Medium Capacitor Control Circuit I
+  Medium Capacitor Control Circuit I
+  Medium Energy Collision Accelerator I
+
+  Acolyte I x5
+
+  Multifrequency M x6
+  Standard M x6
+  Radio M x6
+
+skill_requirements:
+  required:
+    Amarr Battlecruiser: 3
+    Medium Energy Turret: 3
+    Gunnery: 3
+    Armor Repair Systems: 3
+    Hull Upgrades: 4
+  recommended:
+    Controlled Bursts: 4
+    Capacitor Management: 4
+    Capacitor Systems Operation: 4
+    Repair Systems: 4
+
+stats:
+  dps: 380
+  ehp: 32000
+  tank_sustained: 190
+  capacitor_stable: false
+  align_time: 11.0
+  speed_ab: 400
+  optimal_range: 28000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: em_thermal  # Lasers - fixed
+  tank_profile: armor_active
+
+  notes:
+    - "Lasers deal EM/Thermal - cannot change damage type"
+    - "Swap crystals for range, not damage"
+    - "Use drones to exploit enemy weaknesses"
+
+  overrides:
+    blood_raiders:
+      notes: "Blood Raiders resist EM and use neuts - bring cap boosters"
+      drones:
+        primary: "Acolyte I"
+    sansha:
+      notes: "Sansha resist EM - expect slower kills"
+      drones:
+        primary: "Acolyte I"
+    serpentis:
+      notes: "Serpentis weak to Thermal - lasers work well"
+      drones:
+        primary: "Hobgoblin I"
+    angel_cartel:
+      notes: "Angels weak to Explosive - use Warrior drones"
+      drones:
+        primary: "Warrior I"
+    guristas:
+      notes: "Guristas weak to Kinetic - use Hornet drones"
+      drones:
+        primary: "Hornet I"
+
+notes:
+  purpose: "Entry-level L3 mission runner with beam lasers"
+  engagement: "Engage at 25-35km, swap crystals for range, use tracking computer"
+  warnings:
+    - "CRITICAL: Manage capacitor carefully"
+    - "Pulse the repper - don't run constantly"
+    - "Use Acolyte drones for frigates"
+    - "Swap to Radio crystals for long range"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Heavy Modulated Energy Beam I"
+      upgrade_to: "Heavy Modulated Energy Beam II"
+      skill_required: "Medium Energy Turret 5"
+    - module: "Heat Sink I"
+      upgrade_to: "Heat Sink II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Apocalypse (Battleship)"
+      notes: "L4 missions, bigger lasers"

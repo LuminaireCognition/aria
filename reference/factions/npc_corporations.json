@@ -1,0 +1,45 @@
+{
+  "serpentis": {
+    "faction_id": 500020,
+    "name": "Serpentis",
+    "corporations": [
+      {"id": 1000135, "name": "Serpentis Corporation"},
+      {"id": 1000157, "name": "Serpentis Inquest"}
+    ]
+  },
+  "angel_cartel": {
+    "faction_id": 500011,
+    "name": "Angel Cartel",
+    "corporations": [
+      {"id": 1000124, "name": "Archangels"},
+      {"id": 1000133, "name": "Salvation Angels"},
+      {"id": 1000136, "name": "Guardian Angels"},
+      {"id": 1000138, "name": "Dominations"},
+      {"id": 1000436, "name": "Malakim Zealots"}
+    ]
+  },
+  "guristas": {
+    "faction_id": 500010,
+    "name": "Guristas Pirates",
+    "corporations": [
+      {"id": 1000127, "name": "Guristas"},
+      {"id": 1000141, "name": "Guristas Production"},
+      {"id": 1000437, "name": "Commando Guri"}
+    ]
+  },
+  "blood_raiders": {
+    "faction_id": 500012,
+    "name": "Blood Raider Covenant",
+    "corporations": [
+      {"id": 1000134, "name": "Blood Raiders"}
+    ]
+  },
+  "sansha": {
+    "faction_id": 500019,
+    "name": "Sansha's Nation",
+    "corporations": [
+      {"id": 1000161, "name": "True Creations"},
+      {"id": 1000162, "name": "True Power"}
+    ]
+  }
+}

@@ -1,0 +1,147 @@
+# Vexor L2 Missions - Low Skill Variant
+#
+# Entry-level fit for pilots just getting into cruisers.
+# Uses Enduring/Compact variants for easier fitting.
+
+archetype:
+  hull: Vexor
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Vexor, L2 Missions - Low Skills]
+
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Medium ACM Compact Armor Repairer
+  Compact Multispectrum Energized Membrane
+  Reactive Armor Hardener
+
+  50MN Cold-Gas Enduring Microwarpdrive
+  Medium Compact Pb-Acid Cap Battery
+  Cap Recharger I
+  Drone Navigation Computer I
+
+  Drone Link Augmentor I
+  [Empty High slot]
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Nanobot Accelerator I
+
+  Hammerhead I x5
+  Hobgoblin I x5
+  Hornet I x5
+
+skill_requirements:
+  required:
+    Drones: 3
+    Medium Drone Operation: 2
+    Gallente Cruiser: 2
+    Armor Repair Systems: 2
+    Hull Upgrades: 2
+  recommended:
+    Drone Interfacing: 2
+    Capacitor Management: 3
+    Mechanics: 3
+
+stats:
+  dps: 165
+  ehp: 9500
+  tank_sustained: 70
+  capacitor_stable: true
+  align_time: 9.5
+  speed_mwd: 1050
+  drone_control_range: 50000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: armor_active
+
+  # Faction-specific module overrides
+  overrides:
+    serpentis:
+      # Serpentis deal Kin/Therm, weak to Thermal
+      # Swap omni membrane for specific hardeners
+      modules:
+        - from: "Compact Multispectrum Energized Membrane"
+          to: "Armor Kinetic Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Armor Thermal Hardener I"
+      drones:
+        primary: "Hammerhead I"    # Thermal - matches weakness
+        anti_frigate: "Hobgoblin I"  # Thermal
+      notes: "Serpentis use sensor damps - stay within 30km"
+
+    angel_cartel:
+      # Angels deal Exp/Kin, weak to Explosive
+      modules:
+        - from: "Compact Multispectrum Energized Membrane"
+          to: "Armor Explosive Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Armor Kinetic Hardener I"
+      drones:
+        primary: "Valkyrie I"     # Explosive - matches weakness
+        anti_frigate: "Warrior I"   # Explosive
+      notes: "Angels are fast - use MWD to maintain range"
+
+    blood_raiders:
+      # Blood Raiders deal EM/Therm, weak to EM
+      modules:
+        - from: "Compact Multispectrum Energized Membrane"
+          to: "Armor EM Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Armor Thermal Hardener I"
+      drones:
+        primary: "Infiltrator I"   # EM - matches weakness
+        anti_frigate: "Acolyte I"    # EM
+      notes: "Blood Raiders use neuts - watch capacitor"
+
+    guristas:
+      # Guristas deal Kin/Therm, weak to Kinetic
+      modules:
+        - from: "Compact Multispectrum Energized Membrane"
+          to: "Armor Kinetic Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Armor Thermal Hardener I"
+      drones:
+        primary: "Vespa I"        # Kinetic - matches weakness
+        anti_frigate: "Hornet I"    # Kinetic
+
+    rogue_drones:
+      # Drones deal omni damage, weak to EM
+      drones:
+        primary: "Infiltrator I"   # EM - matches weakness
+        anti_frigate: "Acolyte I"    # EM
+      notes: "Rogue Drones deal all damage types - keep omni tank"
+
+    mercenaries:
+      # Mercenaries deal Kin/Therm, weak to Thermal
+      drones:
+        primary: "Hammerhead I"    # Thermal
+        anti_frigate: "Hobgoblin I"  # Thermal
+      notes: "Mixed enemy types - default fit works well"
+
+notes:
+  purpose: "Entry-level L2 mission runner for pilots new to cruisers"
+  engagement: "Orbit at 30-40km, let drones do the work"
+  warnings:
+    - "Lower tank than medium/high tiers - manage aggro carefully"
+    - "Not cap stable with MWD running continuously"
+    - "Recall drones before warping"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Medium ACM Compact Armor Repairer"
+      upgrade_to: "Medium Armor Repairer I"
+      skill_required: "Repair Systems 3"
+    - module: "50MN Cold-Gas Enduring Microwarpdrive"
+      upgrade_to: "50MN Microwarpdrive I"
+      skill_required: "High Speed Maneuvering 3"
+    - module: "Compact Multispectrum Energized Membrane"
+      upgrade_to: "Multispectrum Energized Membrane I"
+      skill_required: "Hull Upgrades 3"

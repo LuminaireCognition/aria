@@ -1,0 +1,216 @@
+# Test fixture: Lowsec hotspot orientation
+# Tests /orient in a known PvP hotspot
+
+name: "Tama lowsec orientation"
+skill: orient
+description: |
+  Local area intelligence for Tama, a notorious lowsec PvP system.
+  Tests threat detection, escape routes, and activity analysis.
+
+input:
+  origin: Tama
+  max_jumps: 10
+  include_realtime: false
+
+expected_output:
+  origin: "Tama"
+  origin_id: 30002813
+  security: 0.28
+  security_class: "LOW"
+  region: "The Citadel"
+  constellation: "Ihatalo"
+  threat_summary:
+    level: "HIGH"
+    total_kills: 45
+    total_pods: 22
+    active_camps:
+      - "Tama"
+      - "Nourv"
+    hotspot_count: 3
+  hotspots:
+    - system: "Tama"
+      system_id: 30002813
+      security: 0.28
+      security_class: "LOW"
+      region: "The Citadel"
+      jumps: 0
+      ship_kills: 25
+      pod_kills: 12
+      npc_kills: 5
+      ship_jumps: 450
+      activity_level: "extreme"
+      reason: "gatecamp"
+    - system: "Nourv"
+      system_id: 30002811
+      security: 0.30
+      security_class: "LOW"
+      region: "The Citadel"
+      jumps: 1
+      ship_kills: 15
+      pod_kills: 8
+      npc_kills: 10
+      ship_jumps: 320
+      activity_level: "high"
+      reason: "gatecamp"
+  quiet_zones:
+    - system: "Akidagi"
+      system_id: 30002818
+      security: 0.22
+      security_class: "LOW"
+      region: "The Citadel"
+      jumps: 3
+      ship_kills: 0
+      pod_kills: 0
+      npc_kills: 25
+      ship_jumps: 45
+      activity_level: "none"
+  ratting_banks: []
+  escape_routes:
+    - destination: "Nourvukaiken"
+      destination_type: "highsec"
+      jumps: 1
+      via_system: "Nourvukaiken"
+      route_security: "highsec"
+    - destination: "Jita"
+      destination_type: "trade_hub"
+      jumps: 7
+      via_system: "Nourvukaiken"
+      route_security: "highsec"
+  borders:
+    - system: "Tama"
+      system_id: 30002813
+      security: 0.28
+      jumps: 0
+      border_type: "low_to_high"
+      adjacent_system: "Nourvukaiken"
+      adjacent_security: 0.70
+  systems_scanned: 28
+  search_radius: 10
+  cache_age_seconds: 180
+  realtime_healthy: false
+  warnings: []
+
+expected_facts:
+  # Origin validation
+  - path: "origin"
+    equals: "Tama"
+
+  - path: "security_class"
+    equals: "LOW"
+
+  # Lowsec security range
+  - path: "security"
+    range: [0.0, 0.45]
+
+  # High threat level expected in Tama
+  - path: "threat_summary.level"
+    equals: "HIGH"
+
+  # Total kills should be significant
+  - path: "threat_summary.total_kills"
+    range: [20, 200]
+
+  # Hotspots should include Tama itself
+  - path: "hotspots[0].system"
+    equals: "Tama"
+
+  # Hotspot activity level should be high/extreme
+  - path: "hotspots[0].activity_level"
+    equals: "extreme"
+
+  # Should have escape routes to highsec
+  - path: "escape_routes"
+    length: 2
+
+  - path: "escape_routes[0].destination_type"
+    equals: "highsec"
+
+  # Border should show low-to-high transition
+  - path: "borders[0].border_type"
+    equals: "low_to_high"
+
+  # Systems scanned should be > 0
+  - path: "systems_scanned"
+    range: [10, 100]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_local_area:
+    origin: "Tama"
+    origin_id: 30002813
+    security: 0.28
+    security_class: "LOW"
+    region: "The Citadel"
+    constellation: "Ihatalo"
+    threat_summary:
+      level: "HIGH"
+      total_kills: 45
+      total_pods: 22
+      active_camps:
+        - "Tama"
+        - "Nourv"
+      hotspot_count: 3
+    hotspots:
+      - system: "Tama"
+        system_id: 30002813
+        security: 0.28
+        security_class: "LOW"
+        region: "The Citadel"
+        jumps: 0
+        ship_kills: 25
+        pod_kills: 12
+        npc_kills: 5
+        ship_jumps: 450
+        activity_level: "extreme"
+        reason: "gatecamp"
+      - system: "Nourv"
+        system_id: 30002811
+        security: 0.30
+        security_class: "LOW"
+        region: "The Citadel"
+        jumps: 1
+        ship_kills: 15
+        pod_kills: 8
+        npc_kills: 10
+        ship_jumps: 320
+        activity_level: "high"
+        reason: "gatecamp"
+    quiet_zones:
+      - system: "Akidagi"
+        system_id: 30002818
+        security: 0.22
+        security_class: "LOW"
+        region: "The Citadel"
+        jumps: 3
+        ship_kills: 0
+        pod_kills: 0
+        npc_kills: 25
+        ship_jumps: 45
+        activity_level: "none"
+    ratting_banks: []
+    escape_routes:
+      - destination: "Nourvukaiken"
+        destination_type: "highsec"
+        jumps: 1
+        via_system: "Nourvukaiken"
+        route_security: "highsec"
+      - destination: "Jita"
+        destination_type: "trade_hub"
+        jumps: 7
+        via_system: "Nourvukaiken"
+        route_security: "highsec"
+    borders:
+      - system: "Tama"
+        system_id: 30002813
+        security: 0.28
+        jumps: 0
+        border_type: "low_to_high"
+        adjacent_system: "Nourvukaiken"
+        adjacent_security: 0.70
+    systems_scanned: 28
+    search_radius: 10
+    cache_age_seconds: 180
+    realtime_healthy: false
+    warnings: []

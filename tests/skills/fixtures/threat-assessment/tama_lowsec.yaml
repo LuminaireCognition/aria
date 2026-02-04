@@ -1,0 +1,75 @@
+# Test fixture: Tama lowsec threat assessment
+# Tests /threat-assessment for a notorious PvP hotspot
+
+name: "Tama lowsec threat assessment"
+skill: threat-assessment
+description: |
+  Threat assessment for Tama, a well-known lowsec PvP system.
+  Tests activity level detection and kill data.
+
+input:
+  systems:
+    - Tama
+  include_realtime: false
+
+expected_output:
+  systems:
+    - name: "Tama"
+      system_id: 30002813
+      security: 0.28
+      security_class: "LOW"
+      ship_kills: 25
+      pod_kills: 12
+      npc_kills: 5
+      ship_jumps: 450
+      activity_level: "extreme"
+  cache_age_seconds: 180
+  data_period: "last_hour"
+  warnings: []
+
+expected_facts:
+  # Should return exactly 1 system
+  - path: "systems"
+    length: 1
+
+  # System name
+  - path: "systems[0].name"
+    equals: "Tama"
+
+  # Lowsec security class
+  - path: "systems[0].security_class"
+    equals: "LOW"
+
+  # Lowsec security range
+  - path: "systems[0].security"
+    range: [0.0, 0.45]
+
+  # Tama should have significant activity
+  - path: "systems[0].ship_kills"
+    range: [5, 100]
+
+  # High activity level expected
+  - path: "systems[0].activity_level"
+    one_of: ["high", "extreme"]
+
+  # Data period should be last_hour
+  - path: "data_period"
+    equals: "last_hour"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_activity:
+    systems:
+      - system_id: 30002813
+        name: "Tama"
+        security: 0.28
+        security_class: "LOW"
+        ship_kills: 25
+        pod_kills: 12
+        npc_kills: 5
+        ship_jumps: 450
+        activity_level: "extreme"
+    cache_age_seconds: 180
+    data_period: "last_hour"

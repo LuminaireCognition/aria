@@ -1,0 +1,917 @@
+# Activity Skill Plans for EVE Online
+#
+# Defines skill requirements for common activities with three tiers:
+# - minimum: Bare minimum to participate (often inefficient)
+# - easy_80: ~80% effectiveness with reasonable training time
+# - full: Maximum effectiveness (all relevant skills to V)
+#
+# Structure:
+#   activity_id:
+#     display_name: Human-readable name
+#     category: mining|exploration|combat|industry|trade|research
+#     description: Brief description of the activity
+#     parameters: Optional list of parameters for parameterized activities
+#     minimum: Skills to start the activity
+#     easy_80: Skills for ~80% effectiveness
+#     full: Skills for maximum effectiveness
+#     ships: Recommended ships for this activity
+#     notes: Additional context or tips
+
+# =============================================================================
+# MINING ACTIVITIES
+# =============================================================================
+
+mining_basic:
+  display_name: "Basic Mining"
+  category: mining
+  description: "Mine ore in high-sec asteroid belts with a mining frigate"
+  minimum:
+    - skill: "Mining"
+      level: 1
+    - skill: "Mining Frigate"
+      level: 1
+  easy_80:
+    - skill: "Mining"
+      level: 4
+    - skill: "Mining Frigate"
+      level: 4
+    - skill: "Astrogeology"
+      level: 4
+    - skill: "Mining Upgrades"
+      level: 3
+  full:
+    - skill: "Mining"
+      level: 5
+    - skill: "Mining Frigate"
+      level: 5
+    - skill: "Astrogeology"
+      level: 5
+    - skill: "Mining Upgrades"
+      level: 4
+  ships:
+    minimum: "Venture"
+    recommended: "Venture"
+  notes:
+    - "Venture has built-in +2 warp core strength for escape"
+    - "Always align to a safe spot while mining"
+
+mining_barge:
+  display_name: "Mining Barge Operations"
+  category: mining
+  description: "Mine with a mining barge for significantly higher yield"
+  minimum:
+    - skill: "Mining"
+      level: 4
+    - skill: "Astrogeology"
+      level: 3
+    - skill: "Mining Barge"
+      level: 1
+    - skill: "Industry"
+      level: 5
+  easy_80:
+    - skill: "Mining"
+      level: 5
+    - skill: "Astrogeology"
+      level: 4
+    - skill: "Mining Barge"
+      level: 4
+    - skill: "Mining Upgrades"
+      level: 4
+    - skill: "Industry"
+      level: 5
+  full:
+    - skill: "Mining"
+      level: 5
+    - skill: "Astrogeology"
+      level: 5
+    - skill: "Mining Barge"
+      level: 5
+    - skill: "Mining Upgrades"
+      level: 4
+    - skill: "Exhumers"
+      level: 4
+  ships:
+    minimum: "Procurer"
+    recommended: "Procurer (tank) or Retriever (yield)"
+    advanced: "Skiff or Mackinaw"
+  notes:
+    - "Procurer has best tank, Retriever has best ore hold"
+    - "Mining Barge requires Industry V"
+
+gas_huffing:
+  display_name: "Gas Cloud Harvesting"
+  category: mining
+  description: "Harvest gas from cosmic signatures for reactions and boosters"
+  minimum:
+    - skill: "Mining Frigate"
+      level: 1
+    - skill: "Mining"
+      level: 4
+    - skill: "Gas Cloud Harvesting"
+      level: 1
+  easy_80:
+    - skill: "Mining Frigate"
+      level: 4
+    - skill: "Gas Cloud Harvesting"
+      level: 4
+  full:
+    - skill: "Mining Frigate"
+      level: 5
+    - skill: "Gas Cloud Harvesting"
+      level: 5
+    - skill: "Expedition Frigates"
+      level: 4
+  ships:
+    minimum: "Venture"
+    recommended: "Venture"
+    advanced: "Prospect"
+  notes:
+    - "Gas sites spawn rats after 15-20 minutes"
+    - "Prospect can cloak while huffing"
+    - "Most valuable gas is in wormholes and null-sec"
+
+ice_harvesting:
+  display_name: "Ice Harvesting"
+  category: mining
+  description: "Harvest ice for fuel block production"
+  minimum:
+    - skill: "Mining"
+      level: 4
+    - skill: "Ice Harvesting"
+      level: 1
+    - skill: "Mining Barge"
+      level: 1
+  easy_80:
+    - skill: "Mining"
+      level: 5
+    - skill: "Ice Harvesting"
+      level: 4
+    - skill: "Mining Barge"
+      level: 4
+  full:
+    - skill: "Mining"
+      level: 5
+    - skill: "Ice Harvesting"
+      level: 5
+    - skill: "Exhumers"
+      level: 4
+  ships:
+    minimum: "Procurer"
+    recommended: "Procurer or Retriever"
+    advanced: "Skiff or Mackinaw"
+  notes:
+    - "Ice belts spawn in specific systems"
+    - "Ice products are used in fuel blocks for structures"
+
+# =============================================================================
+# EXPLORATION ACTIVITIES
+# =============================================================================
+
+exploration_scanning:
+  display_name: "Exploration Scanning"
+  category: exploration
+  description: "Scan down cosmic signatures to find sites"
+  minimum:
+    - skill: "Astrometrics"
+      level: 3
+  easy_80:
+    - skill: "Astrometrics"
+      level: 4
+    - skill: "Astrometric Rangefinding"
+      level: 3
+    - skill: "Astrometric Pinpointing"
+      level: 3
+  full:
+    - skill: "Astrometrics"
+      level: 5
+    - skill: "Astrometric Rangefinding"
+      level: 4
+    - skill: "Astrometric Pinpointing"
+      level: 4
+    - skill: "Astrometric Acquisition"
+      level: 4
+  ships:
+    minimum: "Any ship with probe launcher"
+    recommended: "Exploration frigate (Imicus, Heron, etc.)"
+  notes:
+    - "Sisters probe launcher and probes give significant bonus"
+    - "Pinpointing reduces scan deviation"
+
+exploration_hacking:
+  display_name: "Data/Relic Site Hacking"
+  category: exploration
+  description: "Hack data and relic sites for loot"
+  minimum:
+    - skill: "Astrometrics"
+      level: 3
+    - skill: "Hacking"
+      level: 1
+    - skill: "Archaeology"
+      level: 1
+  easy_80:
+    - skill: "Astrometrics"
+      level: 4
+    - skill: "Astrometric Rangefinding"
+      level: 3
+    - skill: "Hacking"
+      level: 4
+    - skill: "Archaeology"
+      level: 4
+  full:
+    - skill: "Astrometrics"
+      level: 5
+    - skill: "Astrometric Rangefinding"
+      level: 4
+    - skill: "Hacking"
+      level: 5
+    - skill: "Archaeology"
+      level: 5
+  ships:
+    minimum: "Exploration frigate"
+    recommended: "Imicus, Heron, Probe, or Magnate"
+    advanced: "Astero or Covert Ops"
+  notes:
+    - "Each skill level adds +10 virus coherence"
+    - "Relic sites generally more valuable than data sites"
+    - "Null-sec and wormhole sites have best loot"
+
+exploration_wormhole:
+  display_name: "Wormhole Exploration"
+  category: exploration
+  description: "Explore wormhole space for valuable sites"
+  minimum:
+    - skill: "Astrometrics"
+      level: 4
+    - skill: "Hacking"
+      level: 3
+    - skill: "Archaeology"
+      level: 3
+    - skill: "Cloaking"
+      level: 1
+  easy_80:
+    - skill: "Astrometrics"
+      level: 4
+    - skill: "Astrometric Rangefinding"
+      level: 4
+    - skill: "Hacking"
+      level: 4
+    - skill: "Archaeology"
+      level: 4
+    - skill: "Cloaking"
+      level: 3
+  full:
+    - skill: "Astrometrics"
+      level: 5
+    - skill: "Astrometric Rangefinding"
+      level: 5
+    - skill: "Hacking"
+      level: 5
+    - skill: "Archaeology"
+      level: 5
+    - skill: "Cloaking"
+      level: 4
+    - skill: "Covert Ops"
+      level: 4
+  ships:
+    minimum: "Exploration frigate with cloak"
+    recommended: "Astero"
+    advanced: "Covert Ops frigate (Helios, etc.)"
+  notes:
+    - "Always bookmark your exit wormhole"
+    - "D-scan constantly for threats"
+    - "C1-C3 wormholes have pirate relic/data sites"
+
+# =============================================================================
+# COMBAT ACTIVITIES
+# =============================================================================
+
+missions_l1:
+  display_name: "Level 1 Missions"
+  category: combat
+  description: "Run Level 1 security missions for standings and ISK"
+  minimum:
+    - skill: "Spaceship Command"
+      level: 1
+  easy_80:
+    - skill: "Spaceship Command"
+      level: 3
+    - skill: "Drones"
+      level: 3
+    - skill: "Hull Upgrades"
+      level: 3
+    - skill: "Mechanics"
+      level: 3
+  full:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Drones"
+      level: 4
+    - skill: "Hull Upgrades"
+      level: 4
+    - skill: "Mechanics"
+      level: 4
+  ships:
+    minimum: "Starter frigate"
+    recommended: "Faction frigate (Tristan, Kestrel, etc.)"
+  notes:
+    - "Good for learning game mechanics"
+    - "Fast to complete, low ISK reward"
+
+missions_l2:
+  display_name: "Level 2 Missions"
+  category: combat
+  description: "Run Level 2 security missions"
+  minimum:
+    - skill: "Spaceship Command"
+      level: 3
+    - skill: "Frigate"
+      level: 3
+    - skill: "Destroyer"
+      level: 1
+  easy_80:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Destroyer"
+      level: 4
+    - skill: "Drones"
+      level: 4
+    - skill: "Hull Upgrades"
+      level: 4
+    - skill: "Mechanics"
+      level: 4
+    - skill: "Shield Management"
+      level: 3
+  full:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Destroyer"
+      level: 5
+    - skill: "Drones"
+      level: 5
+    - skill: "Hull Upgrades"
+      level: 5
+    - skill: "Mechanics"
+      level: 5
+  ships:
+    minimum: "Destroyer"
+    recommended: "Algos, Corax, Dragoon, or Talwar"
+  notes:
+    - "Destroyer recommended over cruiser for speed"
+    - "Match tank to enemy damage type"
+
+missions_l3:
+  display_name: "Level 3 Missions"
+  category: combat
+  description: "Run Level 3 security missions"
+  minimum:
+    - skill: "Spaceship Command"
+      level: 3
+    - skill: "Cruiser"
+      level: 3
+  easy_80:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Cruiser"
+      level: 4
+    - skill: "Drones"
+      level: 5
+    - skill: "Drone Interfacing"
+      level: 4
+    - skill: "Hull Upgrades"
+      level: 4
+    - skill: "Mechanics"
+      level: 4
+    - skill: "Repair Systems"
+      level: 4
+  full:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Cruiser"
+      level: 5
+    - skill: "Drones"
+      level: 5
+    - skill: "Drone Interfacing"
+      level: 5
+    - skill: "Medium Drone Operation"
+      level: 5
+  ships:
+    minimum: "Cruiser"
+    recommended: "Vexor (Gallente), Caracal (Caldari)"
+    advanced: "Vexor Navy Issue, Gila"
+  notes:
+    - "Cruiser or battlecruiser recommended"
+    - "Drone boats excel for L3 missions"
+
+missions_l4:
+  display_name: "Level 4 Missions"
+  category: combat
+  description: "Run Level 4 security missions for high ISK and LP"
+  minimum:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Battleship"
+      level: 3
+      note: "Or Battlecruiser IV"
+  easy_80:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Battleship"
+      level: 4
+    - skill: "Drones"
+      level: 5
+    - skill: "Drone Interfacing"
+      level: 4
+    - skill: "Heavy Drone Operation"
+      level: 4
+    - skill: "Hull Upgrades"
+      level: 5
+    - skill: "Mechanics"
+      level: 5
+    - skill: "Repair Systems"
+      level: 4
+  full:
+    - skill: "Spaceship Command"
+      level: 5
+    - skill: "Battleship"
+      level: 5
+    - skill: "Drones"
+      level: 5
+    - skill: "Drone Interfacing"
+      level: 5
+    - skill: "Heavy Drone Operation"
+      level: 5
+    - skill: "Sentry Drone Interfacing"
+      level: 4
+  ships:
+    minimum: "Battlecruiser"
+    recommended: "Dominix, Raven, or faction battleship"
+    advanced: "Marauder"
+  notes:
+    - "Requires 5.0+ standing with agent's corporation"
+    - "Battleship recommended for tank and DPS"
+    - "Drone boats like Dominix are very effective"
+
+ratting_nullsec:
+  display_name: "Null-sec Ratting"
+  category: combat
+  description: "Kill NPC pirates in null-security space for bounties"
+  minimum:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Cruiser"
+      level: 4
+  easy_80:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Cruiser"
+      level: 5
+    - skill: "Heavy Assault Cruisers"
+      level: 4
+    - skill: "Drones"
+      level: 5
+    - skill: "Drone Interfacing"
+      level: 4
+  full:
+    - skill: "Heavy Assault Cruisers"
+      level: 5
+    - skill: "Drones"
+      level: 5
+    - skill: "Drone Interfacing"
+      level: 5
+    - skill: "Heavy Drone Operation"
+      level: 5
+  ships:
+    minimum: "Cruiser"
+    recommended: "Ishtar, Gila, or VNI"
+    advanced: "Ishtar, Carrier"
+  notes:
+    - "Requires access to null-sec space"
+    - "Watch local for hostiles"
+    - "Align to safe while ratting"
+
+# =============================================================================
+# INDUSTRY ACTIVITIES
+# =============================================================================
+
+manufacturing_t1:
+  display_name: "Tech 1 Manufacturing"
+  category: industry
+  description: "Manufacture T1 ships and modules from blueprints"
+  minimum:
+    - skill: "Industry"
+      level: 1
+  easy_80:
+    - skill: "Industry"
+      level: 4
+    - skill: "Advanced Industry"
+      level: 3
+    - skill: "Mass Production"
+      level: 3
+  full:
+    - skill: "Industry"
+      level: 5
+    - skill: "Advanced Industry"
+      level: 4
+    - skill: "Mass Production"
+      level: 4
+    - skill: "Supply Chain Management"
+      level: 3
+  notes:
+    - "Industry reduces manufacturing time"
+    - "Mass Production allows more concurrent jobs"
+    - "Advanced Industry reduces material requirements"
+
+manufacturing_t2:
+  display_name: "Tech 2 Manufacturing"
+  category: industry
+  description: "Manufacture T2 items through invention and production"
+  minimum:
+    - skill: "Industry"
+      level: 5
+    - skill: "Science"
+      level: 5
+    - skill: "Invention"
+      level: 1
+  easy_80:
+    - skill: "Industry"
+      level: 5
+    - skill: "Science"
+      level: 5
+    - skill: "Advanced Industry"
+      level: 4
+    - skill: "Mass Production"
+      level: 4
+    - skill: "Invention"
+      level: 4
+    - skill: "Laboratory Operation"
+      level: 4
+  full:
+    - skill: "Industry"
+      level: 5
+    - skill: "Science"
+      level: 5
+    - skill: "Advanced Industry"
+      level: 5
+    - skill: "Invention"
+      level: 5
+    - skill: "Mass Production"
+      level: 5
+    - skill: "Advanced Mass Production"
+      level: 4
+  notes:
+    - "Requires invented T2 BPCs"
+    - "Need relevant science skills for specific items"
+    - "More profitable but capital intensive"
+
+reprocessing:
+  display_name: "Ore Reprocessing"
+  category: industry
+  description: "Reprocess ore into minerals efficiently"
+  minimum:
+    - skill: "Reprocessing"
+      level: 1
+  easy_80:
+    - skill: "Reprocessing"
+      level: 4
+    - skill: "Reprocessing Efficiency"
+      level: 4
+  full:
+    - skill: "Reprocessing"
+      level: 5
+    - skill: "Reprocessing Efficiency"
+      level: 5
+    - skill: "Veldspar Processing"
+      level: 4
+    - skill: "Scordite Processing"
+      level: 4
+    - skill: "Pyroxeres Processing"
+      level: 4
+  notes:
+    - "Station reprocessing efficiency matters"
+    - "Ore-specific skills add 2% per level"
+    - "Implants can boost efficiency further"
+
+# =============================================================================
+# RESEARCH ACTIVITIES
+# =============================================================================
+
+research_agents:
+  display_name: "Research Agent Partnership"
+  category: research
+  description: "Partner with R&D agents for passive research point generation"
+  parameters:
+    - name: agent_level
+      type: integer
+      options: [1, 2, 3, 4]
+      default: 2
+    - name: field
+      type: research_field
+      options:
+        - Mechanical Engineering
+        - Electronic Engineering
+        - Graviton Physics
+        - Laser Physics
+        - Plasma Physics
+        - Quantum Physics
+        - Molecular Engineering
+        - Nanite Engineering
+        - Electromagnetic Physics
+        - Hydromagnetic Physics
+        - Nuclear Physics
+        - Rocket Science
+        - Amarrian Starship Engineering
+        - Caldari Starship Engineering
+        - Gallentean Starship Engineering
+        - Minmatar Starship Engineering
+        - High Energy Physics
+  minimum:
+    - skill: "Science"
+      level: 5
+    - skill: "${field}"
+      level: 1
+      note: "Minimum level for agent access"
+  easy_80:
+    - skill: "Science"
+      level: 5
+    - skill: "${field}"
+      level: 4
+    - skill: "Research"
+      level: 4
+    - skill: "Connections"
+      level: 3
+  full:
+    - skill: "Science"
+      level: 5
+    - skill: "${field}"
+      level: 5
+    - skill: "Research"
+      level: 5
+    - skill: "Connections"
+      level: 4
+  notes:
+    - "Agent level determines RP generation rate"
+    - "Higher agent levels require higher standings"
+    # Source: https://wiki.eveuniversity.org/Agent
+    # Verified: 2026-01
+    # Notes: Not in SDE - standings are game logic derived from agent level
+    - "Standing requirements: L1=any, L2=1.0, L3=3.0, L4=5.0"
+    - "Connections skill effectively adds to your standing"
+
+blueprint_research:
+  display_name: "Blueprint Research (ME/TE)"
+  category: research
+  description: "Research blueprints for material and time efficiency"
+  minimum:
+    - skill: "Science"
+      level: 4
+    - skill: "Laboratory Operation"
+      level: 1
+    - skill: "Metallurgy"
+      level: 1
+    - skill: "Research"
+      level: 1
+  easy_80:
+    - skill: "Science"
+      level: 5
+    - skill: "Laboratory Operation"
+      level: 4
+    - skill: "Metallurgy"
+      level: 4
+    - skill: "Research"
+      level: 4
+  full:
+    - skill: "Science"
+      level: 5
+    - skill: "Laboratory Operation"
+      level: 5
+    - skill: "Advanced Laboratory Operation"
+      level: 4
+    - skill: "Metallurgy"
+      level: 5
+    - skill: "Research"
+      level: 5
+  notes:
+    - "Metallurgy reduces ME research time"
+    - "Research reduces TE research time"
+    - "Laboratory Operation allows more concurrent jobs"
+
+copying:
+  display_name: "Blueprint Copying"
+  category: research
+  description: "Create copies of blueprints for sale or invention"
+  minimum:
+    - skill: "Science"
+      level: 4
+    - skill: "Laboratory Operation"
+      level: 1
+  easy_80:
+    - skill: "Science"
+      level: 5
+    - skill: "Laboratory Operation"
+      level: 4
+    - skill: "Science"
+      level: 4
+  full:
+    - skill: "Science"
+      level: 5
+    - skill: "Laboratory Operation"
+      level: 5
+    - skill: "Advanced Laboratory Operation"
+      level: 4
+  notes:
+    - "Science skill reduces copy time"
+    - "BPCs needed for invention"
+
+# =============================================================================
+# TRADE ACTIVITIES
+# =============================================================================
+
+station_trading:
+  display_name: "Station Trading"
+  category: trade
+  description: "Buy low, sell high within a single station"
+  minimum:
+    - skill: "Trade"
+      level: 1
+  easy_80:
+    - skill: "Trade"
+      level: 4
+    - skill: "Retail"
+      level: 4
+    - skill: "Accounting"
+      level: 4
+    - skill: "Broker Relations"
+      level: 4
+  full:
+    - skill: "Trade"
+      level: 5
+    - skill: "Retail"
+      level: 5
+    - skill: "Wholesale"
+      level: 4
+    - skill: "Accounting"
+      level: 5
+    - skill: "Broker Relations"
+      level: 5
+    - skill: "Margin Trading"
+      level: 4
+  notes:
+    - "Accounting reduces sales tax"
+    - "Broker Relations reduces broker fees"
+    - "More orders = more opportunities"
+
+hauling:
+  display_name: "Cargo Hauling"
+  category: trade
+  description: "Transport goods between stations for profit"
+  minimum:
+    - skill: "Spaceship Command"
+      level: 1
+  easy_80:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Industrial"
+      level: 4
+    - skill: "Evasive Maneuvering"
+      level: 3
+    - skill: "Hull Upgrades"
+      level: 4
+  full:
+    - skill: "Spaceship Command"
+      level: 5
+    - skill: "Industrial"
+      level: 5
+    - skill: "Transport Ships"
+      level: 4
+    - skill: "Evasive Maneuvering"
+      level: 4
+  ships:
+    minimum: "Industrial (Nereus, Badger, etc.)"
+    recommended: "Epithal (PI), Miasmos (ore)"
+    advanced: "Deep Space Transport, Blockade Runner"
+  notes:
+    - "Never haul more than you can afford to lose"
+    - "Avoid autopilot in valuable cargo"
+    - "Use insta-dock bookmarks at trade hubs"
+
+# =============================================================================
+# PLANETARY INTERACTION
+# =============================================================================
+
+planetary_interaction:
+  display_name: "Planetary Interaction (PI)"
+  category: industry
+  description: "Extract and process resources on planets"
+  minimum:
+    - skill: "Command Center Upgrades"
+      level: 1
+    - skill: "Remote Sensing"
+      level: 1
+    - skill: "Planetology"
+      level: 1
+  easy_80:
+    - skill: "Command Center Upgrades"
+      level: 4
+    - skill: "Remote Sensing"
+      level: 3
+    - skill: "Planetology"
+      level: 3
+    - skill: "Interplanetary Consolidation"
+      level: 4
+  full:
+    - skill: "Command Center Upgrades"
+      level: 5
+    - skill: "Remote Sensing"
+      level: 4
+    - skill: "Planetology"
+      level: 4
+    - skill: "Interplanetary Consolidation"
+      level: 5
+    - skill: "Advanced Planetology"
+      level: 4
+  notes:
+    - "Interplanetary Consolidation allows more planets"
+    - "Command Center Upgrades increases CPU/PG"
+    - "Low-sec and null-sec planets have better yields"
+
+# =============================================================================
+# SPECIAL ACTIVITIES
+# =============================================================================
+
+abyssal_deadspace:
+  display_name: "Abyssal Deadspace"
+  category: combat
+  description: "Run abyssal filament sites for ISK and loot"
+  minimum:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Cruiser"
+      level: 4
+  easy_80:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Cruiser"
+      level: 5
+    - skill: "Drones"
+      level: 5
+    - skill: "Drone Interfacing"
+      level: 4
+    - skill: "Medium Drone Operation"
+      level: 4
+    - skill: "Navigation"
+      level: 4
+  full:
+    - skill: "Cruiser"
+      level: 5
+    - skill: "Heavy Assault Cruisers"
+      level: 4
+    - skill: "Drones"
+      level: 5
+    - skill: "Drone Interfacing"
+      level: 5
+    - skill: "Medium Drone Operation"
+      level: 5
+  ships:
+    minimum: "Cruiser"
+    recommended: "Gila, Ishtar, or Sacrilege"
+  notes:
+    - "20 minute timer - ship lost if not completed"
+    - "Start with Tier 1-2, progress carefully"
+    - "Match resistances to filament type"
+
+faction_warfare:
+  display_name: "Faction Warfare"
+  category: combat
+  description: "Enlist with an empire faction for PvP and LP rewards"
+  minimum:
+    - skill: "Spaceship Command"
+      level: 3
+    - skill: "Frigate"
+      level: 3
+  easy_80:
+    - skill: "Spaceship Command"
+      level: 4
+    - skill: "Frigate"
+      level: 5
+    - skill: "Assault Frigates"
+      level: 4
+    - skill: "Navigation"
+      level: 4
+    - skill: "Evasive Maneuvering"
+      level: 4
+  full:
+    - skill: "Frigate"
+      level: 5
+    - skill: "Assault Frigates"
+      level: 5
+    - skill: "Interceptors"
+      level: 4
+    - skill: "Electronic Attack Ships"
+      level: 4
+  ships:
+    minimum: "Faction frigate"
+    recommended: "Assault Frigate or Navy Frigate"
+  notes:
+    - "Novice plexes are frigate-only"
+    - "Good way to learn PvP"
+    - "LP store has valuable items"

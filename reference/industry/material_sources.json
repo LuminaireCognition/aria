@@ -1,0 +1,195 @@
+{
+  "_meta": {
+    "description": "EVE Online material classification for manufacturing cost analysis",
+    "sources": [
+      "https://wiki.eveuniversity.org/Manufacturing",
+      "https://wiki.eveuniversity.org/Planetary_Industry",
+      "https://wiki.eveuniversity.org/Ice_products",
+      "https://wiki.eveuniversity.org/Reactions"
+    ],
+    "last_verified": "2026-01-31",
+    "notes": "Used by /build-cost skill for supply chain classification. Material lists are comprehensive but may not be exhaustive for all edge cases."
+  },
+
+  "minerals": [
+    "Tritanium",
+    "Pyerite",
+    "Mexallon",
+    "Isogen",
+    "Nocxium",
+    "Zydrine",
+    "Megacyte",
+    "Morphite"
+  ],
+
+  "ice_products": [
+    "Heavy Water",
+    "Liquid Ozone",
+    "Strontium Clathrates",
+    "Helium Isotopes",
+    "Hydrogen Isotopes",
+    "Nitrogen Isotopes",
+    "Oxygen Isotopes"
+  ],
+
+  "pi_p1": [
+    "Bacteria",
+    "Biofuels",
+    "Biomass",
+    "Chiral Structures",
+    "Electrolytes",
+    "Industrial Fibers",
+    "Oxidizing Compound",
+    "Oxygen",
+    "Plasmoids",
+    "Precious Metals",
+    "Proteins",
+    "Reactive Metals",
+    "Silicon",
+    "Toxic Metals",
+    "Water"
+  ],
+
+  "pi_p2": [
+    "Biocells",
+    "Construction Blocks",
+    "Consumer Electronics",
+    "Coolant",
+    "Enriched Uranium",
+    "Fertilizer",
+    "Genetically Enhanced Livestock",
+    "Livestock",
+    "Mechanical Parts",
+    "Microfiber Shielding",
+    "Miniature Electronics",
+    "Nanites",
+    "Oxides",
+    "Polyaramids",
+    "Polytextiles",
+    "Rocket Fuel",
+    "Silicate Glass",
+    "Superconductors",
+    "Supertensile Plastics",
+    "Synthetic Oil",
+    "Test Cultures",
+    "Transmitter",
+    "Viral Agent",
+    "Water-Cooled CPU"
+  ],
+
+  "pi_p3": [
+    "Biotech Research Reports",
+    "Camera Drones",
+    "Condensates",
+    "Cryoprotectant Solution",
+    "Data Chips",
+    "Gel-Matrix Biopaste",
+    "Guidance Systems",
+    "Hazmat Detection Systems",
+    "Hermetic Membranes",
+    "High-Tech Transmitters",
+    "Industrial Explosives",
+    "Neocoms",
+    "Nuclear Reactors",
+    "Planetary Vehicles",
+    "Robotics",
+    "Smartfab Units",
+    "Supercomputers",
+    "Synthetic Synapses",
+    "Transcranial Microcontrollers",
+    "Ukomi Superconductors",
+    "Vaccines"
+  ],
+
+  "pi_p4": [
+    "Broadcast Node",
+    "Integrity Response Drones",
+    "Nano-Factory",
+    "Organic Mortar Applicators",
+    "Recursive Computing Module",
+    "Self-Harmonizing Power Core",
+    "Sterile Conduits",
+    "Wetware Mainframe"
+  ],
+
+  "ship_components": [
+    "Auto-Integrity Preservation Seal",
+    "Core Temperature Regulator",
+    "Life Support Backup Unit"
+  ],
+
+  "reaction_intermediates": [
+    "Carbon Fiber",
+    "Ceramic Powder",
+    "Crystalline Carbonide",
+    "Crystallite Alloy",
+    "Fernite Alloy",
+    "Ferrofluid",
+    "Fullerene Intercalated Sheets",
+    "Graphene Nanoribbons",
+    "Hexite",
+    "Hyperflurite",
+    "Neo Mercurite",
+    "Platinum Technite",
+    "Pressurized Oxidizers",
+    "Reinforced Carbon Fiber",
+    "Rolled Tungsten Alloy",
+    "Silicon Diborite",
+    "Solerium",
+    "Sulfuric Acid",
+    "Titanium Chromide"
+  ],
+
+  "moon_materials": [
+    "Atmospheric Gases",
+    "Cadmium",
+    "Caesium",
+    "Chromium",
+    "Cobalt",
+    "Dysprosium",
+    "Evaporite Deposits",
+    "Hafnium",
+    "Hydrocarbons",
+    "Mercury",
+    "Neodymium",
+    "Platinum",
+    "Promethium",
+    "Scandium",
+    "Silicates",
+    "Technetium",
+    "Thulium",
+    "Titanium",
+    "Tungsten",
+    "Vanadium"
+  ],
+
+  "complexity_rules": {
+    "simple": {
+      "description": "Minerals only - basic refining supply chain",
+      "icon": "simple",
+      "criteria": "All materials in 'minerals' category"
+    },
+    "moderate": {
+      "description": "Minerals + ice products or PI P1/P2 - requires additional sources",
+      "icon": "moderate",
+      "criteria": "Contains materials from 'ice_products', 'pi_p1', or 'pi_p2' categories"
+    },
+    "complex": {
+      "description": "PI P3/P4, ship components, reactions, or moon materials - significant supply chain",
+      "icon": "complex",
+      "criteria": "Contains materials from 'pi_p3', 'pi_p4', 'ship_components', 'reaction_intermediates', or 'moon_materials' categories"
+    },
+    "advanced": {
+      "description": "T2/T3 invention chain - not supported by /build-cost",
+      "icon": "advanced",
+      "criteria": "Requires invention (datacores, decryptors) - out of scope"
+    }
+  },
+
+  "complexity_icons": {
+    "simple": "Simple",
+    "moderate": "Moderate",
+    "complex": "Complex",
+    "advanced": "Advanced"
+  }
+}

@@ -1,0 +1,83 @@
+# Helios Exploration - Low Skill Variant
+#
+# T2 exploration frigate for nullsec/wormhole exploration.
+
+archetype:
+  hull: Helios
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Helios, WH/Null Explorer - Low Skills]
+
+  Inertial Stabilizers I
+  Inertial Stabilizers I
+  Damage Control I
+
+  5MN Microwarpdrive I
+  Relic Analyzer II
+  Data Analyzer II
+  Cargo Scanner I
+
+  Covert Ops Cloaking Device II
+  Core Probe Launcher I
+
+  Small Gravity Capacitor Upgrade I
+  Small Gravity Capacitor Upgrade I
+
+  Core Scanner Probe I x16
+  Hobgoblin I x5
+
+skill_requirements:
+  required:
+    Gallente Frigate: 5
+    Electronics Upgrades: 5
+    Cloaking: 4
+    Covert Ops: 1
+    Hacking: 3
+    Archaeology: 3
+  recommended:
+    Covert Ops: 4
+    Hacking: 4
+    Archaeology: 4
+    Astrometrics: 4
+    Astrometric Rangefinding: 3
+
+stats:
+  scan_strength: 85  # approximate with skills
+  virus_strength: 40  # T2 analyzer
+  virus_coherence: 90  # with skills
+  ehp: 1500
+  align_time: 3.2
+  warp_speed: 6.0  # AU/s
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Nullsec and wormhole relic/data exploration"
+  engagement: "Warp cloaked, D-scan constantly, hack quickly, cloak and leave"
+  warnings:
+    - "NOT a combat ship - drones are for Ghost site NPCs only"
+    - "Covert Ops Cloak II is NON-NEGOTIABLE"
+    - "Practice Cloak+MWD trick before going to dangerous space"
+    - "Always carry 16 backup probes"
+    - "D-scan every 3-5 seconds while hacking"
+
+  cloak_mwd_trick:
+    - "Jump through gate - session change cloak active"
+    - "Double-click in space away from gate"
+    - "Activate MWD"
+    - "Immediately activate cloak"
+    - "MWD finishes - you're 10km+ away, cloaked"
+    - "Align and warp while cloaked"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Core Probe Launcher I"
+      upgrade_to: "Sisters Core Probe Launcher"
+      skill_required: "+5% scan strength"
+    - module: "Core Scanner Probe I"
+      upgrade_to: "Sisters Core Scanner Probe"
+      skill_required: "+10% scan strength"
+    - ship: "Astero"
+      notes: "Combat capable, but lower scan strength - ~80M ISK"

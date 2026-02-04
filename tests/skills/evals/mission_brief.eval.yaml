@@ -1,0 +1,88 @@
+# G-Eval Configuration for /mission-brief skill
+# Layer 3 semantic validation using LLM-as-judge
+#
+# Run with: uv run pytest tests/skills/test_semantic.py -m semantic -k mission
+# Requires: ANTHROPIC_API_KEY environment variable and deepeval package
+
+skill: mission-brief
+evaluator: g-eval
+model: claude-3-haiku-20240307  # Cost-effective for evals (~$0.001/eval)
+
+# Passing threshold: weighted average of all criteria must be >= this value
+passing_threshold: 3.5
+
+criteria:
+  factual_accuracy:
+    weight: 0.4
+    prompt: |
+      Score 1-5: Does the briefing accurately describe the mission?
+
+      Check against these aspects:
+      - Enemy faction and ship types
+      - Damage dealt (enemy weapon types)
+      - Damage profile to tank against
+      - Number of waves/rooms
+      - Special mechanics (triggers, ECM, webs, etc.)
+
+      Ground truth: {ground_truth}
+      Response: {response}
+
+      5 = All facts correct, matches ground truth exactly
+      4 = Minor omissions but no errors
+      3 = Minor inaccuracies, core facts correct
+      2 = Multiple errors or significant omissions
+      1 = Major factual errors or hallucinations
+
+  completeness:
+    weight: 0.3
+    prompt: |
+      Score 1-5: Does the briefing cover all essential information?
+
+      Required sections for a complete briefing:
+      - Enemy types and counts
+      - Damage dealt by enemies (to know what to tank)
+      - Damage profile to deal (enemy weak points)
+      - Triggers (what spawns additional waves)
+      - Recommended ship class/type
+      - Basic tactical advice
+
+      5 = All sections covered with useful detail
+      4 = Most sections covered, minimal gaps
+      3 = Core sections covered, some gaps
+      2 = Missing multiple important sections
+      1 = Missing critical information
+
+  actionability:
+    weight: 0.2
+    prompt: |
+      Score 1-5: Can a pilot act on this briefing to complete the mission?
+
+      Actionable briefings should:
+      - Tell the pilot what to fit (tank type, damage type)
+      - Warn about dangerous mechanics
+      - Explain the mission flow
+      - Provide engagement priorities
+
+      5 = Clear, specific guidance ready to use
+      4 = Good guidance with minor gaps
+      3 = General guidance, pilot must research details
+      2 = Vague guidance, significant gaps
+      1 = Not actionable, confusing or contradictory
+
+  persona_consistency:
+    weight: 0.1
+    prompt: |
+      Score 1-5: Does the response match the expected persona voice?
+
+      Expected persona: {persona_profile}
+
+      Check for:
+      - Appropriate tone and terminology
+      - In-character language (if RP level > off)
+      - Professional tactical presentation
+
+      5 = Perfect voice match throughout
+      4 = Consistent with minor breaks
+      3 = Mostly consistent, some off-character moments
+      2 = Inconsistent voice
+      1 = Wrong persona or inappropriate tone

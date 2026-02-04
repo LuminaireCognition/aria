@@ -1,0 +1,73 @@
+# Imicus Exploration - Low Skill Variant
+#
+# Entry-level exploration fit for brand new Gallente pilots.
+
+archetype:
+  hull: Imicus
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Imicus, Exploration - Low Skills]
+
+  Inertial Stabilizers I
+  Inertial Stabilizers I
+  Damage Control I
+
+  5MN Microwarpdrive I
+  Data Analyzer I
+  Relic Analyzer I
+  Scan Rangefinding Array I
+
+  Core Probe Launcher I
+  Prototype Cloaking Device I
+  [Empty High slot]
+
+  Small Gravity Capacitor Upgrade I
+  Small Gravity Capacitor Upgrade I
+  [Empty Rig slot]
+
+  Hobgoblin I x3
+
+  Core Scanner Probe I x16
+
+skill_requirements:
+  required:
+    Gallente Frigate: 2
+    Astrometrics: 3
+    Hacking: 2
+    Archaeology: 2
+  recommended:
+    Astrometric Rangefinding: 2
+    Astrometric Pinpointing: 2
+    Light Drone Operation: 2
+
+stats:
+  probe_strength: 72
+  virus_strength: 30
+  virus_coherence: 40
+  align_time: 3.5
+  speed_mwd: 2400
+  ehp: 1200
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Entry-level exploration for highsec and lowsec sites"
+  engagement: "Avoid combat - cloak and run"
+  warnings:
+    - "Never fight - you will die"
+    - "Keep D-scan spamming constantly"
+    - "Cloak immediately when hostiles appear"
+    - "Drones can handle weak rats if necessary"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Data Analyzer I"
+      upgrade_to: "Data Analyzer II"
+      skill_required: "Hacking 5"
+    - module: "Relic Analyzer I"
+      upgrade_to: "Relic Analyzer II"
+      skill_required: "Archaeology 5"
+    - ship: "Helios (Covert Ops)"
+      notes: "Covops cloak + warp"

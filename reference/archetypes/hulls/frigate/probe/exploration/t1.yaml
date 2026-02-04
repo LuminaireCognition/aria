@@ -1,0 +1,74 @@
+# Probe Exploration - Low Skill Variant
+#
+# Entry-level exploration fit for brand new Minmatar pilots.
+# Fastest T1 explorer - speed is the best defense.
+
+archetype:
+  hull: Probe
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Probe, Exploration - Low Skills]
+
+  Inertial Stabilizers I
+  Nanofiber Internal Structure I
+  Damage Control I
+
+  5MN Microwarpdrive I
+  Data Analyzer I
+  Relic Analyzer I
+  Scan Rangefinding Array I
+
+  Core Probe Launcher I
+  Prototype Cloaking Device I
+  [Empty High slot]
+
+  Small Gravity Capacitor Upgrade I
+  Small Gravity Capacitor Upgrade I
+  [Empty Rig slot]
+
+  Warrior I x2
+
+  Core Scanner Probe I x16
+
+skill_requirements:
+  required:
+    Minmatar Frigate: 2
+    Astrometrics: 3
+    Hacking: 2
+    Archaeology: 2
+  recommended:
+    Astrometric Rangefinding: 2
+    Astrometric Pinpointing: 2
+    Navigation: 3
+
+stats:
+  probe_strength: 72
+  virus_strength: 30
+  virus_coherence: 40
+  align_time: 3.2
+  speed_mwd: 2800
+  ehp: 1100
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Entry-level exploration - best for dangerous space"
+  engagement: "Avoid combat - outrun everything"
+  warnings:
+    - "Never fight - you will die"
+    - "Speed is your tank - always keep moving"
+    - "Sub-4 second align means most camps can't catch you"
+    - "Keep D-scan spamming constantly"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Data Analyzer I"
+      upgrade_to: "Data Analyzer II"
+      skill_required: "Hacking 5"
+    - module: "Relic Analyzer I"
+      upgrade_to: "Relic Analyzer II"
+      skill_required: "Archaeology 5"
+    - ship: "Cheetah (Covert Ops)"
+      notes: "Covops cloak + warp, even faster"

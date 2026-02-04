@@ -1,0 +1,207 @@
+# JSON Schema for /find skill output validation
+# Validates the structure of market(action="find_nearby") responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: FindSkillOutput
+description: Output schema for the /find skill (market find_nearby action)
+type: object
+
+required:
+  - type_id
+  - type_name
+  - origin_system
+  - sources
+  - total_found
+
+properties:
+  type_id:
+    type: integer
+    description: Resolved EVE type ID
+    minimum: 1
+
+  type_name:
+    type: string
+    description: Resolved item name
+    minLength: 1
+
+  category_id:
+    type: ["integer", "null"]
+    description: Item category ID
+    minimum: 1
+
+  category_name:
+    type: ["string", "null"]
+    description: Item category name
+
+  origin_system:
+    type: string
+    description: Origin system name
+    minLength: 1
+
+  origin_region:
+    type: string
+    description: Origin region name
+    minLength: 1
+
+  sources:
+    type: array
+    description: Market sources sorted by distance
+    items:
+      $ref: "#/$defs/NearbySource"
+
+  total_found:
+    type: integer
+    description: Total orders found before limit
+    minimum: 0
+
+  regions_searched:
+    type: array
+    description: Regions queried for orders
+    items:
+      type: string
+
+  source_filter_applied:
+    type: string
+    description: Source filter used in query
+    enum: ["all", "npc", "player"]
+
+  source_filter_suggested:
+    type: string
+    description: Suggested filter based on item category
+    enum: ["all", "npc", "player"]
+
+  nearest_source:
+    anyOf:
+      - $ref: "#/$defs/NearbySource"
+      - type: "null"
+    description: Closest source by jumps
+
+  cheapest_source:
+    anyOf:
+      - $ref: "#/$defs/NearbySource"
+      - type: "null"
+    description: Lowest price source
+
+  best_value:
+    anyOf:
+      - $ref: "#/$defs/NearbySource"
+      - type: "null"
+    description: Best balance of price and distance
+
+  jita_reference_price:
+    type: ["number", "null"]
+    description: Jita sell price for comparison
+    minimum: 0
+
+  warnings:
+    type: array
+    description: Any warnings about the data
+    items:
+      type: string
+
+$defs:
+  NearbySource:
+    type: object
+    description: A nearby market source for an item
+    required:
+      - order_id
+      - price
+      - volume_remain
+      - station_id
+      - system_id
+      - system_name
+      - security
+      - region_id
+      - region_name
+      - jumps_from_origin
+      - duration
+      - is_npc
+      - issued
+    properties:
+      order_id:
+        type: integer
+        description: ESI order ID
+        minimum: 1
+
+      price:
+        type: number
+        description: Price per unit
+        minimum: 0
+
+      volume_remain:
+        type: integer
+        description: Remaining volume
+        minimum: 0
+
+      volume_total:
+        type: integer
+        description: Original volume
+        minimum: 0
+
+      station_id:
+        type: integer
+        description: Station or structure ID
+        minimum: 1
+
+      station_name:
+        type: ["string", "null"]
+        description: Station name (null for player structures)
+
+      system_id:
+        type: integer
+        description: Solar system ID
+        minimum: 1
+
+      system_name:
+        type: string
+        description: Solar system name
+        minLength: 1
+
+      security:
+        type: number
+        description: System security status
+        minimum: -1.0
+        maximum: 1.0
+
+      region_id:
+        type: integer
+        description: Region ID
+        minimum: 1
+
+      region_name:
+        type: string
+        description: Region name
+        minLength: 1
+
+      jumps_from_origin:
+        type: integer
+        description: Jump count from origin
+        minimum: 0
+
+      route_security:
+        type: ["string", "null"]
+        description: Route security classification
+        enum: ["high", "low", "mixed-low", "mixed-null", "null", null]
+
+      duration:
+        type: integer
+        description: Order duration in days
+        minimum: 0
+
+      is_npc:
+        type: boolean
+        description: True if duration >= 364 (NPC order heuristic)
+
+      issued:
+        type: string
+        description: ISO timestamp when order was placed
+
+      price_per_jump:
+        type: ["number", "null"]
+        description: Price divided by jumps (null if 0 jumps)
+
+      price_flags:
+        type: array
+        description: Warning flags for suspicious pricing
+        items:
+          type: string

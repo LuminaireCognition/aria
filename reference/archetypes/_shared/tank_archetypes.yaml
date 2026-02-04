@@ -1,0 +1,148 @@
+# Tank Archetype Definitions
+#
+# Defines the philosophy and characteristics of each tank type.
+# Used for fitting guidance and validation.
+
+tank_types:
+  armor_active:
+    name: "Active Armor Tank"
+    description: "Repairs damage in real-time using armor repairers"
+    characteristics:
+      - "Requires capacitor to operate"
+      - "Can recover from damage spikes"
+      - "Better sustained tank than buffer"
+      - "Vulnerable to capacitor neutralization"
+    typical_modules:
+      low:
+        - "Armor Repairer"
+        - "Damage Control"
+        - "Resist hardeners or EANM"
+      rig:
+        - "Auxiliary Nano Pump (rep amount)"
+        - "Nanobot Accelerator (rep speed)"
+    fitting_priority:
+      - "Sufficient cap stability for repairer"
+      - "Resists to reduce incoming damage"
+      - "Rep amount for sustained tank"
+    common_ships:
+      - "Vexor"
+      - "Myrmidon"
+      - "Dominix"
+      - "Harbinger"
+
+  armor_passive:
+    name: "Passive Armor Buffer"
+    description: "Large armor HP pool without active repair"
+    characteristics:
+      - "No capacitor needed"
+      - "Relies on buffer to survive"
+      - "Common for fleets with logistics support"
+      - "Simple to fly"
+    typical_modules:
+      low:
+        - "Armor plates"
+        - "Damage Control"
+        - "Resist hardeners"
+      rig:
+        - "Trimark Armor Pump (armor HP)"
+    fitting_priority:
+      - "Maximum EHP"
+      - "Resists before raw HP"
+    common_ships:
+      - "Fleet doctrines"
+      - "Armor HACs"
+
+  shield_passive:
+    name: "Passive Shield Tank"
+    description: "Relies on natural shield regeneration"
+    characteristics:
+      - "No capacitor needed"
+      - "Shield regenerates without modules"
+      - "Immune to capacitor warfare"
+      - "Peak recharge at 25% shields"
+    typical_modules:
+      mid:
+        - "Large Shield Extenders"
+        - "Passive resist amplifiers"
+        - "Shield Recharger (optional)"
+      low:
+        - "Shield Power Relay or Damage Control"
+      rig:
+        - "Core Defense Field Purger (recharge)"
+    fitting_priority:
+      - "Shield HP for regen scaling"
+      - "Recharge rate bonuses"
+      - "Resists to reduce incoming damage"
+    common_ships:
+      - "Drake"
+      - "Rattlesnake"
+      - "Gila"
+    notes: "Famous for being 'AFK tank' - works while you focus on other things"
+
+  shield_active:
+    name: "Active Shield Tank"
+    description: "Repairs shield damage using shield boosters"
+    characteristics:
+      - "Requires capacitor to operate"
+      - "High burst tank potential"
+      - "Can be cap injected for emergencies"
+      - "Vulnerable to capacitor neutralization"
+    typical_modules:
+      mid:
+        - "Shield Booster"
+        - "Shield Boost Amplifier"
+        - "Resist hardeners"
+        - "Cap Booster (optional)"
+      rig:
+        - "Core Defense Field Extender"
+        - "Anti-specific damage rigs"
+    fitting_priority:
+      - "Cap stability or cap injection"
+      - "Resists to reduce cap usage"
+      - "Boost amount for burst tank"
+    common_ships:
+      - "Raven"
+      - "Tengu"
+      - "Golem"
+
+# Faction-specific tank recommendations
+faction_tank_preference:
+  amarr:
+    preferred: armor_active
+    reason: "Armor bonuses, capacitor bonuses for active tank"
+
+  caldari:
+    preferred: shield_passive
+    reason: "Shield resist bonuses, missile boats benefit from passive"
+
+  gallente:
+    preferred: armor_active
+    reason: "Armor HP bonuses, hybrid boats need lows for damage"
+
+  minmatar:
+    preferred: shield_active
+    reason: "Flexible, often speed-tanked with active shield"
+
+# Cap warfare considerations
+cap_warfare_resistance:
+  armor_active:
+    vulnerability: high
+    mitigation:
+      - "Cap batteries with neut resistance"
+      - "Cap boosters for emergencies"
+      - "Pulse repairer instead of continuous"
+
+  armor_passive:
+    vulnerability: none
+    mitigation: []
+
+  shield_passive:
+    vulnerability: none
+    mitigation: []
+
+  shield_active:
+    vulnerability: high
+    mitigation:
+      - "Cap boosters (common on active shield)"
+      - "Cap batteries"
+      - "Drugs (Blue Pill)"

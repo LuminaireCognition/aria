@@ -1,0 +1,232 @@
+# Test fixture: Multi-item mineral price lookup in Jita
+# Tests standard multi-item lookup with default region
+
+name: "Minerals price lookup in Jita"
+skill: price
+description: |
+  Standard multi-item price lookup for common minerals.
+  Tests basic price structure with default Jita region.
+
+input:
+  items:
+    - Tritanium
+    - Pyerite
+    - Mexallon
+  region: jita
+
+expected_output:
+  region: "The Forge"
+  region_id: 10000002
+  source: "fuzzwork"
+  freshness: "fresh"
+  items:
+    - type_id: 34
+      type_name: "Tritanium"
+      buy:
+        order_count: 50
+        volume: 10000000000
+        min_price: 0.01
+        max_price: 5.0
+        weighted_avg: 3.0
+        median: 3.5
+        percentile_5: 4.0
+        stddev: 1.0
+      sell:
+        order_count: 80
+        volume: 10000000000
+        min_price: 4.0
+        max_price: 10.0
+        weighted_avg: 4.5
+        median: 4.7
+        percentile_5: 4.1
+        stddev: 1.5
+      spread: -0.5
+      spread_percent: -10.0
+      freshness: "fresh"
+    - type_id: 35
+      type_name: "Pyerite"
+      buy:
+        order_count: 40
+        volume: 2000000000
+        min_price: 0.01
+        max_price: 20.0
+        weighted_avg: 15.0
+        median: 18.0
+        percentile_5: 19.0
+        stddev: 5.0
+      sell:
+        order_count: 150
+        volume: 5000000000
+        min_price: 20.0
+        max_price: 50.0
+        weighted_avg: 22.0
+        median: 23.0
+        percentile_5: 21.0
+        stddev: 10.0
+      spread: -1.0
+      spread_percent: -5.0
+      freshness: "fresh"
+    - type_id: 36
+      type_name: "Mexallon"
+      buy:
+        order_count: 30
+        volume: 500000000
+        min_price: 0.01
+        max_price: 50.0
+        weighted_avg: 40.0
+        median: 45.0
+        percentile_5: 48.0
+        stddev: 10.0
+      sell:
+        order_count: 100
+        volume: 1000000000
+        min_price: 50.0
+        max_price: 100.0
+        weighted_avg: 55.0
+        median: 53.0
+        percentile_5: 51.0
+        stddev: 15.0
+      spread: -2.0
+      spread_percent: -4.0
+      freshness: "fresh"
+  unresolved_items: []
+  warnings: []
+
+expected_facts:
+  # Region validation
+  - path: "region"
+    equals: "The Forge"
+
+  - path: "region_id"
+    equals: 10000002
+
+  - path: "source"
+    equals: "fuzzwork"
+
+  # Item count
+  - path: "items"
+    length: 3
+
+  # Validate item names match request order
+  - path: "items[0].type_name"
+    equals: "Tritanium"
+
+  - path: "items[1].type_name"
+    equals: "Pyerite"
+
+  - path: "items[2].type_name"
+    equals: "Mexallon"
+
+  # Validate type IDs are correct (static data)
+  - path: "items[0].type_id"
+    equals: 34
+
+  - path: "items[1].type_id"
+    equals: 35
+
+  - path: "items[2].type_id"
+    equals: 36
+
+  # Order counts should be positive
+  - path: "items[*].buy.order_count"
+    all_satisfy: ">= 0"
+
+  - path: "items[*].sell.order_count"
+    all_satisfy: ">= 0"
+
+  # Volumes should be positive
+  - path: "items[*].buy.volume"
+    all_satisfy: ">= 0"
+
+  - path: "items[*].sell.volume"
+    all_satisfy: ">= 0"
+
+  # Sell min prices should be positive for active markets
+  - path: "items[*].sell.min_price"
+    all_satisfy: "> 0"
+
+  # Buy max prices should be positive for active markets
+  - path: "items[*].buy.max_price"
+    all_satisfy: "> 0"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  market_prices:
+    region: "The Forge"
+    region_id: 10000002
+    source: "fuzzwork"
+    freshness: "fresh"
+    items:
+      - type_id: 34
+        type_name: "Tritanium"
+        buy:
+          order_count: 50
+          volume: 10000000000
+          min_price: 0.01
+          max_price: 5.0
+          weighted_avg: 3.0
+          median: 3.5
+          percentile_5: 4.0
+          stddev: 1.0
+        sell:
+          order_count: 80
+          volume: 10000000000
+          min_price: 4.0
+          max_price: 10.0
+          weighted_avg: 4.5
+          median: 4.7
+          percentile_5: 4.1
+          stddev: 1.5
+        spread: -0.5
+        spread_percent: -10.0
+        freshness: "fresh"
+      - type_id: 35
+        type_name: "Pyerite"
+        buy:
+          order_count: 40
+          volume: 2000000000
+          min_price: 0.01
+          max_price: 20.0
+          weighted_avg: 15.0
+          median: 18.0
+          percentile_5: 19.0
+          stddev: 5.0
+        sell:
+          order_count: 150
+          volume: 5000000000
+          min_price: 20.0
+          max_price: 50.0
+          weighted_avg: 22.0
+          median: 23.0
+          percentile_5: 21.0
+          stddev: 10.0
+        spread: -1.0
+        spread_percent: -5.0
+        freshness: "fresh"
+      - type_id: 36
+        type_name: "Mexallon"
+        buy:
+          order_count: 30
+          volume: 500000000
+          min_price: 0.01
+          max_price: 50.0
+          weighted_avg: 40.0
+          median: 45.0
+          percentile_5: 48.0
+          stddev: 10.0
+        sell:
+          order_count: 100
+          volume: 1000000000
+          min_price: 50.0
+          max_price: 100.0
+          weighted_avg: 55.0
+          median: 53.0
+          percentile_5: 51.0
+          stddev: 15.0
+        spread: -2.0
+        spread_percent: -4.0
+        freshness: "fresh"
+    unresolved_items: []
+    warnings: []

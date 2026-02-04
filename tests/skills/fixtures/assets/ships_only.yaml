@@ -1,0 +1,103 @@
+# Test fixture: Ships only filter
+# Tests assets filtered to show only assembled ships
+
+name: "Assembled Ships Only"
+skill: assets
+description: |
+  Show only assembled ships from asset inventory.
+  Tests the /assets --ships filter option.
+
+input:
+  command: ships
+  ships_only: true
+
+expected_facts:
+  - path: "ships"
+    length: 5
+
+  - path: "ships[*].is_singleton"
+    all_satisfy: "== 1"
+
+  - path: "total_ships"
+    equals: 5
+
+expected_output:
+  filter: "ships"
+  total_ships: 5
+  ships:
+    - item_id: 1234567890
+      type_id: 17715
+      type_name: "Gila"
+      hull_class: "Cruiser"
+      location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+      is_singleton: true
+    - item_id: 1234567891
+      type_id: 17709
+      type_name: "Vexor Navy Issue"
+      hull_class: "Cruiser"
+      location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+      is_singleton: true
+    - item_id: 1234567892
+      type_id: 32880
+      type_name: "Venture"
+      hull_class: "Mining Frigate"
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+      is_singleton: true
+    - item_id: 1234567893
+      type_id: 605
+      type_name: "Heron"
+      hull_class: "Frigate"
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+      is_singleton: true
+    - item_id: 1234567894
+      type_id: 33468
+      type_name: "Astero"
+      hull_class: "Frigate"
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+      is_singleton: true
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  assets:
+    - item_id: 1234567890
+      type_id: 17715
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1234567891
+      type_id: 17709
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1234567892
+      type_id: 32880
+      location_id: 60011866
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1234567893
+      type_id: 605
+      location_id: 60011866
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1234567894
+      type_id: 33468
+      location_id: 60011866
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true

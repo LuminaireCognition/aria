@@ -1,0 +1,79 @@
+# serializer version: 1
+# name: TestStatusOutputGolden.test_status_output_structure
+  dict({
+    'activity': dict({
+      'fw': dict({
+        'age_seconds': 300,
+        'cached_systems': 200,
+        'stale': False,
+        'ttl_seconds': 3600,
+      }),
+      'jumps': dict({
+        'age_seconds': 120,
+        'cached_systems': 5000,
+        'stale': False,
+        'ttl_seconds': 3600,
+      }),
+      'kills': dict({
+        'age_seconds': 120,
+        'cached_systems': 5000,
+        'stale': False,
+        'ttl_seconds': 3600,
+      }),
+    }),
+    'discord': dict({
+      'active_throttles': 0,
+      'is_configured': True,
+      'is_healthy': True,
+      'is_paused': False,
+      'is_quiet_hours': False,
+      'last_success': None,
+      'next_active_time': None,
+      'queue_depth': 0,
+      'success_rate': 1.0,
+    }),
+    'fitting': dict({
+      'data_path': '/test/path/eos_data',
+      'is_valid': True,
+      'missing_files': list([
+      ]),
+      'total_records': 45678,
+      'version': '2548611',
+    }),
+    'killmails': dict({
+      'store': dict({
+        'initialized': False,
+      }),
+    }),
+    'market': dict({
+      'database': dict({
+        'path': '/test/path/market.db',
+        'size_mb': 150.5,
+        'type_count': 45678,
+      }),
+      'esi_orders': dict({
+        'age_seconds': 100,
+        'cached_types': 50,
+        'stale': False,
+        'ttl_seconds': 300,
+      }),
+      'fuzzwork': dict({
+        'age_seconds': 500,
+        'cached_types': 1000,
+        'stale': False,
+        'ttl_seconds': 900,
+      }),
+    }),
+    'sde': dict({
+      'database_path': '/test/path/market.db',
+      'database_size_mb': 150.5,
+      'is_available': True,
+      'type_count': 45678,
+    }),
+    'summary': dict({
+      'all_healthy': True,
+      'issues': list([
+      ]),
+    }),
+  })
+# ---

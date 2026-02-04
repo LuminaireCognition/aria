@@ -1,0 +1,442 @@
+{
+  "_meta": {
+    "description": "EVE Online Planetary Interaction production chains and planet resources",
+    "sources": [
+      "https://wiki.eveuniversity.org/Planetary_Commodities",
+      "https://wiki.eveuniversity.org/Planetary_Industry",
+      "https://www.fuzzwork.co.uk/pi/"
+    ],
+    "last_verified": "2026-01-29",
+    "notes": "Quantities are per production cycle. Equinox colony materials (Reinforced Carbon Fiber, etc.) are NOT included - those use a separate sovereignty-based system."
+  },
+
+  "production_constants": {
+    "p0_to_p1": {
+      "input_qty": 3000,
+      "output_qty": 20,
+      "cycle_seconds": 1800,
+      "facility": "Basic Industry Facility"
+    },
+    "p1_to_p2": {
+      "input_qty_each": 40,
+      "output_qty": 5,
+      "cycle_seconds": 3600,
+      "facility": "Advanced Industry Facility"
+    },
+    "p2_to_p3": {
+      "input_qty_each": 10,
+      "output_qty": 3,
+      "cycle_seconds": 3600,
+      "facility": "Advanced Industry Facility"
+    },
+    "p3_to_p4": {
+      "input_qty_p3": 6,
+      "input_qty_p1": 40,
+      "output_qty": 1,
+      "cycle_seconds": 3600,
+      "facility": "High Tech Production Plant",
+      "planet_restriction": ["Barren", "Temperate"]
+    }
+  },
+
+  "planet_resources": {
+    "Barren": [
+      "Aqueous Liquids",
+      "Base Metals",
+      "Carbon Compounds",
+      "Heavy Metals",
+      "Microorganisms",
+      "Noble Metals",
+      "Non-CS Crystals"
+    ],
+    "Gas": [
+      "Aqueous Liquids",
+      "Base Metals",
+      "Heavy Metals",
+      "Ionic Solutions",
+      "Noble Gas",
+      "Reactive Gas"
+    ],
+    "Ice": [
+      "Aqueous Liquids",
+      "Heavy Metals",
+      "Noble Gas",
+      "Planktic Colonies"
+    ],
+    "Lava": [
+      "Base Metals",
+      "Felsic Magma",
+      "Heavy Metals",
+      "Noble Gas",
+      "Non-CS Crystals",
+      "Suspended Plasma"
+    ],
+    "Oceanic": [
+      "Aqueous Liquids",
+      "Carbon Compounds",
+      "Complex Organisms",
+      "Heavy Metals",
+      "Microorganisms",
+      "Noble Metals",
+      "Planktic Colonies"
+    ],
+    "Plasma": [
+      "Base Metals",
+      "Heavy Metals",
+      "Noble Metals",
+      "Non-CS Crystals",
+      "Suspended Plasma"
+    ],
+    "Storm": [
+      "Aqueous Liquids",
+      "Base Metals",
+      "Heavy Metals",
+      "Ionic Solutions",
+      "Noble Gas",
+      "Reactive Gas",
+      "Suspended Plasma"
+    ],
+    "Temperate": [
+      "Aqueous Liquids",
+      "Autotrophs",
+      "Base Metals",
+      "Carbon Compounds",
+      "Complex Organisms",
+      "Microorganisms",
+      "Noble Metals"
+    ]
+  },
+
+  "p0_to_p1": {
+    "Aqueous Liquids": "Water",
+    "Autotrophs": "Industrial Fibers",
+    "Base Metals": "Reactive Metals",
+    "Carbon Compounds": "Biofuels",
+    "Complex Organisms": "Proteins",
+    "Felsic Magma": "Silicon",
+    "Heavy Metals": "Toxic Metals",
+    "Ionic Solutions": "Electrolytes",
+    "Microorganisms": "Bacteria",
+    "Noble Gas": "Oxygen",
+    "Noble Metals": "Precious Metals",
+    "Non-CS Crystals": "Chiral Structures",
+    "Planktic Colonies": "Biomass",
+    "Reactive Gas": "Oxidizing Compound",
+    "Suspended Plasma": "Plasmoids"
+  },
+
+  "p2_schematics": {
+    "Biocells": {
+      "inputs": ["Biofuels", "Precious Metals"]
+    },
+    "Construction Blocks": {
+      "inputs": ["Reactive Metals", "Toxic Metals"]
+    },
+    "Consumer Electronics": {
+      "inputs": ["Chiral Structures", "Toxic Metals"]
+    },
+    "Coolant": {
+      "inputs": ["Electrolytes", "Water"]
+    },
+    "Enriched Uranium": {
+      "inputs": ["Precious Metals", "Toxic Metals"]
+    },
+    "Fertilizer": {
+      "inputs": ["Bacteria", "Proteins"]
+    },
+    "Genetically Enhanced Livestock": {
+      "inputs": ["Biomass", "Proteins"]
+    },
+    "Livestock": {
+      "inputs": ["Biofuels", "Proteins"]
+    },
+    "Mechanical Parts": {
+      "inputs": ["Precious Metals", "Reactive Metals"]
+    },
+    "Microfiber Shielding": {
+      "inputs": ["Industrial Fibers", "Silicon"]
+    },
+    "Miniature Electronics": {
+      "inputs": ["Chiral Structures", "Silicon"]
+    },
+    "Nanites": {
+      "inputs": ["Bacteria", "Reactive Metals"]
+    },
+    "Oxides": {
+      "inputs": ["Oxidizing Compound", "Oxygen"]
+    },
+    "Polyaramids": {
+      "inputs": ["Industrial Fibers", "Oxidizing Compound"]
+    },
+    "Polytextiles": {
+      "inputs": ["Biofuels", "Industrial Fibers"]
+    },
+    "Rocket Fuel": {
+      "inputs": ["Electrolytes", "Plasmoids"]
+    },
+    "Silicate Glass": {
+      "inputs": ["Oxidizing Compound", "Silicon"]
+    },
+    "Superconductors": {
+      "inputs": ["Plasmoids", "Water"]
+    },
+    "Supertensile Plastics": {
+      "inputs": ["Biomass", "Oxygen"]
+    },
+    "Synthetic Oil": {
+      "inputs": ["Electrolytes", "Oxygen"]
+    },
+    "Test Cultures": {
+      "inputs": ["Bacteria", "Water"]
+    },
+    "Transmitter": {
+      "inputs": ["Chiral Structures", "Plasmoids"]
+    },
+    "Viral Agent": {
+      "inputs": ["Bacteria", "Biomass"]
+    },
+    "Water-Cooled CPU": {
+      "inputs": ["Reactive Metals", "Water"]
+    }
+  },
+
+  "p3_schematics": {
+    "Biotech Research Reports": {
+      "inputs": ["Construction Blocks", "Livestock", "Nanites"]
+    },
+    "Camera Drones": {
+      "inputs": ["Rocket Fuel", "Silicate Glass"]
+    },
+    "Condensates": {
+      "inputs": ["Coolant", "Oxides"]
+    },
+    "Cryoprotectant Solution": {
+      "inputs": ["Fertilizer", "Synthetic Oil", "Test Cultures"]
+    },
+    "Data Chips": {
+      "inputs": ["Microfiber Shielding", "Supertensile Plastics"]
+    },
+    "Gel-Matrix Biopaste": {
+      "inputs": ["Biocells", "Oxides", "Superconductors"]
+    },
+    "Guidance Systems": {
+      "inputs": ["Transmitter", "Water-Cooled CPU"]
+    },
+    "Hazmat Detection Systems": {
+      "inputs": ["Polytextiles", "Transmitter", "Viral Agent"]
+    },
+    "Hermetic Membranes": {
+      "inputs": ["Genetically Enhanced Livestock", "Polyaramids"]
+    },
+    "High-Tech Transmitters": {
+      "inputs": ["Polyaramids", "Transmitter"]
+    },
+    "Industrial Explosives": {
+      "inputs": ["Fertilizer", "Polytextiles"]
+    },
+    "Neocoms": {
+      "inputs": ["Biocells", "Silicate Glass"]
+    },
+    "Nuclear Reactors": {
+      "inputs": ["Enriched Uranium", "Microfiber Shielding"]
+    },
+    "Planetary Vehicles": {
+      "inputs": ["Mechanical Parts", "Miniature Electronics", "Supertensile Plastics"]
+    },
+    "Robotics": {
+      "inputs": ["Consumer Electronics", "Mechanical Parts"]
+    },
+    "Smartfab Units": {
+      "inputs": ["Construction Blocks", "Miniature Electronics"]
+    },
+    "Supercomputers": {
+      "inputs": ["Consumer Electronics", "Coolant", "Water-Cooled CPU"]
+    },
+    "Synthetic Synapses": {
+      "inputs": ["Supertensile Plastics", "Test Cultures"]
+    },
+    "Transcranial Microcontrollers": {
+      "inputs": ["Biocells", "Nanites"]
+    },
+    "Ukomi Superconductors": {
+      "inputs": ["Superconductors", "Synthetic Oil"]
+    },
+    "Vaccines": {
+      "inputs": ["Livestock", "Viral Agent"]
+    }
+  },
+
+  "p4_schematics": {
+    "Broadcast Node": {
+      "inputs": ["Data Chips", "High-Tech Transmitters", "Neocoms"],
+      "input_type": "p3_only"
+    },
+    "Integrity Response Drones": {
+      "inputs": ["Gel-Matrix Biopaste", "Hazmat Detection Systems", "Planetary Vehicles"],
+      "input_type": "p3_only"
+    },
+    "Nano-Factory": {
+      "inputs": ["Industrial Explosives", "Ukomi Superconductors"],
+      "p1_input": "Reactive Metals",
+      "input_type": "p3_and_p1"
+    },
+    "Organic Mortar Applicators": {
+      "inputs": ["Condensates", "Robotics"],
+      "p1_input": "Bacteria",
+      "input_type": "p3_and_p1"
+    },
+    "Recursive Computing Module": {
+      "inputs": ["Guidance Systems", "Synthetic Synapses", "Transcranial Microcontrollers"],
+      "input_type": "p3_only"
+    },
+    "Self-Harmonizing Power Core": {
+      "inputs": ["Camera Drones", "Hermetic Membranes", "Nuclear Reactors"],
+      "input_type": "p3_only"
+    },
+    "Sterile Conduits": {
+      "inputs": ["Smartfab Units", "Vaccines"],
+      "p1_input": "Water",
+      "input_type": "p3_and_p1"
+    },
+    "Wetware Mainframe": {
+      "inputs": ["Biotech Research Reports", "Cryoprotectant Solution", "Supercomputers"],
+      "input_type": "p3_only"
+    }
+  },
+
+  "single_planet_p2": {
+    "_description": "P2 products that can be manufactured on a single planet type, using only resources native to that planet.",
+    "Barren": ["Construction Blocks", "Enriched Uranium", "Mechanical Parts", "Miniature Electronics", "Nanites"],
+    "Gas": ["Coolant", "Oxides", "Rocket Fuel", "Synthetic Oil"],
+    "Ice": ["Supertensile Plastics"],
+    "Lava": ["Consumer Electronics", "Miniature Electronics", "Silicate Glass", "Transmitter"],
+    "Oceanic": ["Fertilizer", "Genetically Enhanced Livestock", "Livestock", "Supertensile Plastics", "Test Cultures", "Viral Agent"],
+    "Plasma": ["Construction Blocks", "Consumer Electronics", "Enriched Uranium", "Mechanical Parts", "Transmitter"],
+    "Storm": ["Coolant", "Oxides", "Rocket Fuel", "Superconductors", "Synthetic Oil"],
+    "Temperate": ["Fertilizer", "Livestock", "Polytextiles", "Test Cultures"]
+  },
+
+  "pi_skills": {
+    "Command Center Upgrades": {
+      "rank": 4,
+      "effect_per_level": "Increases CPU and powergrid capacity of command centers",
+      "recommended_level": 5,
+      "notes": "Essential for production planets. Level V allows maximum extractor heads and factories."
+    },
+    "Interplanetary Consolidation": {
+      "rank": 4,
+      "effect_per_level": "+1 planet per level",
+      "base_planets": 1,
+      "recommended_level": 4,
+      "notes": "Level IV gives 5 planets, sufficient for most P3/P4 production chains."
+    },
+    "Planetology": {
+      "rank": 3,
+      "effect_per_level": "Improves resource deposit visibility",
+      "recommended_level": 4,
+      "notes": "Higher levels show more accurate hotspot locations."
+    },
+    "Advanced Planetology": {
+      "rank": 5,
+      "effect_per_level": "Fine-grained resource detection",
+      "prerequisite": "Planetology IV",
+      "recommended_level": 3,
+      "notes": "Helps place extractors on precise hotspots."
+    },
+    "Remote Sensing": {
+      "rank": 1,
+      "effect_per_level": "Increases scan range for planets",
+      "recommended_level": 3,
+      "notes": "Low priority. Mainly useful for scouting remote systems."
+    }
+  },
+
+  "export_costs_per_unit": {
+    "_description": "Base customs office export tax per unit (before tax rate multiplier)",
+    "P0": 5,
+    "P1": 400,
+    "P2": 7200,
+    "P3": 60000,
+    "P4": 1200000
+  },
+
+  "type_ids": {
+    "_description": "EVE type IDs for market queries. Verified against SDE.",
+    "p1": {
+      "Water": 2390,
+      "Industrial Fibers": 2393,
+      "Reactive Metals": 2398,
+      "Biofuels": 2396,
+      "Proteins": 2395,
+      "Silicon": 9828,
+      "Toxic Metals": 2400,
+      "Electrolytes": 2397,
+      "Bacteria": 2393,
+      "Oxygen": 3683,
+      "Precious Metals": 2399,
+      "Chiral Structures": 2401,
+      "Biomass": 3779,
+      "Oxidizing Compound": 2392,
+      "Plasmoids": 2389
+    },
+    "p2": {
+      "Biocells": 2329,
+      "Construction Blocks": 3828,
+      "Consumer Electronics": 9836,
+      "Coolant": 9832,
+      "Enriched Uranium": 44,
+      "Fertilizer": 3693,
+      "Genetically Enhanced Livestock": 15317,
+      "Livestock": 3725,
+      "Mechanical Parts": 3689,
+      "Microfiber Shielding": 2327,
+      "Miniature Electronics": 9842,
+      "Nanites": 2463,
+      "Oxides": 2317,
+      "Polyaramids": 2321,
+      "Polytextiles": 2354,
+      "Rocket Fuel": 9830,
+      "Silicate Glass": 2312,
+      "Superconductors": 9838,
+      "Supertensile Plastics": 2328,
+      "Synthetic Oil": 3691,
+      "Test Cultures": 2319,
+      "Transmitter": 9840,
+      "Viral Agent": 2463,
+      "Water-Cooled CPU": 2351
+    },
+    "p3": {
+      "Biotech Research Reports": 2358,
+      "Camera Drones": 2345,
+      "Condensates": 2344,
+      "Cryoprotectant Solution": 2367,
+      "Data Chips": 17392,
+      "Gel-Matrix Biopaste": 2348,
+      "Guidance Systems": 9834,
+      "Hazmat Detection Systems": 2366,
+      "Hermetic Membranes": 2361,
+      "High-Tech Transmitters": 17898,
+      "Industrial Explosives": 2360,
+      "Neocoms": 2352,
+      "Nuclear Reactors": 2352,
+      "Planetary Vehicles": 9846,
+      "Robotics": 9848,
+      "Smartfab Units": 2355,
+      "Supercomputers": 2356,
+      "Synthetic Synapses": 2346,
+      "Transcranial Microcontrollers": 12836,
+      "Ukomi Superconductors": 17136,
+      "Vaccines": 28974
+    },
+    "p4": {
+      "Broadcast Node": 2867,
+      "Integrity Response Drones": 2868,
+      "Nano-Factory": 2869,
+      "Organic Mortar Applicators": 2870,
+      "Recursive Computing Module": 2871,
+      "Self-Harmonizing Power Core": 2872,
+      "Sterile Conduits": 2875,
+      "Wetware Mainframe": 2876
+    }
+  }
+}

@@ -1,0 +1,96 @@
+# Test fixture: Repair negative Gallente standing
+# Tests repair strategy generation for hostile faction standing
+
+name: "Repair negative Gallente standing"
+skill: standings
+description: |
+  Strategy to repair -3.5 Gallente standing.
+  Tests repair strategy response with epic arc focus.
+
+input:
+  query_type: repair_strategy
+  faction_name: "Gallente Federation"
+
+expected_output:
+  faction_name: "Gallente Federation"
+  current_standing: -3.5
+  is_hostile: false
+  navy_aggro_threshold: -5.0
+  repair_strategies:
+    - method: "epic_arc"
+      description: "Run 'The Blood-Stained Stars' and choose Gallente at the end"
+      standing_gain: "~10% of remaining (e.g., -3.5 to -2.15)"
+      cooldown: "90 days"
+      requirements: "None - no standing requirement"
+      notes: "Best option for repairing hostile faction standings. No derived losses to other factions."
+    - method: "career_agents"
+      description: "Run career agents for Gallente"
+      standing_gain: "Small but no cooldown"
+      cooldown: "Once per career agent per character"
+      requirements: "Can only do once per agent"
+      notes: "Good initial boost. Combine with epic arc."
+    - method: "diplomacy_skill"
+      description: "Train Diplomacy skill to improve effective standing"
+      standing_gain: "+4% per level for negative standings"
+      cooldown: "None (passive)"
+      requirements: "Skill training time"
+      notes: "Improves effective standing but doesn't change raw value."
+    - method: "faction_warfare"
+      description: "Enlist with Gallente FW and run FW missions"
+      standing_gain: "Variable based on LP store items"
+      cooldown: "None"
+      requirements: "0.0+ faction standing to enlist"
+      notes: "Cannot enlist with negative standing. Only viable after partial repair."
+  recommended_strategy: "epic_arc"
+  diplomacy_effect:
+    current_level: 3
+    effective_standing_with_diplomacy: -2.72
+    improvement: 0.78
+  notes: "Your -3.5 standing is unfriendly but not hostile. The Blood-Stained Stars epic arc is the best option - it has no standing requirement and doesn't cause derived losses. Multiple runs can bring you back to positive."
+
+expected_facts:
+  # Faction details
+  - path: "faction_name"
+    equals: "Gallente Federation"
+
+  - path: "current_standing"
+    equals: -3.5
+
+  # Not hostile yet (threshold is -5.0)
+  - path: "is_hostile"
+    equals: false
+
+  - path: "navy_aggro_threshold"
+    equals: -5.0
+
+  # Has repair strategies
+  - path: "repair_strategies"
+    length: 4
+
+  # Epic arc is first
+  - path: "repair_strategies[0].method"
+    equals: "epic_arc"
+
+  # Epic arc has no standing requirement
+  - path: "repair_strategies[0].requirements"
+    contains: "None"
+
+  # 90-day cooldown on epic arc
+  - path: "repair_strategies[0].cooldown"
+    equals: "90 days"
+
+  # Recommended strategy is epic arc
+  - path: "recommended_strategy"
+    equals: "epic_arc"
+
+  # Diplomacy effect calculated
+  # Formula: effective = raw + (raw + 10) * diplomacy_level * 0.04
+  # -3.5 + (-3.5 + 10) * 3 * 0.04 = -3.5 + 0.78 = -2.72
+  - path: "diplomacy_effect.current_level"
+    equals: 3
+
+  - path: "diplomacy_effect.effective_standing_with_diplomacy"
+    range: [-2.8, -2.6]
+
+  - path: "diplomacy_effect.improvement"
+    range: [0.7, 0.85]

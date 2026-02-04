@@ -1,0 +1,108 @@
+# Hurricane L3 Missions - Low Skill Variant
+#
+# Entry-level fit with artillery for alpha strike gameplay.
+# Shield buffer tank for cap-free operation.
+
+archetype:
+  hull: Hurricane
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Hurricane, L3 Missions - Low Skills]
+
+  Gyrostabilizer I
+  Gyrostabilizer I
+  Gyrostabilizer I
+  Tracking Enhancer I
+  Damage Control I
+
+  50MN Microwarpdrive I
+  Large Shield Extender I
+  Large Shield Extender I
+  Adaptive Invulnerability Shield Hardener I
+
+  720mm Howitzer Artillery I
+  720mm Howitzer Artillery I
+  720mm Howitzer Artillery I
+  720mm Howitzer Artillery I
+  720mm Howitzer Artillery I
+  720mm Howitzer Artillery I
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Projectile Collision Accelerator I
+
+  Warrior I x3
+
+  Titanium Sabot M x2000
+  EMP M x1000
+  Fusion M x1000
+  Phased Plasma M x500
+
+skill_requirements:
+  required:
+    Minmatar Battlecruiser: 3
+    Medium Projectile Turret: 3
+    Gunnery: 3
+    Shield Upgrades: 3
+    Shield Management: 3
+  recommended:
+    Surgical Strike: 3
+    Sharpshooter: 3
+    Motion Prediction: 3
+    Trajectory Analysis: 3
+
+stats:
+  dps: 380
+  volley_damage: 2100
+  ehp: 22000
+  tank_sustained: 0  # Buffer tank
+  capacitor_stable: true
+  align_time: 10.0
+  speed_mwd: 1400
+  optimal_range: 32000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: kinetic  # Titanium Sabot
+  tank_profile: shield_buffer
+
+  overrides:
+    serpentis:
+      ammo: "Phased Plasma M"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Fusion M"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "EMP M"
+      notes: "Blood Raiders weak to EM"
+    guristas:
+      ammo: "Titanium Sabot M"
+      notes: "Guristas weak to Kinetic - default ammo works"
+    rogue_drones:
+      ammo: "EMP M"
+      notes: "Rogue Drones weak to EM"
+
+notes:
+  purpose: "Entry-level L3 mission runner with artillery alpha strikes"
+  engagement: "Engage at 30-40km, alpha strike frigates, kite battleships"
+  warnings:
+    - "Buffer tank - warp out when shields get low"
+    - "Pulse MWD to manage cap"
+    - "Artillery can one-shot frigates with good volley"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "720mm Howitzer Artillery I"
+      upgrade_to: "720mm Howitzer Artillery II"
+      skill_required: "Medium Projectile Turret 5"
+    - module: "Gyrostabilizer I"
+      upgrade_to: "Gyrostabilizer II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Maelstrom (Battleship)"
+      notes: "L4 missions, bigger artillery"

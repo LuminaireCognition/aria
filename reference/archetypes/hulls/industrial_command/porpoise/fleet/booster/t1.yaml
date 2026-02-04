@@ -1,0 +1,86 @@
+# Porpoise Fleet Booster - Low Skill Variant
+#
+# Entry-level mining fleet booster with decent tank.
+
+archetype:
+  hull: Porpoise
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Porpoise, Fleet Booster - Low Skills]
+
+  Damage Control I
+  Reinforced Bulkheads I
+
+  Compact Multispectrum Shield Hardener
+  Large Shield Extender I
+  Large Shield Extender I
+  50MN Microwarpdrive I
+
+  Mining Foreman Burst I
+  Mining Foreman Burst I
+  Small Tractor Beam I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Mining Laser Field Enhancement Charge x300
+  Mining Laser Optimization Charge x300
+  Hobgoblin I x5
+  Mining Drone I x5
+  Salvage Drone I x5
+
+skill_requirements:
+  required:
+    Industrial Command Ships: 1
+    Mining Foreman: 1
+    Mining Director: 1
+    Leadership: 1
+  recommended:
+    Mining Foreman: 4
+    Mining Director: 3
+    Industrial Command Ships: 3
+    Leadership: 4
+
+stats:
+  mining_yield: 400  # m3/min drone mining
+  burst_strength: 15  # % boost approximate
+  burst_range: 15000  # meters
+  ore_hold: 50000
+  fleet_hangar: 5000
+  ehp: 60000
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Entry-level mining fleet booster"
+  engagement: "Position centrally, keep bursts running, collect ore in fleet hangar"
+  warnings:
+    - "Must be Fleet/Wing/Squad Commander to provide boosts"
+    - "Keep bursts running - don't let them lapse"
+    - "Monitor fleet hangar - don't let it fill"
+    - "Porpoise is valuable target - stay aligned"
+    - "Cost: ~100-120M fitted"
+
+  burst_operation:
+    - "Load charges into burst modules"
+    - "Ensure you are Fleet/Wing/Squad Commander"
+    - "Activate bursts (they cycle automatically)"
+    - "Fleet members within burst range receive bonuses"
+
+  fleet_workflow:
+    - "Miners fill their holds"
+    - "Miners warp to Porpoise"
+    - "Open fleet hangar, deposit ore"
+    - "Return to asteroid and repeat"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Mining Foreman Burst I"
+      upgrade_to: "Mining Foreman Burst II"
+      skill_required: "Mining Foreman 5"
+    - implant: "Mining Foreman Mindlink"
+      notes: "+25% burst strength, requires Cybernetics 5"
+    - ship: "Orca"
+      notes: "Better boosts, 150k ore hold, 400k ship maintenance bay - ~1.2B ISK"

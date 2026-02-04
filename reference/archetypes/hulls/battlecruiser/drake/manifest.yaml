@@ -1,0 +1,73 @@
+# Drake Hull Manifest
+#
+# The Drake is a Caldari T1 battlecruiser famous for its passive shield tank.
+# Heavy missile platform with legendary survivability.
+
+hull: Drake
+class: battlecruiser
+faction: caldari
+tech_level: 1
+
+# Slot layout (from SDE)
+slots:
+  high: 7
+  mid: 6
+  low: 4
+  rig: 3
+
+# Drone/fighter capacity
+drones:
+  bandwidth: 25
+  bay: 25
+
+# Hull bonuses summary
+bonuses:
+  - "5% bonus to kinetic damage per Caldari Battlecruiser level"
+  - "4% bonus to all shield resistances per Caldari Battlecruiser level"
+
+# Ship role classification
+roles:
+  - missile_boat
+  - shield_tank
+  - passive_tank
+
+# Hull-specific fitting rules
+fitting_rules:
+  # One high slot typically empty (7 launchers but 6 is common)
+  empty_slots:
+    high: false
+    reason: "Can fit 7 launchers, though 6 is common with utility high"
+
+  # Preferred tank type
+  tank_type: shield_passive
+
+  # Weapon system
+  weapons:
+    primary: missiles
+    secondary: drones  # Light drones for frigate cleanup
+
+  # Special instructions
+  notes:
+    - "Passive shield tank is signature - no cap needed"
+    - "Shield recharge rate is key defensive stat"
+    - "Core Defense Field Purger rigs are essential"
+    - "Light drones handle frigates that missiles miss"
+    - "Kinetic-bonused but selectable damage is a major advantage"
+
+# Recommended drone loadout
+drone_recommendations:
+  primary: null  # No medium drones - 25 bandwidth = 5 lights only
+  anti_frigate: "Hobgoblin I"
+  utility: null
+
+# Cap stability expectations
+capacitor:
+  stable_expected: true
+  notes: "Passive tank means minimal cap usage. Only Adaptive Invuln and AB need cap."
+
+# Typical engagement profile
+engagement:
+  range: "50-70km (heavy missile optimal)"
+  speed: "slow - AB for positioning only"
+  signature: "large - don't rely on sig tanking"
+  notes: "Sit at range, launch missiles, let passive tank handle incoming. Deploy drones for frigates."

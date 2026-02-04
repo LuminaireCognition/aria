@@ -1,0 +1,50 @@
+# Venture Hull Manifest
+#
+# The Venture is an ORE mining frigate designed for dangerous space.
+# Built-in +2 warp core strength and 5,000 m3 ore hold.
+
+hull: Venture
+class: mining_frigate
+faction: ore
+tech_level: 1
+
+slots:
+  high: 3
+  mid: 3
+  low: 2
+  rig: 3
+
+drones:
+  bandwidth: 10
+  bay: 10
+
+bonuses:
+  - "100% bonus to Mining Frigate role bonus to ore and ice mining yield"
+  - "5% bonus to mining yield per Mining Frigate level"
+  - "5% reduction in gas harvesting cycle time per Mining Frigate level"
+  - "+2 warp core strength"
+
+roles:
+  - mining
+  - gas_harvesting
+  - exploration_lite
+
+fitting_rules:
+  tank_type: shield_buffer
+  weapons:
+    primary: mining_lasers
+    secondary: drones
+
+  notes:
+    - "Built-in +2 warp core strength - survives single scrams"
+    - "5,000 m3 dedicated ore hold"
+    - "2x mining turrets OR 2x gas harvesters"
+    - "Fastest mining frigate with good agility"
+    - "Ideal for wormhole gas huffing"
+
+ore_hold: 5000
+
+engagement:
+  range: "Mining - within 15km of asteroid"
+  speed: "~2,500 m/s (MWD)"
+  notes: "Stay aligned while mining. MWD for repositioning."

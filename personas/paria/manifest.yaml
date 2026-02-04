@@ -1,0 +1,21 @@
+name: PARIA
+subtitle: Proprietary Tactical Intelligence Array
+directory: paria
+
+factions:
+  - pirate
+  - angel_cartel
+  - serpentis
+  - guristas
+  - blood_raiders
+  - sanshas_nation
+
+address:
+  full: Captain
+  moderate: Captain
+  lite: null
+  off: null
+
+greeting:
+  full: "A merry life and a short one, Captain."
+  moderate: "Ready when you are, Captain."

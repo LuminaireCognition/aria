@@ -1,0 +1,117 @@
+# Dominix L4 Missions - Low Skill Variant
+#
+# Entry-level sentry drone fit for semi-AFK mission running.
+
+archetype:
+  hull: Dominix
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Dominix, L4 Missions - Low Skills]
+
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Damage Control I
+  Compact Multispectrum Energized Membrane
+  Large Armor Repairer I
+
+  100MN Afterburner I
+  Large Micro Jump Drive
+  Omnidirectional Tracking Link I
+  Omnidirectional Tracking Link I
+  Sensor Booster I
+
+  Drone Link Augmentor I
+  Drone Link Augmentor I
+  Large Remote Armor Repairer I
+  [Empty High slot]
+  [Empty High slot]
+  [Empty High slot]
+
+  Large Sentry Damage Augmentor I
+  Large Sentry Damage Augmentor I
+  Large Auxiliary Nano Pump I
+
+  Garde I x5
+  Warden I x5
+  Hammerhead I x5
+  Hobgoblin I x5
+
+  Tracking Speed Script x1
+  Optimal Range Script x1
+  Targeting Range Script x1
+
+skill_requirements:
+  required:
+    Gallente Battleship: 3
+    Drones: 5
+    Heavy Drone Operation: 4
+    Sentry Drone Interfacing: 3
+    Armor Repair Systems: 3
+  recommended:
+    Drone Interfacing: 4
+    Drone Durability: 4
+    Drone Navigation: 3
+    Hull Upgrades: 4
+
+stats:
+  dps: 650
+  ehp: 55000
+  tank_sustained: 250
+  capacitor_stable: true
+  align_time: 20.0
+  speed_ab: 130
+  drone_control_range: 95000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: thermal  # Garde sentries
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      drones:
+        sentry: "Garde I"
+        medium: "Hammerhead I"
+        light: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal - Gardes optimal"
+    angel_cartel:
+      drones:
+        sentry: "Bouncer I"
+        medium: "Valkyrie I"
+        light: "Warrior I"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      drones:
+        sentry: "Curator I"
+        medium: "Infiltrator I"
+        light: "Acolyte I"
+      notes: "Blood Raiders weak to EM - watch for neuts"
+    guristas:
+      drones:
+        sentry: "Warden I"
+        medium: "Vespa I"
+        light: "Hornet I"
+      notes: "Guristas weak to Kinetic"
+
+notes:
+  purpose: "Semi-AFK L4 mission runner with sentry drones"
+  engagement: "Warp in, deploy Gardes, assign targets, let drones work"
+  warnings:
+    - "Recall drones if they take aggro"
+    - "MJD to reposition 100km if needed"
+    - "Remote rep can repair damaged sentries"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Garde I"
+      upgrade_to: "Garde II"
+      skill_required: "Sentry Drone Interfacing 5"
+    - module: "Drone Damage Amplifier I"
+      upgrade_to: "Drone Damage Amplifier II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Dominix Navy Issue"
+      notes: "Better bonuses, ~600M ISK"

@@ -1,0 +1,256 @@
+{
+  "_meta": {
+    "description": "Master missile reference for ARIA project. ARIA must consult this file before making any claims about missile damage types or recommending missile ammo.",
+    "source": "https://wiki.eveuniversity.org/Missiles",
+    "last_verified": "2026-02-02"
+  },
+  "damage_types": {
+    "Mjolnir": "em",
+    "Inferno": "thermal",
+    "Scourge": "kinetic",
+    "Nova": "explosive"
+  },
+  "ammo_by_damage": {
+    "em": "Mjolnir",
+    "thermal": "Inferno",
+    "kinetic": "Scourge",
+    "explosive": "Nova"
+  },
+  "launcher_types": {
+    "rocket": {
+      "size": "small",
+      "range": "short",
+      "ships": ["frigate", "destroyer"],
+      "description": "High DPS, short range"
+    },
+    "light_missile": {
+      "size": "small",
+      "range": "long",
+      "ships": ["frigate", "destroyer", "cruiser"],
+      "description": "Good range, lower DPS"
+    },
+    "heavy_assault_missile": {
+      "size": "medium",
+      "range": "short",
+      "ships": ["cruiser", "battlecruiser"],
+      "description": "High DPS, short range"
+    },
+    "heavy_missile": {
+      "size": "medium",
+      "range": "long",
+      "ships": ["cruiser", "battlecruiser"],
+      "description": "Good range, moderate DPS"
+    },
+    "torpedo": {
+      "size": "large",
+      "range": "short",
+      "ships": ["battleship", "stealth_bomber"],
+      "description": "Highest DPS, very short range"
+    },
+    "cruise_missile": {
+      "size": "large",
+      "range": "long",
+      "ships": ["battleship"],
+      "description": "Excellent range, lower DPS"
+    }
+  },
+  "t2_ammo": {
+    "rockets": {
+      "rage": {
+        "effect": "+20% damage",
+        "drawback": "worse explosion velocity/radius",
+        "best_for": "large targets"
+      },
+      "javelin": {
+        "effect": "+15% flight time (range)",
+        "drawback": "slightly less damage",
+        "best_for": "kiting, range extension"
+      }
+    },
+    "light_missiles": {
+      "fury": {
+        "effect": "+20% damage",
+        "drawback": "worse explosion velocity/radius",
+        "best_for": "large targets"
+      },
+      "precision": {
+        "effect": "better explosion velocity/radius",
+        "drawback": "-15% damage",
+        "best_for": "small fast targets"
+      }
+    },
+    "heavy_assault_missiles": {
+      "rage": {
+        "effect": "+20% damage",
+        "drawback": "worse explosion velocity/radius",
+        "best_for": "large targets"
+      },
+      "javelin": {
+        "effect": "+15% flight time (range)",
+        "drawback": "slightly less damage",
+        "best_for": "kiting, range extension"
+      }
+    },
+    "heavy_missiles": {
+      "fury": {
+        "effect": "+20% damage",
+        "drawback": "worse explosion velocity/radius",
+        "best_for": "large targets"
+      },
+      "precision": {
+        "effect": "better explosion velocity/radius",
+        "drawback": "-15% damage",
+        "best_for": "small fast targets"
+      }
+    },
+    "torpedoes": {
+      "rage": {
+        "effect": "+20% damage",
+        "drawback": "worse explosion velocity/radius",
+        "best_for": "large stationary targets"
+      },
+      "javelin": {
+        "effect": "+15% flight time (range)",
+        "drawback": "slightly less damage",
+        "best_for": "range extension"
+      }
+    },
+    "cruise_missiles": {
+      "fury": {
+        "effect": "+20% damage",
+        "drawback": "worse explosion velocity/radius",
+        "best_for": "large targets"
+      },
+      "precision": {
+        "effect": "better explosion velocity/radius",
+        "drawback": "-15% damage",
+        "best_for": "smaller targets"
+      }
+    }
+  },
+  "enemy_recommendations": {
+    "serpentis": {
+      "weakness": "thermal",
+      "primary": "Inferno",
+      "secondary": "Scourge",
+      "t2_suffix": ""
+    },
+    "angel_cartel": {
+      "weakness": "explosive",
+      "primary": "Nova",
+      "secondary": "Scourge",
+      "t2_suffix": ""
+    },
+    "blood_raiders": {
+      "weakness": "em",
+      "primary": "Mjolnir",
+      "secondary": "Inferno",
+      "t2_suffix": ""
+    },
+    "guristas": {
+      "weakness": "kinetic",
+      "primary": "Scourge",
+      "secondary": "Inferno",
+      "t2_suffix": ""
+    },
+    "sansha": {
+      "weakness": "em",
+      "primary": "Mjolnir",
+      "secondary": "Inferno",
+      "t2_suffix": ""
+    },
+    "rogue_drones": {
+      "weakness": "em",
+      "primary": "Mjolnir",
+      "secondary": "Inferno",
+      "t2_suffix": ""
+    },
+    "mercenaries": {
+      "weakness": "thermal",
+      "primary": "Inferno",
+      "secondary": "Scourge",
+      "t2_suffix": ""
+    },
+    "mordus_legion": {
+      "weakness": "kinetic",
+      "primary": "Scourge",
+      "secondary": "Mjolnir",
+      "t2_suffix": ""
+    }
+  },
+  "ammo_naming": {
+    "_note": "Full ammo name format: {damage_type} {launcher_type}. Example: Scourge Heavy Missile",
+    "rockets": {
+      "em": "Mjolnir Rocket",
+      "thermal": "Inferno Rocket",
+      "kinetic": "Scourge Rocket",
+      "explosive": "Nova Rocket"
+    },
+    "light_missiles": {
+      "em": "Mjolnir Light Missile",
+      "thermal": "Inferno Light Missile",
+      "kinetic": "Scourge Light Missile",
+      "explosive": "Nova Light Missile"
+    },
+    "heavy_assault_missiles": {
+      "em": "Mjolnir Heavy Assault Missile",
+      "thermal": "Inferno Heavy Assault Missile",
+      "kinetic": "Scourge Heavy Assault Missile",
+      "explosive": "Nova Heavy Assault Missile"
+    },
+    "heavy_missiles": {
+      "em": "Mjolnir Heavy Missile",
+      "thermal": "Inferno Heavy Missile",
+      "kinetic": "Scourge Heavy Missile",
+      "explosive": "Nova Heavy Missile"
+    },
+    "torpedoes": {
+      "em": "Mjolnir Torpedo",
+      "thermal": "Inferno Torpedo",
+      "kinetic": "Scourge Torpedo",
+      "explosive": "Nova Torpedo"
+    },
+    "cruise_missiles": {
+      "em": "Mjolnir Cruise Missile",
+      "thermal": "Inferno Cruise Missile",
+      "kinetic": "Scourge Cruise Missile",
+      "explosive": "Nova Cruise Missile"
+    }
+  },
+  "faction_ships": {
+    "caldari": {
+      "frigate": ["Kestrel", "Condor"],
+      "destroyer": ["Corax", "Cormorant"],
+      "cruiser": ["Caracal", "Osprey Navy Issue"],
+      "battlecruiser": ["Drake", "Ferox"],
+      "battleship": ["Raven", "Scorpion Navy Issue"]
+    },
+    "minmatar": {
+      "frigate": ["Breacher", "Vigil"],
+      "destroyer": ["Talwar"],
+      "cruiser": ["Bellicose", "Rupture"],
+      "battlecruiser": ["Cyclone"],
+      "battleship": ["Typhoon", "Tempest Fleet Issue"]
+    }
+  },
+  "capacity_guidelines": {
+    "l1_l2_missions": {
+      "rockets": 500,
+      "light_missiles": 500,
+      "note": "Single mission, bring primary damage type"
+    },
+    "l3_missions": {
+      "rockets": 1000,
+      "light_missiles": 1000,
+      "heavy_assault_missiles": 800,
+      "heavy_missiles": 800,
+      "note": "Extended session, bring backup ammo type"
+    },
+    "l4_missions": {
+      "heavy_missiles": 1500,
+      "cruise_missiles": 1500,
+      "torpedoes": 1000,
+      "note": "Multi-hour session, bring all damage types"
+    }
+  }
+}

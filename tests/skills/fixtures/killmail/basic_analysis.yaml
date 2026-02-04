@@ -1,0 +1,131 @@
+# Test fixture: Basic killmail analysis
+# Tests standard killmail analysis from zKillboard URL
+
+name: "Basic Killmail Analysis"
+skill: killmail
+description: |
+  Analyze a standard PvP killmail from zKillboard.
+  Tests URL parsing, ESI/zKB fetching, and basic enrichment.
+
+input:
+  url: "https://zkillboard.com/kill/12345678/"
+
+expected_facts:
+  - path: "killmail_id"
+    equals: 12345678
+
+  - path: "victim.ship_type_id"
+    range: [1, 100000]
+
+  - path: "victim.total_value"
+    range: [0, 100000000000]
+
+  - path: "attackers"
+    length: 2
+
+  - path: "system.security"
+    range: [-1.0, 1.0]
+
+expected_output:
+  killmail_id: 12345678
+  killmail_time: "2026-01-15T14:32:18Z"
+  system:
+    system_id: 30002813
+    system_name: "Tama"
+    security: 0.28
+    security_class: "LOW"
+    region: "The Citadel"
+  victim:
+    character_id: 90000001
+    character_name: "VictimName"
+    corporation_id: 98000001
+    corporation_name: "Example Corp"
+    alliance_id: 99000001
+    alliance_name: "Example Alliance"
+    ship_type_id: 29986
+    ship_type_name: "Proteus"
+    total_value: 12400000000.0
+  fitting_analysis:
+    ship_class: "Strategic Cruiser"
+    fit_type: "Blaster/AB brawler"
+    tank_type: "armor buffer"
+    estimated_ehp: 32000
+    estimated_dps: 650
+    notes: "Expensive deadspace tank, limited range"
+  attackers:
+    - character_id: 90000002
+      character_name: "AttackerName"
+      corporation_id: 98000002
+      corporation_name: "Snuffed Out"
+      ship_type_name: "Legion"
+      damage_done: 45000
+      final_blow: true
+    - character_id: 90000003
+      character_name: "Attacker2"
+      corporation_id: 98000002
+      corporation_name: "Snuffed Out"
+      ship_type_name: "Loki"
+      damage_done: 32000
+      final_blow: false
+  attacker_count: 8
+  attacker_summary:
+    corps:
+      - name: "Snuffed Out"
+        count: 6
+    ships:
+      - name: "Loki"
+        count: 2
+      - name: "Legion"
+        count: 3
+      - name: "Proteus"
+        count: 2
+      - name: "Curse"
+        count: 1
+  context:
+    is_gatecamp: false
+    system_kills_last_hour: 5
+    warnings: []
+  zkillboard_url: "https://zkillboard.com/kill/12345678/"
+
+# =============================================================================
+# Mock External API Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  zkillboard_api:
+    - killmail_id: 12345678
+      killmail_time: "2026-01-15T14:32:18Z"
+      solar_system_id: 30002813
+      victim:
+        character_id: 90000001
+        corporation_id: 98000001
+        alliance_id: 99000001
+        ship_type_id: 29986
+        damage_taken: 98000
+      attackers:
+        - character_id: 90000002
+          corporation_id: 98000002
+          ship_type_id: 29984
+          damage_done: 45000
+          final_blow: true
+        - character_id: 90000003
+          corporation_id: 98000002
+          ship_type_id: 29988
+          damage_done: 32000
+          final_blow: false
+      zkb:
+        hash: "abc123def456"
+        totalValue: 12400000000.0
+        points: 42
+        npc: false
+
+  sde_item_info:
+    type_id: 29986
+    type_name: "Proteus"
+    group_name: "Strategic Cruiser"
+    meta_level: 5
+
+  universe_systems:
+    system_id: 30002813
+    system_name: "Tama"
+    security: 0.28
+    region_name: "The Citadel"

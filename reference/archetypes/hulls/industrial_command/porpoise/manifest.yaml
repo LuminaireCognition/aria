@@ -1,0 +1,52 @@
+# Porpoise Hull Manifest
+#
+# The Porpoise is an ORE Industrial Command Ship for mining fleet support.
+# Provides mining boosts and has a 50,000 m3 ore hold.
+
+hull: Porpoise
+class: industrial_command
+faction: ore
+tech_level: 1
+
+slots:
+  high: 3
+  mid: 4
+  low: 2
+  rig: 2
+
+drones:
+  bandwidth: 25
+  bay: 50
+
+bonuses:
+  - "200% bonus to Mining Foreman Burst strength and duration"
+  - "50% bonus to Mining Drone yield"
+  - "10% bonus to Mining Foreman Burst effect strength per Industrial Command Ships level"
+  - "Can fit Medium Industrial Core"
+
+roles:
+  - fleet_booster
+  - mining_support
+  - ore_storage
+  - drone_mining
+
+fitting_rules:
+  tank_type: shield_buffer
+  weapons:
+    primary: mining_drones
+    secondary: combat_drones
+
+  notes:
+    - "50,000 m3 ore hold"
+    - "5,000 m3 fleet hangar"
+    - "Can fit Mining Foreman Bursts"
+    - "Strong bonuses to mining drones"
+    - "Entry-level fleet booster - upgrade to Orca when affordable"
+
+ore_hold: 50000
+fleet_hangar: 5000
+
+engagement:
+  range: "~25km burst range (skilled), ~50km with Mindlink"
+  speed: "~100 m/s"
+  notes: "Position centrally within burst range of all miners."

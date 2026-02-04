@@ -1,0 +1,11 @@
+{
+  "alliance_id": null,
+  "birthday": "2025-12-01T00:00:00Z",
+  "bloodline_id": 1,
+  "corporation_id": 1000125,
+  "description": "Test character",
+  "gender": "male",
+  "name": "Test Pilot",
+  "race_id": 1,
+  "security_status": 1.5
+}

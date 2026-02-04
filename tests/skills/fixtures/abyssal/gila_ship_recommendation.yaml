@@ -1,0 +1,70 @@
+# Test fixture: Gila ship recommendation
+# Tests ship recommendation response with strengths/weaknesses
+
+name: "Gila ship recommendation"
+skill: abyssal
+description: |
+  Query for Gila ship recommendation for abyssal running.
+  Tests ship response structure with strengths, weaknesses, and preferred weather.
+
+input:
+  query_type: ship
+  ship: gila
+
+expected_output:
+  hull: "Gila"
+  class: "Cruiser"
+  max_recommended_tier: 5
+  strengths:
+    - "Drone damage"
+    - "Passive shield tank"
+    - "Beginner friendly"
+  weaknesses:
+    - "Expensive hull"
+    - "Drone travel time"
+    - "Weather dependent"
+  preferred_weather:
+    - "electrical"
+    - "exotic"
+  notes: "Gold standard for abyssal running. Drone damage bonus makes it forgiving."
+
+expected_facts:
+  # Ship hull name
+  - path: "hull"
+    equals: "Gila"
+
+  # Ship class
+  - path: "class"
+    equals: "Cruiser"
+
+  # Can run up to T5
+  - path: "max_recommended_tier"
+    equals: 5
+
+  # Has multiple strengths
+  - path: "strengths"
+    length: 3
+
+  # Drone damage is a strength
+  - path: "strengths"
+    contains: "Drone damage"
+
+  # Passive shield tank is a strength
+  - path: "strengths"
+    contains: "Passive shield tank"
+
+  # Beginner friendly
+  - path: "strengths"
+    contains: "Beginner friendly"
+
+  # Has weaknesses
+  - path: "weaknesses"
+    length: 3
+
+  # Preferred weather includes electrical
+  - path: "preferred_weather"
+    contains: "electrical"
+
+  # Preferred weather includes exotic
+  - path: "preferred_weather"
+    contains: "exotic"

@@ -1,0 +1,69 @@
+# Serpentis Space Killmail Feed Template
+# Covers Serpentis Corporation operational territory in Fountain and surrounding regions
+#
+# Use: uv run aria-esi notifications create serpentis-intel --template serpentis-space --webhook <url> --persona paria-s
+
+schema_version: 2
+
+name: "serpentis-space"
+display_name: "Serpentis Space Intel"
+description: "Killmail feed for Serpentis Corporation territory (Fountain, Outer Ring, Cloud Ring)"
+enabled: true
+webhook_url: ""  # User must fill in
+
+topology:
+  geographic:
+    systems:
+      # Fountain - Serpentis Prime constellation (core territory)
+      - name: "Serpentis Prime"
+        classification: "home"
+      - name: "DP-1WS"
+        classification: "hunting"
+      - name: "D4-2XN"
+        classification: "hunting"
+
+      # Fountain entry systems
+      - name: "Aridia"
+        classification: "transit"
+      - name: "Y-2ANO"
+        classification: "transit"
+
+      # Outer Ring (distribution routes)
+      - name: "NM-OEA"
+        classification: "transit"
+      - name: "4C-B7X"
+        classification: "hunting"
+
+      # Cloud Ring (buffer territory)
+      - name: "W-4NUU"
+        classification: "transit"
+      - name: "6-4V20"
+        classification: "hunting"
+
+      # Syndicate (Guardian Angels alliance operations)
+      - name: "MHC-R3"
+        classification: "hunting"
+      - name: "PC9-AY"
+        classification: "transit"
+
+triggers:
+  watchlist_activity: true
+  gatecamp_detected: true
+  high_value_threshold: 500000000  # 500M+ ISK
+
+throttle_minutes: 3
+
+quiet_hours:
+  enabled: false
+  start: "04:00"
+  end: "10:00"
+  timezone: "UTC"
+
+commentary:
+  enabled: true
+  persona: paria-s
+  model: "claude-3-haiku-20240307"
+  timeout_ms: 3000
+  max_tokens: 100
+  warrant_threshold: 0.3
+  cost_limit_daily_usd: 1.0

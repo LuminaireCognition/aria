@@ -1,0 +1,232 @@
+# JSON Schema for /clones skill output validation
+# Validates the structure of clone and implant status responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: ClonesSkillOutput
+description: Output schema for the /clones skill - clone and implant status
+type: object
+
+oneOf:
+  - $ref: "#/$defs/FullCloneStatusResponse"
+  - $ref: "#/$defs/ImplantsOnlyResponse"
+  - $ref: "#/$defs/JumpCloneStatusResponse"
+  - $ref: "#/$defs/ErrorResponse"
+
+$defs:
+  # Implant information
+  Implant:
+    type: object
+    required:
+      - slot
+    properties:
+      slot:
+        type: integer
+        minimum: 1
+        maximum: 10
+      type_id:
+        type: integer
+        minimum: 1
+      type_name:
+        type: string
+      bonus_type:
+        type: string
+        description: What the implant affects
+      bonus_value:
+        type: number
+      empty:
+        type: boolean
+        const: true
+        description: Present only for empty slots
+
+  # Jump clone information
+  JumpClone:
+    type: object
+    required:
+      - clone_id
+      - location_id
+    properties:
+      clone_id:
+        type: integer
+        minimum: 1
+      name:
+        type:
+          - string
+          - "null"
+        description: Custom clone name
+      location_id:
+        type: integer
+        minimum: 1
+      location_name:
+        type: string
+      location_type:
+        type: string
+        enum: ["station", "structure", "citadel"]
+      system_name:
+        type: string
+      system_security:
+        type: number
+        minimum: -1.0
+        maximum: 1.0
+      implant_count:
+        type: integer
+        minimum: 0
+        maximum: 10
+      implants:
+        type: array
+        items:
+          $ref: "#/$defs/Implant"
+
+  # Medical clone location
+  MedicalClone:
+    type: object
+    required:
+      - location_id
+    properties:
+      location_id:
+        type: integer
+        minimum: 1
+      location_name:
+        type: string
+      location_type:
+        type: string
+        enum: ["station", "structure", "citadel"]
+      system_name:
+        type: string
+      system_security:
+        type: number
+
+  # Jump clone cooldown status
+  JumpCooldown:
+    type: object
+    properties:
+      available:
+        type: boolean
+      last_jump:
+        type:
+          - string
+          - "null"
+        format: date-time
+      cooldown_remaining:
+        type:
+          - string
+          - "null"
+        description: Human-readable remaining time
+      available_at:
+        type:
+          - string
+          - "null"
+        format: date-time
+
+  # Full clone status response (has medical_clone, no response_type)
+  FullCloneStatusResponse:
+    type: object
+    required:
+      - query_timestamp
+      - medical_clone
+    properties:
+      query_timestamp:
+        type: string
+        format: date-time
+      medical_clone:
+        $ref: "#/$defs/MedicalClone"
+      jump_clone_count:
+        type: integer
+        minimum: 0
+        maximum: 10
+      jump_clones:
+        type: array
+        items:
+          $ref: "#/$defs/JumpClone"
+      jump_cooldown:
+        $ref: "#/$defs/JumpCooldown"
+      active_implant_count:
+        type: integer
+        minimum: 0
+        maximum: 10
+      active_implants:
+        type: array
+        items:
+          $ref: "#/$defs/Implant"
+      estimated_implant_value:
+        type: number
+        minimum: 0
+      warning:
+        type: string
+        description: Safety warning about implant loss
+    # Exclude response_type to differentiate from other response types
+    additionalProperties: true
+
+  # Implants only response (has response_type: implants_only)
+  ImplantsOnlyResponse:
+    type: object
+    required:
+      - query_timestamp
+      - response_type
+      - implant_count
+      - implants
+    properties:
+      query_timestamp:
+        type: string
+        format: date-time
+      response_type:
+        type: string
+        const: "implants_only"
+      implant_count:
+        type: integer
+        minimum: 0
+        maximum: 10
+      implants:
+        type: array
+        items:
+          $ref: "#/$defs/Implant"
+      attribute_enhancers:
+        type: array
+        items:
+          $ref: "#/$defs/Implant"
+        description: Slots 1-5
+      hardwirings:
+        type: array
+        items:
+          $ref: "#/$defs/Implant"
+        description: Slots 6-10
+      estimated_value:
+        type: number
+        minimum: 0
+
+  # Jump clone status response (has response_type: jump_clones)
+  JumpCloneStatusResponse:
+    type: object
+    required:
+      - query_timestamp
+      - response_type
+      - jump_clone_count
+    properties:
+      query_timestamp:
+        type: string
+        format: date-time
+      response_type:
+        type: string
+        const: "jump_clones"
+      jump_clone_count:
+        type: integer
+        minimum: 0
+      jump_clones:
+        type: array
+        items:
+          $ref: "#/$defs/JumpClone"
+      jump_cooldown:
+        $ref: "#/$defs/JumpCooldown"
+
+  # Error response
+  ErrorResponse:
+    type: object
+    required:
+      - error
+    properties:
+      error:
+        type: string
+      error_type:
+        type: string
+        enum: ["missing_scope", "esi_error", "not_configured"]
+      suggestion:
+        type: string

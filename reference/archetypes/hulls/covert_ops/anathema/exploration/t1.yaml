@@ -1,0 +1,88 @@
+# Anathema Exploration - Low Skill Variant
+#
+# T2 exploration frigate with self-repair capability.
+
+archetype:
+  hull: Anathema
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Anathema, WH/Null Explorer - Low Skills]
+
+  Inertial Stabilizers I
+  Inertial Stabilizers I
+  Damage Control I
+  Small Armor Repairer I
+
+  5MN Microwarpdrive I
+  Relic Analyzer II
+  Data Analyzer II
+
+  Covert Ops Cloaking Device II
+  Core Probe Launcher I
+
+  Small Gravity Capacitor Upgrade I
+  Small Gravity Capacitor Upgrade I
+
+  Core Scanner Probe I x16
+  Hobgoblin I x4
+
+skill_requirements:
+  required:
+    Amarr Frigate: 5
+    Electronics Upgrades: 5
+    Cloaking: 4
+    Covert Ops: 1
+    Hacking: 3
+    Archaeology: 3
+  recommended:
+    Covert Ops: 4
+    Hacking: 4
+    Archaeology: 4
+    Repair Systems: 4
+    Hull Upgrades: 4
+
+stats:
+  scan_strength: 85
+  virus_strength: 40
+  virus_coherence: 90
+  ehp: 1400
+  align_time: 3.4
+  warp_speed: 6.0
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Extended nullsec/wormhole operations with self-repair"
+  engagement: "Repair damage from Ghost sites without docking"
+  warnings:
+    - "Armor repairer lets you recover from mistakes"
+    - "Best drone bay (15 Mbit/s) - 4 light drones"
+    - "Self-sufficient - stay in space longer"
+    - "Covert Ops Cloak II is NON-NEGOTIABLE"
+
+  cloak_mwd_trick:
+    - "Jump through gate - session change cloak active"
+    - "Double-click in space away from gate"
+    - "Activate MWD"
+    - "Immediately activate cloak"
+    - "MWD finishes - you're 10km+ away, cloaked"
+    - "Align and warp while cloaked"
+
+  self_repair_protocol:
+    - "After taking damage, warp to safe"
+    - "Cloak and orbit safe at 30km"
+    - "Run armor repairer until full"
+    - "Resume exploration"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Small Armor Repairer I"
+      upgrade_to: "Small Armor Repairer II"
+      skill_required: "Repair Systems 4"
+    - module: "Core Probe Launcher I"
+      upgrade_to: "Sisters Core Probe Launcher"
+      skill_required: "+5% scan strength"
+    - ship: "Astero"
+      notes: "Better tank and combat, similar self-repair - ~80M ISK"

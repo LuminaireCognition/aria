@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "description": "MCP tool capability policy configuration",
+  "policy": {
+    "allowed_levels": [
+      "public",
+      "aggregate",
+      "market"
+    ],
+    "require_confirmation": [
+      "authenticated"
+    ],
+    "denied_actions": [],
+    "allowed_actions": [],
+    "audit_logging": true,
+    "rate_limit_per_minute": 0
+  },
+  "sensitivity_reference": {
+    "public": "Static data, no authentication needed (SDE, fitting calculations)",
+    "aggregate": "Aggregated public data (kill/jump statistics, FW frontlines)",
+    "market": "Market prices and orders (Fuzzwork, ESI market endpoints)",
+    "authenticated": "Requires ESI authentication (personal wallet, assets)",
+    "restricted": "Sensitive personal data (contracts, mail, corp roles)"
+  },
+  "action_sensitivity_overrides": {
+    "_comment": "Override default sensitivity for specific actions here",
+    "_example": "market.arbitrage_scan: restricted"
+  }
+}

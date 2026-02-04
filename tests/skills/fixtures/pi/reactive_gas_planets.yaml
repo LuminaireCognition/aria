@@ -1,0 +1,44 @@
+# Test fixture: Reactive Gas resource query
+# Tests planet resource lookup with exact reference data values
+
+name: "Reactive Gas planet resources"
+skill: pi
+description: |
+  Query for Reactive Gas P0 resource information.
+  Tests resource response with planet types and P1 production info.
+
+input:
+  query_type: planet_resource
+  resource: "Reactive Gas"
+
+expected_output:
+  resource_name: "Reactive Gas"
+  planet_types:
+    - "Gas"
+    - "Storm"
+  produces_p1: "Oxidizing Compound"
+  p0_to_p1_ratio: "3000:20"
+  notes: "Found only on Gas and Storm planets. Produces Oxidizing Compound which is used in multiple P2 products."
+
+expected_facts:
+  # Resource name
+  - path: "resource_name"
+    equals: "Reactive Gas"
+
+  # Found on Gas and Storm planets
+  - path: "planet_types"
+    length: 2
+
+  - path: "planet_types"
+    contains: "Gas"
+
+  - path: "planet_types"
+    contains: "Storm"
+
+  # Produces Oxidizing Compound
+  - path: "produces_p1"
+    equals: "Oxidizing Compound"
+
+  # Standard P0 to P1 ratio
+  - path: "p0_to_p1_ratio"
+    equals: "3000:20"

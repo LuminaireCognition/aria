@@ -1,0 +1,111 @@
+# Maelstrom L4 Missions - Low Skill Variant
+#
+# Entry-level artillery fit for alpha strike gameplay.
+
+archetype:
+  hull: Maelstrom
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Maelstrom, L4 Missions - Low Skills]
+
+  Gyrostabilizer I
+  Gyrostabilizer I
+  Gyrostabilizer I
+  Tracking Enhancer I
+
+  X-Large Shield Booster I
+  Adaptive Invulnerability Shield Hardener I
+  EM Shield Hardener I
+  Tracking Computer I
+  Large Compact Pb-Acid Cap Battery
+  100MN Afterburner I
+
+  1200mm Artillery Cannon I
+  1200mm Artillery Cannon I
+  1200mm Artillery Cannon I
+  1200mm Artillery Cannon I
+  1200mm Artillery Cannon I
+  1200mm Artillery Cannon I
+  1200mm Artillery Cannon I
+  1200mm Artillery Cannon I
+
+  Large Projectile Burst Aerator I
+  Large Projectile Collision Accelerator I
+  Large Capacitor Control Circuit I
+
+  Hammerhead I x5
+  Hobgoblin I x5
+
+  EMP L x2000
+  Fusion L x1000
+  Phased Plasma L x1000
+  Titanium Sabot L x1000
+  Tracking Speed Script x1
+  Optimal Range Script x1
+
+skill_requirements:
+  required:
+    Minmatar Battleship: 3
+    Large Projectile Turret: 3
+    Gunnery: 4
+    Shield Operation: 4
+    Shield Management: 4
+  recommended:
+    Surgical Strike: 4
+    Sharpshooter: 4
+    Motion Prediction: 4
+    Trajectory Analysis: 3
+
+stats:
+  dps: 550
+  volley_damage: 7000
+  ehp: 48000
+  tank_sustained: 340
+  capacitor_stable: false
+  align_time: 19.0
+  speed_ab: 140
+  optimal_range: 70000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: em_kinetic  # EMP ammo
+  tank_profile: shield_active
+
+  overrides:
+    serpentis:
+      ammo: "Phased Plasma L"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Fusion L"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "EMP L"
+      notes: "Blood Raiders weak to EM - default ammo optimal"
+    guristas:
+      ammo: "Titanium Sabot L"
+      notes: "Guristas weak to Kinetic"
+    sansha:
+      ammo: "EMP L"
+      notes: "Sansha weak to EM"
+
+notes:
+  purpose: "Entry-level L4 mission runner with artillery alpha strikes"
+  engagement: "Engage at 60-80km, alpha strike cruisers, drones for frigates"
+  warnings:
+    - "Artillery can't track frigates - use drones"
+    - "Pulse shield booster - guns use no cap"
+    - "Massive volley damage one-shots cruisers"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "1200mm Artillery Cannon I"
+      upgrade_to: "1200mm Artillery Cannon II"
+      skill_required: "Large Projectile Turret 5"
+    - module: "Gyrostabilizer I"
+      upgrade_to: "Gyrostabilizer II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Vargur (Marauder)"
+      notes: "Best L4 runner, requires 2B+ ISK"

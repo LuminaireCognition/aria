@@ -1,0 +1,46 @@
+# Cheetah Hull Manifest
+#
+# The Cheetah is a Minmatar T2 Covert Ops frigate.
+# Fastest of all Covert Ops ships.
+
+hull: Cheetah
+class: covert_ops
+faction: minmatar
+tech_level: 2
+
+slots:
+  high: 2
+  mid: 4
+  low: 3
+  rig: 2
+
+drones:
+  bandwidth: 10
+  bay: 10
+
+bonuses:
+  - "10% bonus to Core and Combat Scanner Probe strength per Minmatar Frigate level"
+  - "10% bonus to Virus strength per Covert Ops level"
+  - "37.5% role bonus to Probe strength"
+
+roles:
+  - exploration
+  - covert_ops
+  - scanning
+
+fitting_rules:
+  tank_type: none
+  weapons:
+    primary: none
+    secondary: drones
+
+  notes:
+    - "Fastest Covert Ops ship - 2.6s align with nanofibers"
+    - "3,200+ m/s with MWD"
+    - "Can sometimes escape even when caught decloaked"
+    - "Zero tank - commits fully to speed"
+
+engagement:
+  range: "N/A - explorer"
+  speed: "~3,200 m/s (MWD)"
+  notes: "Sub-3s align. Most pilots can't lock you before you warp."

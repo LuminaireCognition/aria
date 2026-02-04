@@ -1,0 +1,89 @@
+# Drake L3 Missions - High Skill Variant
+#
+# Maximum performance passive shield tank.
+# Full T2 modules for best-in-class Drake performance.
+
+archetype:
+  hull: Drake
+  skill_tier: t2_optimal
+  omega_required: true
+
+eft: |
+  [Drake, L3 Missions - High Skills]
+
+  Ballistic Control System II
+  Ballistic Control System II
+  Damage Control II
+  Drone Damage Amplifier II
+
+  10MN Afterburner II
+  Large Shield Extender II
+  Large Shield Extender II
+  Adaptive Invulnerability Field II
+  EM Shield Amplifier II
+  Shield Recharger II
+
+  Heavy Missile Launcher II, Scourge Heavy Missile
+  Heavy Missile Launcher II, Scourge Heavy Missile
+  Heavy Missile Launcher II, Scourge Heavy Missile
+  Heavy Missile Launcher II, Scourge Heavy Missile
+  Heavy Missile Launcher II, Scourge Heavy Missile
+  Heavy Missile Launcher II, Scourge Heavy Missile
+  [Empty High slot]
+
+  Medium Core Defense Field Purger I
+  Medium Core Defense Field Purger I
+  Medium Core Defense Field Purger I
+
+  Hobgoblin II x5
+
+skill_requirements:
+  required:
+    Caldari Battlecruiser: 4
+    Heavy Missiles: 5
+    Missile Launcher Operation: 5
+    Warhead Upgrades: 4
+    Rapid Launch: 4
+    Shield Management: 5
+    Shield Operation: 5
+    Light Drone Operation: 5
+  recommended:
+    Caldari Battlecruiser: 5
+    Target Navigation Prediction: 4
+    Missile Bombardment: 4
+    Drone Interfacing: 4
+
+stats:
+  dps: 420
+  ehp: 38000
+  tank_sustained: 160
+  capacitor_stable: true
+  align_time: 10.8
+  speed_ab: 380
+  missile_range: 65000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_passive
+
+  overrides:
+    angel_cartel:
+      modules:
+        - from: "EM Shield Amplifier II"
+          to: "Explosive Shield Amplifier II"
+
+notes:
+  purpose: "Maximum performance Drake. L3 content becomes trivial."
+  engagement: "Warp at 70km, activate Adaptive, can facetank most L3 spawns"
+  warnings:
+    - "Overkill for L3 - consider Raven for L4 content"
+    - "T2 Fury missiles have poor application vs frigates - use drones"
+    - "This level of tank handles L3 content with zero risk"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - module: "Drake"
+      upgrade_to: "Raven or Drake Navy Issue"
+      skill_required: "Consider hull upgrade for L4 missions"

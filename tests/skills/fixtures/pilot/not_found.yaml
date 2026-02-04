@@ -1,0 +1,41 @@
+# Test fixture: Pilot not found
+# Tests /pilot <name> when character doesn't exist
+
+name: "Pilot Not Found"
+skill: pilot
+description: |
+  Handle case when searched pilot doesn't exist.
+  Returns helpful suggestions.
+
+input:
+  command: lookup
+  query: "NonExistentPilot12345"
+
+expected_facts:
+  - path: "query_type"
+    equals: "not_found"
+
+  - path: "error"
+    equals: "Character not found"
+
+  - path: "query"
+    equals: "NonExistentPilot12345"
+
+  - path: "suggestions"
+    length: 3
+
+expected_output:
+  query_type: "not_found"
+  error: "Character not found"
+  query: "NonExistentPilot12345"
+  suggestions:
+    - "Check spelling of character name"
+    - "Try using character ID if known"
+    - "Names are case-sensitive for exact match"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  search:
+    character: []

@@ -1,0 +1,54 @@
+# Dominix Hull Manifest
+#
+# The Dominix is a Gallente T1 battleship - the ultimate drone platform.
+# 125 Mbit/s bandwidth for sentries or heavies.
+
+hull: Dominix
+class: battleship
+faction: gallente
+tech_level: 1
+
+slots:
+  high: 6
+  mid: 5
+  low: 6
+  rig: 3
+
+drones:
+  bandwidth: 125
+  bay: 375
+
+bonuses:
+  - "10% bonus to Drone hitpoints and damage per Gallente Battleship level"
+  - "7.5% bonus to Large Hybrid Turret tracking speed per Gallente Battleship level"
+
+roles:
+  - drone_boat
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_buffer  # Or active
+  weapons:
+    primary: drones
+    secondary: null  # High slots for utility
+
+  notes:
+    - "125 bandwidth = 5 sentries or 5 heavies"
+    - "375m3 bay holds multiple full flights"
+    - "Sentry drones for 'AFK' gameplay"
+    - "High slots for drone link augmentors, remote reps"
+
+drone_recommendations:
+  sentries: "Garde I x5 (close), Warden I x5 (sniper)"
+  heavy: "Ogre I x5"
+  medium: "Hammerhead I x5"
+  light: "Hobgoblin I x5"
+
+capacitor:
+  stable_expected: true
+  notes: "Drones use no cap. Only tank and prop mod drain cap."
+
+engagement:
+  range: "30-100km depending on sentry type"
+  speed: "~130 m/s"
+  notes: "Deploy sentries, assign targets. Semi-AFK gameplay."

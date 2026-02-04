@@ -1,0 +1,54 @@
+# Maelstrom Hull Manifest
+#
+# The Maelstrom is a Minmatar T1 battleship with massive alpha strike.
+# 8 turret hardpoints for artillery or autocannons.
+
+hull: Maelstrom
+class: battleship
+faction: minmatar
+tech_level: 1
+
+slots:
+  high: 8
+  mid: 6
+  low: 4
+  rig: 3
+
+drones:
+  bandwidth: 75
+  bay: 75
+
+bonuses:
+  - "5% bonus to Large Projectile Turret rate of fire per Minmatar Battleship level"
+  - "5% bonus to Large Projectile Turret damage per Minmatar Battleship level"
+
+roles:
+  - turret_boat
+  - shield_tank
+
+fitting_rules:
+  tank_type: shield_active
+  weapons:
+    primary: projectiles
+    secondary: drones
+
+  notes:
+    - "8 turret hardpoints - most of any battleship"
+    - "Projectiles use NO capacitor"
+    - "Selectable damage via ammo"
+    - "Artillery for alpha, autocannons for sustained"
+
+ammo_recommendations:
+  em_damage: "EMP L"
+  thermal_damage: "Phased Plasma L"
+  explosive_damage: "Fusion L"
+  kinetic_damage: "Titanium Sabot L"
+
+capacitor:
+  stable_expected: true
+  notes: "Guns don't use cap. Only tank and prop mod drain cap - extremely cap-efficient."
+
+engagement:
+  range: "60-80km (artillery), 15-25km (autocannons)"
+  speed: "~140 m/s"
+  notes: "Artillery alpha strikes one-shot cruisers. Drones for frigates."

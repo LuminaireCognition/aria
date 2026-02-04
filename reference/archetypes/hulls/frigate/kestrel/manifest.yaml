@@ -1,0 +1,53 @@
+# Kestrel Hull Manifest
+#
+# The Kestrel is a Caldari T1 frigate specialized for missiles.
+# 4 launcher hardpoints with excellent application.
+
+hull: Kestrel
+class: frigate
+faction: caldari
+tech_level: 1
+
+slots:
+  high: 4
+  mid: 4
+  low: 2
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "5% bonus to Kinetic Light Missile and Rocket damage per Caldari Frigate level"
+  - "10% bonus to Light Missile and Rocket max velocity per Caldari Frigate level"
+
+roles:
+  - missile_boat
+  - shield_tank
+
+fitting_rules:
+  tank_type: shield_buffer
+  weapons:
+    primary: missiles
+    secondary: null  # No drones
+
+  notes:
+    - "4 launcher hardpoints - solid frigate DPS"
+    - "Missiles always hit - no tracking concerns"
+    - "Selectable damage via ammo"
+    - "Shield tank with 4 mid slots"
+
+missile_recommendations:
+  l1_missions: "Rocket Launcher I (close range, high DPS)"
+  kiting: "Light Missile Launcher I (longer range)"
+  ammo_note: "Carry multiple damage types"
+
+capacitor:
+  stable_expected: true
+  notes: "Missiles don't use cap. Only shield booster drains cap."
+
+engagement:
+  range: "5-9km (rockets), 20-40km (light missiles)"
+  speed: "AB for speed tank"
+  notes: "Missiles always hit. Web targets for better application."

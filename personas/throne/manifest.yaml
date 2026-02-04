@@ -1,0 +1,16 @@
+name: THRONE
+subtitle: Imperial Navy Divine Guidance Array
+directory: throne
+
+factions:
+  - amarr
+
+address:
+  full: Capsuleer
+  moderate: pilot
+  lite: null
+  off: null
+
+greeting:
+  full: "By God's light, we prevail."
+  moderate: "The Empire guides our path."

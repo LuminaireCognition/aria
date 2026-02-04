@@ -1,0 +1,78 @@
+# Heron Exploration - Low Skill Variant
+#
+# Entry-level exploration fit for brand new pilots.
+# Maximum utility with 5 mid slots.
+
+archetype:
+  hull: Heron
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Heron, Exploration - Low Skills]
+
+  Nanofiber Internal Structure I
+  Nanofiber Internal Structure I
+  Damage Control I
+
+  5MN Microwarpdrive I
+  Data Analyzer I
+  Relic Analyzer I
+  Scan Rangefinding Array I
+  Medium Shield Extender I
+
+  Core Probe Launcher I
+  Prototype Cloaking Device I
+  [Empty High slot]
+
+  Small Gravity Capacitor Upgrade I
+  Small Gravity Capacitor Upgrade I
+  [Empty Rig slot]
+
+  Hobgoblin I x2
+
+  Core Scanner Probe I x16
+
+skill_requirements:
+  required:
+    Caldari Frigate: 2
+    Astrometrics: 3
+    Hacking: 2
+    Archaeology: 2
+  recommended:
+    Astrometric Rangefinding: 2
+    Astrometric Pinpointing: 2
+    Survey: 3
+
+stats:
+  probe_strength: 72
+  virus_strength: 30
+  virus_coherence: 40
+  align_time: 4.0
+  speed_mwd: 2200
+  ehp: 1800
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Entry-level exploration for highsec and lowsec sites"
+  engagement: "Avoid combat - cloak and run"
+  warnings:
+    - "Never fight - you will die"
+    - "Keep D-scan spamming constantly"
+    - "Cloak immediately when hostiles appear"
+    - "Bookmark sites before hacking"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Data Analyzer I"
+      upgrade_to: "Data Analyzer II"
+      skill_required: "Hacking 5"
+    - module: "Relic Analyzer I"
+      upgrade_to: "Relic Analyzer II"
+      skill_required: "Archaeology 5"
+    - module: "Core Probe Launcher I"
+      upgrade_to: "Sisters Core Probe Launcher"
+      notes: "LP store purchase"
+    - ship: "Buzzard (Covert Ops)"
+      notes: "Covops cloak + warp"

@@ -1,0 +1,68 @@
+# Market Hub Intel Template
+# Activity monitoring for major trade hubs and adjacent systems
+#
+# Use: uv run aria-esi notifications create my-market-intel --template market-hubs --webhook <url>
+
+schema_version: 1
+
+name: "market-hubs"
+display_name: "Market Hub Intel"
+description: "Activity in and around the five major trade hubs"
+enabled: true
+webhook_url: ""  # User must fill in
+
+topology:
+  geographic:
+    systems:
+      # The Forge - Jita (largest trade hub)
+      - name: "Jita"
+        classification: "hunting"
+      - name: "Perimeter"
+        classification: "transit"
+      - name: "New Caldari"
+        classification: "transit"
+
+      # Sinq Laison - Dodixie (Gallente hub)
+      - name: "Dodixie"
+        classification: "hunting"
+      - name: "Botane"
+        classification: "transit"
+      - name: "Alentene"
+        classification: "transit"
+
+      # Domain - Amarr (Amarr hub)
+      - name: "Amarr"
+        classification: "hunting"
+      - name: "Ashab"
+        classification: "transit"
+      - name: "Sarum Prime"
+        classification: "transit"
+
+      # Metropolis - Hek (Minmatar hub)
+      - name: "Hek"
+        classification: "hunting"
+      - name: "Uttindar"
+        classification: "transit"
+      - name: "Nakugard"
+        classification: "transit"
+
+      # Heimatar - Rens (secondary Minmatar hub)
+      - name: "Rens"
+        classification: "hunting"
+      - name: "Frarn"
+        classification: "transit"
+      - name: "Gyng"
+        classification: "transit"
+
+triggers:
+  watchlist_activity: true
+  gatecamp_detected: true
+  high_value_threshold: 500000000  # 500M+ (hauler threshold)
+
+throttle_minutes: 2
+
+quiet_hours:
+  enabled: false
+  start: "02:00"
+  end: "08:00"
+  timezone: "America/New_York"

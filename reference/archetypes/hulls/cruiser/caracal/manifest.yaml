@@ -1,0 +1,67 @@
+# Caracal Hull Manifest
+#
+# The Caracal is a Caldari T1 cruiser specialized for missiles.
+# Excellent shield tank with selectable damage via missile types.
+
+hull: Caracal
+class: cruiser
+faction: caldari
+tech_level: 1
+
+# Slot layout (from SDE)
+slots:
+  high: 5
+  mid: 5
+  low: 4
+  rig: 3
+
+# Drone/fighter capacity
+drones:
+  bandwidth: 25
+  bay: 25
+
+# Hull bonuses summary
+bonuses:
+  - "10% bonus to Kinetic Light Missile, Heavy Missile and Heavy Assault Missile damage per Caldari Cruiser level"
+  - "10% bonus to Light Missile, Heavy Missile and Heavy Assault Missile velocity per Caldari Cruiser level"
+
+# Ship role classification
+roles:
+  - missile_boat
+  - shield_tank
+
+# Hull-specific fitting rules
+fitting_rules:
+  # Preferred tank type
+  tank_type: shield_buffer
+
+  # Weapon system
+  weapons:
+    primary: missiles
+    secondary: drones  # Limited drone bay, utility only
+
+  # Special instructions
+  notes:
+    - "5 missile hardpoints - use all for DPS"
+    - "Missiles allow selectable damage type via ammo"
+    - "Small drone bay (25m3) - light drones for utility only"
+    - "Shield buffer preferred over active for PvE"
+    - "Rapid Light Missile Launchers excellent for L2 missions (frigate-heavy)"
+
+# Recommended missile loadout
+missile_recommendations:
+  l2_missions: "Rapid Light Missile Launcher I"
+  l3_missions: "Heavy Missile Launcher I"
+  ammo_note: "Carry multiple damage types - swap based on enemy weakness"
+
+# Cap stability expectations
+capacitor:
+  stable_expected: true
+  notes: "Missiles don't use cap. Only MWD and shield hardeners drain cap."
+
+# Typical engagement profile
+engagement:
+  range: "40-60km (light missiles optimal)"
+  speed: "kiting with MWD"
+  signature: "medium - MWD blooms sig"
+  notes: "Orbit at range, missiles apply at all distances. No tracking concerns."

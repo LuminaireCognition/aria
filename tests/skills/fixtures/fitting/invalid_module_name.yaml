@@ -1,0 +1,239 @@
+# Test fixture: Invalid module name error case
+# Tests /fitting error handling for unrecognized module names
+
+name: "Fit with invalid module name"
+skill: fitting
+description: |
+  Fit containing a module name that doesn't exist in the SDE.
+  Tests that validation_errors is populated correctly.
+
+input:
+  eft: |
+    [Venture, Bad Fit]
+
+    Mining Laser Upgrade I
+
+    Survey Scanner I
+
+    Miner I
+    Super Imaginary Mining Beam XII
+
+    Small EM Shield Reinforcer I
+
+expected_output:
+  ship:
+    type_id: 32880
+    type_name: "Venture"
+    fit_name: "Bad Fit"
+  dps:
+    total: 0.0
+    em: 0.0
+    thermal: 0.0
+    kinetic: 0.0
+    explosive: 0.0
+  tank:
+    shield:
+      hp: 400
+      ehp: 480
+      resists:
+        em: 50.0
+        thermal: 40.0
+        kinetic: 40.0
+        explosive: 50.0
+    armor:
+      hp: 250
+      ehp: 280
+      resists:
+        em: 50.0
+        thermal: 45.0
+        kinetic: 25.0
+        explosive: 10.0
+    hull:
+      hp: 350
+      ehp: 350
+      resists:
+        em: 0.0
+        thermal: 0.0
+        kinetic: 0.0
+        explosive: 0.0
+    total_hp: 1000
+    total_ehp: 1110
+  resources:
+    cpu:
+      used: 50.0
+      output: 130.0
+      percent: 38.5
+      remaining: 80.0
+      overloaded: false
+    powergrid:
+      used: 3.0
+      output: 25.0
+      percent: 12.0
+      remaining: 22.0
+      overloaded: false
+    calibration:
+      used: 50.0
+      output: 400.0
+      percent: 12.5
+      remaining: 350.0
+      overloaded: false
+  capacitor:
+    capacity: 250.0
+    recharge_time: 125.0
+    recharge_rate: 2.0
+    peak_recharge_rate: 5.0
+  mobility:
+    max_velocity: 300.0
+    agility: 3.5
+    align_time: 4.5
+    mass: 1200000.0
+    warp_speed: 5.0
+  drones:
+    bandwidth:
+      used: 0.0
+      output: 10.0
+      percent: 0.0
+    bay:
+      used: 0.0
+      output: 10.0
+    launched: 0
+    max_active: 2
+  slots:
+    high:
+      used: 1
+      total: 2
+    mid:
+      used: 1
+      total: 2
+    low:
+      used: 1
+      total: 1
+    rig:
+      used: 1
+      total: 3
+  metadata:
+    skill_mode: "all_v"
+    validation_errors:
+      - "Unknown module: Super Imaginary Mining Beam XII"
+    warnings: []
+
+expected_facts:
+  # Ship should still be identified
+  - path: "ship.type_name"
+    equals: "Venture"
+
+  - path: "ship.fit_name"
+    equals: "Bad Fit"
+
+  # Validation errors should be populated
+  - path: "metadata.validation_errors"
+    length: 1
+
+  # The valid modules should still be counted
+  - path: "slots.high.used"
+    range: [1, 2]
+
+  # Resources should not be overloaded (partial fit)
+  - path: "resources.cpu.overloaded"
+    equals: false
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  fitting_calculate_stats:
+    ship:
+      type_id: 32880
+      type_name: "Venture"
+      fit_name: "Bad Fit"
+    dps:
+      total: 0.0
+      em: 0.0
+      thermal: 0.0
+      kinetic: 0.0
+      explosive: 0.0
+    tank:
+      shield:
+        hp: 400
+        ehp: 480
+        resists:
+          em: 50.0
+          thermal: 40.0
+          kinetic: 40.0
+          explosive: 50.0
+      armor:
+        hp: 250
+        ehp: 280
+        resists:
+          em: 50.0
+          thermal: 45.0
+          kinetic: 25.0
+          explosive: 10.0
+      hull:
+        hp: 350
+        ehp: 350
+        resists:
+          em: 0.0
+          thermal: 0.0
+          kinetic: 0.0
+          explosive: 0.0
+      total_hp: 1000
+      total_ehp: 1110
+    resources:
+      cpu:
+        used: 50.0
+        output: 130.0
+        percent: 38.5
+        remaining: 80.0
+        overloaded: false
+      powergrid:
+        used: 3.0
+        output: 25.0
+        percent: 12.0
+        remaining: 22.0
+        overloaded: false
+      calibration:
+        used: 50.0
+        output: 400.0
+        percent: 12.5
+        remaining: 350.0
+        overloaded: false
+    capacitor:
+      capacity: 250.0
+      recharge_time: 125.0
+      recharge_rate: 2.0
+      peak_recharge_rate: 5.0
+    mobility:
+      max_velocity: 300.0
+      agility: 3.5
+      align_time: 4.5
+      mass: 1200000.0
+      warp_speed: 5.0
+    drones:
+      bandwidth:
+        used: 0.0
+        output: 10.0
+        percent: 0.0
+      bay:
+        used: 0.0
+        output: 10.0
+      launched: 0
+      max_active: 2
+    slots:
+      high:
+        used: 1
+        total: 2
+      mid:
+        used: 1
+        total: 2
+      low:
+        used: 1
+        total: 1
+      rig:
+        used: 1
+        total: 3
+    metadata:
+      skill_mode: "all_v"
+      validation_errors:
+        - "Unknown module: Super Imaginary Mining Beam XII"
+      warnings: []

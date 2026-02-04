@@ -1,0 +1,120 @@
+# Apocalypse L4 Missions - Low Skill Variant
+#
+# Entry-level pulse laser fit with active armor tank.
+
+archetype:
+  hull: Apocalypse
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Apocalypse, L4 Missions - Low Skills]
+
+  Heat Sink I
+  Heat Sink I
+  Heat Sink I
+  Capacitor Power Relay I
+  Compact Multispectrum Energized Membrane
+  Large Armor Repairer I
+
+  100MN Afterburner I
+  Cap Recharger II
+  Cap Recharger II
+  Tracking Computer I
+
+  Mega Pulse Laser I
+  Mega Pulse Laser I
+  Mega Pulse Laser I
+  Mega Pulse Laser I
+  Mega Pulse Laser I
+  Mega Pulse Laser I
+  Mega Pulse Laser I
+  Mega Pulse Laser I
+
+  Large Capacitor Control Circuit I
+  Large Capacitor Control Circuit I
+  Large Auxiliary Nano Pump I
+
+  Hammerhead I x5
+  Hobgoblin I x5
+
+  Multifrequency L x8
+  Standard L x8
+  Radio L x8
+  Tracking Speed Script x1
+  Optimal Range Script x1
+
+skill_requirements:
+  required:
+    Amarr Battleship: 3
+    Large Energy Turret: 3
+    Gunnery: 4
+    Armor Repair Systems: 4
+    Hull Upgrades: 4
+  recommended:
+    Controlled Bursts: 4
+    Capacitor Management: 4
+    Capacitor Systems Operation: 4
+    Motion Prediction: 4
+
+stats:
+  dps: 700
+  ehp: 52000
+  tank_sustained: 280
+  capacitor_stable: false
+  align_time: 19.0
+  speed_ab: 140
+  optimal_range: 28000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: em_thermal  # Lasers - fixed
+  tank_profile: armor_active
+
+  notes:
+    - "Lasers deal EM/Thermal - cannot change damage type"
+    - "Swap crystals for range, not damage"
+    - "Use drones to exploit enemy weaknesses"
+
+  overrides:
+    blood_raiders:
+      notes: "Blood Raiders resist EM and use neuts - tough matchup"
+      drones:
+        primary: "Acolyte I"
+    sansha:
+      notes: "Sansha resist EM - expect slower kills"
+      drones:
+        primary: "Acolyte I"
+    serpentis:
+      notes: "Serpentis weak to Thermal - lasers work well"
+      drones:
+        primary: "Hobgoblin I"
+    angel_cartel:
+      notes: "Angels weak to Explosive - use Warrior drones"
+      drones:
+        primary: "Warrior I"
+    guristas:
+      notes: "Guristas weak to Kinetic - use Hornet drones"
+      drones:
+        primary: "Hornet I"
+
+notes:
+  purpose: "Entry-level L4 mission runner with pulse lasers"
+  engagement: "Engage at 20-30km, swap crystals based on range"
+  warnings:
+    - "CRITICAL: Manage capacitor carefully"
+    - "Pulse the repper - don't run constantly"
+    - "T1 crystals never deplete - zero ammo cost"
+    - "Use drones for frigates"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Mega Pulse Laser I"
+      upgrade_to: "Mega Pulse Laser II"
+      skill_required: "Large Energy Turret 5"
+    - module: "Heat Sink I"
+      upgrade_to: "Heat Sink II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Paladin (Marauder)"
+      notes: "Highest DPS marauder, requires 2B+ ISK"

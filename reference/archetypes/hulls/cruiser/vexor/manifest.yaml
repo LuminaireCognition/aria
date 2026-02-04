@@ -1,0 +1,71 @@
+# Vexor Hull Manifest
+#
+# The Vexor is a Gallente T1 cruiser famous for its drone capabilities.
+# Primary DPS comes from drones, making it forgiving for newer pilots.
+
+hull: Vexor
+class: cruiser
+faction: gallente
+tech_level: 1
+
+# Slot layout (from SDE)
+slots:
+  high: 4
+  mid: 4
+  low: 5
+  rig: 3
+
+# Drone/fighter capacity
+drones:
+  bandwidth: 75
+  bay: 125
+
+# Hull bonuses summary
+bonuses:
+  - "10% drone damage and hitpoints per Gallente Cruiser level"
+  - "7.5% drone tracking speed per Gallente Cruiser level"
+
+# Ship role classification
+roles:
+  - drone_boat
+  - armor_tank
+
+# Hull-specific fitting rules
+fitting_rules:
+  # Intentionally empty slots
+  empty_slots:
+    high: true
+    reason: "Drone boat - primary DPS from drones. Highs are for utility only (Drone Link Augmentor, neuts, or empty)."
+
+  # Preferred tank type
+  tank_type: armor_active
+
+  # Weapon system
+  weapons:
+    primary: drones
+    secondary: null  # Hybrids optional but not recommended
+
+  # Special instructions
+  notes:
+    - "Focus fitting resources on drone support and tank"
+    - "High slots best used for: Drone Link Augmentor, Neuts, or left empty"
+    - "Do NOT fit turrets expecting DPS contribution"
+    - "Bay holds 125m3 - can carry 5 mediums (50m3) + 5 lights (25m3) + 5 lights (25m3) + spare"
+
+# Recommended drone loadout by size
+drone_recommendations:
+  primary: "Hammerhead I"      # Medium - main DPS
+  anti_frigate: "Hobgoblin I"  # Light - fast targets
+  utility: "Salvage Drone I"   # Utility (can fit 5 salvage + combat loadout)
+
+# Cap stability expectations
+capacitor:
+  stable_expected: true
+  notes: "Should be cap stable with active tank running. Not stable with MWD on continuously."
+
+# Typical engagement profile
+engagement:
+  range: "30-60km (drone control range)"
+  speed: "kiting preferred"
+  signature: "medium - MWD blooms sig"
+  notes: "Orbit at range, let drones do the work. Recall drones before warping."

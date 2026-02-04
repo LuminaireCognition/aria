@@ -1,0 +1,172 @@
+{
+  "_meta": {
+    "description": "EVE Online manufacturing facility bonuses and job cost calculation parameters",
+    "sources": [
+      "https://wiki.eveuniversity.org/Manufacturing",
+      "https://wiki.eveuniversity.org/Industry#Costs",
+      "https://www.eveonline.com/news/view/viridian-expansion-notes"
+    ],
+    "last_verified": "2026-02-01",
+    "notes": "Bonuses are percentage reductions. ME/TE bonuses reduce material/time requirements. Job cost index varies by system and activity."
+  },
+
+  "facilities": {
+    "NPC Station": {
+      "description": "Standard NPC-owned stations",
+      "me_bonus": 0,
+      "te_bonus": 0,
+      "rig_slots": 0,
+      "availability": "universal",
+      "notes": "No manufacturing bonuses. Higher NPC tax."
+    },
+    "Raitaru": {
+      "description": "Medium Engineering Complex",
+      "me_bonus": 1,
+      "te_bonus": 15,
+      "rig_slots": 3,
+      "availability": "player_structure",
+      "notes": "Entry-level engineering complex. Good for solo/small corp."
+    },
+    "Azbel": {
+      "description": "Large Engineering Complex",
+      "me_bonus": 1,
+      "te_bonus": 20,
+      "rig_slots": 3,
+      "availability": "player_structure",
+      "notes": "Mid-tier engineering complex. Better rig bonuses."
+    },
+    "Sotiyo": {
+      "description": "X-Large Engineering Complex",
+      "me_bonus": 1,
+      "te_bonus": 30,
+      "rig_slots": 3,
+      "availability": "player_structure",
+      "notes": "Top-tier manufacturing. Required for supercapitals."
+    },
+    "Tatara": {
+      "description": "Large Refinery (Moon Mining)",
+      "me_bonus": 0,
+      "te_bonus": 25,
+      "rig_slots": 3,
+      "availability": "player_structure",
+      "notes": "Optimized for reactions, not manufacturing."
+    },
+    "Athanor": {
+      "description": "Medium Refinery",
+      "me_bonus": 0,
+      "te_bonus": 0,
+      "rig_slots": 3,
+      "availability": "player_structure",
+      "notes": "Moon mining, minimal manufacturing bonuses."
+    }
+  },
+
+  "rig_bonuses": {
+    "_description": "Manufacturing rigs provide additional ME/TE bonuses. Values shown for T1 rigs in null-sec (maximum bonus).",
+    "T1_nullsec": {
+      "me_bonus": 2.4,
+      "te_bonus": 24
+    },
+    "T1_lowsec": {
+      "me_bonus": 2.1,
+      "te_bonus": 21
+    },
+    "T1_highsec": {
+      "me_bonus": 1.0,
+      "te_bonus": 10
+    },
+    "T2_nullsec": {
+      "me_bonus": 4.2,
+      "te_bonus": 42
+    },
+    "T2_lowsec": {
+      "me_bonus": 3.68,
+      "te_bonus": 36.75
+    },
+    "T2_highsec": {
+      "me_bonus": 1.9,
+      "te_bonus": 19
+    }
+  },
+
+  "job_cost_formula": {
+    "_description": "Total job cost = Estimated Item Value × (System Cost Index × (1 - Facility Bonus) + Taxes)",
+    "components": {
+      "estimated_item_value": "Sum of adjusted prices for all inputs, calculated by CCP",
+      "system_cost_index": "Varies by system based on job activity (0-50%+)",
+      "facility_bonus": "Structure bonus to job costs (typically 0-5%)",
+      "scc_surcharge": "4% of EIV - goes to SCC/CCP",
+      "facility_tax": "Set by structure owner (0-50%)",
+      "npc_facility_tax": "0.25% for NPC stations"
+    },
+    "calculation": "job_cost = EIV × system_index × (1 - facility_bonus) + EIV × scc_surcharge + EIV × facility_tax"
+  },
+
+  "taxes": {
+    "scc_surcharge": {
+      "rate": 0.04,
+      "description": "Smart Cluster Charge - mandatory 4% on all jobs"
+    },
+    "npc_facility_tax": {
+      "rate": 0.0025,
+      "description": "NPC station tax - 0.25% of EIV"
+    },
+    "player_facility_tax": {
+      "rate_range": [0, 0.50],
+      "default": 0.10,
+      "description": "Set by structure owner. Common range 0-15%."
+    }
+  },
+
+  "system_cost_index_examples": {
+    "_description": "Example manufacturing indices for common systems. Actual values change hourly based on activity.",
+    "Jita": {
+      "typical_range": [0.08, 0.15],
+      "notes": "Highest in game due to volume"
+    },
+    "Amarr": {
+      "typical_range": [0.04, 0.08],
+      "notes": "Second highest, still significant"
+    },
+    "Perimeter": {
+      "typical_range": [0.05, 0.10],
+      "notes": "Near Jita, lower than hub"
+    },
+    "random_highsec": {
+      "typical_range": [0.001, 0.02],
+      "notes": "Most highsec systems"
+    },
+    "nullsec": {
+      "typical_range": [0.0001, 0.005],
+      "notes": "Very low outside staging systems"
+    }
+  },
+
+  "activity_indices": {
+    "_description": "Each industry activity has its own cost index",
+    "manufacturing": {
+      "base_activity": true,
+      "description": "Ship/module/drone manufacturing"
+    },
+    "research_time": {
+      "base_activity": false,
+      "description": "TE research jobs"
+    },
+    "research_material": {
+      "base_activity": false,
+      "description": "ME research jobs"
+    },
+    "copying": {
+      "base_activity": false,
+      "description": "Blueprint copying"
+    },
+    "invention": {
+      "base_activity": false,
+      "description": "T2/T3 invention"
+    },
+    "reaction": {
+      "base_activity": false,
+      "description": "Reaction jobs"
+    }
+  }
+}

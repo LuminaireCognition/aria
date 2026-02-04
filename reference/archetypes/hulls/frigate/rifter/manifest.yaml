@@ -1,0 +1,55 @@
+# Rifter Hull Manifest
+#
+# The Rifter is a Minmatar T1 frigate known for speed and flexibility.
+# Projectile weapons with selectable damage types.
+
+hull: Rifter
+class: frigate
+faction: minmatar
+tech_level: 1
+
+slots:
+  high: 4
+  mid: 3
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "5% bonus to Small Projectile Turret damage per Minmatar Frigate level"
+  - "7.5% bonus to Small Projectile Turret tracking speed per Minmatar Frigate level"
+
+roles:
+  - turret_boat
+  - flex_tank  # Can armor or shield tank
+
+fitting_rules:
+  tank_type: armor_active  # Traditional, but shield works
+  weapons:
+    primary: projectiles
+    secondary: null  # No drones
+
+  notes:
+    - "Fastest combat frigate"
+    - "Projectiles use NO capacitor"
+    - "Selectable damage via ammo"
+    - "Can fit armor OR shield tank"
+
+ammo_recommendations:
+  em_damage: "EMP S"
+  thermal_damage: "Phased Plasma S"
+  explosive_damage: "Fusion S"
+  kinetic_damage: "Titanium Sabot S"
+  note: "No reload penalty for switching ammo"
+
+capacitor:
+  stable_expected: true
+  notes: "Guns don't use cap. Only tank drains capacitor. Very forgiving."
+
+engagement:
+  range: "500m-2km optimal (autocannons)"
+  speed: "Fast brawling with AB"
+  notes: "Close range, high speed, swap ammo to exploit weaknesses."

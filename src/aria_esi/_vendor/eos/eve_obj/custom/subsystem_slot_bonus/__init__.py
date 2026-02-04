@@ -1,0 +1,55 @@
+# ==============================================================================
+# Copyright (C) 2011 Diego Duclos
+# Copyright (C) 2011-2018 Anton Vorobyov
+#
+# This file is part of Eos.
+#
+# Eos is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Eos is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Eos. If not, see <http://www.gnu.org/licenses/>.
+# ==============================================================================
+
+
+from logging import getLogger
+
+from aria_esi._vendor.eos.const.eos import EffectBuildStatus
+from aria_esi._vendor.eos.const.eve import EffectId
+from aria_esi._vendor.eos.eve_obj.effect import EffectFactory
+from .modifier import make_hardpoint_modifiers
+from .modifier import make_slot_modifiers
+
+
+logger = getLogger(__name__)
+
+
+def add_hardpoint_modifiers(effect):
+    if effect.modifiers:
+        msg = 'hardpoint amount bonus effect has modifiers, overwriting them'
+        logger.warning(msg)
+    effect.modifiers = make_hardpoint_modifiers()
+    effect.build_status = EffectBuildStatus.custom
+
+
+def add_slot_modifiers(effect):
+    if effect.modifiers:
+        msg = 'slot amount bonus effect has modifiers, overwriting them'
+        logger.warning(msg)
+    effect.modifiers = make_slot_modifiers()
+    effect.build_status = EffectBuildStatus.custom
+
+
+EffectFactory.register_instance_by_id(
+    add_hardpoint_modifiers,
+    EffectId.hardpoint_modifier_effect)
+EffectFactory.register_instance_by_id(
+    add_slot_modifiers,
+    EffectId.slot_modifier)

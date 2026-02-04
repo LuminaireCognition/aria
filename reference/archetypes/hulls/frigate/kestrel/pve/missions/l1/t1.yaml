@@ -1,0 +1,94 @@
+# Kestrel L1 Missions - Low Skill Variant
+#
+# Entry-level fit for brand new Caldari pilots.
+# Rocket-focused with shield tank.
+
+archetype:
+  hull: Kestrel
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Kestrel, L1 Missions - Low Skills]
+
+  Ballistic Control System I
+  Damage Control I
+
+  1MN Afterburner I
+  Small Shield Booster I
+  Small Compact Pb-Acid Cap Battery
+  Stasis Webifier I
+
+  Rocket Launcher I
+  Rocket Launcher I
+  Rocket Launcher I
+  Rocket Launcher I
+
+  Small Bay Loading Accelerator I
+  Small Warhead Calefaction Catalyst I
+  Small Warhead Calefaction Catalyst I
+
+  Scourge Rocket x500
+  Inferno Rocket x500
+
+skill_requirements:
+  required:
+    Caldari Frigate: 2
+    Rockets: 2
+    Missile Launcher Operation: 2
+    Shield Operation: 1
+  recommended:
+    Warhead Upgrades: 2
+    Rapid Launch: 2
+    Shield Management: 2
+
+stats:
+  dps: 82
+  ehp: 2600
+  tank_sustained: 38
+  capacitor_stable: true
+  align_time: 4.5
+  speed_ab: 700
+  missile_range: 9000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: kinetic  # Scourge rockets - bonus damage
+  tank_profile: shield_active
+
+  overrides:
+    serpentis:
+      ammo: "Inferno Rocket"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Nova Rocket"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "Mjolnir Rocket"
+      notes: "Blood Raiders weak to EM"
+    guristas:
+      ammo: "Scourge Rocket"
+      notes: "Guristas weak to Kinetic - default ammo works"
+    rogue_drones:
+      ammo: "Mjolnir Rocket"
+      notes: "Rogue Drones weak to EM"
+
+notes:
+  purpose: "Entry-level L1 mission runner for new Caldari pilots"
+  engagement: "Orbit at 5km, let missiles do the work"
+  warnings:
+    - "Missiles always hit - no tracking concerns"
+    - "Web targets for better application vs small ships"
+    - "Carry multiple ammo types"
+    - "Pulse shield booster - don't run constantly"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Rocket Launcher I"
+      upgrade_to: "Rocket Launcher II"
+      skill_required: "Rockets 5"
+    - ship: "Corax (Destroyer)"
+      notes: "7 launchers, faster L1 clears"
+    - ship: "Caracal (Cruiser)"
+      notes: "L2 missions, rapid light missiles"

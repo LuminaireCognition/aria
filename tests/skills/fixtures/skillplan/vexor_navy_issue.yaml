@@ -1,0 +1,129 @@
+# Test fixture: Ship skill plan
+# Tests skill planning for a ship
+
+name: "Vexor Navy Issue skill plan"
+skill: skillplan
+description: |
+  Skill plan for Vexor Navy Issue faction cruiser.
+  Tests direct requirements and Easy 80% recommendations.
+
+input:
+  item: Vexor Navy Issue
+
+expected_output:
+  item: "Vexor Navy Issue"
+  found: true
+  item_type: "ship"
+  type_id: 17843
+  direct_requirements:
+    - skill_id: 3327
+      skill_name: "Gallente Cruiser"
+      required_level: 1
+      rank: 5
+  full_skill_tree:
+    - skill_id: 3327
+      skill_name: "Gallente Cruiser"
+      required_level: 1
+      rank: 5
+    - skill_id: 3330
+      skill_name: "Gallente Destroyer"
+      required_level: 3
+      rank: 2
+    - skill_id: 3328
+      skill_name: "Gallente Frigate"
+      required_level: 3
+      rank: 2
+    - skill_id: 3426
+      skill_name: "Spaceship Command"
+      required_level: 3
+      rank: 1
+  easy_80_plan:
+    cap_at_4:
+      - "Gallente Cruiser"
+      - "Drone Interfacing"
+    train_to_5:
+      - "Drones"
+      - "Gallente Frigate"
+    skip_optional:
+      - "Drone Durability"
+    rationale: "Focus on drone damage (Drone Interfacing) while keeping cruiser at 4. Train prerequisite ships to 5 for future progression."
+    time_saved_percent: 35.0
+  training_time_estimate: "12 days, 4 hours"
+  training_time_seconds: 1054800
+  efficacy_estimate: 82.5
+  warnings: []
+
+expected_facts:
+  # Item found
+  - path: "found"
+    equals: true
+
+  - path: "item"
+    equals: "Vexor Navy Issue"
+
+  - path: "item_type"
+    equals: "ship"
+
+  # Type ID for Vexor Navy Issue
+  - path: "type_id"
+    equals: 17843
+
+  # Direct requirement is Gallente Cruiser
+  - path: "direct_requirements[0].skill_name"
+    equals: "Gallente Cruiser"
+
+  - path: "direct_requirements[0].required_level"
+    equals: 1
+
+  # Full tree should have multiple skills
+  - path: "full_skill_tree"
+    length: 4
+
+  # Easy 80 plan should have cap_at_4 recommendations
+  - path: "easy_80_plan.cap_at_4"
+    contains: "Gallente Cruiser"
+
+  # Efficacy should be in valid range
+  - path: "efficacy_estimate"
+    range: [70, 95]
+
+  # Training time should be positive
+  - path: "training_time_seconds"
+    range: [100000, 3000000]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  sde_skill_requirements:
+    item: "Vexor Navy Issue"
+    type_id: 17843
+    found: true
+    skills:
+      - skill_id: 3327
+        skill_name: "Gallente Cruiser"
+        required_level: 1
+        rank: 5
+    total_skills: 4
+    skill_ids:
+      3327: 1
+      3330: 3
+      3328: 3
+      3426: 3
+
+  skills_easy_80_plan:
+    item: "Vexor Navy Issue"
+    type_id: 17843
+    plan:
+      cap_at_4:
+        - "Gallente Cruiser"
+        - "Drone Interfacing"
+      train_to_5:
+        - "Drones"
+        - "Gallente Frigate"
+      skip_optional:
+        - "Drone Durability"
+    rationale: "Focus on drone damage (Drone Interfacing) while keeping cruiser at 4. Train prerequisite ships to 5 for future progression."
+    time_saved_percent: 35.0
+    training_time_seconds: 1054800
+    efficacy_estimate: 82.5

@@ -1,0 +1,1546 @@
+{
+  "schema_version": "1.0",
+  "generated_by": "aria-skill-index.py",
+  "skill_count": 49,
+  "skills": [
+    {
+      "name": "abyssal",
+      "description": "Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/abyssal",
+        "abyssal deadspace",
+        "abyssal guide",
+        "what weather for [ship]",
+        "abyssal tier [N]",
+        "abyssal fit",
+        "filament guide"
+      ],
+      "requires_pilot": false,
+      "data_sources": [
+        "reference/mechanics/abyssal_deadspace.json"
+      ],
+      "path": ".claude/skills/abyssal/SKILL.md",
+      "directory": "abyssal",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "agents-research",
+      "description": "Monitor research agent partnerships and accumulated research points. Track passive RP generation from R&D agents.",
+      "model": "haiku",
+      "category": "industry",
+      "triggers": [
+        "/agents-research",
+        "my research agents",
+        "research points",
+        "RP status",
+        "datacores"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-characters.read_agents_research.v1"
+      ],
+      "path": ".claude/skills/agents-research/SKILL.md",
+      "directory": "agents-research",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "arbitrage",
+      "description": "Cross-region arbitrage opportunity scanner. Find profitable trade routes between trade hubs with hauling score analysis.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/arbitrage",
+        "arbitrage opportunities",
+        "trade route finder",
+        "what can I haul for profit",
+        "cross-region trading",
+        "price gaps between hubs"
+      ],
+      "requires_pilot": false,
+      "path": ".claude/skills/arbitrage/SKILL.md",
+      "directory": "arbitrage",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "aria-status",
+      "description": "ARIA operational status report. Use when capsuleer requests status, sitrep, or operational summary.",
+      "model": "haiku",
+      "category": "identity",
+      "triggers": [
+        "/aria-status",
+        "status report",
+        "sitrep",
+        "what's my status",
+        "operational status"
+      ],
+      "requires_pilot": true,
+      "has_persona_overlay": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/operations.md",
+        "userdata/pilots/{active_pilot}/ships.md",
+        "userdata/pilots/{active_pilot}/missions.md"
+      ],
+      "path": ".claude/skills/aria-status/SKILL.md",
+      "directory": "aria-status",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "assets",
+      "description": "Asset inventory with valuation. View assets across stations with market value calculations.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/assets",
+        "my assets",
+        "asset value",
+        "what do I own",
+        "inventory value",
+        "total net worth"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-assets.read_assets.v1"
+      ],
+      "path": ".claude/skills/assets/SKILL.md",
+      "directory": "assets",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "build-cost",
+      "description": "Manufacturing cost calculator for T1 items. Calculates material costs, profit margins, and ME efficiency.",
+      "model": "haiku",
+      "category": "industry",
+      "triggers": [
+        "/build-cost",
+        "cost to build [item]",
+        "manufacturing cost",
+        "is it profitable to build [item]",
+        "build vs buy [item]",
+        "BOM for [item]"
+      ],
+      "requires_pilot": false,
+      "path": ".claude/skills/build-cost/SKILL.md",
+      "directory": "build-cost",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "clones",
+      "description": "Clone and implant status tracking. Safety-critical for knowing your medical clone location and active implants before risky operations.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/clones",
+        "clone status",
+        "where's my clone",
+        "check my implants",
+        "jump clone status",
+        "can I jump clone",
+        "medical clone location"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-clones.read_clones.v1",
+        "esi-clones.read_implants.v1"
+      ],
+      "path": ".claude/skills/clones/SKILL.md",
+      "directory": "clones",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "contracts",
+      "description": "Personal contract management. View item exchange, courier, and auction contracts - both issued and received.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/contracts",
+        "my contracts",
+        "show contracts",
+        "contract status",
+        "courier contracts"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-contracts.read_character_contracts.v1"
+      ],
+      "path": ".claude/skills/contracts/SKILL.md",
+      "directory": "contracts",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "corp",
+      "description": "Corporation management and queries. Use for corp status, wallet, assets, blueprints, or industry jobs.",
+      "model": "haiku",
+      "category": "identity",
+      "triggers": [
+        "/corp",
+        "corp status",
+        "corporation status",
+        "corp wallet",
+        "corp blueprints"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-corporations.read_corporation_membership.v1",
+        "esi-wallet.read_corporation_wallets.v1",
+        "esi-assets.read_corporation_assets.v1",
+        "esi-corporations.read_blueprints.v1",
+        "esi-industry.read_corporation_jobs.v1"
+      ],
+      "path": ".claude/skills/corp/SKILL.md",
+      "directory": "corp",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "escape-route",
+      "persona_exclusive": "paria",
+      "redirect": "personas/paria-exclusive/escape-route.md",
+      "description": "PARIA escape route planning for Eve Online pirates. Find fastest routes to safe harbor from current position.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/escape-route",
+        "escape route",
+        "get me out",
+        "nearest safe",
+        "route to safety",
+        "where can I dock"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-location.read_location.v1"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
+      "path": ".claude/skills/escape-route/SKILL.md",
+      "directory": "escape-route",
+      "external_sources": []
+    },
+    {
+      "name": "esi-query",
+      "description": "Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings.",
+      "model": "haiku",
+      "category": "system",
+      "triggers": [
+        "/esi-query",
+        "where am I",
+        "current location",
+        "what ship am I in",
+        "wallet balance",
+        "how much ISK",
+        "check my skills",
+        "my standings",
+        "my blueprints"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/industry/blueprints.md"
+      ],
+      "esi_scopes": [
+        "esi-location.read_location.v1",
+        "esi-location.read_ship_type.v1",
+        "esi-wallet.read_character_wallet.v1",
+        "esi-characters.read_standings.v1",
+        "esi-skills.read_skills.v1",
+        "esi-characters.read_blueprints.v1"
+      ],
+      "path": ".claude/skills/esi-query/SKILL.md",
+      "directory": "esi-query",
+      "external_sources": []
+    },
+    {
+      "name": "exploration",
+      "description": "ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification.",
+      "model": "haiku",
+      "category": "operations",
+      "triggers": [
+        "/exploration",
+        "exploration analysis",
+        "I found a [site name]",
+        "hacking tips",
+        "what's this loot worth",
+        "relic site",
+        "data site"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/exploration.md",
+        "reference/mechanics/exploration_sites.md",
+        "reference/mechanics/hacking_guide.md"
+      ],
+      "path": ".claude/skills/exploration/SKILL.md",
+      "directory": "exploration",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "find",
+      "description": "Find market sources near your location. Use for finding blueprints, items, or specific market sources by proximity.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/find",
+        "find [item] near me",
+        "where can I buy [item]",
+        "nearest [item]",
+        "find blueprint for [item]",
+        "NPC selling [item]"
+      ],
+      "requires_pilot": false,
+      "path": ".claude/skills/find/SKILL.md",
+      "directory": "find",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "first-run-setup",
+      "description": "Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue.",
+      "model": "haiku",
+      "category": "system",
+      "triggers": [
+        "/setup",
+        "/first-run-setup",
+        "set up my profile",
+        "configure ARIA",
+        "first run",
+        "help me set up"
+      ],
+      "requires_pilot": false,
+      "path": ".claude/skills/first-run-setup/SKILL.md",
+      "directory": "first-run-setup",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "fit-budget",
+      "description": "Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/fit-budget",
+        "budget version of this fit",
+        "make this fit cheaper",
+        "T1 version of this fit",
+        "downgrade fit",
+        "affordable version",
+        "fit I can actually use"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-skills.read_skills.v1",
+        "esi-wallet.read_character_wallet.v1"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
+      "external_sources": [],
+      "path": ".claude/skills/fit-budget/SKILL.md",
+      "directory": "fit-budget"
+    },
+    {
+      "name": "fit-check",
+      "description": "Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/fit-check",
+        "can I fly this fit",
+        "check this fit",
+        "fit requirements",
+        "can I afford this fit",
+        "what skills do I need for this fit",
+        "validate fit"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-skills.read_skills.v1",
+        "esi-wallet.read_character_wallet.v1"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
+      "external_sources": [],
+      "path": ".claude/skills/fit-check/SKILL.md",
+      "directory": "fit-check"
+    },
+    {
+      "name": "fitting",
+      "description": "ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/fitting",
+        "fit my [ship]",
+        "export fitting",
+        "EFT format",
+        "fitting recommendations",
+        "tank analysis",
+        "what modules for [ship]"
+      ],
+      "requires_pilot": true,
+      "requires_eos_validation": true,
+      "validation_tool": "fitting(action='calculate_stats')",
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/ships.md",
+        "reference/archetypes/hulls/{class}/{ship}/manifest.yaml",
+        "reference/archetypes/hulls/{class}/{ship}/**/*.yaml",
+        "reference/archetypes/_shared/*.yaml",
+        "reference/fittings/MODULE_NAMES.md"
+      ],
+      "path": ".claude/skills/fitting/SKILL.md",
+      "directory": "fitting",
+      "external_sources": [],
+      "esi_scopes": [],
+      "has_persona_overlay": true
+    },
+    {
+      "name": "fittings",
+      "description": "View saved ship fittings from ESI. List fittings, filter by hull, and export to EFT format.",
+      "model": "haiku",
+      "category": "operations",
+      "triggers": [
+        "/fittings",
+        "my saved fits",
+        "saved fittings",
+        "show my fits",
+        "list fittings"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-fittings.read_fittings.v1"
+      ],
+      "path": ".claude/skills/fittings/SKILL.md",
+      "directory": "fittings",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "gatecamp",
+      "description": "Real-time gatecamp detection and intel. Check for active camps in systems or along routes.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/gatecamp",
+        "is there a camp in [system]",
+        "gatecamp check",
+        "camp status",
+        "any camps on route to [system]"
+      ],
+      "requires_pilot": false,
+      "has_persona_overlay": true,
+      "path": ".claude/skills/gatecamp/SKILL.md",
+      "directory": "gatecamp",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "help",
+      "description": "Display available ARIA commands and capabilities. Use when capsuleer needs guidance on what ARIA can do.",
+      "model": "haiku",
+      "category": "system",
+      "triggers": [
+        "/help",
+        "help",
+        "what can you do",
+        "commands",
+        "what commands are available",
+        "how do I...",
+        "show me the options"
+      ],
+      "requires_pilot": false,
+      "data_sources": [
+        ".claude/skills/_index.json"
+      ],
+      "path": ".claude/skills/help/SKILL.md",
+      "directory": "help",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "hunting-grounds",
+      "persona_exclusive": "paria",
+      "redirect": "personas/paria-exclusive/hunting-grounds.md",
+      "description": "PARIA hunting ground analysis for Eve Online pirates. Analyze systems for target availability, traffic patterns, and competition.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/hunting-grounds",
+        "hunting grounds",
+        "where should I hunt",
+        "good systems for piracy",
+        "find targets",
+        "busy systems"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
+      "path": ".claude/skills/hunting-grounds/SKILL.md",
+      "directory": "hunting-grounds",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "industry-jobs",
+      "description": "Monitor personal manufacturing, research, copying, and invention jobs. View active jobs, completion times, and recent history.",
+      "model": "haiku",
+      "category": "industry",
+      "triggers": [
+        "/industry-jobs",
+        "my industry jobs",
+        "manufacturing jobs",
+        "what's being built",
+        "check my jobs",
+        "industry status"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-industry.read_character_jobs.v1"
+      ],
+      "path": ".claude/skills/industry-jobs/SKILL.md",
+      "directory": "industry-jobs",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "isk-compare",
+      "description": "Compare ISK/hour across activities you can do with your current skills and ships. Find the most efficient way to earn ISK at your level.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/isk-compare",
+        "best way to make ISK",
+        "ISK per hour",
+        "what should I do for money",
+        "most profitable activity",
+        "compare money making",
+        "how to earn ISK"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-skills.read_skills.v1",
+        "esi-characters.read_standings.v1"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/operations.md",
+        "reference/activities/isk_estimates.yaml"
+      ],
+      "external_sources": [],
+      "path": ".claude/skills/isk-compare/SKILL.md",
+      "directory": "isk-compare"
+    },
+    {
+      "name": "journal",
+      "description": "Log mission completions and exploration discoveries to operational records.",
+      "model": "haiku",
+      "category": "operations",
+      "triggers": [
+        "/journal",
+        "/journal mission",
+        "/journal exploration",
+        "log mission",
+        "log site",
+        "record that mission",
+        "log this run"
+      ],
+      "requires_pilot": true,
+      "has_persona_overlay": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/missions.md",
+        "userdata/pilots/{active_pilot}/exploration.md"
+      ],
+      "path": ".claude/skills/journal/SKILL.md",
+      "directory": "journal",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "killmail",
+      "description": "Analyze individual killmails with enriched tactical context",
+      "model": "sonnet",
+      "category": "tactical",
+      "triggers": [
+        "/killmail",
+        "analyze killmail",
+        "zkillboard.com/kill/"
+      ],
+      "requires_pilot": false,
+      "has_persona_overlay": true,
+      "external_sources": [
+        "zkillboard.com"
+      ],
+      "path": ".claude/skills/killmail/SKILL.md",
+      "directory": "killmail",
+      "data_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "killmails",
+      "description": "Kill and loss history analysis. Post-mortem on ship losses to understand what killed you and how to improve survivability.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/killmails",
+        "what killed me",
+        "how did I die",
+        "show my losses",
+        "analyze my last loss",
+        "killmail analysis",
+        "loss history"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-killmails.read_killmails.v1"
+      ],
+      "path": ".claude/skills/killmails/SKILL.md",
+      "directory": "killmails",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "lp-store",
+      "description": "Track LP balances and browse LP store offers. Essential for self-sufficient gameplay where LP store is the primary source of faction items.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/lp-store",
+        "check my LP",
+        "LP balance",
+        "what can I buy with LP",
+        "LP store offers"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-characters.read_loyalty.v1"
+      ],
+      "path": ".claude/skills/lp-store/SKILL.md",
+      "directory": "lp-store",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "mail",
+      "description": "Read EVE mail headers and bodies. View inbox, filter unread, and read specific messages.",
+      "model": "haiku",
+      "category": "operations",
+      "triggers": [
+        "/mail",
+        "my mail",
+        "check mail",
+        "EVE mail",
+        "inbox"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-mail.read_mail.v1"
+      ],
+      "path": ".claude/skills/mail/SKILL.md",
+      "directory": "mail",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "mark-assessment",
+      "persona_exclusive": "paria",
+      "redirect": "personas/paria-exclusive/mark-assessment.md",
+      "description": "PARIA target evaluation for Eve Online pirates. Assess potential marks based on ship type, likely cargo, and engagement viability.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/mark-assessment",
+        "mark assessment",
+        "assess target",
+        "is this worth ganking",
+        "evaluate target",
+        "should I engage"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/ships.md"
+      ],
+      "path": ".claude/skills/mark-assessment/SKILL.md",
+      "directory": "mark-assessment",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "mining",
+      "description": "View mining ledger with ore extraction history. Track what you've mined, where, and when over the past 30 days.",
+      "model": "haiku",
+      "category": "operations",
+      "triggers": [
+        "/mining",
+        "my mining ledger",
+        "what have I mined",
+        "mining history",
+        "mining stats"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-industry.read_character_mining.v1"
+      ],
+      "path": ".claude/skills/mining/SKILL.md",
+      "directory": "mining",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "mining-advisory",
+      "description": "ARIA mining operations guidance for Eve Online. Use for ore recommendations, belt intel, Venture fitting, or mining optimization.",
+      "model": "haiku",
+      "category": "operations",
+      "triggers": [
+        "/mining-advisory",
+        "mining advisory",
+        "what should I mine",
+        "ore recommendations",
+        "belt intel",
+        "mining optimization"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/ships.md",
+        "reference/mechanics/ore_database.md"
+      ],
+      "path": ".claude/skills/mining-advisory/SKILL.md",
+      "directory": "mining-advisory",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "mission-brief",
+      "description": "ARIA tactical intelligence briefing for Eve Online missions. Use for mission analysis, enemy intel, fitting advice, or combat preparation.",
+      "model": "sonnet",
+      "category": "tactical",
+      "triggers": [
+        "/mission-brief",
+        "mission brief",
+        "I accepted a mission against [faction]",
+        "what should I know about [mission/faction]",
+        "prepare for [mission type]",
+        "fitting for [ship] running [mission]",
+        "fit for [mission]",
+        "[mission name] level [N]",
+        "[mission name] L[N]"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/ships.md",
+        "reference/pve-intel/INDEX.md",
+        "reference/mechanics/npc_damage_types.md",
+        "reference/mechanics/drones.json",
+        "reference/mechanics/missiles.json",
+        "reference/mechanics/projectile_turrets.json",
+        "reference/mechanics/laser_turrets.json",
+        "reference/mechanics/hybrid_turrets.json"
+      ],
+      "external_sources": [
+        "wiki.eveuniversity.org"
+      ],
+      "path": ".claude/skills/mission-brief/SKILL.md",
+      "directory": "mission-brief",
+      "esi_scopes": [],
+      "has_persona_overlay": true
+    },
+    {
+      "name": "orders",
+      "description": "View active market orders and order history. Track buy/sell orders, escrow, and fill status.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/orders",
+        "my market orders",
+        "active orders",
+        "sell orders",
+        "buy orders"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-markets.read_character_orders.v1"
+      ],
+      "path": ".claude/skills/orders/SKILL.md",
+      "directory": "orders",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "orient",
+      "description": "Local area intel for orientation in unknown space. Use after wormhole jumps, filaments, or when dropped into unfamiliar territory.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/orient",
+        "orient me",
+        "what's around me",
+        "local intel",
+        "where am I",
+        "just landed in [system]",
+        "dropped into [system]",
+        "situational awareness"
+      ],
+      "requires_pilot": false,
+      "path": ".claude/skills/orient/SKILL.md",
+      "directory": "orient",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "pi",
+      "description": "Planetary Interaction guide for production chains, planet resources, and colony planning.",
+      "model": "haiku",
+      "category": "operations",
+      "triggers": [
+        "/pi",
+        "PI production chain",
+        "what planet for [resource]",
+        "how to make [P1/P2/P3/P4 item]",
+        "planetary interaction",
+        "PI guide",
+        "what planets have [resource]"
+      ],
+      "requires_pilot": false,
+      "data_sources": [
+        "reference/mechanics/planetary-interaction.json"
+      ],
+      "path": ".claude/skills/pi/SKILL.md",
+      "directory": "pi",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "pilot",
+      "description": "View pilot identity and configuration. Shows full data for authenticated pilot, public data for others.",
+      "model": "haiku",
+      "category": "identity",
+      "triggers": [
+        "/pilot",
+        "/pilot me",
+        "/pilot [name]",
+        "who am I",
+        "my profile",
+        "show my profile",
+        "pilot identity",
+        "look up [name]",
+        "who is [name]"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
+      "esi_scopes": [
+        "esi-characters.read_corporation_roles.v1",
+        "esi-wallet.read_character_wallet.v1",
+        "esi-skills.read_skills.v1"
+      ],
+      "path": ".claude/skills/pilot/SKILL.md",
+      "directory": "pilot",
+      "external_sources": []
+    },
+    {
+      "name": "price",
+      "description": "EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/price",
+        "price check [item]",
+        "how much is [item] worth",
+        "what's [item] selling for",
+        "market price for [item]",
+        "value of [item]"
+      ],
+      "requires_pilot": false,
+      "path": ".claude/skills/price/SKILL.md",
+      "directory": "price",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": [],
+      "has_persona_overlay": true
+    },
+    {
+      "name": "ransom-calc",
+      "persona_exclusive": "paria",
+      "redirect": "personas/paria-exclusive/ransom-calc.md",
+      "description": "PARIA ransom calculation for Eve Online pirates. Calculate appropriate ransom amounts based on ship value, cargo, and implants.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/ransom-calc",
+        "ransom calc",
+        "how much ransom",
+        "ransom for [ship]",
+        "what should I charge"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
+      "path": ".claude/skills/ransom-calc/SKILL.md",
+      "directory": "ransom-calc",
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "reactions",
+      "description": "Moon material reactions and fuel block calculator. Calculate costs, profits, and production times for reactions.",
+      "model": "haiku",
+      "category": "industry",
+      "triggers": [
+        "/reactions",
+        "fuel block cost",
+        "reaction profitability",
+        "how much to make [fuel block]",
+        "fuel block calculator",
+        "reaction time"
+      ],
+      "requires_pilot": false,
+      "path": ".claude/skills/reactions/SKILL.md",
+      "directory": "reactions",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "route",
+      "description": "Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/route",
+        "route from [origin] to [destination]",
+        "how do I get to [system]",
+        "path to [system]",
+        "navigate to [system]",
+        "safest route to [system]",
+        "plot course to [system]"
+      ],
+      "requires_pilot": false,
+      "path": ".claude/skills/route/SKILL.md",
+      "directory": "route",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": [],
+      "has_persona_overlay": true
+    },
+    {
+      "name": "sec-status",
+      "persona_exclusive": "paria",
+      "redirect": "personas/paria-exclusive/sec-status.md",
+      "description": "PARIA security status tracking for Eve Online pirates. Monitor sec status, calculate tag costs, and track empire access restrictions.",
+      "model": "haiku",
+      "category": "identity",
+      "triggers": [
+        "/sec-status",
+        "sec status",
+        "security status",
+        "can I go to high-sec",
+        "empire access",
+        "how much to fix sec",
+        "tag costs"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-characters.read_standings.v1"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
+      "path": ".claude/skills/sec-status/SKILL.md",
+      "directory": "sec-status",
+      "external_sources": []
+    },
+    {
+      "name": "ship-next",
+      "description": "Ship progression advisor for new and intermediate pilots. Recommends your next ship based on current skills, wallet, and preferred activities.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/ship-next",
+        "what ship should I fly next",
+        "next ship recommendation",
+        "ship progression",
+        "what to train after [ship]",
+        "upgrade from [ship]",
+        "what ship for [activity]"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-skills.read_skills.v1",
+        "esi-wallet.read_character_wallet.v1"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/operations.md",
+        "reference/archetypes/hulls/**/*.yaml"
+      ],
+      "external_sources": [],
+      "path": ".claude/skills/ship-next/SKILL.md",
+      "directory": "ship-next"
+    },
+    {
+      "name": "skillplan",
+      "description": "Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and \"Easy 80%\" recommendations.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/skillplan",
+        "what skills for [ship]",
+        "skills needed for [item]",
+        "how long to train [skill/ship]",
+        "skill requirements for [item]",
+        "can I fly [ship]",
+        "what do I need for [activity]"
+      ],
+      "requires_pilot": false,
+      "esi_scopes": [],
+      "data_sources": [
+        "reference/activities/skill_plans.yaml",
+        "reference/skills/ship_efficacy_rules.yaml",
+        "reference/skills/meta_module_alternatives.yaml"
+      ],
+      "external_sources": [],
+      "path": ".claude/skills/skillplan/SKILL.md",
+      "directory": "skillplan"
+    },
+    {
+      "name": "skillqueue",
+      "description": "Monitor EVE Online skill training queue and ETA. View current training progress and upcoming skills.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/skillqueue",
+        "skill queue",
+        "what am I training",
+        "training status",
+        "skill ETA",
+        "when will skills finish"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-skills.read_skillqueue.v1"
+      ],
+      "path": ".claude/skills/skillqueue/SKILL.md",
+      "directory": "skillqueue",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "standings",
+      "description": "Standings tracker for agent access, faction requirements, and standing repair strategies.",
+      "model": "haiku",
+      "category": "identity",
+      "triggers": [
+        "/standings",
+        "my standings",
+        "can I use L[N] agents",
+        "standing requirements",
+        "how to fix standings",
+        "agent access",
+        "faction standing"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-characters.read_standings.v1",
+        "esi-skills.read_skills.v1"
+      ],
+      "data_sources": [
+        "reference/mechanics/standings_thresholds.json",
+        "reference/mechanics/epic_arcs.json"
+      ],
+      "path": ".claude/skills/standings/SKILL.md",
+      "directory": "standings",
+      "external_sources": []
+    },
+    {
+      "name": "standings-plan",
+      "description": "Plan your path to target standings for mission agent access. Shows current standings, requirements, and the fastest strategies to reach your goal.",
+      "model": "haiku",
+      "category": "identity",
+      "triggers": [
+        "/standings-plan",
+        "how to get L4 agents",
+        "path to 5.0 standing",
+        "how long to reach L4",
+        "standings grind",
+        "standing requirements for L[N]",
+        "fastest way to raise standings"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-characters.read_standings.v1",
+        "esi-skills.read_skills.v1"
+      ],
+      "data_sources": [
+        "reference/mechanics/standings_thresholds.json",
+        "reference/mechanics/epic_arcs.json"
+      ],
+      "external_sources": [],
+      "path": ".claude/skills/standings-plan/SKILL.md",
+      "directory": "standings-plan"
+    },
+    {
+      "name": "threat-assessment",
+      "description": "ARIA security and threat analysis for Eve Online. Use for system safety evaluation, activity risk assessment, or travel route analysis.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/threat-assessment",
+        "threat assessment",
+        "is [system] safe",
+        "security analysis",
+        "can I go to [location]",
+        "what are the risks of [activity]"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
+      "path": ".claude/skills/threat-assessment/SKILL.md",
+      "directory": "threat-assessment",
+      "external_sources": [],
+      "esi_scopes": [],
+      "has_persona_overlay": true
+    },
+    {
+      "name": "wallet-journal",
+      "description": "View wallet transaction history and ISK flow analysis. Use for financial tracking, profit/loss analysis, or identifying income sources.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/wallet-journal",
+        "where did my ISK go",
+        "ISK history",
+        "transaction history",
+        "wallet transactions",
+        "income breakdown",
+        "show me my finances",
+        "profit and loss"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-wallet.read_character_wallet.v1"
+      ],
+      "path": ".claude/skills/wallet-journal/SKILL.md",
+      "directory": "wallet-journal",
+      "data_sources": [],
+      "external_sources": []
+    },
+    {
+      "name": "watchlist",
+      "description": "Manage entity watchlists for tracking corporations and alliances. Monitor war targets and get alerts when watched entities appear in kills.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/watchlist",
+        "who am I tracking",
+        "add [corp] to watchlist",
+        "track [alliance]",
+        "sync war targets"
+      ],
+      "requires_pilot": false,
+      "has_persona_overlay": true,
+      "path": ".claude/skills/watchlist/SKILL.md",
+      "directory": "watchlist",
+      "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    }
+  ],
+  "by_category": {
+    "financial": [
+      "arbitrage",
+      "assets",
+      "contracts",
+      "find",
+      "isk-compare",
+      "lp-store",
+      "orders",
+      "price",
+      "ransom-calc",
+      "wallet-journal"
+    ],
+    "identity": [
+      "aria-status",
+      "corp",
+      "pilot",
+      "sec-status",
+      "standings",
+      "standings-plan"
+    ],
+    "industry": [
+      "agents-research",
+      "build-cost",
+      "industry-jobs",
+      "reactions"
+    ],
+    "operations": [
+      "exploration",
+      "fittings",
+      "journal",
+      "mail",
+      "mining",
+      "mining-advisory",
+      "pi"
+    ],
+    "system": [
+      "esi-query",
+      "first-run-setup",
+      "help"
+    ],
+    "tactical": [
+      "abyssal",
+      "clones",
+      "escape-route",
+      "fit-budget",
+      "fit-check",
+      "fitting",
+      "gatecamp",
+      "hunting-grounds",
+      "killmail",
+      "killmails",
+      "mark-assessment",
+      "mission-brief",
+      "orient",
+      "route",
+      "ship-next",
+      "skillplan",
+      "skillqueue",
+      "threat-assessment",
+      "watchlist"
+    ]
+  },
+  "trigger_map": {
+    "/abyssal": "abyssal",
+    "abyssal deadspace": "abyssal",
+    "abyssal guide": "abyssal",
+    "what weather for [ship]": "abyssal",
+    "abyssal tier [n]": "abyssal",
+    "abyssal fit": "abyssal",
+    "filament guide": "abyssal",
+    "/agents-research": "agents-research",
+    "my research agents": "agents-research",
+    "research points": "agents-research",
+    "rp status": "agents-research",
+    "datacores": "agents-research",
+    "/arbitrage": "arbitrage",
+    "arbitrage opportunities": "arbitrage",
+    "trade route finder": "arbitrage",
+    "what can i haul for profit": "arbitrage",
+    "cross-region trading": "arbitrage",
+    "price gaps between hubs": "arbitrage",
+    "/aria-status": "aria-status",
+    "status report": "aria-status",
+    "sitrep": "aria-status",
+    "what's my status": "aria-status",
+    "operational status": "aria-status",
+    "/assets": "assets",
+    "my assets": "assets",
+    "asset value": "assets",
+    "what do i own": "assets",
+    "inventory value": "assets",
+    "total net worth": "assets",
+    "/build-cost": "build-cost",
+    "cost to build [item]": "build-cost",
+    "manufacturing cost": "build-cost",
+    "is it profitable to build [item]": "build-cost",
+    "build vs buy [item]": "build-cost",
+    "bom for [item]": "build-cost",
+    "/clones": "clones",
+    "clone status": "clones",
+    "where's my clone": "clones",
+    "check my implants": "clones",
+    "jump clone status": "clones",
+    "can i jump clone": "clones",
+    "medical clone location": "clones",
+    "/contracts": "contracts",
+    "my contracts": "contracts",
+    "show contracts": "contracts",
+    "contract status": "contracts",
+    "courier contracts": "contracts",
+    "/corp": "corp",
+    "corp status": "corp",
+    "corporation status": "corp",
+    "corp wallet": "corp",
+    "corp blueprints": "corp",
+    "/escape-route": "escape-route",
+    "escape route": "escape-route",
+    "get me out": "escape-route",
+    "nearest safe": "escape-route",
+    "route to safety": "escape-route",
+    "where can i dock": "escape-route",
+    "/esi-query": "esi-query",
+    "where am i": "orient",
+    "current location": "esi-query",
+    "what ship am i in": "esi-query",
+    "wallet balance": "esi-query",
+    "how much isk": "esi-query",
+    "check my skills": "esi-query",
+    "my standings": "standings",
+    "my blueprints": "esi-query",
+    "/exploration": "exploration",
+    "exploration analysis": "exploration",
+    "i found a [site name]": "exploration",
+    "hacking tips": "exploration",
+    "what's this loot worth": "exploration",
+    "relic site": "exploration",
+    "data site": "exploration",
+    "/find": "find",
+    "find [item] near me": "find",
+    "where can i buy [item]": "find",
+    "nearest [item]": "find",
+    "find blueprint for [item]": "find",
+    "npc selling [item]": "find",
+    "/setup": "first-run-setup",
+    "/first-run-setup": "first-run-setup",
+    "set up my profile": "first-run-setup",
+    "configure aria": "first-run-setup",
+    "first run": "first-run-setup",
+    "help me set up": "first-run-setup",
+    "/fit-budget": "fit-budget",
+    "budget version of this fit": "fit-budget",
+    "make this fit cheaper": "fit-budget",
+    "t1 version of this fit": "fit-budget",
+    "downgrade fit": "fit-budget",
+    "affordable version": "fit-budget",
+    "fit i can actually use": "fit-budget",
+    "/fit-check": "fit-check",
+    "can i fly this fit": "fit-check",
+    "check this fit": "fit-check",
+    "fit requirements": "fit-check",
+    "can i afford this fit": "fit-check",
+    "what skills do i need for this fit": "fit-check",
+    "validate fit": "fit-check",
+    "/fitting": "fitting",
+    "fit my [ship]": "fitting",
+    "export fitting": "fitting",
+    "eft format": "fitting",
+    "fitting recommendations": "fitting",
+    "tank analysis": "fitting",
+    "what modules for [ship]": "fitting",
+    "/fittings": "fittings",
+    "my saved fits": "fittings",
+    "saved fittings": "fittings",
+    "show my fits": "fittings",
+    "list fittings": "fittings",
+    "/gatecamp": "gatecamp",
+    "is there a camp in [system]": "gatecamp",
+    "gatecamp check": "gatecamp",
+    "camp status": "gatecamp",
+    "any camps on route to [system]": "gatecamp",
+    "/help": "help",
+    "help": "help",
+    "what can you do": "help",
+    "commands": "help",
+    "what commands are available": "help",
+    "how do i...": "help",
+    "show me the options": "help",
+    "/hunting-grounds": "hunting-grounds",
+    "hunting grounds": "hunting-grounds",
+    "where should i hunt": "hunting-grounds",
+    "good systems for piracy": "hunting-grounds",
+    "find targets": "hunting-grounds",
+    "busy systems": "hunting-grounds",
+    "/industry-jobs": "industry-jobs",
+    "my industry jobs": "industry-jobs",
+    "manufacturing jobs": "industry-jobs",
+    "what's being built": "industry-jobs",
+    "check my jobs": "industry-jobs",
+    "industry status": "industry-jobs",
+    "/isk-compare": "isk-compare",
+    "best way to make isk": "isk-compare",
+    "isk per hour": "isk-compare",
+    "what should i do for money": "isk-compare",
+    "most profitable activity": "isk-compare",
+    "compare money making": "isk-compare",
+    "how to earn isk": "isk-compare",
+    "/journal": "journal",
+    "/journal mission": "journal",
+    "/journal exploration": "journal",
+    "log mission": "journal",
+    "log site": "journal",
+    "record that mission": "journal",
+    "log this run": "journal",
+    "/killmail": "killmail",
+    "analyze killmail": "killmail",
+    "zkillboard.com/kill/": "killmail",
+    "/killmails": "killmails",
+    "what killed me": "killmails",
+    "how did i die": "killmails",
+    "show my losses": "killmails",
+    "analyze my last loss": "killmails",
+    "killmail analysis": "killmails",
+    "loss history": "killmails",
+    "/lp-store": "lp-store",
+    "check my lp": "lp-store",
+    "lp balance": "lp-store",
+    "what can i buy with lp": "lp-store",
+    "lp store offers": "lp-store",
+    "/mail": "mail",
+    "my mail": "mail",
+    "check mail": "mail",
+    "eve mail": "mail",
+    "inbox": "mail",
+    "/mark-assessment": "mark-assessment",
+    "mark assessment": "mark-assessment",
+    "assess target": "mark-assessment",
+    "is this worth ganking": "mark-assessment",
+    "evaluate target": "mark-assessment",
+    "should i engage": "mark-assessment",
+    "/mining": "mining",
+    "my mining ledger": "mining",
+    "what have i mined": "mining",
+    "mining history": "mining",
+    "mining stats": "mining",
+    "/mining-advisory": "mining-advisory",
+    "mining advisory": "mining-advisory",
+    "what should i mine": "mining-advisory",
+    "ore recommendations": "mining-advisory",
+    "belt intel": "mining-advisory",
+    "mining optimization": "mining-advisory",
+    "/mission-brief": "mission-brief",
+    "mission brief": "mission-brief",
+    "i accepted a mission against [faction]": "mission-brief",
+    "what should i know about [mission/faction]": "mission-brief",
+    "prepare for [mission type]": "mission-brief",
+    "fitting for [ship] running [mission]": "mission-brief",
+    "fit for [mission]": "mission-brief",
+    "[mission name] level [n]": "mission-brief",
+    "[mission name] l[n]": "mission-brief",
+    "/orders": "orders",
+    "my market orders": "orders",
+    "active orders": "orders",
+    "sell orders": "orders",
+    "buy orders": "orders",
+    "/orient": "orient",
+    "orient me": "orient",
+    "what's around me": "orient",
+    "local intel": "orient",
+    "just landed in [system]": "orient",
+    "dropped into [system]": "orient",
+    "situational awareness": "orient",
+    "/pi": "pi",
+    "pi production chain": "pi",
+    "what planet for [resource]": "pi",
+    "how to make [p1/p2/p3/p4 item]": "pi",
+    "planetary interaction": "pi",
+    "pi guide": "pi",
+    "what planets have [resource]": "pi",
+    "/pilot": "pilot",
+    "/pilot me": "pilot",
+    "/pilot [name]": "pilot",
+    "who am i": "pilot",
+    "my profile": "pilot",
+    "show my profile": "pilot",
+    "pilot identity": "pilot",
+    "look up [name]": "pilot",
+    "who is [name]": "pilot",
+    "/price": "price",
+    "price check [item]": "price",
+    "how much is [item] worth": "price",
+    "what's [item] selling for": "price",
+    "market price for [item]": "price",
+    "value of [item]": "price",
+    "/ransom-calc": "ransom-calc",
+    "ransom calc": "ransom-calc",
+    "how much ransom": "ransom-calc",
+    "ransom for [ship]": "ransom-calc",
+    "what should i charge": "ransom-calc",
+    "/reactions": "reactions",
+    "fuel block cost": "reactions",
+    "reaction profitability": "reactions",
+    "how much to make [fuel block]": "reactions",
+    "fuel block calculator": "reactions",
+    "reaction time": "reactions",
+    "/route": "route",
+    "route from [origin] to [destination]": "route",
+    "how do i get to [system]": "route",
+    "path to [system]": "route",
+    "navigate to [system]": "route",
+    "safest route to [system]": "route",
+    "plot course to [system]": "route",
+    "/sec-status": "sec-status",
+    "sec status": "sec-status",
+    "security status": "sec-status",
+    "can i go to high-sec": "sec-status",
+    "empire access": "sec-status",
+    "how much to fix sec": "sec-status",
+    "tag costs": "sec-status",
+    "/ship-next": "ship-next",
+    "what ship should i fly next": "ship-next",
+    "next ship recommendation": "ship-next",
+    "ship progression": "ship-next",
+    "what to train after [ship]": "ship-next",
+    "upgrade from [ship]": "ship-next",
+    "what ship for [activity]": "ship-next",
+    "/skillplan": "skillplan",
+    "what skills for [ship]": "skillplan",
+    "skills needed for [item]": "skillplan",
+    "how long to train [skill/ship]": "skillplan",
+    "skill requirements for [item]": "skillplan",
+    "can i fly [ship]": "skillplan",
+    "what do i need for [activity]": "skillplan",
+    "/skillqueue": "skillqueue",
+    "skill queue": "skillqueue",
+    "what am i training": "skillqueue",
+    "training status": "skillqueue",
+    "skill eta": "skillqueue",
+    "when will skills finish": "skillqueue",
+    "/standings": "standings",
+    "can i use l[n] agents": "standings",
+    "standing requirements": "standings",
+    "how to fix standings": "standings",
+    "agent access": "standings",
+    "faction standing": "standings",
+    "/standings-plan": "standings-plan",
+    "how to get l4 agents": "standings-plan",
+    "path to 5.0 standing": "standings-plan",
+    "how long to reach l4": "standings-plan",
+    "standings grind": "standings-plan",
+    "standing requirements for l[n]": "standings-plan",
+    "fastest way to raise standings": "standings-plan",
+    "/threat-assessment": "threat-assessment",
+    "threat assessment": "threat-assessment",
+    "is [system] safe": "threat-assessment",
+    "security analysis": "threat-assessment",
+    "can i go to [location]": "threat-assessment",
+    "what are the risks of [activity]": "threat-assessment",
+    "/wallet-journal": "wallet-journal",
+    "where did my isk go": "wallet-journal",
+    "isk history": "wallet-journal",
+    "transaction history": "wallet-journal",
+    "wallet transactions": "wallet-journal",
+    "income breakdown": "wallet-journal",
+    "show me my finances": "wallet-journal",
+    "profit and loss": "wallet-journal",
+    "/watchlist": "watchlist",
+    "who am i tracking": "watchlist",
+    "add [corp] to watchlist": "watchlist",
+    "track [alliance]": "watchlist",
+    "sync war targets": "watchlist"
+  }
+}

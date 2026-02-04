@@ -1,0 +1,96 @@
+# Drake L3 Missions - Medium Skill Variant
+#
+# Solid mid-level fit with good balance of performance.
+# The classic Drake everyone knows and loves.
+
+archetype:
+  hull: Drake
+  skill_tier: meta
+  omega_required: false
+
+eft: |
+  [Drake, L3 Missions - Medium Skills]
+
+  Ballistic Control System I
+  Ballistic Control System I
+  Damage Control I
+  Drone Damage Amplifier I
+
+  10MN Afterburner I
+  Large Shield Extender I
+  Large Shield Extender I
+  Adaptive Invulnerability Field I
+  EM Shield Amplifier I
+  Shield Recharger I
+
+  Heavy Missile Launcher I, Scourge Heavy Missile
+  Heavy Missile Launcher I, Scourge Heavy Missile
+  Heavy Missile Launcher I, Scourge Heavy Missile
+  Heavy Missile Launcher I, Scourge Heavy Missile
+  Heavy Missile Launcher I, Scourge Heavy Missile
+  Heavy Missile Launcher I, Scourge Heavy Missile
+  [Empty High slot]
+
+  Medium Core Defense Field Purger I
+  Medium Core Defense Field Purger I
+  Medium Core Defense Field Purger I
+
+  Hobgoblin I x5
+
+skill_requirements:
+  required:
+    Caldari Battlecruiser: 3
+    Heavy Missiles: 3
+    Missile Launcher Operation: 4
+    Warhead Upgrades: 3
+    Shield Management: 4
+    Shield Operation: 4
+  recommended:
+    Caldari Battlecruiser: 4
+    Heavy Missiles: 4
+    Rapid Launch: 4
+    Drone Interfacing: 3
+
+stats:
+  dps: 300
+  ehp: 28000
+  tank_sustained: 115
+  capacitor_stable: true
+  align_time: 11.5
+  speed_ab: 340
+  missile_range: 55000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_passive
+
+  overrides:
+    angel_cartel:
+      modules:
+        - from: "EM Shield Amplifier I"
+          to: "Explosive Shield Amplifier I"
+
+notes:
+  purpose: "The classic Drake fit. Handles all L3 content with room to spare."
+  engagement: "Warp at 50-70km, activate Adaptive, orbit debris at 30km"
+  warnings:
+    - "Heavy missiles apply poorly to frigates - use Hobgoblins"
+    - "Only Adaptive Invuln needs activating - tank is otherwise passive"
+    - "Swap ammo type based on enemy faction weakness"
+
+upgrade_path:
+  next_tier: high
+  key_upgrades:
+    - module: "Heavy Missile Launcher I"
+      upgrade_to: "Heavy Missile Launcher II"
+      skill_required: "Heavy Missiles 5"
+    - module: "Ballistic Control System I"
+      upgrade_to: "Ballistic Control System II"
+      skill_required: "Weapon Upgrades 4"
+    - module: "Large Shield Extender I"
+      upgrade_to: "Large Shield Extender II"
+      skill_required: "Shield Upgrades 4"
+    - module: "Hobgoblin I"
+      upgrade_to: "Hobgoblin II"
+      skill_required: "Light Drone Operation 5"

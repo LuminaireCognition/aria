@@ -1,0 +1,113 @@
+# Test fixture: Jita to Amarr route gatecamp analysis
+# Tests /gatecamp route analysis with gatecamp_risk action
+
+name: "Jita to Amarr route gatecamp analysis"
+skill: gatecamp
+description: |
+  Route gatecamp analysis from Jita to Amarr via safe routing.
+  Tests chokepoint detection and risk assessment.
+
+input:
+  origin: Jita
+  destination: Amarr
+  mode: safe
+
+expected_output:
+  origin: "Jita"
+  destination: "Amarr"
+  total_jumps: 45
+  overall_risk: "high"
+  chokepoints:
+    - system: "Uedama"
+      system_id: 30002768
+      security: 0.50
+      chokepoint_type: "pipe"
+      recent_kills: 15
+      recent_pods: 10
+      risk_level: "extreme"
+      warning: "Known gank pipe - scout ahead"
+    - system: "Niarja"
+      system_id: 30003504
+      security: 0.50
+      chokepoint_type: "pipe"
+      recent_kills: 12
+      recent_pods: 8
+      risk_level: "high"
+      warning: "Frequent ganks reported"
+  high_risk_systems:
+    - "Uedama"
+    - "Niarja"
+  recommendation: "Consider avoiding Uedama and Niarja or use scout alt"
+  cache_age_seconds: 120
+  corrections: {}
+
+expected_facts:
+  # Route analysis format
+  - path: "origin"
+    equals: "Jita"
+
+  - path: "destination"
+    equals: "Amarr"
+
+  # Significant route
+  - path: "total_jumps"
+    range: [30, 50]
+
+  # Should have chokepoints
+  - path: "chokepoints"
+    length: 2
+
+  # Uedama should be identified
+  - path: "chokepoints[0].system"
+    equals: "Uedama"
+
+  - path: "chokepoints[0].risk_level"
+    one_of: ["high", "extreme"]
+
+  - path: "chokepoints[0].chokepoint_type"
+    equals: "pipe"
+
+  # Overall risk should reflect dangerous route
+  - path: "overall_risk"
+    one_of: ["medium", "high", "extreme"]
+
+  # High risk systems list should be populated
+  - path: "high_risk_systems"
+    length: 2
+
+  # Recommendation should exist
+  - path: "recommendation"
+    exists: true
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_gatecamp_risk:
+    origin: "Jita"
+    destination: "Amarr"
+    total_jumps: 45
+    overall_risk: "high"
+    chokepoints:
+      - system: "Uedama"
+        system_id: 30002768
+        security: 0.50
+        chokepoint_type: "pipe"
+        recent_kills: 15
+        recent_pods: 10
+        risk_level: "extreme"
+        warning: "Known gank pipe - scout ahead"
+      - system: "Niarja"
+        system_id: 30003504
+        security: 0.50
+        chokepoint_type: "pipe"
+        recent_kills: 12
+        recent_pods: 8
+        risk_level: "high"
+        warning: "Frequent ganks reported"
+    high_risk_systems:
+      - "Uedama"
+      - "Niarja"
+    recommendation: "Consider avoiding Uedama and Niarja or use scout alt"
+    cache_age_seconds: 120
+    corrections: {}

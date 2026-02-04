@@ -1,0 +1,47 @@
+# Retriever Hull Manifest
+#
+# The Retriever is an ORE mining barge focused on storage capacity.
+# Largest ore hold of the barges at 27,500 m3.
+
+hull: Retriever
+class: mining_barge
+faction: ore
+tech_level: 1
+
+slots:
+  high: 2
+  mid: 3
+  low: 2
+  rig: 3
+
+drones:
+  bandwidth: 25
+  bay: 25
+
+bonuses:
+  - "5% reduction in Strip Miner and Ice Harvester cycle time per Mining Barge level"
+  - "25% bonus to Mining Barge role bonus to ore hold capacity"
+
+roles:
+  - mining
+  - ice_harvesting
+  - solo_operations
+
+fitting_rules:
+  tank_type: shield_buffer
+  weapons:
+    primary: strip_miners
+    secondary: drones
+
+  notes:
+    - "27,500 m3 ore hold - largest of mining barges"
+    - "2 strip miner slots"
+    - "Best yield-to-hold ratio for solo mining"
+    - "Weakest tank of the barges - avoid dangerous space"
+
+ore_hold: 27500
+
+engagement:
+  range: "Strip mining - within 15km of asteroid"
+  speed: "~100 m/s (no prop), ~1,000 m/s (MWD)"
+  notes: "Fill hold completely before returning to station for efficiency."

@@ -1,0 +1,86 @@
+# Venture Gas Harvesting - Low Skill Variant
+#
+# Specialized wormhole gas huffing fit with scanning capability.
+
+archetype:
+  hull: Venture
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Venture, Gas Harvesting - Low Skills]
+
+  Mining Laser Upgrade I
+  Damage Control I
+
+  5MN Microwarpdrive I
+  Medium Shield Extender I
+  Scan Rangefinding Array I
+
+  Gas Cloud Scoop I
+  Gas Cloud Scoop I
+  Core Probe Launcher I
+
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+  Core Scanner Probe I x8
+  Hobgoblin I x2
+
+skill_requirements:
+  required:
+    Mining Frigate: 1
+    Gas Cloud Harvesting: 1
+    Astrometrics: 3
+    Shield Operation: 2
+  recommended:
+    Gas Cloud Harvesting: 4
+    Astrometric Rangefinding: 3
+    Mining Frigate: 4
+
+stats:
+  gas_harvest_rate: 60  # m3/min approximate
+  ore_hold: 5000
+  ehp: 3500
+  scan_strength: "boosted"
+  align_time: 4.0
+  speed_mwd: 2500
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Wormhole gas huffing and lowsec gas harvesting"
+  engagement: "Scan down gas site, warp in, harvest before Sleepers spawn"
+  warnings:
+    - "CRITICAL: Sleepers spawn ~15-20 min after site activation"
+    - "Set 15-minute timer - warp out BEFORE it expires"
+    - "Bookmark the gas cloud before warping off"
+    - "Gas Cloud Harvesting skillbook costs ~30M ISK"
+
+  wormhole_protocol:
+    - "Scan down gas site"
+    - "Warp to site, bookmark the gas cloud"
+    - "Start harvesting, set 15-minute timer"
+    - "Warp out BEFORE timer expires"
+    - "Site persists - return after Sleepers despawn (~30 min)"
+
+  gas_priority:
+    - type: "Fullerenes (Wormhole)"
+      notes: "Highest ISK/m3"
+    - type: "Cytoserocin (Lowsec)"
+      notes: "Good value, riskier"
+    - type: "Mykoserocin (Highsec)"
+      notes: "Safe, lower value"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Gas Cloud Scoop I"
+      upgrade_to: "Gas Cloud Scoop II"
+      skill_required: "Gas Cloud Harvesting 5"
+    - module: "Core Probe Launcher I"
+      upgrade_to: "Sisters Core Probe Launcher"
+      skill_required: "Better scan strength"
+    - module: "Scan Rangefinding Array I"
+      upgrade_to: "Scan Rangefinding Array II"
+      skill_required: "Astrometric Rangefinding 4"

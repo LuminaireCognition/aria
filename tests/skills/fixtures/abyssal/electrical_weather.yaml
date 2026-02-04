@@ -1,0 +1,52 @@
+# Test fixture: Electrical weather information
+# Tests weather query response structure with exact reference data values
+
+name: "Electrical weather information"
+skill: abyssal
+description: |
+  Query for electrical weather type information.
+  Tests weather response structure with capacitor bonus mechanics.
+
+input:
+  query_type: weather
+  weather: electrical
+
+expected_output:
+  weather_type: "electrical"
+  filament_color: "blue"
+  effects:
+    em_damage_modifier: 1.5
+    capacitor_recharge_modifier: 0.5
+  effect_description: "+50% EM damage dealt, -50% capacitor recharge time (faster)"
+  npc_damage_profile:
+    em: 50
+    thermal: 30
+    kinetic: 10
+    explosive: 10
+  recommended_resist: "EM"
+  notes: "Favorable for capacitor-hungry fits. NPCs deal heavy EM damage."
+
+expected_facts:
+  # Weather type validation
+  - path: "weather_type"
+    equals: "electrical"
+
+  # Filament color should be blue
+  - path: "filament_color"
+    equals: "blue"
+
+  # EM damage modifier is 1.5 (50% bonus)
+  - path: "effects.em_damage_modifier"
+    equals: 1.5
+
+  # Capacitor bonus (faster recharge)
+  - path: "effects.capacitor_recharge_modifier"
+    equals: 0.5
+
+  # NPC damage is EM-heavy
+  - path: "npc_damage_profile.em"
+    equals: 50
+
+  # Damage profile sums to 100
+  - path: "recommended_resist"
+    equals: "EM"

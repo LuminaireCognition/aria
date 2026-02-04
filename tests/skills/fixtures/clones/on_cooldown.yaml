@@ -1,0 +1,69 @@
+# Test fixture: Jump clone on cooldown
+# Tests display when jump clone timer is active
+
+name: "Jump Clone Cooldown Active"
+skill: clones
+description: |
+  Display clone status when jump clone cooldown is active.
+  Shows remaining time until next jump is available.
+
+input:
+  command: jump-status
+
+expected_facts:
+  - path: "jump_cooldown.available"
+    equals: false
+
+  - path: "jump_cooldown.cooldown_remaining"
+    contains: "h"
+
+  - path: "jump_clone_count"
+    range: [1, 10]
+
+expected_output:
+  query_timestamp: "2026-01-31T12:30:00Z"
+  response_type: "jump_clones"
+  jump_clone_count: 2
+  jump_clones:
+    - clone_id: 1000001
+      name: "PvP Clone"
+      location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+      location_type: "station"
+      system_name: "Jita"
+      system_security: 0.9
+      implant_count: 0
+    - clone_id: 1000002
+      name: "Learning Clone"
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Fed Navy Assembly Plant"
+      location_type: "station"
+      system_name: "Dodixie"
+      system_security: 0.9
+      implant_count: 5
+  jump_cooldown:
+    available: false
+    last_jump: "2026-01-31T06:00:00Z"
+    cooldown_remaining: "17h 30m"
+    available_at: "2026-02-01T06:00:00Z"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  clones:
+    home_location:
+      location_id: 60011866
+      location_type: "station"
+    jump_clones:
+      - jump_clone_id: 1000001
+        location_id: 60003760
+        location_type: "station"
+        name: "PvP Clone"
+        implants: []
+      - jump_clone_id: 1000002
+        location_id: 60011866
+        location_type: "station"
+        name: "Learning Clone"
+        implants: [9899, 9941, 9942, 9943, 9956]
+    last_clone_jump_date: "2026-01-31T06:00:00Z"

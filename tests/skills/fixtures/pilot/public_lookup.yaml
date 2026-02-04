@@ -1,0 +1,62 @@
+# Test fixture: Public pilot lookup
+# Tests /pilot <name> for looking up another pilot
+
+name: "Public Pilot Lookup"
+skill: pilot
+description: |
+  Look up a public pilot's information by name.
+  Only public ESI data is returned.
+
+input:
+  command: lookup
+  query: "Chribba"
+
+expected_facts:
+  - path: "query_type"
+    equals: "public"
+
+  - path: "character_name"
+    equals: "Chribba"
+
+  - path: "note"
+    contains: "Public data only"
+
+expected_output:
+  query_type: "public"
+  character_id: 123456789
+  character_name: "Chribba"
+  corporation_id: 98765432
+  corporation_name: "Otherworld Enterprises"
+  corporation_ticker: "OTHR"
+  alliance_id: 99887766
+  alliance_name: "Otherworld Imperium"
+  security_status: 5.0
+  security_description: "Paragon"
+  birthday: "2003-05-06T12:00:00Z"
+  query_timestamp: "2026-01-31T12:30:00Z"
+  note: "Public data only. Private data requires authentication."
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  search:
+    character:
+      - 123456789
+
+  characters:
+    character_id: 123456789
+    name: "Chribba"
+    birthday: "2003-05-06T12:00:00Z"
+    corporation_id: 98765432
+    security_status: 5.0
+
+  corporations:
+    corporation_id: 98765432
+    name: "Otherworld Enterprises"
+    ticker: "OTHR"
+    alliance_id: 99887766
+
+  alliances:
+    alliance_id: 99887766
+    name: "Otherworld Imperium"

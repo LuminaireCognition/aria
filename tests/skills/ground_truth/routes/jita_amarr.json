@@ -1,0 +1,61 @@
+{
+  "description": "Ground truth for Jita to Amarr routes",
+  "source": "EVE Online SDE / Universe Graph",
+  "last_verified": "2024-01-15",
+  "notes": "Route lengths may vary slightly with game patches but should be stable within ranges",
+
+  "routes": {
+    "safe": {
+      "expected_jumps_range": [40, 50],
+      "security_constraint": "all systems >= 0.45",
+      "key_waypoints": [
+        "Jita",
+        "New Caldari",
+        "Amarr"
+      ],
+      "must_not_contain": [
+        "Niarja",
+        "Uedama"
+      ],
+      "notes": "Safe route follows highsec corridor, longer but secure"
+    },
+    "shortest": {
+      "expected_jumps_range": [25, 35],
+      "security_constraint": "may include lowsec",
+      "key_waypoints": [
+        "Jita",
+        "Amarr"
+      ],
+      "historically_passed_through": [
+        "Niarja"
+      ],
+      "notes": "Shortest route historically went through Niarja before Triglavian invasion"
+    }
+  },
+
+  "security_classifications": {
+    "highsec": ">= 0.45",
+    "lowsec": "0.0 < sec < 0.45",
+    "nullsec": "<= 0.0"
+  },
+
+  "known_gank_systems": [
+    "Uedama",
+    "Niarja",
+    "Sivala",
+    "Madirmilire"
+  ],
+
+  "trade_hubs": {
+    "Jita": {
+      "system_id": 30000142,
+      "security": 0.95,
+      "region": "The Forge"
+    },
+    "Amarr": {
+      "system_id": 30002187,
+      "security": 1.0,
+      "region": "Domain"
+    }
+  }
+}

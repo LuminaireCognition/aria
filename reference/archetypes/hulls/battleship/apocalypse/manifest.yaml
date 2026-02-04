@@ -1,0 +1,54 @@
+# Apocalypse Hull Manifest
+#
+# The Apocalypse is an Amarr T1 battleship with 8 turret hardpoints.
+# Sustained laser DPS with zero ammunition costs.
+
+hull: Apocalypse
+class: battleship
+faction: amarr
+tech_level: 1
+
+slots:
+  high: 8
+  mid: 4
+  low: 6
+  rig: 3
+
+drones:
+  bandwidth: 75
+  bay: 75
+
+bonuses:
+  - "5% bonus to Large Energy Turret damage per Amarr Battleship level"
+  - "10% bonus to Large Energy Turret capacitor use per Amarr Battleship level"
+
+roles:
+  - turret_boat
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_active
+  weapons:
+    primary: lasers
+    secondary: drones
+
+  notes:
+    - "8 turret hardpoints - tied for most in class"
+    - "Lasers deal EM/Thermal - fixed damage type"
+    - "T1 crystals never deplete - zero ammo cost"
+    - "Heavy capacitor usage - train Controlled Bursts"
+
+crystal_recommendations:
+  brawling: "Multifrequency L"
+  general: "Standard L"
+  sniping: "Radio L"
+  t2_optimal: "Scorch L (long range), Conflagration L (max DPS)"
+
+capacitor:
+  stable_expected: false
+  notes: "Lasers + active tank are very cap hungry. Needs CCC rigs and cap mods."
+
+engagement:
+  range: "20-30km (pulse), 50-70km (beam)"
+  speed: "~140 m/s"
+  notes: "Instant crystal swap for range adjustment. Drones for frigates."

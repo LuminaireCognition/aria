@@ -1,0 +1,85 @@
+# Drake L3 Missions - Low Skill Variant
+#
+# Entry-level fit for pilots new to battlecruisers.
+# Uses Compact variants for easier fitting requirements.
+
+archetype:
+  hull: Drake
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Drake, L3 Missions - Low Skills]
+
+  Ballistic Control System I
+  Ballistic Control System I
+  Damage Control I
+  Drone Damage Amplifier I
+
+  10MN Y-S8 Compact Afterburner
+  Large Azeotropic Restrained Shield Extender
+  Large Azeotropic Restrained Shield Extender
+  Multispectrum Shield Hardener I
+  EM Shield Amplifier I
+  Shield Recharger I
+
+  Arbalest Compact Heavy Missile Launcher, Scourge Heavy Missile
+  Arbalest Compact Heavy Missile Launcher, Scourge Heavy Missile
+  Arbalest Compact Heavy Missile Launcher, Scourge Heavy Missile
+  Arbalest Compact Heavy Missile Launcher, Scourge Heavy Missile
+  Arbalest Compact Heavy Missile Launcher, Scourge Heavy Missile
+  Arbalest Compact Heavy Missile Launcher, Scourge Heavy Missile
+  [Empty High slot]
+
+  Medium Core Defense Field Purger I
+  Medium Core Defense Field Purger I
+  Medium Core Defense Field Purger I
+
+  Hobgoblin I x5
+
+skill_requirements:
+  required:
+    Caldari Battlecruiser: 2
+    Heavy Missiles: 2
+    Missile Launcher Operation: 3
+    Shield Management: 3
+    Shield Operation: 3
+  recommended:
+    Warhead Upgrades: 3
+    Rapid Launch: 3
+    Drones: 3
+
+stats:
+  dps: 240
+  ehp: 22000
+  tank_sustained: 85
+  capacitor_stable: true
+  align_time: 12.5
+  speed_ab: 300
+  missile_range: 48000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_passive
+
+notes:
+  purpose: "Entry-level L3 mission runner. Passive tank handles most L3 content easily."
+  engagement: "Warp at 50-70km, activate Adaptive, orbit or keep at range"
+  warnings:
+    - "Heavy missiles apply poorly to frigates - use drones"
+    - "Lower DPS than higher tiers - missions take longer"
+    - "Match ammo to enemy weakness for best results"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Arbalest Compact Heavy Missile Launcher"
+      upgrade_to: "Heavy Missile Launcher I"
+      skill_required: "Weapon Upgrades 3"
+    - module: "Large Azeotropic Restrained Shield Extender"
+      upgrade_to: "Large Shield Extender I"
+      skill_required: "Shield Upgrades 3"
+    - module: "Multispectrum Shield Hardener I"
+      upgrade_to: "Adaptive Invulnerability Field I"
+      skill_required: "Tactical Shield Manipulation 3"

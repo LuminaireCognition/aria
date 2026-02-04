@@ -1,0 +1,332 @@
+# JSON Schema for /abyssal skill output validation
+# Validates the structure of abyssal deadspace reference data responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: AbyssalSkillOutput
+description: Output schema for the /abyssal skill (abyssal deadspace reference data)
+type: object
+
+oneOf:
+  - $ref: "#/$defs/WeatherResponse"
+  - $ref: "#/$defs/TierResponse"
+  - $ref: "#/$defs/ShipResponse"
+  - $ref: "#/$defs/NPCFactionResponse"
+  - $ref: "#/$defs/GeneralGuideResponse"
+
+$defs:
+  # =============================================================================
+  # Weather Information Response
+  # =============================================================================
+  WeatherResponse:
+    type: object
+    description: Information about a specific abyssal weather type
+    required:
+      - weather_type
+      - filament_color
+      - effects
+      - npc_damage_profile
+      - recommended_resist
+    properties:
+      weather_type:
+        type: string
+        description: Name of the weather type
+        enum: ["electrical", "exotic", "firestorm", "gamma", "dark"]
+
+      filament_color:
+        type: string
+        description: Color of the filament for this weather
+
+      effects:
+        type: object
+        description: Weather effects (bonuses and penalties)
+        additionalProperties:
+          type: number
+
+      effect_description:
+        type: string
+        description: Human-readable description of weather effects
+
+      npc_damage_profile:
+        $ref: "#/$defs/DamageProfile"
+
+      recommended_resist:
+        type: string
+        description: Primary resist to tank against
+        enum: ["EM", "Thermal", "Kinetic", "Explosive", "Omni"]
+
+      notes:
+        type: string
+        description: Tactical notes for this weather
+
+  # =============================================================================
+  # Tier Information Response
+  # =============================================================================
+  TierResponse:
+    type: object
+    description: Information about a specific abyssal tier
+    required:
+      - tier
+      - name
+      - difficulty
+      - ship_class
+      - time_limit_seconds
+    properties:
+      tier:
+        type: integer
+        description: Tier number (0-6)
+        minimum: 0
+        maximum: 6
+
+      name:
+        type: string
+        description: Tier name (Tranquil, Calm, Agitated, etc.)
+        enum: ["Tranquil", "Calm", "Agitated", "Fierce", "Raging", "Chaotic", "Cataclysmic"]
+
+      filament_prefix:
+        type: string
+        description: Prefix used in filament names
+
+      difficulty:
+        type: string
+        description: Difficulty rating
+        enum: ["Tutorial", "Easy", "Moderate", "Hard", "Very Hard", "Extreme", "Extreme+"]
+
+      ship_class:
+        type: string
+        description: Ship class allowed for this tier
+        enum: ["Destroyer", "Cruiser"]
+
+      time_limit_seconds:
+        type: integer
+        description: Time limit to complete the site
+        minimum: 600
+        maximum: 1800
+
+      avg_loot_isk:
+        type: integer
+        description: Average loot value in ISK
+        minimum: 0
+
+      notes:
+        type: string
+        description: Tips and advice for this tier
+
+  # =============================================================================
+  # Ship Recommendation Response
+  # =============================================================================
+  ShipResponse:
+    type: object
+    description: Ship recommendation for abyssal running
+    required:
+      - hull
+      - class
+      - max_recommended_tier
+      - strengths
+      - weaknesses
+    properties:
+      hull:
+        type: string
+        description: Ship hull name
+        minLength: 1
+
+      class:
+        type: string
+        description: Ship class
+        enum: ["Cruiser", "Heavy Assault Cruiser", "Assault Frigate"]
+
+      max_recommended_tier:
+        type: integer
+        description: Maximum tier recommended for this ship
+        minimum: 0
+        maximum: 6
+
+      strengths:
+        type: array
+        description: Ship strengths in abyssal content
+        items:
+          type: string
+        minItems: 1
+
+      weaknesses:
+        type: array
+        description: Ship weaknesses to be aware of
+        items:
+          type: string
+
+      preferred_weather:
+        type: array
+        description: Weather types this ship excels in
+        items:
+          type: string
+          enum: ["electrical", "exotic", "firestorm", "gamma", "dark"]
+
+      notes:
+        type: string
+        description: General advice for using this ship
+
+  # =============================================================================
+  # NPC Faction Response
+  # =============================================================================
+  NPCFactionResponse:
+    type: object
+    description: Information about NPC factions found in abyssal deadspace
+    required:
+      - faction_name
+      - damage_dealt
+      - resist_profile
+      - recommended_damage
+    properties:
+      faction_name:
+        type: string
+        description: NPC faction name
+        enum: ["Triglavian Collective", "Drifters", "Sleepers", "Rogue Drones"]
+
+      damage_dealt:
+        $ref: "#/$defs/DamageProfile"
+
+      resist_profile:
+        type: object
+        description: NPC resist strengths (high/medium/low)
+        properties:
+          em:
+            type: string
+            enum: ["high", "medium", "low"]
+          thermal:
+            type: string
+            enum: ["high", "medium", "low"]
+          kinetic:
+            type: string
+            enum: ["high", "medium", "low"]
+          explosive:
+            type: string
+            enum: ["high", "medium", "low"]
+
+      recommended_damage:
+        type: string
+        description: Recommended damage types to use
+
+      special_mechanics:
+        type: array
+        description: Special mechanics to be aware of
+        items:
+          type: string
+
+      threat_priority:
+        type: string
+        description: Priority level when encountered
+        enum: ["Low", "Medium", "High", "Critical"]
+
+      kill_priorities:
+        type: array
+        description: Priority order for killing NPCs
+        items:
+          type: object
+          properties:
+            npc_type:
+              type: string
+            priority:
+              type: integer
+              minimum: 1
+            reason:
+              type: string
+
+      notes:
+        type: string
+        description: Tactical advice
+
+  # =============================================================================
+  # General Guide Response (combined info)
+  # =============================================================================
+  GeneralGuideResponse:
+    type: object
+    description: General abyssal deadspace guide with multiple topics
+    required:
+      - topic
+    properties:
+      topic:
+        type: string
+        description: Guide topic
+        enum: ["overview", "entry_requirements", "loot", "room_hazards"]
+
+      entry_requirements:
+        type: object
+        description: Requirements to run abyssal sites
+        properties:
+          skills:
+            type: object
+            properties:
+              minimum:
+                type: string
+              recommended:
+                type: string
+          standings:
+            type: string
+          location:
+            type: string
+          notes:
+            type: string
+
+      loot_items:
+        type: object
+        description: Common loot types by tier
+        additionalProperties:
+          type: object
+          properties:
+            description:
+              type: string
+            tiers_found:
+              type: array
+              items:
+                type: integer
+            notes:
+              type: string
+
+      room_hazards:
+        type: array
+        description: Environmental hazards in abyssal rooms
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+            type:
+              type: string
+              enum: ["tower", "cloud"]
+            effect:
+              type: string
+            priority:
+              oneOf:
+                - type: integer
+                - type: string
+                  enum: ["none"]
+            notes:
+              type: string
+
+  # =============================================================================
+  # Shared Definitions
+  # =============================================================================
+  DamageProfile:
+    type: object
+    description: Damage distribution percentages (should sum to 100)
+    required:
+      - em
+      - thermal
+      - kinetic
+      - explosive
+    properties:
+      em:
+        type: integer
+        minimum: 0
+        maximum: 100
+      thermal:
+        type: integer
+        minimum: 0
+        maximum: 100
+      kinetic:
+        type: integer
+        minimum: 0
+        maximum: 100
+      explosive:
+        type: integer
+        minimum: 0
+        maximum: 100

@@ -1,0 +1,46 @@
+# Helios Hull Manifest
+#
+# The Helios is a Gallente T2 Covert Ops frigate for dangerous space exploration.
+# Can warp while cloaked.
+
+hull: Helios
+class: covert_ops
+faction: gallente
+tech_level: 2
+
+slots:
+  high: 2
+  mid: 4
+  low: 3
+  rig: 2
+
+drones:
+  bandwidth: 10
+  bay: 10
+
+bonuses:
+  - "10% bonus to Core and Combat Scanner Probe strength per Gallente Frigate level"
+  - "10% bonus to Virus strength per Covert Ops level"
+  - "37.5% role bonus to Probe strength"
+
+roles:
+  - exploration
+  - covert_ops
+  - scanning
+
+fitting_rules:
+  tank_type: none
+  weapons:
+    primary: none
+    secondary: drones
+
+  notes:
+    - "Can warp while cloaked with Covert Ops Cloaking Device II"
+    - "Requires Gallente Frigate V, Electronics Upgrades V, Cloaking IV"
+    - "NOT a combat ship - rely on cloak for survival"
+    - "Excellent scan strength for finding signatures"
+
+engagement:
+  range: "N/A - explorer"
+  speed: "~2,800 m/s (MWD)"
+  notes: "Cloak+MWD trick for gate escape. D-scan constantly while hacking."

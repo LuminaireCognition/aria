@@ -1,0 +1,91 @@
+# Cheetah Exploration - Low Skill Variant
+#
+# T2 exploration frigate - fastest Covert Ops ship.
+
+archetype:
+  hull: Cheetah
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Cheetah, WH/Null Explorer - Low Skills]
+
+  Nanofiber Internal Structure I
+  Nanofiber Internal Structure I
+  Damage Control I
+
+  5MN Microwarpdrive I
+  Relic Analyzer II
+  Data Analyzer II
+  Cargo Scanner I
+
+  Covert Ops Cloaking Device II
+  Core Probe Launcher I
+
+  Small Gravity Capacitor Upgrade I
+  Small Gravity Capacitor Upgrade I
+
+  Core Scanner Probe I x16
+  Warrior I x3
+
+skill_requirements:
+  required:
+    Minmatar Frigate: 5
+    Electronics Upgrades: 5
+    Cloaking: 4
+    Covert Ops: 1
+    Hacking: 3
+    Archaeology: 3
+  recommended:
+    Covert Ops: 4
+    Hacking: 4
+    Archaeology: 4
+    Evasive Maneuvering: 4
+    Spaceship Command: 5
+
+stats:
+  scan_strength: 85
+  virus_strength: 40
+  virus_coherence: 90
+  ehp: 1200
+  align_time: 2.8  # with nanofibers
+  warp_speed: 6.0
+  speed_mwd: 3000
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Fastest nullsec/wormhole explorer"
+  engagement: "Speed is survival - 2.8s align beats most lockers"
+  warnings:
+    - "ZERO tank - if you're hit, you're dead"
+    - "Sub-3s align means most can't lock you before warp"
+    - "Fastest Cloak+MWD execution of any CovOps"
+    - "NOT recommended for Ghost sites - no buffer"
+    - "Covert Ops Cloak II is NON-NEGOTIABLE"
+
+  cloak_mwd_trick:
+    - "Jump through gate - session change cloak active"
+    - "Double-click in space away from gate"
+    - "Activate MWD"
+    - "Immediately activate cloak"
+    - "MWD finishes - you're 12km+ away (fastest)"
+    - "Align and warp while cloaked"
+
+  decloaked_escape:
+    - "Unlike other CovOps, Cheetah can escape decloaked"
+    - "Align to celestial immediately"
+    - "2.8s later - you're in warp"
+    - "Most ships can't lock a frigate that fast"
+    - "Doesn't work against instalockers"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Nanofiber Internal Structure I"
+      upgrade_to: "Nanofiber Internal Structure II"
+      skill_required: "Hull Upgrades 4"
+    - module: "Core Probe Launcher I"
+      upgrade_to: "Sisters Core Probe Launcher"
+      skill_required: "+5% scan strength"
+    - ship: "Astero"
+      notes: "Combat capable, slower but tankier - ~80M ISK"

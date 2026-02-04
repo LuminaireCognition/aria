@@ -1,0 +1,263 @@
+# Test fixture: Missing prices warning format
+# This fixture validates the warning format when some material prices are unavailable.
+#
+# When market prices cannot be retrieved for certain materials (e.g., NPC-seeded items
+# without player market, obscure components, or market API issues), the build-cost
+# skill should:
+# 1. Still return the materials list with null/0 prices for missing items
+# 2. Generate a warning string listing the affected materials
+# 3. Continue calculation with available prices (partial result)
+#
+# This is a schema validation test for the warning format, not a live market test.
+
+name: "Missing prices warning format"
+skill: build-cost
+description: |
+  Validates the warning format when some material prices are unavailable.
+  This ensures the skill gracefully handles missing market data and communicates
+  the issue clearly to the user.
+
+  The warning format should be a simple string (not a structured object):
+  "Missing prices for N materials: Material1, Material2, ..."
+
+input:
+  item: Dominix
+  me_level: 10
+  region: jita
+
+# This expected_output represents a scenario where component prices are missing.
+# In practice, this happens when:
+# - Components are not traded on the market
+# - ESI/Fuzzwork API has gaps
+# - Items are too obscure for reliable pricing
+expected_output:
+  blueprint:
+    type_id: 999
+    type_name: "Dominix Blueprint"
+    product_type_id: 645
+    product_name: "Dominix"
+    produces_quantity: 1
+  materials:
+    # Minerals with prices
+    - type_id: 34
+      type_name: "Tritanium"
+      base_quantity: 5200000
+      adjusted_quantity: 4680000
+      unit_price: 4.50
+      total_price: 21060000.0
+    - type_id: 35
+      type_name: "Pyerite"
+      base_quantity: 2600000
+      adjusted_quantity: 2340000
+      unit_price: 22.0
+      total_price: 51480000.0
+    - type_id: 36
+      type_name: "Mexallon"
+      base_quantity: 390000
+      adjusted_quantity: 351000
+      unit_price: 55.0
+      total_price: 19305000.0
+    - type_id: 37
+      type_name: "Isogen"
+      base_quantity: 130000
+      adjusted_quantity: 117000
+      unit_price: 150.0
+      total_price: 17550000.0
+    - type_id: 38
+      type_name: "Nocxium"
+      base_quantity: 15600
+      adjusted_quantity: 14040
+      unit_price: 450.0
+      total_price: 6318000.0
+    - type_id: 39
+      type_name: "Zydrine"
+      base_quantity: 3900
+      adjusted_quantity: 3510
+      unit_price: 1500.0
+      total_price: 5265000.0
+    - type_id: 40
+      type_name: "Megacyte"
+      base_quantity: 1950
+      adjusted_quantity: 1755
+      unit_price: 2500.0
+      total_price: 4387500.0
+    # Components with missing prices (simulated)
+    - type_id: 57478
+      type_name: "Auto-Integrity Preservation Seal"
+      base_quantity: 150
+      adjusted_quantity: 135
+      unit_price: null
+      total_price: null
+    - type_id: 57486
+      type_name: "Life Support Backup Unit"
+      base_quantity: 75
+      adjusted_quantity: 68
+      unit_price: null
+      total_price: null
+    - type_id: 57479
+      type_name: "Core Temperature Regulator"
+      base_quantity: 1
+      adjusted_quantity: 1
+      unit_price: 4800000.0
+      total_price: 4800000.0
+  total_material_cost: 130165500.0  # Partial - excludes missing prices
+  product_value: 180000000.0
+  me_level: 10
+  runs: 1
+  region: "The Forge"
+  region_id: 10000002
+  source: "fuzzwork"
+  freshness: "fresh"
+  # Warning format: simple string listing affected materials
+  warnings:
+    - "Missing prices for 2 materials: Auto-Integrity Preservation Seal, Life Support Backup Unit"
+
+expected_facts:
+  # ==========================================================================
+  # Warning format validation
+  # ==========================================================================
+
+  # Should have at least one warning when prices are missing
+  - path: "warnings"
+    length_gte: 1
+
+  # Warning text should contain "Missing prices" indicator
+  - path: "warnings[0]"
+    contains: "Missing prices"
+
+  # ==========================================================================
+  # Materials should still be present even without prices
+  # ==========================================================================
+
+  # All 10 materials should be in the list
+  - path: "materials"
+    length: 10
+
+  # Component type_ids should still be present
+  - path: "materials[*].type_id"
+    contains: 57478
+
+  - path: "materials[*].type_id"
+    contains: 57486
+
+  # ==========================================================================
+  # Partial calculation should still work
+  # ==========================================================================
+
+  # Total cost should be positive (partial calculation with available prices)
+  - path: "total_material_cost"
+    range: [50000000, 200000000]
+
+  # Product value should still be available
+  - path: "product_value"
+    range: [100000000, 400000000]
+
+  # ==========================================================================
+  # Schema validation
+  # ==========================================================================
+
+  - path: "blueprint.product_name"
+    equals: "Dominix"
+
+  - path: "me_level"
+    equals: 10
+
+  - path: "region_id"
+    equals: 10000002
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  sde_blueprint_info:
+    type_id: 999
+    type_name: "Dominix Blueprint"
+    product_type_id: 645
+    product_name: "Dominix"
+    produces_quantity: 1
+    materials:
+      - type_id: 34
+        type_name: "Tritanium"
+        quantity: 5200000
+      - type_id: 35
+        type_name: "Pyerite"
+        quantity: 2600000
+      - type_id: 36
+        type_name: "Mexallon"
+        quantity: 390000
+      - type_id: 37
+        type_name: "Isogen"
+        quantity: 130000
+      - type_id: 38
+        type_name: "Nocxium"
+        quantity: 15600
+      - type_id: 39
+        type_name: "Zydrine"
+        quantity: 3900
+      - type_id: 40
+        type_name: "Megacyte"
+        quantity: 1950
+      - type_id: 57478
+        type_name: "Auto-Integrity Preservation Seal"
+        quantity: 150
+      - type_id: 57486
+        type_name: "Life Support Backup Unit"
+        quantity: 75
+      - type_id: 57479
+        type_name: "Core Temperature Regulator"
+        quantity: 1
+
+  # Partial market response - some prices missing
+  market_prices:
+    items:
+      - type_id: 34
+        type_name: "Tritanium"
+        sell:
+          min_price: 4.50
+          volume: 1000000000
+      - type_id: 35
+        type_name: "Pyerite"
+        sell:
+          min_price: 22.0
+          volume: 500000000
+      - type_id: 36
+        type_name: "Mexallon"
+        sell:
+          min_price: 55.0
+          volume: 200000000
+      - type_id: 37
+        type_name: "Isogen"
+        sell:
+          min_price: 150.0
+          volume: 100000000
+      - type_id: 38
+        type_name: "Nocxium"
+        sell:
+          min_price: 450.0
+          volume: 50000000
+      - type_id: 39
+        type_name: "Zydrine"
+        sell:
+          min_price: 1500.0
+          volume: 10000000
+      - type_id: 40
+        type_name: "Megacyte"
+        sell:
+          min_price: 2500.0
+          volume: 5000000
+      # Note: 57478 and 57486 intentionally missing to simulate API gaps
+      - type_id: 57479
+        type_name: "Core Temperature Regulator"
+        sell:
+          min_price: 4800000.0
+          volume: 5000
+      - type_id: 645
+        type_name: "Dominix"
+        sell:
+          min_price: 180000000.0
+          volume: 500
+    region: "The Forge"
+    region_id: 10000002
+    missing_items:
+      - 57478
+      - 57486

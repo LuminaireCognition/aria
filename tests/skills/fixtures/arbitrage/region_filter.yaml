@@ -1,0 +1,76 @@
+# Test fixture: Arbitrage with region filters
+# Tests buy_from/sell_to region filtering
+
+name: "Arbitrage with region filters"
+skill: arbitrage
+description: |
+  Arbitrage scan filtered to specific buy and sell regions.
+  Tests targeted arbitrage between Jita and Amarr.
+
+input:
+  min_profit_pct: 5
+  min_volume: 50
+  buy_from:
+    - "jita"
+  sell_to:
+    - "amarr"
+
+expected_output:
+  opportunities:
+    - type_id: 16275
+      type_name: "Mexallon"
+      buy_region: "The Forge"
+      buy_region_id: 10000002
+      sell_region: "Domain"
+      sell_region_id: 10000043
+      buy_price: 52.0
+      sell_price: 58.0
+      profit_per_unit: 6.0
+      profit_pct: 11.54
+      available_volume: 2000000
+      route_jumps: 45
+      route_safe: true
+      freshness: "fresh"
+      confidence: "high"
+      item_volume_m3: 0.01
+      trade_mode: "immediate"
+      broker_fee_pct: 0.03
+      sales_tax_pct: 0.036
+  total_found: 8
+  regions_scanned:
+    - "The Forge"
+    - "Domain"
+  scan_timestamp: 1705320000
+  data_freshness: "fresh"
+  refresh_performed: false
+  warnings: []
+
+expected_facts:
+  # Only 2 regions should be scanned (Jita region and Amarr region)
+  - path: "regions_scanned"
+    length: 2
+
+  - path: "regions_scanned"
+    contains: "The Forge"
+
+  - path: "regions_scanned"
+    contains: "Domain"
+
+  # Verify specific buy/sell region IDs
+  - path: "opportunities[0].buy_region_id"
+    equals: 10000002
+
+  - path: "opportunities[0].sell_region_id"
+    equals: 10000043
+
+  # Buy region should be The Forge
+  - path: "opportunities[0].buy_region"
+    equals: "The Forge"
+
+  # Sell region should be Domain
+  - path: "opportunities[0].sell_region"
+    equals: "Domain"
+
+  # Profit should meet threshold
+  - path: "opportunities[*].profit_pct"
+    all_satisfy: ">= 5"

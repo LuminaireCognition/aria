@@ -1,0 +1,276 @@
+# JSON Schema for /pi skill output validation
+# Validates the structure of planetary interaction reference data responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: PISkillOutput
+description: Output schema for the /pi skill (planetary interaction reference data)
+type: object
+
+oneOf:
+  - $ref: "#/$defs/ProductionChainResponse"
+  - $ref: "#/$defs/PlanetResourceResponse"
+  - $ref: "#/$defs/SinglePlanetP2Response"
+  - $ref: "#/$defs/SkillsResponse"
+  - $ref: "#/$defs/ProfitAnalysisResponse"
+
+$defs:
+  # =============================================================================
+  # Production Chain Response
+  # =============================================================================
+  ProductionChainResponse:
+    type: object
+    description: Full production chain for a PI product
+    required:
+      - product_name
+      - product_tier
+      - inputs
+    additionalProperties: false
+    properties:
+      product_name:
+        type: string
+        description: Name of the final product
+        minLength: 1
+
+      product_tier:
+        type: string
+        description: Product tier (P1, P2, P3, P4)
+        enum: ["P0", "P1", "P2", "P3", "P4"]
+
+      inputs:
+        type: array
+        description: Direct inputs required for production
+        items:
+          $ref: "#/$defs/ProductionInput"
+        minItems: 1
+
+      raw_resources:
+        type: array
+        description: All P0 raw resources needed (full chain)
+        items:
+          type: string
+        minItems: 1
+
+      production_facility:
+        type: string
+        description: Facility type required
+        enum: ["Basic Industry Facility", "Advanced Industry Facility", "High Tech Production Plant"]
+
+      cycle_time_seconds:
+        type: integer
+        description: Production cycle duration
+        minimum: 1800
+        maximum: 3600
+
+      output_quantity:
+        type: integer
+        description: Output per cycle
+        minimum: 1
+
+      planet_types:
+        type: array
+        description: Planet types that can produce this (for single-planet production)
+        items:
+          type: string
+          enum: ["Barren", "Gas", "Ice", "Lava", "Oceanic", "Plasma", "Storm", "Temperate"]
+
+      notes:
+        type: string
+        description: Production notes and tips
+
+  # =============================================================================
+  # Planet Resource Response
+  # =============================================================================
+  PlanetResourceResponse:
+    type: object
+    description: Information about a P0 resource and where to find it
+    required:
+      - resource_name
+      - planet_types
+      - produces_p1
+    properties:
+      resource_name:
+        type: string
+        description: P0 raw resource name
+        minLength: 1
+
+      planet_types:
+        type: array
+        description: Planet types where this resource is found
+        items:
+          type: string
+          enum: ["Barren", "Gas", "Ice", "Lava", "Oceanic", "Plasma", "Storm", "Temperate"]
+        minItems: 1
+
+      produces_p1:
+        type: string
+        description: P1 product created from this resource
+
+      p0_to_p1_ratio:
+        type: string
+        description: Conversion ratio (e.g., "3000:20")
+
+      notes:
+        type: string
+        description: Additional information
+
+  # =============================================================================
+  # Single Planet P2 Response
+  # =============================================================================
+  SinglePlanetP2Response:
+    type: object
+    description: P2 products that can be made on a single planet
+    required:
+      - single_planet_products
+    properties:
+      single_planet_products:
+        type: object
+        description: Planet type to P2 products mapping
+        additionalProperties:
+          type: array
+          items:
+            type: string
+        minProperties: 1
+
+      best_planet_types:
+        type: array
+        description: Planet types with most P2 options
+        items:
+          type: object
+          properties:
+            planet_type:
+              type: string
+            p2_count:
+              type: integer
+              minimum: 1
+
+      notes:
+        type: string
+        description: Tips for single-planet P2 production
+
+  # =============================================================================
+  # Skills Response
+  # =============================================================================
+  SkillsResponse:
+    type: object
+    description: PI-related skills and recommendations
+    required:
+      - skills
+    properties:
+      skills:
+        type: array
+        description: List of PI-related skills
+        items:
+          $ref: "#/$defs/PISkill"
+        minItems: 1
+
+      recommended_priority:
+        type: array
+        description: Skill training priority order
+        items:
+          type: string
+
+      notes:
+        type: string
+        description: General skill training advice
+
+  # =============================================================================
+  # Profit Analysis Response (optional market integration)
+  # =============================================================================
+  ProfitAnalysisResponse:
+    type: object
+    description: Profit analysis for PI production
+    required:
+      - product_name
+      - product_tier
+      - market_prices  # Required to distinguish from ProductionChainResponse
+    properties:
+      product_name:
+        type: string
+        description: Product being analyzed
+
+      product_tier:
+        type: string
+        enum: ["P1", "P2", "P3", "P4"]
+
+      market_prices:
+        type: object
+        description: Current market prices
+        required:
+          - product_sell
+        properties:
+          product_sell:
+            type: number
+            minimum: 0
+          input_costs:
+            type: number
+            minimum: 0
+
+      per_cycle_profit:
+        type: number
+        description: Profit per production cycle
+
+      export_taxes:
+        type: object
+        description: Export tax costs
+        properties:
+          base_tax_per_unit:
+            type: number
+          estimated_total:
+            type: number
+
+      notes:
+        type: string
+
+  # =============================================================================
+  # Shared Definitions
+  # =============================================================================
+  ProductionInput:
+    type: object
+    description: An input material for production
+    required:
+      - name
+      - quantity
+      - tier
+    properties:
+      name:
+        type: string
+        description: Input material name
+      quantity:
+        type: integer
+        description: Quantity required per cycle
+        minimum: 1
+      tier:
+        type: string
+        description: Input tier (P0, P1, P2, P3)
+        enum: ["P0", "P1", "P2", "P3"]
+
+  PISkill:
+    type: object
+    description: A PI-related skill
+    required:
+      - name
+      - rank
+      - recommended_level
+    properties:
+      name:
+        type: string
+        description: Skill name
+      rank:
+        type: integer
+        description: Skill rank (training time multiplier)
+        minimum: 1
+        maximum: 16
+      effect_per_level:
+        type: string
+        description: Bonus provided per level
+      recommended_level:
+        type: integer
+        description: Recommended training level
+        minimum: 1
+        maximum: 5
+      prerequisite:
+        type: string
+        description: Required prerequisite skill
+      notes:
+        type: string
+        description: Tips for this skill

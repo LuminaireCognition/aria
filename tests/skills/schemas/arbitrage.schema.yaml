@@ -1,0 +1,217 @@
+# JSON Schema for /arbitrage skill output validation
+# Validates the structure of market(action="arbitrage_scan") responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: ArbitrageSkillOutput
+description: Output schema for the /arbitrage skill (market arbitrage_scan action)
+type: object
+
+required:
+  - opportunities
+  - total_found
+  - regions_scanned
+  - scan_timestamp
+  - data_freshness
+
+properties:
+  opportunities:
+    type: array
+    description: Arbitrage opportunities sorted by profitability
+    items:
+      $ref: "#/$defs/ArbitrageOpportunity"
+
+  total_found:
+    type: integer
+    description: Total opportunities found before filtering
+    minimum: 0
+
+  regions_scanned:
+    type: array
+    description: Regions included in the scan
+    items:
+      type: string
+    minItems: 1
+
+  scan_timestamp:
+    type: integer
+    description: Unix timestamp of scan
+
+  data_freshness:
+    type: string
+    description: Overall data freshness
+    enum: ["fresh", "recent", "stale"]
+
+  stale_warning:
+    type: ["string", "null"]
+    description: Warning if data is stale
+
+  refresh_performed:
+    type: boolean
+    description: Whether refresh was triggered
+
+  warnings:
+    type: array
+    description: Any warnings about the scan
+    items:
+      type: string
+
+$defs:
+  ArbitrageOpportunity:
+    type: object
+    description: Single arbitrage opportunity between two regions
+    required:
+      - type_id
+      - type_name
+      - buy_region
+      - buy_region_id
+      - sell_region
+      - sell_region_id
+      - buy_price
+      - sell_price
+      - profit_per_unit
+      - profit_pct
+      - available_volume
+    properties:
+      type_id:
+        type: integer
+        description: Item type ID
+        minimum: 1
+
+      type_name:
+        type: string
+        description: Item name
+        minLength: 1
+
+      buy_region:
+        type: string
+        description: Region to buy from (lower price)
+        minLength: 1
+
+      buy_region_id:
+        type: integer
+        description: Buy region ID
+        minimum: 1
+
+      sell_region:
+        type: string
+        description: Region to sell to (higher price)
+        minLength: 1
+
+      sell_region_id:
+        type: integer
+        description: Sell region ID
+        minimum: 1
+
+      buy_price:
+        type: number
+        description: Sell order price at buy region
+        minimum: 0
+
+      sell_price:
+        type: number
+        description: Buy order price at sell region
+        minimum: 0
+
+      profit_per_unit:
+        type: number
+        description: Gross profit per unit (sell - buy)
+
+      profit_pct:
+        type: number
+        description: Profit percentage before fees
+
+      available_volume:
+        type: integer
+        description: Min of buy/sell volume
+        minimum: 0
+
+      route_jumps:
+        type: ["integer", "null"]
+        description: Jumps between hubs
+        minimum: 0
+
+      route_safe:
+        type: boolean
+        description: Route is high-sec only
+
+      freshness:
+        type: string
+        description: Data freshness
+        enum: ["fresh", "recent", "stale"]
+
+      confidence:
+        type: string
+        description: V1 confidence level
+        enum: ["high", "medium", "low"]
+
+      # V2 Fields: Volume & Density
+      item_volume_m3:
+        type: number
+        description: Effective volume per unit in m3
+        minimum: 0
+
+      profit_density:
+        type: ["number", "null"]
+        description: Net profit per m3
+
+      # V2 Fields: Fee-adjusted Profit
+      gross_profit_per_unit:
+        type: ["number", "null"]
+        description: Profit before fees
+
+      net_profit_per_unit:
+        type: ["number", "null"]
+        description: Profit after fees
+
+      gross_margin_pct:
+        type: ["number", "null"]
+        description: Gross profit percentage
+
+      net_margin_pct:
+        type: ["number", "null"]
+        description: Net profit percentage
+
+      trade_mode:
+        type: string
+        description: Trade mode used
+        enum: ["immediate", "hybrid", "station_trading"]
+
+      broker_fee_pct:
+        type: number
+        description: Broker fee rate
+        minimum: 0
+
+      sales_tax_pct:
+        type: number
+        description: Sales tax rate
+        minimum: 0
+
+      # V2 Fields: Hauling Score
+      hauling_score:
+        type: ["number", "null"]
+        description: ISK profit per m3 of transport capacity
+
+      safe_quantity:
+        type: ["integer", "null"]
+        description: Liquidity-adjusted quantity to trade
+        minimum: 0
+
+      expected_profit:
+        type: ["number", "null"]
+        description: net_profit_per_unit * safe_quantity
+
+      fill_ratio:
+        type: ["number", "null"]
+        description: cargo_used / cargo_capacity_m3
+        minimum: 0
+        maximum: 1
+
+      limiting_factor:
+        type: ["string", "null"]
+        description: Primary constraint
+
+      limiting_factors:
+        type: ["array", "null"]
+        description: All binding constraints
+        items:
+          type: string

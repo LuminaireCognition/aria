@@ -1,0 +1,69 @@
+# Rupture Hull Manifest
+#
+# The Rupture is a Minmatar T1 cruiser specialized for projectiles.
+# Flexible tank (armor or shield) with cap-free guns.
+
+hull: Rupture
+class: cruiser
+faction: minmatar
+tech_level: 1
+
+# Slot layout (from SDE)
+slots:
+  high: 5
+  mid: 3
+  low: 5
+  rig: 3
+
+# Drone/fighter capacity
+drones:
+  bandwidth: 30
+  bay: 60
+
+# Hull bonuses summary
+bonuses:
+  - "5% bonus to Medium Projectile Turret damage per Minmatar Cruiser level"
+  - "7.5% bonus to Medium Projectile Turret tracking speed per Minmatar Cruiser level"
+
+# Ship role classification
+roles:
+  - turret_boat
+  - flex_tank  # Can armor or shield tank
+
+# Hull-specific fitting rules
+fitting_rules:
+  # Preferred tank type
+  tank_type: armor_active  # Armor is traditional, but shield works
+
+  # Weapon system
+  weapons:
+    primary: projectiles
+    secondary: drones  # Decent 60m3 bay
+
+  # Special instructions
+  notes:
+    - "4 turret hardpoints + 1 utility high"
+    - "Projectiles use NO capacitor"
+    - "Selectable damage type via ammo"
+    - "Can fit armor OR shield tank effectively"
+    - "Good drone bay for a turret cruiser"
+
+# Recommended ammo loadout
+ammo_recommendations:
+  em_damage: "EMP M"
+  thermal_damage: "Phased Plasma M"
+  explosive_damage: "Fusion M"
+  kinetic_damage: "Titanium Sabot M"
+  note: "No reload time penalty for switching ammo"
+
+# Cap stability expectations
+capacitor:
+  stable_expected: true
+  notes: "Guns don't use cap. Only tank and prop mod drain cap. Very forgiving."
+
+# Typical engagement profile
+engagement:
+  range: "2-5km optimal, 15km falloff (autocannons)"
+  speed: "brawling with MWD"
+  signature: "medium - MWD blooms sig"
+  notes: "Close range brawler. Orbit tight, swap ammo to exploit weaknesses."

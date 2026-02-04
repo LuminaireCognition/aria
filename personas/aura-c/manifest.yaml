@@ -1,0 +1,16 @@
+name: AURA-C
+subtitle: Caldari State Tactical Interface
+directory: aura-c
+
+factions:
+  - caldari
+
+address:
+  full: Capsuleer
+  moderate: pilot
+  lite: null
+  off: null
+
+greeting:
+  full: "Efficiency is the path to victory."
+  moderate: "Systems nominal. Ready for tasking."

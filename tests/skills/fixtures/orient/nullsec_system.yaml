@@ -1,0 +1,211 @@
+# Test fixture: Nullsec system orientation
+# Tests /orient in null security space
+
+name: "Nullsec system orientation"
+skill: orient
+description: |
+  Local area intelligence for a nullsec system.
+  Tests orientation with ratting banks and escape routes to lowsec.
+
+input:
+  origin: VFK-IV
+  max_jumps: 10
+  include_realtime: true
+
+expected_output:
+  origin: "VFK-IV"
+  origin_id: 30002904
+  security: -0.43
+  security_class: "NULL"
+  region: "Deklein"
+  constellation: "O2-39S"
+  threat_summary:
+    level: "MEDIUM"
+    total_kills: 8
+    total_pods: 3
+    active_camps: []
+    hotspot_count: 1
+  hotspots:
+    - system: "YA0-XJ"
+      system_id: 30002906
+      security: -0.52
+      security_class: "NULL"
+      region: "Deklein"
+      jumps: 2
+      ship_kills: 5
+      pod_kills: 2
+      npc_kills: 150
+      ship_jumps: 85
+      activity_level: "medium"
+  quiet_zones:
+    - system: "S-NJBB"
+      system_id: 30002908
+      security: -0.35
+      security_class: "NULL"
+      region: "Deklein"
+      jumps: 4
+      ship_kills: 0
+      pod_kills: 0
+      npc_kills: 5
+      ship_jumps: 12
+      activity_level: "none"
+  ratting_banks:
+    - system: "3T7-M8"
+      system_id: 30002910
+      security: -0.48
+      security_class: "NULL"
+      region: "Deklein"
+      jumps: 3
+      ship_kills: 0
+      pod_kills: 0
+      npc_kills: 450
+      ship_jumps: 35
+      activity_level: "low"
+      reason: "ratting bank"
+  escape_routes:
+    - destination: "EC-P8R"
+      destination_type: "lowsec"
+      jumps: 12
+      via_system: "O-CNPR"
+      route_security: "mixed"
+    - destination: "M-OEE8"
+      destination_type: "npc_station"
+      jumps: 8
+      via_system: "TXME-A"
+      route_security: "mixed"
+  borders:
+    - system: "JU-OWQ"
+      system_id: 30002915
+      security: -0.22
+      jumps: 6
+      border_type: "null_to_low"
+      adjacent_system: "EC-P8R"
+      adjacent_security: 0.12
+  systems_scanned: 45
+  search_radius: 10
+  cache_age_seconds: 120
+  realtime_healthy: true
+  warnings: []
+
+expected_facts:
+  # Origin validation
+  - path: "origin"
+    equals: "VFK-IV"
+
+  - path: "security_class"
+    equals: "NULL"
+
+  # Nullsec security (< 0)
+  - path: "security"
+    range: [-1.0, 0.0]
+
+  # Medium threat typical for sov null
+  - path: "threat_summary.level"
+    equals: "MEDIUM"
+
+  # Should have ratting banks in null
+  - path: "ratting_banks"
+    length: 1
+
+  # Ratting bank should have high NPC kills
+  - path: "ratting_banks[0].npc_kills"
+    range: [100, 1000]
+
+  # Ratting bank reason
+  - path: "ratting_banks[0].reason"
+    equals: "ratting bank"
+
+  # Escape routes to lowsec available
+  - path: "escape_routes[0].destination_type"
+    equals: "lowsec"
+
+  # Border shows null-to-low transition
+  - path: "borders[0].border_type"
+    equals: "null_to_low"
+
+  # Realtime should be healthy in this fixture
+  - path: "realtime_healthy"
+    equals: true
+
+  # More systems scanned in null
+  - path: "systems_scanned"
+    range: [20, 100]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_local_area:
+    origin: "VFK-IV"
+    origin_id: 30002904
+    security: -0.43
+    security_class: "NULL"
+    region: "Deklein"
+    constellation: "O2-39S"
+    threat_summary:
+      level: "MEDIUM"
+      total_kills: 8
+      total_pods: 3
+      active_camps: []
+      hotspot_count: 1
+    hotspots:
+      - system: "YA0-XJ"
+        system_id: 30002906
+        security: -0.52
+        security_class: "NULL"
+        region: "Deklein"
+        jumps: 2
+        ship_kills: 5
+        pod_kills: 2
+        npc_kills: 150
+        ship_jumps: 85
+        activity_level: "medium"
+    quiet_zones:
+      - system: "S-NJBB"
+        system_id: 30002908
+        security: -0.35
+        security_class: "NULL"
+        region: "Deklein"
+        jumps: 4
+        ship_kills: 0
+        pod_kills: 0
+        npc_kills: 5
+        ship_jumps: 12
+        activity_level: "none"
+    ratting_banks:
+      - system: "3T7-M8"
+        system_id: 30002910
+        security: -0.48
+        security_class: "NULL"
+        region: "Deklein"
+        jumps: 3
+        ship_kills: 0
+        pod_kills: 0
+        npc_kills: 450
+        ship_jumps: 35
+        activity_level: "low"
+        reason: "ratting bank"
+    escape_routes:
+      - destination: "EC-P8R"
+        destination_type: "lowsec"
+        jumps: 12
+        via_system: "O-CNPR"
+        route_security: "mixed"
+      - destination: "M-OEE8"
+        destination_type: "npc_station"
+        jumps: 8
+        via_system: "TXME-A"
+        route_security: "mixed"
+    borders:
+      - system: "JU-OWQ"
+        system_id: 30002915
+        security: -0.22
+        jumps: 6
+        border_type: "null_to_low"
+        adjacent_system: "EC-P8R"
+        adjacent_security: 0.12
+    systems_scanned: 45
+    search_radius: 10
+    cache_age_seconds: 120
+    realtime_healthy: true
+    warnings: []

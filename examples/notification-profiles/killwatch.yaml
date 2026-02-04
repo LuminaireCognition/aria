@@ -1,0 +1,50 @@
+# Killwatch - High-Value Kill Notifications
+#
+# Monitors for expensive ship losses in your area of operations.
+# Good for: Market traders (hauler losses), PvP hunters (target intel)
+#
+# Setup:
+#   1. Copy to userdata/notifications/killwatch.yaml
+#   2. Replace webhook_url with your Discord webhook
+#   3. Customize systems list for your region
+#   4. Adjust high_value_threshold as needed
+
+schema_version: 1
+
+name: "killwatch"
+display_name: "Kill Watch"
+description: "High-value kill alerts in Placid region"
+enabled: true
+
+# Replace with your Discord webhook URL
+webhook_url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
+
+topology:
+  geographic:
+    systems:
+      # Customize these for your area of operations
+      # Placid lowsec examples:
+      - name: "Intaki"
+        classification: "hunting"
+      - name: "Agoze"
+        classification: "hunting"
+      - name: "Ostingele"
+        classification: "hunting"
+      - name: "Harroule"
+        classification: "transit"
+
+      # Add highsec trade route if watching haulers:
+      - name: "Stacmon"
+        classification: "transit"
+      - name: "Covryn"
+        classification: "transit"
+
+triggers:
+  watchlist_activity: true        # Alert when watched corps/alliances get kills
+  gatecamp_detected: false        # Disable for pure kill watching
+  high_value_threshold: 50000000  # 50M+ ISK kills only
+
+throttle_minutes: 1               # Near real-time for hunting
+
+quiet_hours:
+  enabled: false

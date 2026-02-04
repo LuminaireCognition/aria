@@ -1,0 +1,82 @@
+# Buzzard Exploration - Low Skill Variant
+#
+# T2 exploration frigate with best utility options (5 mids).
+
+archetype:
+  hull: Buzzard
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Buzzard, WH/Null Explorer - Low Skills]
+
+  Nanofiber Internal Structure I
+  Damage Control I
+
+  5MN Microwarpdrive I
+  Relic Analyzer II
+  Data Analyzer II
+  Cargo Scanner I
+  Medium Shield Extender I
+
+  Covert Ops Cloaking Device II
+  Core Probe Launcher I
+
+  Small Gravity Capacitor Upgrade I
+  Small Gravity Capacitor Upgrade I
+
+  Core Scanner Probe I x16
+  Hornet I x3
+
+skill_requirements:
+  required:
+    Caldari Frigate: 5
+    Electronics Upgrades: 5
+    Cloaking: 4
+    Covert Ops: 1
+    Hacking: 3
+    Archaeology: 3
+  recommended:
+    Covert Ops: 4
+    Hacking: 4
+    Archaeology: 4
+    Shield Management: 4
+    Astrometrics: 4
+
+stats:
+  scan_strength: 85
+  virus_strength: 40
+  virus_coherence: 90
+  ehp: 2200  # with shield extender
+  align_time: 3.5
+  warp_speed: 6.0
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Nullsec/wormhole exploration with maximum utility"
+  engagement: "Best Ghost site runner - shield buffer survives explosions"
+  warnings:
+    - "5 mids = no compromises between tank and utility"
+    - "Shield buffer makes Ghost sites safer than other CovOps"
+    - "Tank buys seconds, not survival - still run if caught"
+    - "Covert Ops Cloak II is NON-NEGOTIABLE"
+
+  cloak_mwd_trick:
+    - "Jump through gate - session change cloak active"
+    - "Double-click in space away from gate"
+    - "Activate MWD"
+    - "Immediately activate cloak"
+    - "MWD finishes - you're 10km+ away, cloaked"
+    - "Align and warp while cloaked"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Medium Shield Extender I"
+      upgrade_to: "Medium Shield Extender II"
+      skill_required: "Shield Upgrades 4"
+    - module: "Core Probe Launcher I"
+      upgrade_to: "Sisters Core Probe Launcher"
+      skill_required: "+5% scan strength"
+    - ship: "Astero"
+      notes: "Combat capable, but only 4 mids - ~80M ISK"

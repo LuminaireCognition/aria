@@ -1,0 +1,56 @@
+# Test fixture: Unresolved item handling
+# Tests error handling for invalid item names
+
+name: "Unresolved item handling"
+skill: price
+description: |
+  Test handling of invalid/unresolved item names.
+  Should return empty items array with item in unresolved_items.
+
+input:
+  items:
+    - NotARealItem12345
+  region: jita
+
+expected_output:
+  region: "The Forge"
+  region_id: 10000002
+  source: "fuzzwork"
+  freshness: "fresh"
+  items: []
+  unresolved_items:
+    - "NotARealItem12345"
+  warnings: []
+
+expected_facts:
+  # Region should still be valid
+  - path: "region"
+    equals: "The Forge"
+
+  - path: "region_id"
+    equals: 10000002
+
+  # Items array should be empty
+  - path: "items"
+    length: 0
+
+  # Unresolved items should contain our invalid item
+  - path: "unresolved_items"
+    length: 1
+
+  - path: "unresolved_items"
+    contains: "NotARealItem12345"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  market_prices:
+    region: "The Forge"
+    region_id: 10000002
+    source: "fuzzwork"
+    freshness: "fresh"
+    items: []
+    unresolved_items:
+      - "NotARealItem12345"
+    warnings: []

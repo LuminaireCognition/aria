@@ -1,0 +1,36 @@
+# Test fixture: Clean clone with no implants
+# Tests display when pilot has no active implants
+
+name: "Clean Clone - No Implants"
+skill: clones
+description: |
+  Display clone status for a pilot with no active implants.
+  Common for pilots in PvP-ready state.
+
+input:
+  command: implants
+
+expected_facts:
+  - path: "response_type"
+    equals: "implants_only"
+
+  - path: "implant_count"
+    equals: 0
+
+  - path: "estimated_value"
+    equals: 0
+
+expected_output:
+  query_timestamp: "2026-01-31T12:30:00Z"
+  response_type: "implants_only"
+  implant_count: 0
+  implants: []
+  attribute_enhancers: []
+  hardwirings: []
+  estimated_value: 0
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  implants: []

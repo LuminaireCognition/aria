@@ -1,0 +1,254 @@
+{
+  "_meta": {
+    "description": "Master hybrid turret reference for ARIA project. ARIA must consult this file before making any claims about hybrid ammo or recommending hybrid charges.",
+    "source": "https://wiki.eveuniversity.org/Hybrid_ammunition",
+    "last_verified": "2026-02-02"
+  },
+  "damage_profile": {
+    "_note": "All hybrid charges deal Kinetic/Thermal only. Damage type cannot be changed via ammo selection.",
+    "kinetic": 0.50,
+    "thermal": 0.50
+  },
+  "turret_types": {
+    "blaster": {
+      "range": "short",
+      "description": "Highest DPS in game at close range, poor range",
+      "sizes": {
+        "small": ["Light Electron Blaster", "Light Ion Blaster", "Light Neutron Blaster"],
+        "medium": ["Heavy Electron Blaster", "Heavy Ion Blaster", "Heavy Neutron Blaster"],
+        "large": ["Electron Blaster Cannon", "Ion Blaster Cannon", "Neutron Blaster Cannon"]
+      }
+    },
+    "railgun": {
+      "range": "long",
+      "description": "Excellent range, lower DPS than blasters",
+      "sizes": {
+        "small": ["75mm Gatling Rail", "125mm Railgun", "150mm Railgun"],
+        "medium": ["200mm Railgun", "250mm Railgun"],
+        "large": ["350mm Railgun", "425mm Railgun"]
+      }
+    }
+  },
+  "charge_types": {
+    "short_range": {
+      "_note": "Shortest range, highest damage",
+      "antimatter": {
+        "range_modifier": -50,
+        "damage_modifier": 1.20,
+        "tracking_modifier": 0,
+        "best_for": "maximum DPS at close range"
+      },
+      "plutonium": {
+        "range_modifier": -37.5,
+        "damage_modifier": 1.10,
+        "tracking_modifier": 0,
+        "best_for": "slightly more range than antimatter"
+      },
+      "uranium": {
+        "range_modifier": -25,
+        "damage_modifier": 1.00,
+        "tracking_modifier": 0,
+        "best_for": "balanced short range"
+      }
+    },
+    "medium_range": {
+      "thorium": {
+        "range_modifier": 0,
+        "damage_modifier": 0.875,
+        "tracking_modifier": 0,
+        "best_for": "general purpose"
+      },
+      "lead": {
+        "range_modifier": 25,
+        "damage_modifier": 0.75,
+        "tracking_modifier": 0,
+        "best_for": "extended range"
+      }
+    },
+    "long_range": {
+      "tungsten": {
+        "range_modifier": 50,
+        "damage_modifier": 0.625,
+        "tracking_modifier": 0,
+        "best_for": "long range"
+      },
+      "iridium": {
+        "range_modifier": 60,
+        "damage_modifier": 0.50,
+        "tracking_modifier": 0,
+        "best_for": "very long range"
+      },
+      "iron": {
+        "range_modifier": 75,
+        "damage_modifier": 0.375,
+        "tracking_modifier": 0,
+        "best_for": "maximum range, minimum damage"
+      }
+    }
+  },
+  "t2_ammo": {
+    "blaster": {
+      "void": {
+        "range_modifier": -25,
+        "damage_modifier": 1.375,
+        "tracking_modifier": -25,
+        "best_for": "maximum DPS, very close range"
+      },
+      "null": {
+        "range_modifier": 50,
+        "damage_modifier": 0.75,
+        "tracking_modifier": 0,
+        "best_for": "blasters at extended range, kiting"
+      }
+    },
+    "railgun": {
+      "javelin": {
+        "range_modifier": -25,
+        "damage_modifier": 1.20,
+        "tracking_modifier": 0,
+        "best_for": "railgun DPS at closer range"
+      },
+      "spike": {
+        "range_modifier": 80,
+        "damage_modifier": 0.625,
+        "tracking_modifier": -75,
+        "best_for": "extreme range sniping"
+      }
+    }
+  },
+  "enemy_recommendations": {
+    "_note": "Hybrids excel against Kinetic/Thermal-weak factions. Against EM or Explosive-weak factions, hybrids are suboptimal - rely on drones for damage matching.",
+    "serpentis": {
+      "weakness": "thermal",
+      "hybrid_effective": "excellent",
+      "t1_charge": "Antimatter",
+      "t2_short": "Void",
+      "t2_long": "Null",
+      "note": "Hybrids are optimal against Serpentis - thermal weakness matches perfectly."
+    },
+    "angel_cartel": {
+      "weakness": "explosive",
+      "hybrid_effective": "poor",
+      "t1_charge": "Antimatter",
+      "t2_short": "Void",
+      "t2_long": "Null",
+      "note": "Hybrids cannot deal explosive damage. Use explosive drones (Warriors/Valkyries)."
+    },
+    "blood_raiders": {
+      "weakness": "em",
+      "hybrid_effective": "poor",
+      "t1_charge": "Antimatter",
+      "t2_short": "Void",
+      "t2_long": "Null",
+      "note": "Hybrids cannot deal EM damage. Use EM drones (Acolytes/Infiltrators)."
+    },
+    "guristas": {
+      "weakness": "kinetic",
+      "hybrid_effective": "excellent",
+      "t1_charge": "Antimatter",
+      "t2_short": "Void",
+      "t2_long": "Null",
+      "note": "Hybrids are optimal against Guristas - kinetic weakness matches perfectly."
+    },
+    "sansha": {
+      "weakness": "em",
+      "hybrid_effective": "poor",
+      "t1_charge": "Antimatter",
+      "t2_short": "Void",
+      "t2_long": "Null",
+      "note": "Hybrids cannot deal EM damage. Use EM drones (Acolytes/Infiltrators)."
+    },
+    "rogue_drones": {
+      "weakness": "em",
+      "hybrid_effective": "moderate",
+      "t1_charge": "Antimatter",
+      "t2_short": "Void",
+      "t2_long": "Null",
+      "note": "Rogue Drones weak to EM, but thermal is secondary. Drones recommended for EM damage."
+    },
+    "mercenaries": {
+      "weakness": "thermal",
+      "hybrid_effective": "excellent",
+      "t1_charge": "Antimatter",
+      "t2_short": "Void",
+      "t2_long": "Null",
+      "note": "Hybrids are effective against Mercenaries - thermal weakness."
+    },
+    "mordus_legion": {
+      "weakness": "kinetic",
+      "hybrid_effective": "excellent",
+      "t1_charge": "Antimatter",
+      "t2_short": "Void",
+      "t2_long": "Null",
+      "note": "Hybrids are optimal against Mordu's - kinetic weakness matches."
+    }
+  },
+  "charge_naming": {
+    "_note": "Charge names are standardized - size suffix indicates turret size",
+    "sizes": {
+      "small": "S",
+      "medium": "M",
+      "large": "L"
+    },
+    "t1_examples": [
+      "Antimatter Charge S",
+      "Antimatter Charge M",
+      "Antimatter Charge L",
+      "Thorium Charge M",
+      "Lead Charge L"
+    ],
+    "t2_examples": [
+      "Void S",
+      "Void M",
+      "Void L",
+      "Null S",
+      "Spike M",
+      "Javelin L"
+    ]
+  },
+  "faction_ships": {
+    "gallente": {
+      "frigate": ["Incursus", "Tristan", "Atron"],
+      "destroyer": ["Catalyst", "Algos"],
+      "cruiser": ["Thorax", "Vexor", "Exequror Navy Issue"],
+      "battlecruiser": ["Brutix", "Myrmidon", "Talos"],
+      "battleship": ["Megathron", "Dominix", "Hyperion"]
+    },
+    "caldari": {
+      "frigate": ["Merlin"],
+      "destroyer": ["Cormorant"],
+      "cruiser": ["Moa", "Osprey Navy Issue"],
+      "battlecruiser": ["Ferox", "Naga"],
+      "battleship": ["Rokh"]
+    },
+    "serpentis": {
+      "frigate": ["Daredevil"],
+      "cruiser": ["Vigilant"],
+      "battleship": ["Vindicator"]
+    }
+  },
+  "capacitor_note": {
+    "warning": "Hybrid turrets use capacitor but less than lasers. Blasters use more cap than rails.",
+    "mitigation": [
+      "Generally cap-stable with basic fitting",
+      "Cap Booster recommended for extended blaster engagements",
+      "Rails are more cap-friendly"
+    ]
+  },
+  "capacity_guidelines": {
+    "l1_l2_missions": {
+      "charges": 1500,
+      "note": "Blasters burn through ammo quickly"
+    },
+    "l3_missions": {
+      "charges": 3000,
+      "backup": 1500,
+      "note": "Bring long-range ammo for kiting if needed"
+    },
+    "l4_missions": {
+      "charges": 5000,
+      "backup": 2500,
+      "note": "Large hybrids consume substantial ammunition"
+    }
+  }
+}

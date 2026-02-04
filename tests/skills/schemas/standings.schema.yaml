@@ -1,0 +1,391 @@
+# JSON Schema for /standings skill output validation
+# Validates the structure of standings tracker responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: StandingsSkillOutput
+description: Output schema for the /standings skill (standings analysis and agent access)
+type: object
+
+oneOf:
+  - $ref: "#/$defs/OverviewResponse"
+  - $ref: "#/$defs/AgentAccessResponse"
+  - $ref: "#/$defs/StandingPlanResponse"
+  - $ref: "#/$defs/RepairStrategyResponse"
+
+$defs:
+  # =============================================================================
+  # Overview Response
+  # =============================================================================
+  OverviewResponse:
+    type: object
+    description: Overall standings overview for a pilot
+    required:
+      - pilot_name
+      - faction_standings
+    properties:
+      pilot_name:
+        type: string
+        description: Character name
+        minLength: 1
+
+      skills:
+        type: object
+        description: Standings-related skills
+        properties:
+          connections:
+            type: integer
+            description: Connections skill level
+            minimum: 0
+            maximum: 5
+          diplomacy:
+            type: integer
+            description: Diplomacy skill level
+            minimum: 0
+            maximum: 5
+
+      faction_standings:
+        type: array
+        description: Standings with major factions
+        items:
+          $ref: "#/$defs/FactionStanding"
+        minItems: 1
+
+      corporation_standings:
+        type: array
+        description: Standings with specific corporations
+        items:
+          $ref: "#/$defs/CorporationStanding"
+
+      agent_access_summary:
+        type: object
+        description: Summary of available agent levels
+        properties:
+          max_security_level:
+            type: integer
+            minimum: 1
+            maximum: 5
+          max_distribution_level:
+            type: integer
+            minimum: 1
+            maximum: 5
+          max_research_level:
+            type: integer
+            minimum: 1
+            maximum: 5
+
+      warnings:
+        type: array
+        description: Faction standing warnings (e.g., navy aggro)
+        items:
+          type: string
+
+  # =============================================================================
+  # Agent Access Response
+  # =============================================================================
+  AgentAccessResponse:
+    type: object
+    description: Check if pilot can access a specific agent level
+    required:
+      - entity_name
+      - entity_type
+      - raw_standing
+      - effective_standing
+      - has_access
+    properties:
+      entity_name:
+        type: string
+        description: Corporation or faction name
+        minLength: 1
+
+      entity_type:
+        type: string
+        description: Whether this is corporation or faction standing
+        enum: ["corporation", "faction"]
+
+      raw_standing:
+        type: number
+        description: Raw standing value
+        minimum: -10.0
+        maximum: 10.0
+
+      effective_standing:
+        type: number
+        description: Effective standing after skills
+        minimum: -10.0
+        maximum: 10.0
+
+      required_level:
+        type: integer
+        description: Agent level being checked
+        minimum: 1
+        maximum: 5
+
+      required_standing:
+        oneOf:
+          - type: number
+            description: Required standing for access
+            minimum: -10.0
+            maximum: 10.0
+          - type: "null"
+            description: No standing required (L1 agents)
+
+      has_access:
+        type: boolean
+        description: Whether pilot can access this agent level
+
+      calculation:
+        type: object
+        description: How effective standing was calculated
+        properties:
+          formula:
+            type: string
+            description: Formula used
+          skill_name:
+            type: string
+            description: Skill applied (Connections or Diplomacy)
+          skill_level:
+            type: integer
+            minimum: 0
+            maximum: 5
+          skill_bonus:
+            type: number
+            description: Standing bonus from skill
+
+      gap:
+        type: number
+        description: Standing gap if access denied (how much more needed)
+
+      notes:
+        type: string
+        description: Additional context
+
+  # =============================================================================
+  # Standing Plan Response
+  # =============================================================================
+  StandingPlanResponse:
+    type: object
+    description: Plan to reach a target standing
+    required:
+      - target_entity
+      - target_standing
+      - current_standing
+      - gap
+      - recommended_path
+    properties:
+      target_entity:
+        type: string
+        description: Entity to gain standing with
+        minLength: 1
+
+      target_standing:
+        type: number
+        description: Standing goal
+        minimum: -10.0
+        maximum: 10.0
+
+      current_standing:
+        type: number
+        description: Current raw standing
+        minimum: -10.0
+        maximum: 10.0
+
+      effective_standing:
+        type: number
+        description: Current effective standing
+        minimum: -10.0
+        maximum: 10.0
+
+      gap:
+        type: number
+        description: Standing needed to reach target
+
+      recommended_path:
+        type: array
+        description: Recommended steps to gain standing
+        items:
+          $ref: "#/$defs/StandingStep"
+        minItems: 1
+
+      estimated_missions:
+        type: integer
+        description: Estimated missions to reach goal
+        minimum: 0
+
+      can_use_epic_arc:
+        type: boolean
+        description: Whether epic arc is available and helpful
+
+      epic_arc_info:
+        type: object
+        description: Relevant epic arc information
+        properties:
+          name:
+            type: string
+          faction:
+            type: string
+          starting_system:
+            type: string
+          standing_required:
+            oneOf:
+              - type: number
+              - type: "null"
+          estimated_gain:
+            type: number
+
+      notes:
+        type: string
+
+  # =============================================================================
+  # Repair Strategy Response
+  # =============================================================================
+  RepairStrategyResponse:
+    type: object
+    description: Strategy to repair negative faction standing
+    required:
+      - faction_name
+      - current_standing
+      - repair_strategies
+    properties:
+      faction_name:
+        type: string
+        description: Faction with negative standing
+        minLength: 1
+
+      current_standing:
+        type: number
+        description: Current standing (negative)
+        minimum: -10.0
+        maximum: 10.0
+
+      is_hostile:
+        type: boolean
+        description: Whether faction navy will attack
+
+      navy_aggro_threshold:
+        type: number
+        description: Standing threshold for navy aggression
+        const: -5.0
+
+      repair_strategies:
+        type: array
+        description: Options for repairing standing
+        items:
+          $ref: "#/$defs/RepairStrategy"
+        minItems: 1
+
+      recommended_strategy:
+        type: string
+        description: Best strategy for current situation
+
+      diplomacy_effect:
+        type: object
+        description: How Diplomacy skill affects current standing
+        properties:
+          current_level:
+            type: integer
+          effective_standing_with_diplomacy:
+            type: number
+          improvement:
+            type: number
+
+      notes:
+        type: string
+
+  # =============================================================================
+  # Shared Definitions
+  # =============================================================================
+  FactionStanding:
+    type: object
+    description: Standing with a faction
+    required:
+      - faction_name
+      - raw_standing
+    properties:
+      faction_id:
+        type: integer
+        minimum: 500000
+      faction_name:
+        type: string
+      raw_standing:
+        type: number
+        minimum: -10.0
+        maximum: 10.0
+      effective_standing:
+        type: number
+        minimum: -10.0
+        maximum: 10.0
+      status:
+        type: string
+        enum: ["friendly", "neutral", "unfriendly", "hostile"]
+
+  CorporationStanding:
+    type: object
+    description: Standing with a corporation
+    required:
+      - corporation_name
+      - raw_standing
+    properties:
+      corporation_id:
+        type: integer
+        minimum: 1000000
+      corporation_name:
+        type: string
+      raw_standing:
+        type: number
+        minimum: -10.0
+        maximum: 10.0
+      effective_standing:
+        type: number
+        minimum: -10.0
+        maximum: 10.0
+      faction:
+        type: string
+        description: Parent faction
+
+  StandingStep:
+    type: object
+    description: A step in a standing improvement plan
+    required:
+      - method
+      - description
+    properties:
+      method:
+        type: string
+        description: Method type
+        enum: ["missions", "storyline", "epic_arc", "cosmos", "data_center", "career_agents", "skill_training"]
+      description:
+        type: string
+      standing_gain:
+        type: string
+        description: Estimated standing gain
+      frequency:
+        type: string
+        description: How often this can be done
+      requirements:
+        type: string
+        description: Prerequisites
+      priority:
+        type: integer
+        description: Recommended order
+        minimum: 1
+
+  RepairStrategy:
+    type: object
+    description: A strategy for repairing negative standing
+    required:
+      - method
+      - description
+    properties:
+      method:
+        type: string
+        enum: ["epic_arc", "career_agents", "diplomacy_skill", "faction_warfare"]
+      description:
+        type: string
+      standing_gain:
+        type: string
+      cooldown:
+        type: string
+      requirements:
+        type: string
+      notes:
+        type: string

@@ -1,0 +1,256 @@
+# Test fixture: Explicit all_v skill mode
+# Tests /fitting with explicit skill mode parameter
+
+name: "Fit with all skills at V"
+skill: fitting
+description: |
+  Tests explicit skill_mode parameter.
+  Verifies that all skills at V is applied correctly.
+
+input:
+  eft: |
+    [Tristan, PvP Kiter]
+
+    Damage Control II
+    Drone Damage Amplifier II
+    Nanofiber Internal Structure II
+
+    1MN Y-S8 Compact Afterburner
+    Warp Scrambler II
+    Small Shield Extender II
+
+    125mm Gatling AutoCannon II, Republic Fleet EMP S
+    [Empty High slot]
+    [Empty High slot]
+
+    Small Polycarbon Engine Housing I
+    Small Polycarbon Engine Housing I
+    Small Polycarbon Engine Housing I
+
+    Hobgoblin II x8
+
+  use_pilot_skills: false
+
+expected_output:
+  ship:
+    type_id: 593
+    type_name: "Tristan"
+    fit_name: "PvP Kiter"
+  dps:
+    total: 145.0
+    em: 72.5
+    thermal: 0.0
+    kinetic: 72.5
+    explosive: 0.0
+  tank:
+    shield:
+      hp: 750
+      ehp: 950
+      resists:
+        em: 12.5
+        thermal: 30.0
+        kinetic: 47.5
+        explosive: 56.0
+    armor:
+      hp: 450
+      ehp: 750
+      resists:
+        em: 60.0
+        thermal: 51.5
+        kinetic: 36.0
+        explosive: 24.5
+    hull:
+      hp: 500
+      ehp: 750
+      resists:
+        em: 60.0
+        thermal: 60.0
+        kinetic: 60.0
+        explosive: 60.0
+    total_hp: 1700
+    total_ehp: 2450
+  resources:
+    cpu:
+      used: 115.0
+      output: 140.0
+      percent: 82.1
+      remaining: 25.0
+      overloaded: false
+    powergrid:
+      used: 32.0
+      output: 40.0
+      percent: 80.0
+      remaining: 8.0
+      overloaded: false
+    calibration:
+      used: 225.0
+      output: 400.0
+      percent: 56.25
+      remaining: 175.0
+      overloaded: false
+  capacitor:
+    capacity: 280.0
+    recharge_time: 140.0
+    recharge_rate: 2.0
+    peak_recharge_rate: 5.0
+  mobility:
+    max_velocity: 1200.0
+    agility: 2.8
+    align_time: 3.2
+    mass: 1050000.0
+    warp_speed: 5.0
+  drones:
+    bandwidth:
+      used: 25.0
+      output: 25.0
+      percent: 100.0
+    bay:
+      used: 40.0
+      output: 40.0
+    launched: 5
+    max_active: 5
+  slots:
+    high:
+      used: 1
+      total: 3
+    mid:
+      used: 3
+      total: 3
+    low:
+      used: 3
+      total: 3
+    rig:
+      used: 3
+      total: 3
+  metadata:
+    skill_mode: "all_v"
+    validation_errors: []
+    warnings: []
+
+expected_facts:
+  # Ship identification
+  - path: "ship.type_name"
+    equals: "Tristan"
+
+  - path: "ship.fit_name"
+    equals: "PvP Kiter"
+
+  # Skill mode should be all_v when use_pilot_skills is false
+  - path: "metadata.skill_mode"
+    equals: "all_v"
+
+  # Tristan is a fast frigate
+  - path: "mobility.max_velocity"
+    range: [800, 2000]
+
+  # Frigate-class drone bay
+  - path: "drones.bandwidth.output"
+    equals: 25
+
+  # 5 light drones
+  - path: "drones.launched"
+    equals: 5
+
+  # No errors
+  - path: "metadata.validation_errors"
+    length: 0
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  fitting_calculate_stats:
+    ship:
+      type_id: 593
+      type_name: "Tristan"
+      fit_name: "PvP Kiter"
+    dps:
+      total: 145.0
+      em: 72.5
+      thermal: 0.0
+      kinetic: 72.5
+      explosive: 0.0
+    tank:
+      shield:
+        hp: 750
+        ehp: 950
+        resists:
+          em: 12.5
+          thermal: 30.0
+          kinetic: 47.5
+          explosive: 56.0
+      armor:
+        hp: 450
+        ehp: 750
+        resists:
+          em: 60.0
+          thermal: 51.5
+          kinetic: 36.0
+          explosive: 24.5
+      hull:
+        hp: 500
+        ehp: 750
+        resists:
+          em: 60.0
+          thermal: 60.0
+          kinetic: 60.0
+          explosive: 60.0
+      total_hp: 1700
+      total_ehp: 2450
+    resources:
+      cpu:
+        used: 115.0
+        output: 140.0
+        percent: 82.1
+        remaining: 25.0
+        overloaded: false
+      powergrid:
+        used: 32.0
+        output: 40.0
+        percent: 80.0
+        remaining: 8.0
+        overloaded: false
+      calibration:
+        used: 225.0
+        output: 400.0
+        percent: 56.25
+        remaining: 175.0
+        overloaded: false
+    capacitor:
+      capacity: 280.0
+      recharge_time: 140.0
+      recharge_rate: 2.0
+      peak_recharge_rate: 5.0
+    mobility:
+      max_velocity: 1200.0
+      agility: 2.8
+      align_time: 3.2
+      mass: 1050000.0
+      warp_speed: 5.0
+    drones:
+      bandwidth:
+        used: 25.0
+        output: 25.0
+        percent: 100.0
+      bay:
+        used: 40.0
+        output: 40.0
+      launched: 5
+      max_active: 5
+    slots:
+      high:
+        used: 1
+        total: 3
+      mid:
+        used: 3
+        total: 3
+      low:
+        used: 3
+        total: 3
+      rig:
+        used: 3
+        total: 3
+    metadata:
+      skill_mode: "all_v"
+      validation_errors: []
+      warnings: []

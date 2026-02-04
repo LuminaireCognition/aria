@@ -1,0 +1,87 @@
+# Vexor L2 Missions - High Skill Variant
+#
+# Maximum performance fit for experienced pilots.
+# Full T2 modules and drones for best-in-class performance.
+
+archetype:
+  hull: Vexor
+  skill_tier: t2_optimal
+  omega_required: true
+
+eft: |
+  [Vexor, L2 Missions - High Skills]
+
+  Drone Damage Amplifier II
+  Drone Damage Amplifier II
+  Medium Armor Repairer II
+  Multispectrum Energized Membrane II
+  Reactive Armor Hardener
+
+  50MN Quad LiF Restrained Microwarpdrive
+  Medium Cap Battery II
+  Cap Recharger II
+  Drone Navigation Computer II
+
+  Drone Link Augmentor II
+  [Empty High slot]
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Nanobot Accelerator I
+
+  Hammerhead II x5
+  Hobgoblin II x5
+  Hornet II x5
+
+skill_requirements:
+  required:
+    Drones: 5
+    Medium Drone Operation: 5
+    Light Drone Operation: 5
+    Drone Interfacing: 4
+    Gallente Cruiser: 4
+    Armor Repair Systems: 5
+    Hull Upgrades: 5
+    Repair Systems: 5
+  recommended:
+    Drone Interfacing: 5
+    Capacitor Management: 5
+    Mechanics: 5
+    Armor Compensation Skills: 4
+
+stats:
+  dps: 320
+  ehp: 16000
+  tank_sustained: 145
+  capacitor_stable: true
+  align_time: 7.8
+  speed_mwd: 1250
+  drone_control_range: 62000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: armor_active
+
+  overrides:
+    angel_cartel:
+      rigs:
+        - from: "Medium Auxiliary Nano Pump I"
+          to: "Medium Anti-Explosive Pump I"
+
+notes:
+  purpose: "Maximum performance L2 mission runner for experienced drone pilots"
+  engagement: "Orbit at 40-50km, use extended drone range. L2 content is trivial at this skill level."
+  warnings:
+    - "Overkill for L2 missions - consider Myrmidon for L3s"
+    - "Not cap stable with MWD running continuously"
+    - "Recall drones before warping"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - module: "Vexor"
+      upgrade_to: "Vexor Navy Issue or Myrmidon"
+      skill_required: "Consider hull upgrade for L3 content"

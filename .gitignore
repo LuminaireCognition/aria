@@ -1,0 +1,95 @@
+# ═══════════════════════════════════════════════════════════════════
+# User Data (all personal data in one place)
+# ═══════════════════════════════════════════════════════════════════
+userdata/*
+!userdata/.gitkeep
+!userdata/README.md
+!userdata/pilots/.gitkeep
+!userdata/credentials/.gitkeep
+!userdata/sessions/.gitkeep
+
+# ═══════════════════════════════════════════════════════════════════
+# Legacy locations (for migration period - will be removed in future)
+# ═══════════════════════════════════════════════════════════════════
+pilots/
+credentials/
+sessions/
+.aria-config.json
+.aria-credentials.json
+.aria-pkce-temp.json
+
+# ═══════════════════════════════════════════════════════════════════
+# Claude Code local settings
+# ═══════════════════════════════════════════════════════════════════
+.claude/settings.local.json
+
+# ═══════════════════════════════════════════════════════════════════
+# Generated data files
+# ═══════════════════════════════════════════════════════════════════
+# Universe graph is now included in the repo (816KB, changes only on EVE expansions)
+# Legacy pickle format (deprecated)
+src/aria_esi/data/universe.pkl
+# Legacy location
+.claude/scripts/aria_esi/data/universe.pkl
+
+# ESI sync cache files (auto-generated, contain transient data)
+**/.esi-sync-cache.json
+
+# Session context (auto-generated at boot from projects)
+**/.session-context.json
+
+# Reference data cache
+reference/.cache-manifest.json
+
+# PvE intel cache (fetched from wiki.eveuniversity.org, derived data)
+reference/pve-intel/cache/
+
+# Runtime cache (topology maps, etc.)
+cache/
+.cache/
+
+# ═══════════════════════════════════════════════════════════════════
+# Python / Development
+# ═══════════════════════════════════════════════════════════════════
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.benchmarks/
+*.egg-info/
+dist/
+build/
+
+# ═══════════════════════════════════════════════════════════════════
+# OS files
+# ═══════════════════════════════════════════════════════════════════
+.DS_Store
+Thumbs.db
+
+# ═══════════════════════════════════════════════════════════════════
+# Backup and temporary files
+# ═══════════════════════════════════════════════════════════════════
+*.bak
+*.swp
+*~
+*.out
+*.v1-backup
+
+# ═══════════════════════════════════════════════════════════════════
+# Editor directories
+# ═══════════════════════════════════════════════════════════════════
+.vscode/
+.idea/
+
+# ═══════════════════════════════════════════════════════════════════
+# Environment files
+# ═══════════════════════════════════════════════════════════════════
+.env
+.env.local

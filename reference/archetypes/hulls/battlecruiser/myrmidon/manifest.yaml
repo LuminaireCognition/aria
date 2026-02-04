@@ -1,0 +1,54 @@
+# Myrmidon Hull Manifest
+#
+# The Myrmidon is a Gallente T1 battlecruiser with heavy drone focus.
+# 100 Mbit/s bandwidth allows 5 heavy drones for maximum drone DPS.
+
+hull: Myrmidon
+class: battlecruiser
+faction: gallente
+tech_level: 1
+
+slots:
+  high: 5
+  mid: 4
+  low: 6
+  rig: 3
+
+drones:
+  bandwidth: 100
+  bay: 200
+
+bonuses:
+  - "5% bonus to Drone damage and hitpoints per Gallente Battlecruiser level"
+  - "7.5% bonus to armor repair amount per Gallente Battlecruiser level"
+
+roles:
+  - drone_boat
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_active
+  weapons:
+    primary: drones
+    secondary: null  # High slots for utility
+
+  notes:
+    - "100 bandwidth = 5 heavy drones or full flight of mediums"
+    - "200m3 bay holds multiple full flights"
+    - "High slots best for Drone Link Augmentors, neuts"
+    - "Armor repair bonus makes active tank very strong"
+
+drone_recommendations:
+  heavy: "Ogre I x5"
+  medium: "Hammerhead I x5"
+  light: "Hobgoblin I x5"
+  utility: "Hornet EC-300 x5"
+
+capacitor:
+  stable_expected: true
+  notes: "Should be cap stable with AB + repper. Not stable with MWD."
+
+engagement:
+  range: "20-50km (drone control range)"
+  speed: "AB for signature reduction"
+  notes: "Orbit at range, let drones work. Recall before warp."

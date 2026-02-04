@@ -1,0 +1,69 @@
+# Faction Warfare Frontlines Template
+# Contested and active FW systems across all warzones
+#
+# Note: This is a static template. For dynamic frontline detection,
+# use the /fw-frontlines skill which queries real-time contested system data.
+#
+# Use: uv run aria-esi notifications create fw-intel --template fw-frontlines --webhook <url>
+
+schema_version: 1
+
+name: "fw-frontlines"
+display_name: "Faction Warfare Intel"
+description: "Activity in faction warfare contested zones"
+enabled: true
+webhook_url: ""  # User must fill in
+
+topology:
+  geographic:
+    systems:
+      # Caldari-Gallente Warzone - Black Rise
+      - name: "Tama"
+        classification: "hunting"
+      - name: "Kedama"
+        classification: "hunting"
+      - name: "Nennamaila"
+        classification: "hunting"
+      - name: "Akidagi"
+        classification: "transit"
+      - name: "Pynekastoh"
+        classification: "transit"
+
+      # Caldari-Gallente Warzone - Placid
+      - name: "Heydieles"
+        classification: "hunting"
+      - name: "Old Man Star"
+        classification: "hunting"
+      - name: "Vlillirier"
+        classification: "hunting"
+
+      # Amarr-Minmatar Warzone - The Bleak Lands
+      - name: "Amamake"
+        classification: "hunting"
+      - name: "Auga"
+        classification: "hunting"
+      - name: "Kourmonen"
+        classification: "hunting"
+      - name: "Huola"
+        classification: "hunting"
+
+      # Amarr-Minmatar Warzone - Metropolis
+      - name: "Dal"
+        classification: "hunting"
+      - name: "Lulm"
+        classification: "transit"
+      - name: "Siseide"
+        classification: "hunting"
+
+triggers:
+  watchlist_activity: true
+  gatecamp_detected: true
+  high_value_threshold: 50000000  # 50M+ (FW pilots often fly cheaper ships)
+
+throttle_minutes: 2
+
+quiet_hours:
+  enabled: false
+  start: "02:00"
+  end: "08:00"
+  timezone: "America/New_York"

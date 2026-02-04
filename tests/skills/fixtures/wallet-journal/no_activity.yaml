@@ -1,0 +1,38 @@
+# Test fixture: No wallet activity
+# Tests display when no transactions in period
+
+name: "No Wallet Activity"
+skill: wallet-journal
+description: |
+  Handle case when no wallet activity found in the specified period.
+  Provides helpful suggestions for extending the search range.
+
+input:
+  command: summary
+  days: 7
+
+expected_facts:
+  - path: "period_days"
+    equals: 7
+
+  - path: "message"
+    contains: "No wallet activity"
+
+  - path: "suggestions"
+    length: 3
+
+expected_output:
+  query_timestamp: "2026-01-31T12:30:00Z"
+  period_days: 7
+  message: "No wallet activity found in the last 7 days."
+  suggestions:
+    - "Account may be new or inactive"
+    - "Transactions may be older than query period"
+    - "Try: /wallet-journal --days 30"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  wallet_journal: []
+  wallet_transactions: []

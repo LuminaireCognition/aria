@@ -1,0 +1,113 @@
+# Caracal L2 Missions - Low Skill Variant
+#
+# Entry-level fit for pilots just getting into cruisers.
+# Shield buffer tank with Rapid Light Missiles.
+
+archetype:
+  hull: Caracal
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Caracal, L2 Missions - Low Skills]
+
+  Ballistic Control System I
+  Ballistic Control System I
+  Damage Control I
+  Power Diagnostic System I
+
+  50MN Cold-Gas Enduring Microwarpdrive
+  Large Shield Extender I
+  Large Shield Extender I
+  Adaptive Invulnerability Shield Hardener I
+  EM Shield Hardener I
+
+  Rapid Light Missile Launcher I
+  Rapid Light Missile Launcher I
+  Rapid Light Missile Launcher I
+  Rapid Light Missile Launcher I
+  Rapid Light Missile Launcher I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Hobgoblin I x2
+
+  Scourge Light Missile x1000
+  Inferno Light Missile x500
+  Mjolnir Light Missile x500
+  Nova Light Missile x500
+
+skill_requirements:
+  required:
+    Caldari Cruiser: 2
+    Missile Launcher Operation: 3
+    Light Missiles: 3
+    Shield Upgrades: 3
+    Shield Management: 2
+  recommended:
+    Rapid Launch: 2
+    Warhead Upgrades: 2
+    Target Navigation Prediction: 2
+
+stats:
+  dps: 175
+  ehp: 14000
+  tank_sustained: 0  # Buffer tank, no active repair
+  capacitor_stable: true
+  align_time: 8.5
+  speed_mwd: 1350
+  missile_range: 42000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: kinetic  # Scourge missiles
+  tank_profile: shield_buffer
+
+  # Faction-specific ammo selection
+  overrides:
+    serpentis:
+      ammo: "Inferno Light Missile"  # Thermal
+      notes: "Serpentis weak to Thermal"
+
+    angel_cartel:
+      ammo: "Nova Light Missile"  # Explosive
+      notes: "Angels weak to Explosive"
+
+    blood_raiders:
+      ammo: "Mjolnir Light Missile"  # EM
+      notes: "Blood Raiders weak to EM"
+
+    guristas:
+      ammo: "Scourge Light Missile"  # Kinetic
+      notes: "Guristas weak to Kinetic - default ammo works"
+
+    rogue_drones:
+      ammo: "Mjolnir Light Missile"  # EM
+      notes: "Drones weak to EM"
+
+    mercenaries:
+      ammo: "Inferno Light Missile"  # Thermal
+      notes: "Mercenaries weak to Thermal"
+
+notes:
+  purpose: "Entry-level L2 mission runner for pilots new to cruisers"
+  engagement: "Orbit at 35-45km with MWD, let missiles do the work"
+  warnings:
+    - "Buffer tank - warp out when shields get low"
+    - "Pulse MWD to manage cap"
+    - "Carry multiple ammo types for different factions"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Rapid Light Missile Launcher I"
+      upgrade_to: "Rapid Light Missile Launcher II"
+      skill_required: "Light Missiles 5"
+    - module: "Large Shield Extender I"
+      upgrade_to: "Large Shield Extender II"
+      skill_required: "Shield Upgrades 4"
+    - module: "Ballistic Control System I"
+      upgrade_to: "Ballistic Control System II"
+      skill_required: "Weapon Upgrades 4"

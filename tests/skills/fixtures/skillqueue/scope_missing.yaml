@@ -1,0 +1,34 @@
+# Test fixture: Missing ESI scope
+# Tests error handling when skillqueue scope not authorized
+
+name: "Skillqueue Scope Missing"
+skill: skillqueue
+description: |
+  Handle case when ESI is configured but skill queue scope is missing.
+  Provides clear instructions for enabling the scope.
+
+input:
+  command: status
+
+expected_facts:
+  - path: "error_type"
+    equals: "missing_scope"
+
+  - path: "error"
+    contains: "scope"
+
+  - path: "suggestion"
+    contains: "aria-oauth-setup"
+
+expected_output:
+  error: "Skill queue scope not authorized"
+  error_type: "missing_scope"
+  suggestion: "Run uv run python .claude/scripts/aria-oauth-setup.py and select esi-skills.read_skillqueue.v1"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  error:
+    status: 403
+    message: "Token missing required scope: esi-skills.read_skillqueue.v1"

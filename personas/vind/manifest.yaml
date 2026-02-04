@@ -1,0 +1,16 @@
+name: VIND
+subtitle: Republic Fleet Tactical Core
+directory: vind
+
+factions:
+  - minmatar
+
+address:
+  full: Capsuleer
+  moderate: pilot
+  lite: null
+  off: null
+
+greeting:
+  full: "We fly free, brother." # or "sister" based on context
+  moderate: "Ready to fly."

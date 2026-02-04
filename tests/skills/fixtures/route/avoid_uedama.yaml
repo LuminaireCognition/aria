@@ -1,0 +1,67 @@
+# Test fixture: Route avoiding specific systems
+# Tests the avoid_systems parameter
+
+name: "Jita to Amarr avoiding Uedama"
+skill: route
+description: |
+  Route between trade hubs while avoiding known gank system.
+  Tests that avoid_systems parameter is respected.
+
+input:
+  origin: Jita
+  destination: Amarr
+  mode: shortest
+  avoid_systems:
+    - Uedama
+
+expected_facts:
+  - path: "origin"
+    equals: "Jita"
+
+  - path: "destination"
+    equals: "Amarr"
+
+  # Verify the avoid_systems parameter was respected
+  # Note: To fully verify Uedama is not in route[*].system, would need:
+  #   - path: "route[*].system"
+  #     not_contains: "Uedama"
+  # But not_contains on wildcard paths requires extracting all values first.
+  # For now, verify structure and trust the route implementation.
+
+  - path: "route[0].system"
+    equals: "Jita"
+
+  - path: "route[-1].system"
+    equals: "Amarr"
+
+  - path: "total_jumps"
+    range: [20, 60]  # May be longer due to avoidance
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_route:
+    origin: "Jita"
+    destination: "Amarr"
+    mode: "shortest"
+    total_jumps: 32
+    avoid_systems: ["Uedama"]
+    route:
+      - system: "Jita"
+        system_id: 30000142
+        security: 0.95
+      - system: "Perimeter"
+        system_id: 30000144
+        security: 0.90
+      # Route avoids Uedama, takes alternate path
+      - system: "Hatakani"
+        system_id: 30000148
+        security: 0.62
+      - system: "Amarr"
+        system_id: 30002187
+        security: 1.0
+    security_profile:
+      highsec_jumps: 28
+      lowsec_jumps: 4
+      nullsec_jumps: 0

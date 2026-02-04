@@ -1,0 +1,130 @@
+{
+  "_meta": {
+    "description": "Master drone reference for ARIA project. ARIA must consult this file before making any claims about drone damage types or recommending drones.",
+    "source": "https://wiki.eveuniversity.org/Drones",
+    "last_verified": "2026-01-22"
+  },
+  "damage_types": {
+    "Hobgoblin": "thermal",
+    "Hammerhead": "thermal",
+    "Ogre": "thermal",
+    "Garde": "thermal",
+    "Hornet": "kinetic",
+    "Vespa": "kinetic",
+    "Wasp": "kinetic",
+    "Warden": "kinetic",
+    "Acolyte": "em",
+    "Infiltrator": "em",
+    "Praetor": "em",
+    "Curator": "em",
+    "Warrior": "explosive",
+    "Valkyrie": "explosive",
+    "Berserker": "explosive",
+    "Bouncer": "explosive"
+  },
+  "by_faction": {
+    "gallente": {
+      "damage": "thermal",
+      "light": "Hobgoblin",
+      "medium": "Hammerhead",
+      "heavy": "Ogre",
+      "sentry": "Garde"
+    },
+    "caldari": {
+      "damage": "kinetic",
+      "light": "Hornet",
+      "medium": "Vespa",
+      "heavy": "Wasp",
+      "sentry": "Warden"
+    },
+    "amarr": {
+      "damage": "em",
+      "light": "Acolyte",
+      "medium": "Infiltrator",
+      "heavy": "Praetor",
+      "sentry": "Curator"
+    },
+    "minmatar": {
+      "damage": "explosive",
+      "light": "Warrior",
+      "medium": "Valkyrie",
+      "heavy": "Berserker",
+      "sentry": "Bouncer"
+    }
+  },
+  "by_size": {
+    "light": ["Hobgoblin", "Hornet", "Acolyte", "Warrior"],
+    "medium": ["Hammerhead", "Vespa", "Infiltrator", "Valkyrie"],
+    "heavy": ["Ogre", "Wasp", "Praetor", "Berserker"],
+    "sentry": ["Garde", "Warden", "Curator", "Bouncer"]
+  },
+  "enemy_recommendations": {
+    "serpentis": {
+      "weakness": "thermal",
+      "light": "Hobgoblin",
+      "medium": "Hammerhead",
+      "heavy": "Ogre"
+    },
+    "angel_cartel": {
+      "weakness": "explosive",
+      "light": "Warrior",
+      "medium": "Valkyrie",
+      "heavy": "Berserker"
+    },
+    "blood_raiders": {
+      "weakness": "em",
+      "light": "Acolyte",
+      "medium": "Infiltrator",
+      "heavy": "Praetor"
+    },
+    "guristas": {
+      "weakness": "kinetic",
+      "light": "Hornet",
+      "medium": "Vespa",
+      "heavy": "Wasp"
+    },
+    "sansha": {
+      "weakness": "em",
+      "light": "Acolyte",
+      "medium": "Infiltrator",
+      "heavy": "Praetor"
+    },
+    "rogue_drones": {
+      "weakness": "em",
+      "light": "Acolyte",
+      "medium": "Infiltrator",
+      "heavy": "Praetor"
+    },
+    "mercenaries": {
+      "weakness": "thermal",
+      "light": "Hobgoblin",
+      "medium": "Hammerhead",
+      "heavy": "Ogre"
+    }
+  },
+  "bandwidth": {
+    "light": 5,
+    "medium": 10,
+    "heavy": 25,
+    "sentry": 25
+  },
+  "integrated_augmented": {
+    "_note": "Faction variants deal mixed damage (primary + secondary)",
+    "amarr": ["em", "thermal"],
+    "caldari": ["kinetic", "thermal"],
+    "gallente": ["thermal", "kinetic"],
+    "minmatar": ["explosive", "kinetic"]
+  },
+  "specialty_drones": {
+    "ec_300": {"type": "ewar", "purpose": "ECM jamming for emergency escape"},
+    "mining_drone": {"type": "mining", "purpose": "Ore mining, slower than modules"},
+    "salvage_drone": {"type": "salvage", "purpose": "Wreck salvage, slower than modules"},
+    "repair_drones": {"type": "logistics", "purpose": "Shield/armor maintenance"}
+  },
+  "common_drone_ships": {
+    "tristan": {"bandwidth": 25, "bay": 40},
+    "vexor": {"bandwidth": 75, "bay": 125},
+    "myrmidon": {"bandwidth": 100, "bay": 200},
+    "dominix": {"bandwidth": 125, "bay": 375}
+  }
+}

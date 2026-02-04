@@ -1,0 +1,45 @@
+# ARIA Token Refresh - Cron Configuration Examples
+# ═══════════════════════════════════════════════════════════════════
+#
+# To edit your crontab: crontab -e
+# To list current crontab: crontab -l
+#
+# ───────────────────────────────────────────────────────────────────
+# OPTION 1: Refresh every 15 minutes (recommended)
+# ───────────────────────────────────────────────────────────────────
+# EVE tokens expire after ~20 minutes, so 15-minute refresh ensures
+# you always have a valid token ready.
+#
+*/15 * * * * /Users/jskelton/EveOnline/.claude/scripts/aria-refresh --quiet
+
+# ───────────────────────────────────────────────────────────────────
+# OPTION 2: Refresh every 10 minutes (aggressive)
+# ───────────────────────────────────────────────────────────────────
+# More frequent refresh, useful if you're actively playing.
+#
+# */10 * * * * /Users/jskelton/EveOnline/.claude/scripts/aria-refresh --quiet
+
+# ───────────────────────────────────────────────────────────────────
+# OPTION 3: Refresh on demand only
+# ───────────────────────────────────────────────────────────────────
+# Don't use cron at all. Just run manually when needed:
+#   /Users/jskelton/EveOnline/.claude/scripts/aria-refresh
+#
+# Or let the Claude Code hook handle it automatically.
+
+# ───────────────────────────────────────────────────────────────────
+# OPTION 4: Refresh with logging
+# ───────────────────────────────────────────────────────────────────
+# Log all refresh activity to a file for debugging.
+#
+# */15 * * * * /Users/jskelton/EveOnline/.claude/scripts/aria-refresh >> /Users/jskelton/EveOnline/sessions/token-refresh.log 2>&1
+
+# ───────────────────────────────────────────────────────────────────
+# NOTES
+# ───────────────────────────────────────────────────────────────────
+# - The script only refreshes if the token is expired or expiring soon
+# - Use --force to refresh regardless of current token status
+# - Use --check to just see current status without refreshing
+# - Exit code 0 = success, 1 = error, 2 = needs manual re-auth
+#
+# ═══════════════════════════════════════════════════════════════════

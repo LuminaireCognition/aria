@@ -1,0 +1,882 @@
+# Ship Efficacy Rules for Easy 80% Calculations
+# Defines which skills contribute to ship effectiveness and how much.
+#
+# Structure:
+#   ship_roles:
+#     <role_name>:
+#       description: What this role optimizes for
+#       primary_metric: Main effectiveness measure (dps, tank, yield, etc.)
+#       skills: List of skills affecting this role
+#         - skill: Skill name
+#           effect: What bonus this skill provides
+#           per_level: Bonus percentage per level
+#           category: hull|weapon|support|tank|utility
+#           multiplicative: Whether bonuses multiply (true) or add (false)
+#
+# Efficacy calculation:
+#   For multiplicative skills: efficacy = product of (current_level/5) for each skill
+#   For additive skills: efficacy = sum of (current_level * per_level) / sum of (5 * per_level)
+
+ship_roles:
+  # =============================================================================
+  # Combat Roles
+  # =============================================================================
+
+  drone_boat:
+    description: Ships that rely primarily on drones for damage
+    primary_metric: drone_dps
+    example_ships:
+      - Vexor
+      - Vexor Navy Issue
+      - Myrmidon
+      - Dominix
+      - Ishtar
+      - Gila
+    # Breakpoint skills have non-linear effects at specific levels that
+    # dramatically change effectiveness beyond the stated percentage bonus.
+    # These override the "cap at IV" Easy 80% rule for this role.
+    breakpoint_skills:
+      - skill: Drones
+        level: 5
+        effect: "Unlocks 5th active drone (25% damage increase)"
+        reason: "The tooltip says 5%/level, but V unlocks the 5th drone slot - a 25% damage boost that multiplies with all other bonuses"
+    skills:
+      - skill: Drones
+        effect: "+5% drone damage and HP per level (but V unlocks 5th drone!)"
+        per_level: 5
+        category: weapon
+        multiplicative: true
+        breakpoint_at_5: true  # Flag for special handling
+      - skill: Drone Interfacing
+        effect: "+10% drone damage per level"
+        per_level: 10
+        category: damage
+        multiplicative: true
+      - skill: Medium Drone Operation
+        effect: "+5% medium drone damage per level"
+        per_level: 5
+        category: weapon
+        multiplicative: true
+        ship_size: cruiser
+      - skill: Heavy Drone Operation
+        effect: "+5% heavy drone damage per level"
+        per_level: 5
+        category: weapon
+        multiplicative: true
+        ship_size: battleship
+      - skill: Light Drone Operation
+        effect: "+5% light drone damage per level"
+        per_level: 5
+        category: weapon
+        multiplicative: true
+        ship_size: frigate
+      - skill: Drone Sharpshooting
+        effect: "+5% drone optimal range per level"
+        per_level: 5
+        category: support
+        multiplicative: false
+      - skill: Drone Navigation
+        effect: "+5% drone velocity per level"
+        per_level: 5
+        category: support
+        multiplicative: false
+      - skill: Drone Durability
+        effect: "+5% drone HP per level"
+        per_level: 5
+        category: support
+        multiplicative: false
+    easy_80_plan:
+      required_5:
+        - Drones  # BREAKPOINT: V unlocks 5th drone (25% DPS), also required for T2 drones
+      cap_at_4:
+        - Drone Interfacing
+        - Medium Drone Operation
+        - Heavy Drone Operation
+        - Light Drone Operation
+        - Drone Sharpshooting
+      optional:
+        - Drone Navigation
+        - Drone Durability
+    efficacy_at_4:
+      dps: 82  # Approximate % of max DPS with skills at IV
+      application: 85
+      overall: 83
+      # Note: Without Drones V, you only have 4 drones (20% less than full potential)
+      # This makes Drones V the highest priority skill for drone boats
+
+  turret_boat:
+    description: Ships that rely on turrets (guns/lasers) for damage
+    primary_metric: turret_dps
+    example_ships:
+      - Thorax
+      - Brutix
+      - Megathron
+      - Omen
+      - Harbinger
+      - Hurricane
+    skills:
+      - skill: Gunnery
+        effect: "+2% rate of fire per level"
+        per_level: 2
+        category: weapon
+        multiplicative: true
+      - skill: Surgical Strike
+        effect: "+3% turret damage per level"
+        per_level: 3
+        category: damage
+        multiplicative: true
+      - skill: Rapid Firing
+        effect: "+4% rate of fire per level"
+        per_level: 4
+        category: damage
+        multiplicative: true
+      - skill: Motion Prediction
+        effect: "+5% turret tracking per level"
+        per_level: 5
+        category: support
+        multiplicative: false
+      - skill: Sharpshooter
+        effect: "+5% turret optimal range per level"
+        per_level: 5
+        category: support
+        multiplicative: false
+      - skill: Trajectory Analysis
+        effect: "+5% turret falloff per level"
+        per_level: 5
+        category: support
+        multiplicative: false
+    weapon_specializations:
+      hybrid:
+        skills:
+          - Small Hybrid Turret
+          - Medium Hybrid Turret
+          - Large Hybrid Turret
+        t2_skills:
+          - Small Blaster Specialization
+          - Medium Blaster Specialization
+          - Small Railgun Specialization
+          - Medium Railgun Specialization
+      projectile:
+        skills:
+          - Small Projectile Turret
+          - Medium Projectile Turret
+          - Large Projectile Turret
+        t2_skills:
+          - Small Autocannon Specialization
+          - Medium Autocannon Specialization
+      laser:
+        skills:
+          - Small Energy Turret
+          - Medium Energy Turret
+          - Large Energy Turret
+        t2_skills:
+          - Small Beam Laser Specialization
+          - Medium Beam Laser Specialization
+          - Small Pulse Laser Specialization
+          - Medium Pulse Laser Specialization
+    easy_80_plan:
+      required_5:
+        - Gunnery  # Often required for T2 weapons
+      cap_at_4:
+        - Surgical Strike
+        - Rapid Firing
+        - Motion Prediction
+        - Sharpshooter
+      optional:
+        - Trajectory Analysis
+    efficacy_at_4:
+      dps: 85
+      application: 80
+      overall: 83
+
+  missile_boat:
+    description: Ships that rely on missiles/rockets for damage
+    primary_metric: missile_dps
+    example_ships:
+      - Caracal
+      - Drake
+      - Raven
+      - Cerberus
+      - Jackdaw
+    skills:
+      - skill: Missile Launcher Operation
+        effect: "+2% rate of fire per level"
+        per_level: 2
+        category: weapon
+        multiplicative: true
+      - skill: Warhead Upgrades
+        effect: "+2% missile damage per level"
+        per_level: 2
+        category: damage
+        multiplicative: true
+      - skill: Rapid Launch
+        effect: "+3% rate of fire per level"
+        per_level: 3
+        category: damage
+        multiplicative: true
+      - skill: Missile Bombardment
+        effect: "+10% missile flight time per level"
+        per_level: 10
+        category: support
+        multiplicative: false
+      - skill: Missile Projection
+        effect: "+10% missile velocity per level"
+        per_level: 10
+        category: support
+        multiplicative: false
+      - skill: Target Navigation Prediction
+        effect: "-5% target velocity factor per level"
+        per_level: 5
+        category: application
+        multiplicative: true
+      - skill: Guided Missile Precision
+        effect: "-5% target signature factor per level"
+        per_level: 5
+        category: application
+        multiplicative: true
+    easy_80_plan:
+      required_5:
+        - Missile Launcher Operation  # Often required for T2 launchers
+      cap_at_4:
+        - Warhead Upgrades
+        - Rapid Launch
+        - Target Navigation Prediction
+        - Guided Missile Precision
+      optional:
+        - Missile Bombardment
+        - Missile Projection
+    efficacy_at_4:
+      dps: 84
+      application: 80
+      overall: 82
+
+  # =============================================================================
+  # Tank Roles
+  # =============================================================================
+
+  armor_tank:
+    description: Ships that rely on armor for defense
+    primary_metric: ehp_and_rep
+    skills:
+      - skill: Hull Upgrades
+        effect: "+5% armor HP per level"
+        per_level: 5
+        category: tank
+        multiplicative: true
+      - skill: Mechanics
+        effect: "+5% structure HP per level"
+        per_level: 5
+        category: tank
+        multiplicative: true
+      - skill: Repair Systems
+        effect: "+5% armor rep amount per level"
+        per_level: 5
+        category: tank
+        multiplicative: true
+      - skill: Armor Resistance Phasing
+        effect: "Allows Reactive Armor Hardener"
+        per_level: 0
+        category: utility
+        multiplicative: false
+    resistance_skills:
+      - EM Armor Compensation
+      - Thermal Armor Compensation
+      - Kinetic Armor Compensation
+      - Explosive Armor Compensation
+    easy_80_plan:
+      required_5:
+        - Mechanics  # Required for T2 armor reps
+      cap_at_4:
+        - Hull Upgrades
+        - Repair Systems
+      optional:
+        - EM Armor Compensation
+        - Thermal Armor Compensation
+        - Kinetic Armor Compensation
+        - Explosive Armor Compensation
+    efficacy_at_4:
+      ehp: 88
+      active_rep: 80
+      overall: 84
+
+  shield_tank:
+    description: Ships that rely on shields for defense
+    primary_metric: ehp_and_rep
+    skills:
+      - skill: Shield Management
+        effect: "+5% shield HP per level"
+        per_level: 5
+        category: tank
+        multiplicative: true
+      - skill: Shield Operation
+        effect: "-5% shield recharge time per level"
+        per_level: 5
+        category: tank
+        multiplicative: true
+      - skill: Shield Upgrades
+        effect: "-5% shield upgrade power grid per level"
+        per_level: 5
+        category: utility
+        multiplicative: false
+      - skill: Tactical Shield Manipulation
+        effect: "Reduces shield damage bleed-through"
+        per_level: 0
+        category: utility
+        multiplicative: false
+    resistance_skills:
+      - EM Shield Compensation
+      - Thermal Shield Compensation
+      - Kinetic Shield Compensation
+      - Explosive Shield Compensation
+    easy_80_plan:
+      required_5: []
+      cap_at_4:
+        - Shield Management
+        - Shield Operation
+        - Tactical Shield Manipulation
+      optional:
+        - Shield Upgrades
+        - EM Shield Compensation
+        - Thermal Shield Compensation
+        - Kinetic Shield Compensation
+        - Explosive Shield Compensation
+    efficacy_at_4:
+      ehp: 85
+      passive_regen: 82
+      overall: 83
+
+  # =============================================================================
+  # Industrial Roles
+  # =============================================================================
+
+  miner:
+    description: Ships focused on ore extraction
+    primary_metric: m3_per_hour
+    example_ships:
+      - Venture
+      - Procurer
+      - Retriever
+      - Covetor
+      - Skiff
+      - Mackinaw
+      - Hulk
+    skills:
+      - skill: Mining
+        effect: "+5% mining yield per level"
+        per_level: 5
+        category: yield
+        multiplicative: true
+      - skill: Astrogeology
+        effect: "+5% mining yield per level"
+        per_level: 5
+        category: yield
+        multiplicative: true
+      - skill: Mining Upgrades
+        effect: "-5% CPU for mining upgrades per level"
+        per_level: 5
+        category: utility
+        multiplicative: false
+      - skill: Mining Frigate
+        effect: "+5% mining yield per level (ship bonus)"
+        per_level: 5
+        category: hull
+        multiplicative: true
+      - skill: Mining Barge
+        effect: "Unlocks barges, +2% yield per level"
+        per_level: 2
+        category: hull
+        multiplicative: true
+      - skill: Exhumers
+        effect: "Unlocks exhumers, various bonuses"
+        per_level: 0
+        category: hull
+        multiplicative: false
+    easy_80_plan:
+      required_5:
+        - Mining  # Required for Mining Barge skill
+      cap_at_4:
+        - Astrogeology
+        - Mining Frigate
+        - Mining Barge
+      optional:
+        - Mining Upgrades
+    efficacy_at_4:
+      yield: 85
+      overall: 85
+
+  explorer:
+    description: Ships focused on scanning and hacking
+    primary_metric: scan_strength_and_hack_success
+    example_ships:
+      - Imicus
+      - Heron
+      - Probe
+      - Magnate
+      - Astero
+      - Helios
+    skills:
+      - skill: Astrometrics
+        effect: "+5% scan strength, -5% scan time, +5% probe range per level"
+        per_level: 5
+        category: scanning
+        multiplicative: true
+      - skill: Astrometric Rangefinding
+        effect: "+10% scan probe strength per level"
+        per_level: 10
+        category: scanning
+        multiplicative: true
+      - skill: Astrometric Pinpointing
+        effect: "-10% max scan deviation per level"
+        per_level: 10
+        category: scanning
+        multiplicative: false
+      - skill: Astrometric Acquisition
+        effect: "-10% scan time per level"
+        per_level: 10
+        category: scanning
+        multiplicative: false
+      - skill: Archaeology
+        effect: "+10 virus coherence per level"
+        per_level: 10
+        category: hacking
+        multiplicative: false
+      - skill: Hacking
+        effect: "+10 virus coherence per level"
+        per_level: 10
+        category: hacking
+        multiplicative: false
+    easy_80_plan:
+      required_5: []
+      cap_at_4:
+        - Astrometrics
+        - Astrometric Rangefinding
+        - Archaeology
+        - Hacking
+      optional:
+        - Astrometric Pinpointing
+        - Astrometric Acquisition
+    efficacy_at_4:
+      scan_strength: 85
+      hack_success: 80
+      overall: 82
+
+  # =============================================================================
+  # Stealth/Covert Operations Roles
+  # =============================================================================
+
+  stealth_ship:
+    description: Ships that can use Covert Ops Cloaking Devices (warp while cloaked)
+    primary_metric: covert_capability
+    example_ships:
+      - Astero
+      - Stratios
+      - Helios
+      - Anathema
+      - Buzzard
+      - Cheetah
+      - Hound
+      - Nemesis
+      - Manticore
+      - Purifier
+      - Arazu
+      - Rapier
+      - Falcon
+      - Pilgrim
+      - Sin
+      - Widow
+      - Panther
+      - Redeemer
+      - Prospect
+    breakpoint_skills:
+      - skill: Cloaking
+        level: 4
+        effect: "Required for Covert Ops Cloaking Device II (warp while cloaked)"
+        reason: "Binary capability unlock - enables warping while cloaked, fundamental for covert operations"
+    skills:
+      - skill: Cloaking
+        effect: "Allows use of cloaking devices; IV required for Covert Ops Cloak"
+        per_level: 0
+        category: utility
+        multiplicative: false
+        breakpoint_at_4: true
+      - skill: CPU Management
+        effect: "+5% CPU per level"
+        per_level: 5
+        category: fitting
+        multiplicative: false
+    easy_80_plan:
+      required_5: []
+      required_4:
+        - Cloaking  # BREAKPOINT: IV required for Covert Ops Cloak
+      cap_at_4:
+        - CPU Management
+      optional: []
+    efficacy_at_4:
+      covert_capability: 100  # Full capability at Cloaking IV
+      overall: 100
+
+  # =============================================================================
+  # Logistics Roles
+  # =============================================================================
+
+  logi:
+    description: Ships specialized in remote repair (logistics)
+    primary_metric: rep_amount_per_second
+    example_ships:
+      - Scythe
+      - Osprey
+      - Augoror
+      - Exequror
+      - Scimitar
+      - Basilisk
+      - Guardian
+      - Oneiros
+    breakpoint_skills:
+      - skill: Remote Armor Repair Systems
+        level: 5
+        effect: "Required for Large Remote Armor Repairer II"
+        reason: "T2 large remote reps significantly outperform T1/meta for fleet logistics"
+      - skill: Remote Shield Emission
+        level: 5
+        effect: "Required for Large Shield Transporter II"
+        reason: "T2 large shield transfers significantly outperform T1/meta for fleet logistics"
+      - skill: Capacitor Management
+        level: 5
+        effect: "+5% capacitor per level - threshold for cap stability"
+        reason: "Logistics ships are cap-hungry; stability is often binary (stable or not)"
+    skills:
+      - skill: Remote Armor Repair Systems
+        effect: "+5% remote armor repair amount per level"
+        per_level: 5
+        category: support
+        multiplicative: true
+      - skill: Remote Shield Emission
+        effect: "+5% remote shield boost amount per level"
+        per_level: 5
+        category: support
+        multiplicative: true
+      - skill: Capacitor Management
+        effect: "+5% capacitor per level"
+        per_level: 5
+        category: cap
+        multiplicative: true
+      - skill: Capacitor Systems Operation
+        effect: "-5% capacitor recharge time per level"
+        per_level: 5
+        category: cap
+        multiplicative: true
+    easy_80_plan:
+      required_5:
+        - Remote Armor Repair Systems  # For armor logi
+        - Remote Shield Emission  # For shield logi
+        - Capacitor Management  # BREAKPOINT: Cap stability threshold
+      cap_at_4:
+        - Capacitor Systems Operation
+      optional: []
+    efficacy_at_4:
+      rep_output: 80
+      cap_stability: 80
+      overall: 80
+
+  active_tank:
+    description: Ships that rely on active repair modules (armor rep, shield booster)
+    primary_metric: sustained_tank
+    example_ships:
+      - Vexor Navy Issue
+      - Myrmidon
+      - Dominix
+      - Gila
+      - Rattlesnake
+      - Sacrilege
+      - Kronos
+      - Paladin
+      - Vargur
+      - Golem
+    breakpoint_skills:
+      - skill: Capacitor Management
+        level: 5
+        effect: "+5% capacitor per level - threshold for cap stability"
+        reason: "Cap stability is often a hard threshold; the difference between stable and insufficient is binary in combat"
+    skills:
+      - skill: Capacitor Management
+        effect: "+5% capacitor per level"
+        per_level: 5
+        category: cap
+        multiplicative: true
+      - skill: Capacitor Systems Operation
+        effect: "-5% capacitor recharge time per level"
+        per_level: 5
+        category: cap
+        multiplicative: true
+      - skill: Repair Systems
+        effect: "+5% armor rep amount per level"
+        per_level: 5
+        category: tank
+        multiplicative: true
+      - skill: Shield Operation
+        effect: "-5% shield recharge time per level"
+        per_level: 5
+        category: tank
+        multiplicative: true
+    easy_80_plan:
+      required_5:
+        - Capacitor Management  # BREAKPOINT: Cap stability threshold
+      cap_at_4:
+        - Capacitor Systems Operation
+        - Repair Systems
+        - Shield Operation
+      optional: []
+    efficacy_at_4:
+      sustained_tank: 85
+      cap_stability: 80
+      overall: 82
+
+  # =============================================================================
+  # Capital/Jump Capable Roles
+  # =============================================================================
+
+  jump_capable:
+    description: Ships with jump drives (carriers, dreads, JFs, black ops)
+    primary_metric: jump_range
+    example_ships:
+      - Archon
+      - Thanatos
+      - Nidhoggur
+      - Chimera
+      - Revelation
+      - Moros
+      - Naglfar
+      - Phoenix
+      - Rhea
+      - Anshar
+      - Ark
+      - Nomad
+      - Sin
+      - Widow
+      - Panther
+      - Redeemer
+    breakpoint_skills:
+      - skill: Jump Drive Calibration
+        level: 5
+        effect: "+2 LY max jump range per level (discrete, not percentage)"
+        reason: "Jump range is truly discrete - each level adds fixed lightyears, dramatically affecting operational reach"
+      - skill: Jump Drive Operation
+        level: 4
+        effect: "-5% capacitor need for jump per level"
+        reason: "Reduces fuel consumption; level 4 is sufficient for most operations"
+    skills:
+      - skill: Jump Drive Calibration
+        effect: "+2 LY max jump range per level"
+        per_level: 0  # Not percentage-based
+        category: jump
+        multiplicative: false
+        discrete: true
+      - skill: Jump Drive Operation
+        effect: "-5% capacitor need for jump per level"
+        per_level: 5
+        category: jump
+        multiplicative: false
+      - skill: Jump Fuel Conservation
+        effect: "-10% jump fuel consumption per level"
+        per_level: 10
+        category: jump
+        multiplicative: true
+    easy_80_plan:
+      required_5:
+        - Jump Drive Calibration  # BREAKPOINT: Each level = +2 LY range
+      cap_at_4:
+        - Jump Drive Operation
+        - Jump Fuel Conservation
+      optional: []
+    efficacy_at_4:
+      jump_range: 80  # At JDC IV you have 80% of max range
+      fuel_efficiency: 80
+      overall: 80
+
+  capital_support:
+    description: Ships/pilots that support capital operations (cyno alts, etc.)
+    primary_metric: fleet_support
+    breakpoint_skills:
+      - skill: Cynosural Field Theory
+        level: 1
+        effect: "Binary unlock - can light cynosural fields for capital jumps"
+        reason: "Without this skill you cannot light cynos; essential for capital fleet logistics"
+    skills:
+      - skill: Cynosural Field Theory
+        effect: "-10% liquid ozone consumption per level"
+        per_level: 10
+        category: support
+        multiplicative: true
+    easy_80_plan:
+      required_5: []
+      required_1:
+        - Cynosural Field Theory  # BREAKPOINT: Binary unlock at I
+      cap_at_4:
+        - Cynosural Field Theory
+      optional: []
+    efficacy_at_4:
+      cyno_capability: 100  # Full capability at level 1
+      overall: 100
+
+  # =============================================================================
+  # Specialized Mining Roles
+  # =============================================================================
+
+  gas_miner:
+    description: Ships specialized in gas cloud harvesting
+    primary_metric: m3_gas_per_hour
+    example_ships:
+      - Venture
+      - Prospect
+    breakpoint_skills:
+      - skill: Gas Cloud Harvesting
+        level: 1
+        effect: "Binary unlock - enables gas harvesting entirely"
+        reason: "Without this skill you cannot harvest gas at all; enables wormhole/nullsec gas income"
+    skills:
+      - skill: Gas Cloud Harvesting
+        effect: "Allows use of gas cloud harvesters; +cycle time bonus per level"
+        per_level: 0
+        category: yield
+        multiplicative: false
+    easy_80_plan:
+      required_5: []
+      required_1:
+        - Gas Cloud Harvesting  # BREAKPOINT: Binary unlock at I
+      cap_at_4:
+        - Gas Cloud Harvesting
+      optional: []
+    efficacy_at_4:
+      gas_yield: 80
+      overall: 80
+
+  ice_miner:
+    description: Ships specialized in ice harvesting
+    primary_metric: ice_per_hour
+    example_ships:
+      - Procurer
+      - Retriever
+      - Covetor
+      - Skiff
+      - Mackinaw
+      - Hulk
+      - Endurance
+    breakpoint_skills:
+      - skill: Ice Harvesting
+        level: 1
+        effect: "Binary unlock - enables ice harvesting entirely"
+        reason: "Without this skill you cannot harvest ice at all; enables fuel block production chain"
+    skills:
+      - skill: Ice Harvesting
+        effect: "-5% ice harvester cycle time per level"
+        per_level: 5
+        category: yield
+        multiplicative: true
+    easy_80_plan:
+      required_5: []
+      required_1:
+        - Ice Harvesting  # BREAKPOINT: Binary unlock at I
+      cap_at_4:
+        - Ice Harvesting
+      optional: []
+    efficacy_at_4:
+      ice_yield: 80
+      overall: 80
+
+  # =============================================================================
+  # Utility Roles
+  # =============================================================================
+
+  navigation:
+    description: Core navigation skills for all ships
+    primary_metric: speed_and_agility
+    skills:
+      - skill: Navigation
+        effect: "+5% sub-warp velocity per level"
+        per_level: 5
+        category: speed
+        multiplicative: true
+      - skill: Spaceship Command
+        effect: "+2% agility per level"
+        per_level: 2
+        category: agility
+        multiplicative: true
+      - skill: Evasive Maneuvering
+        effect: "+5% agility per level"
+        per_level: 5
+        category: agility
+        multiplicative: true
+      - skill: Warp Drive Operation
+        effect: "-10% cap for warp per level"
+        per_level: 10
+        category: utility
+        multiplicative: false
+      - skill: Acceleration Control
+        effect: "+5% afterburner/MWD speed bonus per level"
+        per_level: 5
+        category: speed
+        multiplicative: true
+    easy_80_plan:
+      required_5: []
+      cap_at_4:
+        - Navigation
+        - Spaceship Command
+        - Evasive Maneuvering
+      optional:
+        - Warp Drive Operation
+        - Acceleration Control
+    efficacy_at_4:
+      speed: 82
+      agility: 85
+      overall: 83
+
+# =============================================================================
+# Ship Category to Role Mapping
+# =============================================================================
+
+ship_category_roles:
+  # Frigates
+  frigate:
+    combat:
+      gallente: [drone_boat, armor_tank]
+      caldari: [missile_boat, shield_tank]
+      minmatar: [turret_boat, shield_tank]
+      amarr: [turret_boat, armor_tank]
+    exploration:
+      all: [explorer, navigation]
+    mining:
+      all: [miner]
+
+  # Cruisers
+  cruiser:
+    combat:
+      gallente: [drone_boat, armor_tank]
+      caldari: [missile_boat, shield_tank]
+      minmatar: [turret_boat, shield_tank]
+      amarr: [turret_boat, armor_tank]
+    logistics:
+      all: [armor_tank, shield_tank]
+
+  # Battlecruisers
+  battlecruiser:
+    combat:
+      gallente: [drone_boat, armor_tank]
+      caldari: [missile_boat, shield_tank]
+      minmatar: [turret_boat, shield_tank]
+      amarr: [turret_boat, armor_tank]
+
+  # Battleships
+  battleship:
+    combat:
+      gallente: [drone_boat, turret_boat, armor_tank]
+      caldari: [missile_boat, shield_tank]
+      minmatar: [turret_boat, shield_tank]
+      amarr: [turret_boat, armor_tank]
+
+  # Mining barges
+  mining_barge:
+    all: [miner, shield_tank]
+
+  # Exhumers
+  exhumer:
+    all: [miner, shield_tank]

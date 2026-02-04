@@ -1,0 +1,95 @@
+# Rifter L1 Missions - Low Skill Variant
+#
+# Entry-level fit for brand new Minmatar pilots.
+# Fast brawler with autocannons.
+
+archetype:
+  hull: Rifter
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Rifter, L1 Missions - Low Skills]
+
+  Small Armor Repairer I
+  Damage Control I
+  Gyrostabilizer I
+
+  1MN Afterburner I
+  Stasis Webifier I
+  Small Compact Pb-Acid Cap Battery
+
+  200mm AutoCannon I
+  200mm AutoCannon I
+  200mm AutoCannon I
+  [Empty High slot]
+
+  Small Projectile Burst Aerator I
+  Small Auxiliary Nano Pump I
+  Small Auxiliary Nano Pump I
+
+  Fusion S x1000
+  EMP S x500
+
+skill_requirements:
+  required:
+    Minmatar Frigate: 2
+    Small Projectile Turret: 2
+    Gunnery: 2
+    Armor Repair Systems: 1
+  recommended:
+    Motion Prediction: 2
+    Surgical Strike: 2
+    Mechanics: 2
+
+stats:
+  dps: 88
+  ehp: 2500
+  tank_sustained: 40
+  capacitor_stable: true
+  align_time: 4.0
+  speed_ab: 850
+  optimal_range: 1500
+  falloff: 5000
+  validated_date: "2026-01-24"
+
+damage_tuning:
+  default_damage: explosive_kinetic  # Fusion ammo
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      ammo: "Phased Plasma S"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Fusion S"
+      notes: "Angels weak to Explosive - default ammo works"
+    blood_raiders:
+      ammo: "EMP S"
+      notes: "Blood Raiders weak to EM"
+    guristas:
+      ammo: "Titanium Sabot S"
+      notes: "Guristas weak to Kinetic"
+    rogue_drones:
+      ammo: "EMP S"
+      notes: "Rogue Drones weak to EM"
+
+notes:
+  purpose: "Entry-level L1 mission runner for new Minmatar pilots"
+  engagement: "Close fast, orbit at 500m-1km, swap ammo for target"
+  warnings:
+    - "Autocannons are close range - get in tight"
+    - "Swap ammo freely - no reload penalty"
+    - "Guns use NO capacitor - very forgiving"
+    - "Use web on fast frigates"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "200mm AutoCannon I"
+      upgrade_to: "200mm AutoCannon II"
+      skill_required: "Small Projectile Turret 5"
+    - ship: "Thrasher (Destroyer)"
+      notes: "7 turrets, devastates L1s"
+    - ship: "Rupture (Cruiser)"
+      notes: "L2 missions, medium autocannons"

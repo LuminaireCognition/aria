@@ -1,0 +1,370 @@
+#!/bin/bash
+# ═══════════════════════════════════════════════════════════════════
+# ARIA Boot-Time ESI Sync
+# Automatically checks for standing/skill changes at session start
+# V2 multi-pilot structure only
+# ═══════════════════════════════════════════════════════════════════
+#
+# Usage:
+#   aria-boot-sync [--quiet]   Run sync check, output changes
+#   aria-boot-sync --status    Check if ESI is configured
+#
+# Output (JSON):
+#   { "esi_available": true/false, "changes_detected": [...] }
+#
+# This script is designed for boot hooks - it fails gracefully when
+# ESI is not configured and returns useful status regardless.
+# ═══════════════════════════════════════════════════════════════════
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# ─────────────────────────────────────────────────────────────────────
+# Path Resolution (V2 Structure)
+# ─────────────────────────────────────────────────────────────────────
+
+CONFIG_FILE="$PROJECT_DIR/.aria-config.json"
+PILOTS_DIR="$PROJECT_DIR/pilots"
+CREDS_DIR="$PROJECT_DIR/credentials"
+CREDS_FILE=""
+PILOT_PROFILE=""
+SYNC_CACHE=""
+ACTIVE_PILOT_ID=""
+
+resolve_paths() {
+    # Get active pilot ID from environment or config
+    if [[ -n "$ARIA_PILOT" ]]; then
+        ACTIVE_PILOT_ID="$ARIA_PILOT"
+    elif [[ -f "$CONFIG_FILE" ]]; then
+        ACTIVE_PILOT_ID=$(grep -o '"active_pilot"[[:space:]]*:[[:space:]]*"[^"]*"' "$CONFIG_FILE" 2>/dev/null | cut -d'"' -f4)
+    fi
+
+    if [[ -n "$ACTIVE_PILOT_ID" ]]; then
+        CREDS_FILE="$CREDS_DIR/${ACTIVE_PILOT_ID}.json"
+
+        # Find pilot directory
+        local pilot_dir
+        pilot_dir=$(ls -d "$PILOTS_DIR/${ACTIVE_PILOT_ID}_"* 2>/dev/null | head -1)
+        if [[ -n "$pilot_dir" ]] && [[ -d "$pilot_dir" ]]; then
+            PILOT_PROFILE="$pilot_dir/profile.md"
+            SYNC_CACHE="$pilot_dir/.esi-sync-cache.json"
+        fi
+    fi
+
+    # Fallback to first pilot if no active pilot
+    if [[ -z "$CREDS_FILE" ]] || [[ ! -f "$CREDS_FILE" ]]; then
+        local first_creds
+        first_creds=$(ls "$CREDS_DIR"/*.json 2>/dev/null | head -1)
+        if [[ -n "$first_creds" ]]; then
+            CREDS_FILE="$first_creds"
+            ACTIVE_PILOT_ID=$(basename "$first_creds" .json)
+
+            local pilot_dir
+            pilot_dir=$(ls -d "$PILOTS_DIR/${ACTIVE_PILOT_ID}_"* 2>/dev/null | head -1)
+            if [[ -n "$pilot_dir" ]] && [[ -d "$pilot_dir" ]]; then
+                PILOT_PROFILE="$pilot_dir/profile.md"
+                SYNC_CACHE="$pilot_dir/.esi-sync-cache.json"
+            fi
+        fi
+    fi
+}
+
+# Initialize paths
+resolve_paths
+
+# ─────────────────────────────────────────────────────────────────────
+# Helper Functions
+# ─────────────────────────────────────────────────────────────────────
+
+check_esi_available() {
+    if [[ -z "$CREDS_FILE" ]] || [[ ! -f "$CREDS_FILE" ]]; then
+        return 1
+    fi
+    # Check if token can be refreshed
+    if ! python3 "$SCRIPT_DIR/aria-token-refresh.py" --quiet 2>/dev/null; then
+        return 1
+    fi
+    return 0
+}
+
+# Parse standings from pilot profile
+parse_profile_standings() {
+    python3 << 'PYEOF'
+import re
+import sys
+
+profile_path = sys.argv[1] if len(sys.argv) > 1 else ""
+
+try:
+    with open(profile_path, 'r') as f:
+        content = f.read()
+except:
+    print("{}")
+    sys.exit(0)
+
+standings = {}
+
+# Parse Empire Factions table
+empire_match = re.search(r'### Empire Factions\s*\|[^\n]+\|[^\n]+\|(.*?)(?=###|\Z)', content, re.DOTALL)
+if empire_match:
+    for line in empire_match.group(1).strip().split('\n'):
+        if '|' in line and not line.strip().startswith('|---'):
+            parts = [p.strip() for p in line.split('|')]
+            if len(parts) >= 3:
+                faction = parts[1]
+                try:
+                    standing = float(parts[2])
+                    if faction:
+                        standings[faction] = standing
+                except:
+                    pass
+
+# Parse Mission Corporations table
+corp_match = re.search(r'### Mission Corporations\s*\|[^\n]+\|[^\n]+\|(.*?)(?=###|\Z)', content, re.DOTALL)
+if corp_match:
+    for line in corp_match.group(1).strip().split('\n'):
+        if '|' in line and not line.strip().startswith('|---'):
+            parts = [p.strip() for p in line.split('|')]
+            if len(parts) >= 3:
+                corp = parts[1]
+                try:
+                    standing = float(parts[2])
+                    if corp:
+                        standings[corp] = standing
+                except:
+                    pass
+
+import json
+print(json.dumps(standings))
+PYEOF
+}
+
+# Query ESI standings (filter out debug output, keep only JSON)
+fetch_esi_standings() {
+    "$SCRIPT_DIR/aria-esi" standings 2>/dev/null | grep -v "^ARIA" | grep -v "^$"
+}
+
+# Compare standings and detect changes
+compare_standings() {
+    local profile_standings="$1"
+    local esi_standings="$2"
+
+    # Write JSON to temp files to avoid heredoc escaping issues
+    local tmp_profile=$(mktemp)
+    local tmp_esi=$(mktemp)
+    echo "$profile_standings" > "$tmp_profile"
+    echo "$esi_standings" > "$tmp_esi"
+
+    python3 << PYEOF
+import json
+import sys
+
+tmp_profile = "$tmp_profile"
+tmp_esi = "$tmp_esi"
+
+try:
+    with open(tmp_profile, 'r') as f:
+        profile = json.load(f)
+    with open(tmp_esi, 'r') as f:
+        esi_data = json.load(f)
+except Exception as e:
+    print(json.dumps({"error": "parse_failed", "detail": str(e)}))
+    sys.exit(0)
+
+esi_standings = esi_data.get("standings", [])
+
+# Build lookup from ESI data
+changes = []
+esi_lookup = {}
+
+# ESI standing types: faction, corporation, agent
+for s in esi_standings:
+    from_id = s.get("from_id")
+    standing = s.get("standing", 0)
+    from_type = s.get("from_type", "")
+    esi_lookup[from_id] = {"standing": standing, "type": from_type}
+
+# Known faction IDs (common ones)
+FACTION_IDS = {
+    500001: "Caldari State",
+    500002: "Minmatar Republic",
+    500003: "Amarr Empire",
+    500004: "Gallente Federation",
+    500010: "Serpentis Corporation",
+    500011: "Angel Cartel",
+    500012: "Guristas Pirates",
+    500019: "Blood Raiders"
+}
+
+# Known corp IDs (mission corps)
+CORP_IDS = {
+    1000125: "Federation Navy",
+    1000167: "Federal Navy Academy",
+    1000035: "Caldari Navy",
+    1000180: "Republic Fleet",
+    1000084: "Imperial Navy"
+}
+
+# Check for standing changes
+for faction_id, faction_name in {**FACTION_IDS, **CORP_IDS}.items():
+    if faction_id in esi_lookup:
+        esi_standing = round(esi_lookup[faction_id]["standing"], 2)
+        profile_standing = profile.get(faction_name, None)
+
+        if profile_standing is not None:
+            profile_standing = round(profile_standing, 2)
+            diff = round(esi_standing - profile_standing, 2)
+
+            if abs(diff) >= 0.01:  # Significant change
+                changes.append({
+                    "name": faction_name,
+                    "profile_value": profile_standing,
+                    "esi_value": esi_standing,
+                    "change": diff,
+                    "direction": "increased" if diff > 0 else "decreased"
+                })
+
+# Sort by absolute change magnitude
+changes.sort(key=lambda x: abs(x["change"]), reverse=True)
+
+output = {
+    "changes_detected": len(changes) > 0,
+    "change_count": len(changes),
+    "changes": changes[:5]  # Top 5 changes
+}
+
+print(json.dumps(output, indent=2))
+PYEOF
+
+    # Cleanup temp files
+    rm -f "$tmp_profile" "$tmp_esi"
+}
+
+# ─────────────────────────────────────────────────────────────────────
+# Commands
+# ─────────────────────────────────────────────────────────────────────
+
+cmd_status() {
+    if check_esi_available; then
+        echo '{"esi_available": true}'
+    else
+        echo '{"esi_available": false}'
+    fi
+}
+
+cmd_sync() {
+    local quiet="$1"
+
+    # Check if ESI is available
+    if ! check_esi_available; then
+        if [[ "$quiet" != "--quiet" ]]; then
+            echo '{"esi_available": false, "message": "ESI not configured - skipping sync"}'
+        fi
+        exit 0
+    fi
+
+    # Get profile standings
+    local profile_standings
+    profile_standings=$(parse_profile_standings "$PILOT_PROFILE")
+
+    # Get ESI standings
+    local esi_standings
+    esi_standings=$(fetch_esi_standings)
+
+    if [[ -z "$esi_standings" ]] || echo "$esi_standings" | grep -q '"error"'; then
+        if [[ "$quiet" != "--quiet" ]]; then
+            echo '{"esi_available": true, "sync_failed": true, "message": "Could not fetch ESI standings"}'
+        fi
+        exit 0
+    fi
+
+    # Compare and output changes
+    local result
+    result=$(compare_standings "$profile_standings" "$esi_standings")
+
+    # Add metadata using temp file
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local tmp_result=$(mktemp)
+    echo "$result" > "$tmp_result"
+
+    python3 << PYEOF
+import json
+
+with open("$tmp_result", 'r') as f:
+    result = json.load(f)
+result["esi_available"] = True
+result["sync_timestamp"] = "$timestamp"
+
+# Cache the result for ARIA to reference
+try:
+    with open("$SYNC_CACHE", 'w') as f:
+        json.dump(result, f, indent=2)
+except:
+    pass
+
+print(json.dumps(result, indent=2))
+PYEOF
+
+    rm -f "$tmp_result"
+}
+
+cmd_format_boot() {
+    # Run sync and format output for boot sequence
+    # Filter out ARIA debug lines to get clean JSON
+    local sync_result
+    sync_result=$(cmd_sync --quiet 2>/dev/null | grep -v "^ARIA" | grep "^{" -A 100)
+
+    if [[ -z "$sync_result" ]]; then
+        echo "ESI_STATUS: UNAVAILABLE"
+        exit 0
+    fi
+
+    # Write to temp file to avoid heredoc escaping issues
+    local tmp_sync=$(mktemp)
+    echo "$sync_result" > "$tmp_sync"
+
+    python3 << PYEOF
+import json
+import sys
+
+try:
+    with open("$tmp_sync", 'r') as f:
+        result = json.load(f)
+except:
+    print("ESI_STATUS: ERROR")
+    sys.exit(0)
+
+if not result.get("esi_available", False):
+    print("ESI_STATUS: NOT_CONFIGURED")
+    sys.exit(0)
+
+changes = result.get("changes", [])
+if not changes:
+    print("ESI_STATUS: SYNCED")
+    print("ESI_CHANGES: None detected")
+else:
+    print("ESI_STATUS: CHANGES_DETECTED")
+    print(f"ESI_CHANGE_COUNT: {len(changes)}")
+    for c in changes[:3]:
+        direction = "↑" if c["change"] > 0 else "↓"
+        print(f"ESI_CHANGE: {c['name']}: {c['profile_value']:.2f} → {c['esi_value']:.2f} ({direction}{abs(c['change']):.2f})")
+PYEOF
+
+    rm -f "$tmp_sync"
+}
+
+# ─────────────────────────────────────────────────────────────────────
+# Main
+# ─────────────────────────────────────────────────────────────────────
+
+case "${1:-sync}" in
+    --status)   cmd_status ;;
+    --boot)     cmd_format_boot ;;
+    --quiet)    cmd_sync --quiet ;;
+    sync)       cmd_sync ;;
+    *)
+        echo "Usage: aria-boot-sync [--status|--boot|--quiet]"
+        exit 1
+        ;;
+esac

@@ -1,0 +1,89 @@
+# Epithal PI Hauler - Low Skill Variant
+#
+# Dedicated planetary commodity hauler with cloak and tank.
+
+archetype:
+  hull: Epithal
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Epithal, PI Hauler - Low Skills]
+
+  Expanded Cargohold I
+  Expanded Cargohold I
+  Damage Control I
+
+  50MN Microwarpdrive I
+  Medium Shield Extender I
+  EM Shield Amplifier I
+
+  Prototype Cloaking Device I
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Cargohold Optimization I
+  Medium Cargohold Optimization I
+  Medium Hyperspatial Velocity Optimizer I
+
+skill_requirements:
+  required:
+    Gallente Industrial: 1
+    Cloaking: 1
+    Navigation: 3
+  recommended:
+    Gallente Industrial: 4
+    Evasive Maneuvering: 4
+    Cloaking: 3
+
+stats:
+  pi_hold: 67500
+  cargo_hold: 1500
+  ehp: 8000
+  align_time: 10.0
+  warp_speed: 5.0  # AU/s with rig
+  validated_date: "2026-01-24"
+
+notes:
+  purpose: "Dedicated PI commodity hauler"
+  engagement: "Warp to POCO, transfer PI, warp to next planet or station"
+  warnings:
+    - "PI hold is fixed at 67,500 m3 - cannot be modified"
+    - "No drone bay - cannot defend self"
+    - "Cheap fit (~3-4M total) - don't bling it"
+    - "Use MWD + Cloak trick in dangerous space"
+
+  mwd_cloak_trick:
+    - "After jump, hold gate cloak (don't move)"
+    - "Align to destination"
+    - "Activate MWD (one cycle)"
+    - "Immediately activate cloak"
+    - "Before MWD ends, deactivate cloak"
+    - "Warp as soon as MWD cycle completes"
+    - "Practice this - it takes timing"
+
+  highsec_procedure:
+    - "Undock from station"
+    - "Warp to planet - Customs Office"
+    - "Access POCO, transfer PI to ship"
+    - "Warp to next planet or station"
+    - "Dock and unload"
+
+  lowsec_procedure:
+    - "Check local and D-scan before undocking"
+    - "Use MWD + Cloak trick if needed"
+    - "Warp to POCO at range first (10km)"
+    - "D-scan constantly while transferring"
+    - "If hostile appears: Cloak - Safe - Wait"
+
+upgrade_path:
+  next_tier: medium
+  key_upgrades:
+    - module: "Prototype Cloaking Device I"
+      upgrade_to: "Improved Cloaking Device II"
+      skill_required: "Cloaking 4"
+    - module: "Medium Shield Extender I"
+      upgrade_to: "Medium Shield Extender II"
+      skill_required: "Shield Upgrades 4"
+    - ship: "Blockade Runner (Viator)"
+      notes: "Covert cloak, faster, but only ~5,000 m3 cargo"

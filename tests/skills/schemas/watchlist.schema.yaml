@@ -1,0 +1,202 @@
+# JSON Schema for /watchlist skill output validation
+# Validates the structure of watchlist command responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: WatchlistSkillOutput
+description: Output schema for the /watchlist skill - manages entity tracking lists
+type: object
+
+# This schema uses oneOf because watchlist has multiple output formats
+# depending on the command (list, show, add, sync-wars)
+
+oneOf:
+  - $ref: "#/$defs/ListWatchlistsResponse"
+  - $ref: "#/$defs/ShowWatchlistResponse"
+  - $ref: "#/$defs/ModifyWatchlistResponse"
+  - $ref: "#/$defs/SyncWarsResponse"
+
+$defs:
+  # Base entity definition
+  WatchedEntity:
+    type: object
+    required:
+      - entity_id
+      - entity_type
+    properties:
+      entity_id:
+        type: integer
+        minimum: 1
+        description: Corporation or alliance ID
+      entity_name:
+        type: string
+        minLength: 1
+        description: Display name of the entity
+      entity_type:
+        type: string
+        enum: ["corporation", "alliance"]
+        description: Type of entity
+      reason:
+        type: string
+        description: Why this entity is being tracked
+      added_at:
+        type: string
+        format: date-time
+        description: When the entity was added
+      war_id:
+        type: integer
+        description: Associated war ID (for war targets)
+
+  # Watchlist summary (used in list responses)
+  WatchlistSummary:
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      name:
+        type: string
+        minLength: 1
+        description: Watchlist name
+      type:
+        type: string
+        enum: ["manual", "war_targets", "contacts"]
+        description: Watchlist type
+      entity_count:
+        type: integer
+        minimum: 0
+        description: Number of entities in this watchlist
+      last_sync:
+        type: ["string", "null"]
+        format: date-time
+        description: Last synchronization time (for auto-synced lists)
+      description:
+        type: ["string", "null"]
+        description: User description
+
+  # Response: List all watchlists
+  ListWatchlistsResponse:
+    type: object
+    required:
+      - watchlists
+    properties:
+      watchlists:
+        type: array
+        items:
+          $ref: "#/$defs/WatchlistSummary"
+        description: All configured watchlists
+      total_watchlists:
+        type: integer
+        minimum: 0
+        description: Total number of watchlists
+      total_entities:
+        type: integer
+        minimum: 0
+        description: Total entities across all watchlists
+
+  # Response: Show specific watchlist
+  ShowWatchlistResponse:
+    type: object
+    required:
+      - name
+      - type
+    properties:
+      name:
+        type: string
+        minLength: 1
+      type:
+        type: string
+        enum: ["manual", "war_targets", "contacts"]
+      entity_count:
+        type: integer
+        minimum: 0
+      last_sync:
+        type: ["string", "null"]
+        format: date-time
+      description:
+        type: ["string", "null"]
+      corporations:
+        type: array
+        items:
+          $ref: "#/$defs/WatchedEntity"
+        description: Tracked corporations
+      alliances:
+        type: array
+        items:
+          $ref: "#/$defs/WatchedEntity"
+        description: Tracked alliances
+
+  # Response: Add/Remove/Create/Delete operations
+  ModifyWatchlistResponse:
+    type: object
+    required:
+      - success
+      - action
+    properties:
+      success:
+        type: boolean
+        description: Whether the operation succeeded
+      action:
+        type: string
+        enum: ["add", "remove", "create", "delete"]
+        description: The operation performed
+      watchlist_name:
+        type: string
+        description: Name of the affected watchlist
+      entity:
+        $ref: "#/$defs/WatchedEntity"
+        description: The affected entity (for add/remove)
+      new_entity_count:
+        type: integer
+        minimum: 0
+        description: Updated entity count
+      message:
+        type: string
+        description: Human-readable result message
+      error:
+        type: string
+        description: Error message if success is false
+
+  # Response: Sync war targets
+  SyncWarsResponse:
+    type: object
+    required:
+      - success
+      - action
+    properties:
+      success:
+        type: boolean
+      action:
+        type: string
+        const: "sync-wars"
+      corporation_id:
+        type: integer
+        minimum: 98000000
+        description: Corporation that was synced
+      corporation_name:
+        type: string
+      wars_checked:
+        type: integer
+        minimum: 0
+        description: Number of active wars found
+      sync_results:
+        type: object
+        properties:
+          entities_added:
+            type: integer
+            minimum: 0
+          entities_removed:
+            type: integer
+            minimum: 0
+          unchanged:
+            type: integer
+            minimum: 0
+      current_targets:
+        type: array
+        items:
+          $ref: "#/$defs/WatchedEntity"
+        description: Current war target entities
+      watchlist_name:
+        type: string
+        description: Name of the war targets watchlist
+      message:
+        type: string
