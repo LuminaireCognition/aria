@@ -127,6 +127,15 @@ class TestNPCFactionMapper:
         """Test unknown faction returns title-cased key."""
         assert mapper_with_data.get_faction_display_name("unknown") == "Unknown"
 
+    def test_get_faction_name_by_id(self, mapper_with_data):
+        """Test faction ID → display name lookup."""
+        assert mapper_with_data.get_faction_name_by_id(500020) == "Serpentis"
+        assert mapper_with_data.get_faction_name_by_id(500011) == "Angel Cartel"
+
+    def test_get_faction_name_by_id_unknown(self, mapper_with_data):
+        """Test unknown faction ID returns None."""
+        assert mapper_with_data.get_faction_name_by_id(999999) is None
+
     def test_get_all_faction_keys(self, mapper_with_data):
         """Test getting all faction keys."""
         keys = mapper_with_data.get_all_faction_keys()

@@ -277,6 +277,76 @@ ADVISORY:
 | 0.0 | None | CRITICAL | Null-sec, no protection |
 | Negative | None | CRITICAL | Wormhole space |
 
+## Sovereignty-Aware Threat Assessment (Null-Sec)
+
+When assessing null-sec systems (security <= 0.0), include sovereignty data for enhanced context.
+
+### Data Authority
+
+Sovereignty data follows the authority hierarchy defined in `docs/DATA_AUTHORITY.md`:
+
+| Data Type | Source | Authority |
+|-----------|--------|-----------|
+| Alliance ID/Name | ESI `/sovereignty/map/` | Authoritative |
+| Coalition membership | `coalitions.yaml` | Community (validated against ESI) |
+
+**Note:** Coalition characteristics (response times, fleet compositions) are community knowledge based on historical patterns. These may change as player organizations evolve.
+
+### Getting Sovereignty Data
+
+```
+universe(action="systems", systems=["1DQ1-A"])
+```
+
+The response includes a `sovereignty` field for null-sec systems:
+```json
+{
+  "sovereignty": {
+    "alliance_id": 1354830081,
+    "alliance_name": "[GSF] Goonswarm Federation",
+    "coalition_id": "imperium",
+    "coalition_name": "The Imperium"
+  }
+}
+```
+
+### Sovereignty Threat Factors
+
+| Factor | Threat Implication |
+|--------|-------------------|
+| Major Coalition (Imperium, PanFam, FIRE) | Standing fleets, rapid intel response, organized defense |
+| Mid-tier Alliance | Moderate response capability, check activity data |
+| Small Alliance / Renter Space | Softer targets, less organized defense |
+| NPC Null-sec | No player sovereignty, NPC pirates present |
+| Unclaimed Space | Contested, potentially active combat zone |
+
+### Coalition Response Characteristics
+
+| Coalition | Typical Response |
+|-----------|------------------|
+| Imperium | Standing fleets, organized caps, rapid comms |
+| PanFam | Blops/caps, coordinated response, intel channels |
+| FIRE | Regional defense, varied response times |
+
+### Sovereignty Block Format
+
+Include in threat assessment when in null-sec:
+
+```
+───────────────────────────────────────────
+SOVEREIGNTY: [GSF] Goonswarm Federation
+  Coalition: The Imperium
+  Response Risk: HIGH - organized standing fleets
+───────────────────────────────────────────
+```
+
+### Activity Defense Multiplier (ADM) Context
+
+High NPC kills and ship jumps in a system suggest:
+- Active ratting/mining operations
+- Higher ADM (harder to entosis)
+- Likely inhabitants who will respond to threats
+
 ## Threat Level Definitions
 
 **MINIMAL:** Standard high-sec operations, normal NPC threats only

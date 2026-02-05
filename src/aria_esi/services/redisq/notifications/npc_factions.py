@@ -67,6 +67,7 @@ class NPCFactionMapper:
         self._corp_to_name: dict[int, str] = {}
         self._faction_corps: dict[str, set[int]] = {}
         self._faction_names: dict[str, str] = {}  # key -> display name
+        self._faction_id_to_name: dict[int, str] = {}  # faction_id -> display name
         self._loaded = False
 
         self._load_mapping()
@@ -86,8 +87,14 @@ class NPCFactionMapper:
 
             for faction_key, faction_data in data.items():
                 faction_key_lower = faction_key.lower()
-                self._faction_names[faction_key_lower] = faction_data.get("name", faction_key)
+                faction_display_name = faction_data.get("name", faction_key)
+                self._faction_names[faction_key_lower] = faction_display_name
                 self._faction_corps[faction_key_lower] = set()
+
+                # Map faction_id -> display name for direct lookups
+                faction_id = faction_data.get("faction_id")
+                if faction_id:
+                    self._faction_id_to_name[faction_id] = faction_display_name
 
                 for corp in faction_data.get("corporations", []):
                     corp_id = corp.get("id")
@@ -155,6 +162,18 @@ class NPCFactionMapper:
             Display name (e.g., "Serpentis", "Angel Cartel")
         """
         return self._faction_names.get(faction_key.lower(), faction_key.title())
+
+    def get_faction_name_by_id(self, faction_id: int) -> str | None:
+        """
+        Get faction display name by faction ID.
+
+        Args:
+            faction_id: EVE faction ID (e.g., 500010 for Guristas)
+
+        Returns:
+            Faction display name or None if not found
+        """
+        return self._faction_id_to_name.get(faction_id)
 
     def get_all_faction_keys(self) -> list[str]:
         """

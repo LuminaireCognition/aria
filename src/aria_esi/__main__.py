@@ -565,6 +565,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     pi.register_parsers(subparsers)
 
+    # Phase 26: Sovereignty commands
+    from .commands import sovereignty
+
+    sovereignty.register_parsers(subparsers)
+
     return parser
 
 

@@ -836,6 +836,87 @@ class TestLocalAreaAction:
 
 
 # =============================================================================
+# Territory Analysis Action Tests
+# =============================================================================
+
+
+class TestTerritoryAnalysisAction:
+    """Tests for universe territory_analysis action."""
+
+    def test_territory_analysis_coalition(self, universe_dispatcher):
+        """Territory analysis for a coalition."""
+        # Mock the analyze_territory function
+        mock_result = {
+            "entity_name": "The Imperium",
+            "entity_type": "coalition",
+            "alliance_count": 4,
+            "system_count": 479,
+            "constellation_count": 71,
+            "region_count": 9,
+            "regions": [{"name": "Delve", "system_count": 96}],
+        }
+
+        with patch(
+            "aria_esi.services.sovereignty.analyze_territory",
+            return_value=mock_result,
+        ):
+            result = asyncio.run(
+                universe_dispatcher(action="territory_analysis", coalition="imperium")
+            )
+
+        assert result["entity_name"] == "The Imperium"
+        assert result["entity_type"] == "coalition"
+        assert result["system_count"] == 479
+
+    def test_territory_analysis_alliance(self, universe_dispatcher):
+        """Territory analysis for an alliance."""
+        mock_result = {
+            "entity_name": "[GSF] Goonswarm Federation",
+            "entity_type": "alliance",
+            "alliance_count": 1,
+            "system_count": 200,
+            "constellation_count": 30,
+            "region_count": 3,
+            "regions": [{"name": "Delve", "system_count": 96}],
+        }
+
+        with patch(
+            "aria_esi.services.sovereignty.analyze_territory",
+            return_value=mock_result,
+        ):
+            result = asyncio.run(
+                universe_dispatcher(action="territory_analysis", alliance_id=1354830081)
+            )
+
+        assert result["entity_type"] == "alliance"
+        assert result["system_count"] == 200
+
+    def test_territory_analysis_missing_params_raises_error(self, universe_dispatcher):
+        """Missing both coalition and alliance_id raises error."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(universe_dispatcher(action="territory_analysis"))
+
+        assert "coalition" in str(exc.value).lower()
+
+    def test_territory_analysis_coalition_not_found(self, universe_dispatcher):
+        """Unknown coalition returns error result."""
+        mock_result = {
+            "error": "coalition_not_found",
+            "message": "Unknown coalition: nonexistent",
+        }
+
+        with patch(
+            "aria_esi.services.sovereignty.analyze_territory",
+            return_value=mock_result,
+        ):
+            result = asyncio.run(
+                universe_dispatcher(action="territory_analysis", coalition="nonexistent")
+            )
+
+        assert result["error"] == "coalition_not_found"
+
+
+# =============================================================================
 # Invalid Action Tests
 # =============================================================================
 

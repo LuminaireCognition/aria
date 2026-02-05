@@ -27,6 +27,19 @@ Provide consolidated tactical intelligence when a pilot finds themselves in unkn
 - "just landed in [system]"
 - "dropped into [system]"
 
+## Data Authority
+
+Sovereignty data follows the authority hierarchy defined in `docs/DATA_AUTHORITY.md`:
+
+| Data Type | Source | Authority |
+|-----------|--------|-----------|
+| Alliance ID/Name | ESI `/sovereignty/map/` | Authoritative |
+| Coalition membership | `coalitions.yaml` | Community (validated against ESI) |
+| System security | Universe graph (SDE) | Authoritative |
+| Activity data | ESI `/kills/`, RedisQ | Authoritative |
+
+**Validation:** Coalition data is validated against ESI before loading into cache. Run `sov-validate` to verify.
+
 ## Data Sources
 
 ### MCP Tools (preferred)
@@ -39,6 +52,7 @@ universe(action="local_area", origin="ZZ-TOP", max_jumps=10, include_realtime=Tr
 
 **Response includes:**
 - Origin system details (security, region, constellation)
+- Sovereignty data (alliance, coalition) for null-sec systems
 - Threat summary (total kills, active camps, threat level)
 - Hotspots (high PvP activity systems)
 - Quiet zones (zero/low activity for stealth ops)
@@ -63,6 +77,10 @@ ARIA LOCAL ORIENTATION - [System] ([Region])
 THREAT LEVEL: [LOW/MEDIUM/HIGH/EXTREME]
   [X] ship kills within [N] jumps (last hour)
   [Active gatecamp warning if detected]
+
+SOVEREIGNTY: [Alliance Ticker] Alliance Name
+  Coalition: [Coalition Name] (if applicable)
+  [Territorial context for threat assessment]
 
 AVOID (High Activity)
 │ System   │ Jumps │ Kills │ Threat          │
@@ -137,10 +155,58 @@ When `include_realtime=True` and the RedisQ poller is healthy:
 - Avoid detected camps
 - Find staging points
 
+## Sovereignty Context (Null-Sec Only)
+
+When the origin system is in null-sec (security <= 0.0), include sovereignty information:
+
+### What to Show
+
+1. **Owning Alliance** - Who holds sovereignty (from `systems` response `sovereignty.alliance_name`)
+2. **Coalition** - If the alliance is part of a known coalition (from `sovereignty.coalition_name`)
+3. **Territorial Threat Context** - Whether you're in hostile/neutral/friendly space
+
+### Example Sovereignty Block
+
+```
+SOVEREIGNTY: [GSF] Goonswarm Federation
+  Coalition: The Imperium
+  Status: Hostile territory - expect organized response
+```
+
+### Threat Implications by Territory Type
+
+| Territory | Implication |
+|-----------|-------------|
+| Major Coalition (Imperium, PanFam, FIRE) | Organized standing fleets, rapid response |
+| Smaller Alliance | Variable response capability |
+| NPC Null-sec | No player sovereignty - NPC presence only |
+| Unclaimed | Disputed or recently lost - may be contested |
+
+### Getting Sovereignty Data
+
+Sovereignty is included in the `systems` response for null-sec systems:
+
+```
+universe(action="systems", systems=["1DQ1-A"])
+```
+
+Response includes:
+```json
+{
+  "sovereignty": {
+    "alliance_id": 1354830081,
+    "alliance_name": "[GSF] Goonswarm Federation",
+    "coalition_id": "imperium",
+    "coalition_name": "The Imperium"
+  }
+}
+```
+
 ## Response Priority
 
 When presenting results, prioritize:
 1. **Immediate threats** - Active camps, extreme activity
-2. **Escape routes** - How to get to safer space
-3. **Tactical opportunities** - Quiet zones, ratting banks
-4. **Context** - Regional info, border systems
+2. **Sovereignty context** - Whose space you're in (null-sec only)
+3. **Escape routes** - How to get to safer space
+4. **Tactical opportunities** - Quiet zones, ratting banks
+5. **Context** - Regional info, border systems

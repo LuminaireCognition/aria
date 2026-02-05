@@ -33,9 +33,14 @@ allow-direct-references = true
 [tool.hatch.build.targets.wheel]
 packages = ["src/aria_esi"]
 
+# Include non-Python data files in the wheel
+[tool.hatch.build.targets.wheel.force-include]
+"src/aria_esi/data/sovereignty/coalitions.yaml" = "aria_esi/data/sovereignty/coalitions.yaml"
+
 [tool.hatch.build.targets.sdist]
 include = [
     "src/aria_esi/**/*.py",
+    "src/aria_esi/data/sovereignty/*.yaml",
     "pyproject.toml",
     "README.md",
     "LICENSE",

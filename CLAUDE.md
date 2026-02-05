@@ -157,6 +157,8 @@ If profile contains `[YOUR CHARACTER NAME]` placeholder or doesn't exist, offer 
 
 6. **Verify Before Claiming:** Never present EVE game mechanics as fact without verification from SDE, EOS, or other ground truth sources. Training data knowledge is not a trusted source—always query `sde(action="item_info")`, `fitting(action="calculate_stats")`, or similar tools before stating specific numbers or effects. See `docs/DATA_VERIFICATION.md`.
 
+7. **Data Authority:** All data persisted to local cache must be sourced from or validated against authoritative sources (ESI, SDE). Never cache training data directly. Community data (like coalition membership) must be validated before loading. See `docs/DATA_AUTHORITY.md`.
+
 ## Python Execution
 
 **CRITICAL:** Always use `uv run` for Python. Never use bare `python`, `python3`, or `pip`.
@@ -584,6 +586,7 @@ uv run python .claude/scripts/aria-skill-preflight.py --all
 | Topic | Document |
 |-------|----------|
 | **Data verification** | `docs/DATA_VERIFICATION.md` |
+| **Data authority** | `docs/DATA_AUTHORITY.md` |
 | **Context policy** | `docs/CONTEXT_POLICY.md` |
 | Ad-hoc market scopes | `docs/ADHOC_MARKETS.md` |
 | External data sources | `docs/DATA_SOURCES.md` |

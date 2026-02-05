@@ -78,6 +78,7 @@ UNIVERSE_ACTION_PARAMS: dict[str, set[str]] = {
         "quiet_threshold",
         "ratting_threshold",
     },
+    "territory_analysis": {"coalition", "alliance_id"},
 }
 
 

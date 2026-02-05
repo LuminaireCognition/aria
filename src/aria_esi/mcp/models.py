@@ -63,6 +63,17 @@ class NeighborInfo(MCPModel):
     security_class: Literal["HIGH", "LOW", "NULL"]
 
 
+class SovereigntyInfo(MCPModel):
+    """Sovereignty information for null-sec systems."""
+
+    alliance_id: int | None = Field(default=None, description="Alliance holding sovereignty")
+    alliance_name: str | None = Field(default=None, description="Alliance name with ticker")
+    coalition_id: str | None = Field(default=None, description="Coalition ID if alliance is in a coalition")
+    coalition_name: str | None = Field(default=None, description="Coalition display name")
+    faction_id: int | None = Field(default=None, description="NPC faction ID for NPC null-sec")
+    faction_name: str | None = Field(default=None, description="NPC faction name")
+
+
 class SystemInfo(MCPModel):
     """Complete system information including neighbors and border status."""
 
@@ -77,6 +88,9 @@ class SystemInfo(MCPModel):
     neighbors: list[NeighborInfo]
     is_border: bool = Field(description="High-sec system adjacent to low-sec")
     adjacent_lowsec: list[str] = Field(default_factory=list)
+    sovereignty: SovereigntyInfo | None = Field(
+        default=None, description="Sovereignty info for null-sec systems"
+    )
 
 
 # =============================================================================
