@@ -44,8 +44,15 @@ Analyze solar systems for pirate operational viability. Evaluate target availabi
 
 **CRITICAL:** For hunting ground analysis, query live activity data.
 
-### Activity Intel Command
+### Activity Intel Commands
 
+**MCP (preferred if available):**
+```
+universe(action="activity", systems=["Tama"], include_realtime=True)
+universe(action="hotspots", origin="Tama", max_jumps=10, activity_type="kills")
+```
+
+**CLI fallback:**
 ```bash
 uv run aria-esi activity <system>
 ```
@@ -149,6 +156,74 @@ Systems with L4 agents nearby:
 - Mission runners in expensive ships
 - Predictable locations (mission pockets)
 - Valuable loot potential
+
+## Coalition Intelligence (Null-Sec Hunting)
+
+When hunting in null-sec, sovereignty data provides tactical intelligence.
+
+### Getting Sovereignty Data
+
+```
+universe(action="systems", systems=["1DQ1-A"])
+universe(action="territory_analysis", coalition="imperium")
+```
+
+### Coalition Response Analysis
+
+| Coalition | Response Characteristics | Hunting Viability |
+|-----------|-------------------------|-------------------|
+| **Imperium** | Standing fleets, organized caps, rapid intel | LOW - fast organized response |
+| **PanFam** | Blops hunters, coordinated intel | LOW - active counter-hunters |
+| **FIRE** | Regional defense, variable response | MODERATE - depends on TZ |
+| **Smaller Alliances** | Less organized, slower response | HIGHER - softer targets |
+| **Renter Space** | Minimal defense, no standing fleets | HIGH - soft ratters/miners |
+
+### Renter Space Identification
+
+Renter space (soft targets) indicators:
+- Small alliance holding sov in major coalition region
+- High NPC kills (ratting) with low PvP kills
+- No historical defense activity
+- Alliance with "Rental" or similar in name
+
+### Entry Point Analysis
+
+When hunting coalition space:
+
+```
+universe(action="borders", origin="Jita", limit=20)
+```
+
+Look for:
+- Border systems between NPC null and sov null
+- Systems with multiple exits (escape routes)
+- Low-ADM systems on coalition edges
+
+### Sovereignty Response Block
+
+Include in hunting ground analysis for null-sec:
+
+```
+SOVEREIGNTY: [CONDI] Initiative Associates
+  Coalition: The Imperium
+  Response Risk: HIGH
+  Notes: Imperium standing fleet within 3 jumps
+         Expect caps on grid within 5 minutes
+
+RECOMMENDATION: Hit-and-run only. Pre-aligned hunting.
+```
+
+### Coalition Staging Systems
+
+Major staging systems to avoid for extended operations:
+- These have standing fleets and rapid response
+- Use `territory_analysis` to identify concentration
+
+```
+universe(action="territory_analysis", coalition="imperium")
+```
+
+Response shows region breakdown - systems in top regions are likely staging or well-defended.
 
 ## Regional Analysis
 

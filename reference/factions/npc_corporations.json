@@ -41,5 +41,26 @@
       {"id": 1000161, "name": "True Creations"},
       {"id": 1000162, "name": "True Power"}
     ]
+  },
+  "ore": {
+    "faction_id": 500015,
+    "name": "Outer Ring Excavations",
+    "corporations": [
+      {"id": 1000106, "name": "Outer Ring Excavations"}
+    ]
+  },
+  "thukker_tribe": {
+    "faction_id": 500016,
+    "name": "Thukker Tribe",
+    "corporations": [
+      {"id": 1000118, "name": "Thukker Mix"}
+    ]
+  },
+  "mordus_legion": {
+    "faction_id": 500018,
+    "name": "Mordu's Legion",
+    "corporations": [
+      {"id": 1000115, "name": "Mordu's Legion Command"}
+    ]
   }
 }

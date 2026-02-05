@@ -14,6 +14,8 @@ Consolidates 14 universe navigation tools into a single dispatcher:
 - hotspots: Find high-activity systems
 - gatecamp_risk: Route risk analysis
 - fw_frontlines: Faction Warfare contested systems
+- local_area: Consolidated local intel for orientation
+- territory_analysis: Sovereignty territory analysis for coalitions/alliances
 """
 
 from __future__ import annotations
@@ -51,6 +53,7 @@ UniverseAction = Literal[
     "gatecamp_risk",
     "fw_frontlines",
     "local_area",
+    "territory_analysis",
 ]
 
 VALID_ACTIONS: set[str] = {
@@ -67,6 +70,7 @@ VALID_ACTIONS: set[str] = {
     "gatecamp_risk",
     "fw_frontlines",
     "local_area",
+    "territory_analysis",
 }
 
 
@@ -124,6 +128,9 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
         hotspot_threshold: int = 5,
         quiet_threshold: int = 0,
         ratting_threshold: int = 100,
+        # territory_analysis params
+        coalition: str | None = None,
+        alliance_id: int | None = None,
     ) -> dict:
         """
         Unified universe navigation interface.
@@ -142,6 +149,7 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
         - gatecamp_risk: Analyze gatecamp risk along route
         - fw_frontlines: Get Faction Warfare contested systems
         - local_area: Consolidated local intel for orientation in unknown space
+        - territory_analysis: Analyze sovereignty territory for coalition/alliance
 
         Args:
             action: The operation to perform (see Actions above)
@@ -223,6 +231,10 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 quiet_threshold: Max kills for quiet zone (default 0)
                 ratting_threshold: Min NPC kills for ratting bank (default 100)
 
+            Territory analysis params (action="territory_analysis"):
+                coalition: Coalition ID or alias (e.g., "imperium", "goons")
+                alliance_id: Alliance ID to analyze
+
         Returns:
             Action-specific result dictionary
 
@@ -234,6 +246,7 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
             universe(action="activity", systems=["Tama", "Amamake"])
             universe(action="hotspots", origin="Hek", activity_type="kills")
             universe(action="local_area", origin="ZZ-TOP", max_jumps=10, include_realtime=True)
+            universe(action="territory_analysis", coalition="imperium")
         """
         if action not in VALID_ACTIONS:
             raise InvalidParameterError(
@@ -287,6 +300,8 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 "hotspot_threshold": hotspot_threshold,
                 "quiet_threshold": quiet_threshold,
                 "ratting_threshold": ratting_threshold,
+                "coalition": coalition,
+                "alliance_id": alliance_id,
             },
         )
 
@@ -360,6 +375,9 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                     quiet_threshold,
                     ratting_threshold,
                 )
+
+            case "territory_analysis":
+                result = await _territory_analysis(coalition, alliance_id)
 
             case _:
                 raise InvalidParameterError(
@@ -1745,3 +1763,32 @@ async def _find_escape_routes(
     # For now, we identify security transitions which often have stations
 
     return escape_routes
+
+
+async def _territory_analysis(
+    coalition: str | None,
+    alliance_id: int | None,
+) -> dict:
+    """
+    Territory analysis action - analyze sovereignty for a coalition or alliance.
+
+    Returns territory statistics including:
+    - System count
+    - Region breakdown
+    - Constellation count
+    """
+    if not coalition and not alliance_id:
+        raise InvalidParameterError(
+            "coalition",
+            None,
+            "Must specify either 'coalition' or 'alliance_id' for action='territory_analysis'",
+        )
+
+    from aria_esi.services.sovereignty import analyze_territory
+
+    result = analyze_territory(
+        coalition_id=coalition,
+        alliance_id=alliance_id,
+    )
+
+    return result

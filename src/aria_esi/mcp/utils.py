@@ -11,8 +11,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from ..services.redisq.notifications.npc_factions import get_npc_faction_mapper
 from .errors import InvalidParameterError
-from .models import NeighborInfo, SecurityFilter, SystemInfo
+from .models import NeighborInfo, SecurityFilter, SovereigntyInfo, SystemInfo
 
 if TYPE_CHECKING:
     from ..universe.graph import UniverseGraph
@@ -301,10 +302,16 @@ def build_system_info(universe: UniverseGraph, idx: int) -> SystemInfo:
         for n in universe.graph.neighbors(idx)
     ]
 
+    # Get sovereignty for null-sec systems (security <= 0.0)
+    sovereignty = None
+    security = float(universe.security[idx])
+    if security <= 0.0:
+        sovereignty = _get_sovereignty_info(int(universe.system_ids[idx]))
+
     return SystemInfo(
         name=universe.idx_to_name[idx],
         system_id=int(universe.system_ids[idx]),
-        security=float(universe.security[idx]),
+        security=security,
         security_class=universe.security_class(idx),
         constellation=universe.get_constellation_name(idx),
         constellation_id=int(universe.constellation_ids[idx]),
@@ -313,4 +320,64 @@ def build_system_info(universe: UniverseGraph, idx: int) -> SystemInfo:
         neighbors=neighbors,
         is_border=idx in universe.border_systems,
         adjacent_lowsec=universe.get_adjacent_lowsec(idx),
+        sovereignty=sovereignty,
     )
+
+
+def _get_sovereignty_info(system_id: int) -> SovereigntyInfo | None:
+    """
+    Get sovereignty information for a system.
+
+    Queries the sovereignty database for cached sovereignty data.
+    Returns None if no data is available.
+
+    Args:
+        system_id: Solar system ID
+
+    Returns:
+        SovereigntyInfo if data is available, None otherwise
+    """
+    try:
+        from ..services.sovereignty import get_sovereignty_database
+
+        db = get_sovereignty_database()
+        sov = db.get_sovereignty(system_id)
+
+        if sov is None:
+            return None
+
+        # Resolve alliance name
+        alliance_name = None
+        if sov.alliance_id:
+            alliance = db.get_alliance(sov.alliance_id)
+            if alliance:
+                alliance_name = f"[{alliance.ticker}] {alliance.name}"
+
+        # Get coalition info
+        coalition_id = None
+        coalition_name = None
+        if sov.alliance_id:
+            coalition_id = db.get_coalition_for_alliance(sov.alliance_id)
+            if coalition_id:
+                coalition = db.get_coalition(coalition_id)
+                if coalition:
+                    coalition_name = coalition.display_name
+
+        # Get faction name for NPC null-sec
+        faction_name = None
+        if sov.faction_id:
+            mapper = get_npc_faction_mapper()
+            faction_name = mapper.get_faction_name_by_id(sov.faction_id)
+
+        return SovereigntyInfo(
+            alliance_id=sov.alliance_id,
+            alliance_name=alliance_name,
+            coalition_id=coalition_id,
+            coalition_name=coalition_name,
+            faction_id=sov.faction_id,
+            faction_name=faction_name,
+        )
+
+    except Exception:
+        # Sovereignty service not available or error - return None
+        return None
