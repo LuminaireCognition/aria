@@ -25,9 +25,8 @@ if TYPE_CHECKING:
 # Configure module logger
 logger = get_logger("aria_universe")
 
-# Default to new safe format, with env var override
+# Default to .universe format, with env var override
 DEFAULT_GRAPH_PATH = Path(__file__).parent.parent / "data" / "universe.universe"
-LEGACY_GRAPH_PATH = Path(__file__).parent.parent / "data" / "universe.pkl"
 
 
 class UniverseServer:
@@ -43,7 +42,7 @@ class UniverseServer:
 
         Args:
             graph_path: Path to universe graph. Defaults to package data directory.
-                       Supports both .universe (safe) and .pkl (legacy) formats.
+                       Supports .universe format.
                        Can be overridden with ARIA_UNIVERSE_GRAPH env var.
         """
         settings = get_settings()
@@ -53,8 +52,6 @@ class UniverseServer:
             self.graph_path = settings.universe_graph
         elif DEFAULT_GRAPH_PATH.exists():
             self.graph_path = DEFAULT_GRAPH_PATH
-        elif LEGACY_GRAPH_PATH.exists():
-            self.graph_path = LEGACY_GRAPH_PATH
         else:
             self.graph_path = DEFAULT_GRAPH_PATH  # Will fail with helpful message
         self.universe: UniverseGraph | None = None
@@ -63,7 +60,7 @@ class UniverseServer:
 
     def load_graph(self, *, skip_integrity_check: bool = False) -> None:
         """
-        Load pre-built universe graph from pickle.
+        Load pre-built universe graph.
 
         Args:
             skip_integrity_check: Skip checksum verification (for testing only)

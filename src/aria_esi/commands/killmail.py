@@ -428,66 +428,6 @@ def _format_isk(value: float) -> str:
         return f"{value:.0f} ISK"
 
 
-def cmd_test_webhook(args: argparse.Namespace) -> dict[str, Any]:
-    """
-    Test Discord webhook configuration.
-
-    Sends a test message to verify webhook is working.
-
-    DEPRECATED: Use 'notifications test <profile-name>' instead.
-    This command uses the legacy config.json format.
-    """
-    import asyncio
-    import sys
-
-    # Print deprecation warning to stderr
-    print(
-        "DEPRECATED: 'test-webhook' uses legacy config.json format.",
-        file=sys.stderr,
-    )
-    print(
-        "Use 'uv run aria-esi notifications test <profile-name>' instead.",
-        file=sys.stderr,
-    )
-    print(file=sys.stderr)
-
-    query_ts = get_utc_timestamp()
-
-    try:
-        from ..services.redisq.notifications import get_notification_manager
-
-        manager = get_notification_manager()
-
-        if not manager or not manager.is_configured:
-            return {
-                "error": "not_configured",
-                "message": "Discord webhook not configured",
-                "hint": "Add discord_webhook_url to userdata/config.json under redisq.notifications",
-                "query_timestamp": query_ts,
-            }
-
-        # Run async test
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            success, message = loop.run_until_complete(manager.test_webhook())
-        finally:
-            loop.close()
-
-        return {
-            "success": success,
-            "message": message,
-            "query_timestamp": query_ts,
-        }
-
-    except Exception as e:
-        return {
-            "error": "test_failed",
-            "message": str(e),
-            "query_timestamp": query_ts,
-        }
-
-
 def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     """Register killmail analysis command parsers."""
 
@@ -502,10 +442,3 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
         help="zKillboard URL or kill ID (e.g., https://zkillboard.com/kill/12345678/ or 12345678)",
     )
     analyze_parser.set_defaults(func=cmd_killmail_analyze)
-
-    # Test webhook
-    test_webhook_parser = subparsers.add_parser(
-        "test-webhook",
-        help="Test Discord webhook configuration",
-    )
-    test_webhook_parser.set_defaults(func=cmd_test_webhook)

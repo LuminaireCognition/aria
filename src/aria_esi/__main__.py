@@ -190,7 +190,6 @@ Notification Commands:
   notifications test <name>  Send test notification
   notifications validate     Validate all profiles
   notifications templates    List available templates
-  notifications migrate      Migrate legacy config to profile
   notifications delete       Delete profile (--force required)
 
 System Commands:
@@ -262,7 +261,6 @@ Examples:
   aria-esi notifications create my-intel --template market-hubs --webhook <url>
   aria-esi notifications test my-intel
   aria-esi notifications validate
-  aria-esi notifications migrate
 
 Usage:
   python3 -m aria_esi <command> [args]

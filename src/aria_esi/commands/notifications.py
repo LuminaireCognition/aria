@@ -8,7 +8,6 @@ triggers, and throttling.
 
 import argparse
 import asyncio
-import json
 from pathlib import Path
 from typing import Any
 
@@ -457,179 +456,6 @@ def cmd_notifications_templates(args: argparse.Namespace) -> dict[str, Any]:
         "status": "ok",
         "template_count": len(templates),
         "templates": template_details,
-    }
-
-
-# =============================================================================
-# Migrate Command
-# =============================================================================
-
-
-def cmd_notifications_migrate(args: argparse.Namespace) -> dict[str, Any]:
-    """
-    Migrate legacy config.json webhook settings to YAML profile.
-
-    Reads redisq.notifications from userdata/config.json and creates
-    a new YAML profile named "migrated" (or user-specified name).
-
-    Args:
-        args: Parsed arguments with optional name
-
-    Returns:
-        Result dict with migration status
-    """
-    query_ts = get_utc_timestamp()
-    profile_name = getattr(args, "name", "migrated") or "migrated"
-
-    config_path = Path("userdata/config.json")
-
-    # Check if config.json exists
-    if not config_path.exists():
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "no_config",
-            "message": "userdata/config.json not found",
-        }
-
-    # Load config
-    try:
-        with open(config_path) as f:
-            config = json.load(f)
-    except (json.JSONDecodeError, OSError) as e:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "config_read_error",
-            "message": f"Failed to read config.json: {e}",
-        }
-
-    # Check for legacy notifications section
-    redisq = config.get("redisq", {})
-    notifications = redisq.get("notifications", {})
-
-    if not notifications:
-        return {
-            "query_timestamp": query_ts,
-            "status": "not_found",
-            "message": "No legacy redisq.notifications section found in config.json",
-            "hint": "Legacy webhook config uses redisq.notifications.discord_webhook_url",
-        }
-
-    webhook_url = notifications.get("discord_webhook_url", "")
-    if not webhook_url:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "no_webhook",
-            "message": "Legacy config exists but discord_webhook_url is empty",
-        }
-
-    # Validate webhook URL format
-    if not webhook_url.startswith("https://discord.com/api/webhooks/"):
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "invalid_webhook",
-            "message": "discord_webhook_url must be a Discord webhook URL",
-            "hint": "URL should start with https://discord.com/api/webhooks/",
-        }
-
-    # Check if profile already exists
-    if ProfileLoader.profile_exists(profile_name):
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "already_exists",
-            "message": f"Profile '{profile_name}' already exists",
-            "hint": "Use --name to specify a different profile name",
-        }
-
-    # Extract settings from legacy config
-    triggers = notifications.get("triggers", {})
-    quiet_hours_data = notifications.get("quiet_hours", {})
-
-    # Build profile data
-    profile_data: dict[str, Any] = {
-        "name": profile_name,
-        "display_name": "Migrated from config.json",
-        "description": "Automatically migrated from legacy redisq.notifications config",
-        "enabled": True,
-        "webhook_url": webhook_url,
-        "triggers": {
-            "watchlist_activity": triggers.get("watchlist_activity", True),
-            "gatecamp_detected": triggers.get("gatecamp_detected", True),
-            "high_value_threshold": triggers.get("high_value_threshold", 1000000000),
-        },
-        "throttle_minutes": notifications.get("throttle_minutes", 5),
-    }
-
-    # Migrate quiet hours if present
-    if quiet_hours_data.get("enabled"):
-        profile_data["quiet_hours"] = {
-            "enabled": True,
-            "start": quiet_hours_data.get("start", "02:00"),
-            "end": quiet_hours_data.get("end", "08:00"),
-            "timezone": quiet_hours_data.get("timezone", "UTC"),
-        }
-
-    # Migrate topology from context_topology if present
-    # Copy all layers, not just geographic, to preserve user's full configuration
-    # Use `in` check (not truthiness) to preserve explicit empty values like routes: []
-    context_topology = redisq.get("context_topology", {})
-    if context_topology:
-        topology_data: dict[str, Any] = {}
-
-        # Copy archetype if present (enables preset behavior in migrated profile)
-        if "archetype" in context_topology:
-            topology_data["archetype"] = context_topology["archetype"]
-
-        # Copy all topology layers that are present (including explicit empties)
-        for layer_key in ["geographic", "entity", "routes", "assets", "patterns"]:
-            if layer_key in context_topology:
-                topology_data[layer_key] = context_topology[layer_key]
-
-        # Copy threshold values if present
-        for threshold_key in [
-            "fetch_threshold",
-            "log_threshold",
-            "digest_threshold",
-            "priority_threshold",
-        ]:
-            if threshold_key in context_topology:
-                topology_data[threshold_key] = context_topology[threshold_key]
-
-        if topology_data:
-            profile_data["topology"] = topology_data
-
-    # Create and save profile
-    try:
-        profile = NotificationProfile.from_dict(profile_data, name=profile_name)
-        path = ProfileLoader.save_profile(profile)
-    except Exception as e:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "save_failed",
-            "message": f"Failed to save profile: {e}",
-        }
-
-    return {
-        "query_timestamp": query_ts,
-        "status": "ok",
-        "message": f"Migrated legacy config to profile '{profile_name}'",
-        "profile": {
-            "name": profile.name,
-            "display_name": profile.display_name,
-            "enabled": profile.enabled,
-            "system_count": profile.system_count,
-        },
-        "path": str(path),
-        "next_steps": [
-            f"Test the webhook: uv run aria-esi notifications test {profile_name}",
-            "Remove the redisq.notifications section from userdata/config.json",
-            f"Customize the profile: userdata/notifications/{profile_name}.yaml",
-        ],
     }
 
 
@@ -1097,20 +923,6 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
         help="Confirm deletion",
     )
     delete_parser.set_defaults(func=cmd_notifications_delete)
-
-    # notifications migrate [--name <name>]
-    migrate_parser = notifications_subparsers.add_parser(
-        "migrate",
-        help="Migrate legacy config.json webhook to YAML profile",
-        description="Migrate webhook configuration from the legacy redisq.notifications "
-        "section in config.json to a new YAML notification profile.",
-    )
-    migrate_parser.add_argument(
-        "--name",
-        default="migrated",
-        help="Name for the new profile (default: 'migrated')",
-    )
-    migrate_parser.set_defaults(func=cmd_notifications_migrate)
 
     # =========================================================================
     # Interest Engine v2 Commands

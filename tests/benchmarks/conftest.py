@@ -14,7 +14,7 @@ def benchmark_universe(real_universe):
     """
     Universe graph for benchmarks.
 
-    Requires real universe.pkl to be built.
+    Requires real universe.universe to be built.
     Skips benchmark if not available.
     """
     return real_universe

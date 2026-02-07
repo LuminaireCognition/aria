@@ -33,7 +33,7 @@ Usage:
 """
 
 from .calculator import InterestCalculator
-from .config import ContextAwareTopologyConfig, migrate_legacy_config
+from .config import ContextAwareTopologyConfig
 from .models import (
     DIGEST_THRESHOLD,
     FETCH_THRESHOLD,
@@ -60,7 +60,6 @@ __all__ = [
     "InterestCalculator",
     # Config
     "ContextAwareTopologyConfig",
-    "migrate_legacy_config",
     # Presets
     "ARCHETYPE_PRESETS",
     "get_preset",

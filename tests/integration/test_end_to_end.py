@@ -49,7 +49,7 @@ class TestGraphBuildWorkflow:
         # Build
         build_universe_graph(sample_cache_path, output_path)
 
-        # Load fresh (skip integrity check for test pickles that don't match manifest)
+        # Load fresh (skip integrity check for test-generated graphs that don't match manifest)
         graph = load_universe_graph(output_path, skip_integrity_check=True)
 
         # Execute queries
@@ -190,7 +190,7 @@ class TestCLIIntegration:
             def __init__(self):
                 self.force = True
                 self.cache = str(sample_cache_path)
-                self.output = str(tmp_path / "universe.pkl")
+                self.output = str(tmp_path / "universe.universe")
 
         args = Args()
 
