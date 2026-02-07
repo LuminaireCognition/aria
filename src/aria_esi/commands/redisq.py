@@ -768,7 +768,6 @@ def cmd_topology_build(args: argparse.Namespace) -> dict:
     Build or rebuild the operational topology.
     """
     from ..services.redisq.interest.config import ContextAwareTopologyConfig
-    from ..services.redisq.notifications.config import TopologyConfig
     from ..services.redisq.topology import build_topology
 
     # Get systems from args or config
@@ -778,7 +777,6 @@ def cmd_topology_build(args: argparse.Namespace) -> dict:
     if args.systems:
         systems = args.systems
     else:
-        # Try context-aware config first
         context_config = ContextAwareTopologyConfig.load()
         if context_config.has_geographic:
             # Extract system names from geographic.systems
@@ -794,17 +792,10 @@ def cmd_topology_build(args: argparse.Namespace) -> dict:
                     "hop_2": home_weights.get(2, home_weights.get("2", 0.7)),
                 }
 
-        # Fall back to legacy config
-        if not systems:
-            legacy_config = TopologyConfig.load()
-            if legacy_config.operational_systems:
-                systems = legacy_config.operational_systems
-                weights = legacy_config.interest_weights if legacy_config.interest_weights else None
-
     if not systems:
         return {
             "status": "error",
-            "error": "No operational systems specified. Use --systems or configure in config.json",
+            "error": "No operational systems specified. Use --systems or configure redisq.context_topology.geographic.systems in userdata/config.json",
             "query_timestamp": get_utc_timestamp(),
         }
 
@@ -969,7 +960,6 @@ def cmd_topology_explain(args: argparse.Namespace) -> dict:
     Shows breakdown of how each layer contributes to the final interest score.
     """
     from ..services.redisq.interest import ContextAwareTopologyConfig
-    from ..services.redisq.topology import InterestMap
     from ..universe import load_universe_graph
 
     system_name = args.system
@@ -992,211 +982,56 @@ def cmd_topology_explain(args: argparse.Namespace) -> dict:
     print(f"System ID: {system_id} | Security: {system_sec:.2f}")
     print("=" * 64)
 
-    # Try context-aware config first
     ctx_config = ContextAwareTopologyConfig.load()
-
-    if ctx_config.enabled:
-        print("\nMode: Context-Aware Topology")
-        print("-" * 64)
-
-        try:
-            calculator = ctx_config.build_calculator(graph=graph)
-
-            # Calculate interest
-            score = calculator.calculate_system_interest(system_id)
-
-            print(f"\nFinal Interest: {score.interest:.3f} (tier: {score.tier})")
-            print(f"Base Interest:  {score.base_interest:.3f}")
-            print(f"Dominant Layer: {score.dominant_layer}")
-
-            if score.escalation and score.escalation.multiplier != 1.0:
-                print(f"Escalation:     {score.escalation.multiplier}x ({score.escalation.reason})")
-
-            print("\nLayer Breakdown:")
-            for layer_name, layer_score in sorted(
-                score.layer_scores.items(),
-                key=lambda x: x[1].score,
-                reverse=True,
-            ):
-                marker = "→" if layer_name == score.dominant_layer else " "
-                reason = f" ({layer_score.reason})" if layer_score.reason else ""
-                print(f"  {marker} {layer_name}: {layer_score.score:.3f}{reason}")
-
-            return {
-                "status": "ok",
-                "mode": "context_aware",
-                "system": {
-                    "name": system_name,
-                    "id": system_id,
-                    "security": system_sec,
-                },
-                "score": score.to_dict(),
-                "query_timestamp": get_utc_timestamp(),
-            }
-
-        except Exception as e:
-            print(f"\nError building calculator: {e}")
-            print("Falling back to legacy topology...")
-
-    # Fall back to legacy topology
-    interest_map = InterestMap.load()
-
-    if interest_map is None:
-        print("\nNo topology configured.")
-        print("Configure context_topology in config.json or run 'topology-build'")
+    if not ctx_config.enabled:
         return {
             "status": "error",
-            "error": "No topology configured",
+            "error": "Context-aware topology is not enabled. Configure redisq.context_topology in userdata/config.json.",
             "query_timestamp": get_utc_timestamp(),
         }
 
-    print("\nMode: Legacy Topology")
+    print("\nMode: Context-Aware Topology")
     print("-" * 64)
-
-    system_info = interest_map.get_system_info(system_id)
-
-    if system_info is None:
-        print(f"\n{system_name} is NOT in the operational topology")
-        print("Interest: 0.0 (filtered)")
+    try:
+        calculator = ctx_config.build_calculator(graph=graph)
+    except Exception as e:
         return {
-            "status": "ok",
-            "mode": "legacy",
-            "system": {
-                "name": system_name,
-                "id": system_id,
-                "security": system_sec,
-            },
-            "in_topology": False,
-            "interest": 0.0,
+            "status": "error",
+            "error": f"Failed to build context-aware topology calculator: {e}",
             "query_timestamp": get_utc_timestamp(),
         }
 
-    print(f"\nInterest: {system_info.interest:.2f}")
-    print(f"Hop Level: {system_info.hop_level}")
-    if system_info.from_system:
-        print(f"Connected via: {system_info.from_system}")
+    # Calculate interest
+    score = calculator.calculate_system_interest(system_id)
 
-    flags = []
-    if system_info.is_border:
-        flags.append("border system")
-    if system_info.is_gank_pipe:
-        flags.append("gank pipe")
-    if system_info.is_trade_hub:
-        flags.append("trade hub")
+    print(f"\nFinal Interest: {score.interest:.3f} (tier: {score.tier})")
+    print(f"Base Interest:  {score.base_interest:.3f}")
+    print(f"Dominant Layer: {score.dominant_layer}")
 
-    if flags:
-        print(f"Flags: {', '.join(flags)}")
+    if score.escalation and score.escalation.multiplier != 1.0:
+        print(f"Escalation:     {score.escalation.multiplier}x ({score.escalation.reason})")
+
+    print("\nLayer Breakdown:")
+    for layer_name, layer_score in sorted(
+        score.layer_scores.items(),
+        key=lambda x: x[1].score,
+        reverse=True,
+    ):
+        marker = "→" if layer_name == score.dominant_layer else " "
+        reason = f" ({layer_score.reason})" if layer_score.reason else ""
+        print(f"  {marker} {layer_name}: {layer_score.score:.3f}{reason}")
 
     print("=" * 64)
 
     return {
         "status": "ok",
-        "mode": "legacy",
+        "mode": "context_aware",
         "system": {
             "name": system_name,
             "id": system_id,
             "security": system_sec,
         },
-        "in_topology": True,
-        "interest": system_info.interest,
-        "hop_level": system_info.hop_level,
-        "from_system": system_info.from_system,
-        "is_border": system_info.is_border,
-        "is_gank_pipe": system_info.is_gank_pipe,
-        "is_trade_hub": system_info.is_trade_hub,
-        "query_timestamp": get_utc_timestamp(),
-    }
-
-
-def cmd_topology_migrate(args: argparse.Namespace) -> dict:
-    """
-    Migrate legacy topology configuration to context-aware format.
-
-    Reads the current legacy topology config and outputs the equivalent
-    context_topology configuration.
-    """
-    import json
-
-    from ..services.redisq.interest import list_presets, migrate_legacy_config
-    from ..services.redisq.notifications.config import TopologyConfig
-
-    legacy_config = TopologyConfig.load()
-
-    if not legacy_config.operational_systems:
-        print("No legacy topology configuration found.")
-        print("\nTo configure context-aware topology, add to userdata/config.json:")
-        print(
-            """
-{
-  "redisq": {
-    "context_topology": {
-      "enabled": true,
-      "geographic": {
-        "systems": [
-          {"name": "YourHome", "classification": "home"},
-          {"name": "HuntingGround", "classification": "hunting"}
-        ]
-      },
-      "entity": {
-        "corp_id": YOUR_CORP_ID
-      }
-    }
-  }
-}
-"""
-        )
-        return {
-            "status": "info",
-            "message": "No legacy config to migrate",
-            "query_timestamp": get_utc_timestamp(),
-        }
-
-    # Migrate the configuration
-    new_config = migrate_legacy_config(
-        {
-            "enabled": legacy_config.enabled,
-            "operational_systems": legacy_config.operational_systems,
-            "interest_weights": legacy_config.interest_weights,
-        }
-    )
-
-    # Suggest an archetype if requested
-    archetype = args.archetype if hasattr(args, "archetype") and args.archetype else None
-
-    print("\n" + "=" * 64)
-    print("LEGACY TO CONTEXT-AWARE MIGRATION")
-    print("=" * 64)
-
-    print("\nLegacy Configuration:")
-    print(f"  Operational Systems: {', '.join(legacy_config.operational_systems)}")
-    print(f"  Interest Weights: {legacy_config.interest_weights}")
-
-    print("\n" + "-" * 64)
-    print("Migrated Configuration:")
-
-    migrated_dict = new_config.to_dict()
-    if archetype:
-        migrated_dict["archetype"] = archetype
-
-    # Pretty print the migrated config
-    print("\nAdd this to userdata/config.json under redisq.context_topology:")
-    print(json.dumps(migrated_dict, indent=2))
-
-    print("\n" + "-" * 64)
-    print("Available Archetypes (optional):")
-    for name, desc in list_presets():
-        print(f"  {name}: {desc}")
-
-    print('\nTo apply an archetype, add "archetype": "<name>" to your config.')
-    print("=" * 64)
-
-    return {
-        "status": "ok",
-        "legacy_config": {
-            "operational_systems": legacy_config.operational_systems,
-            "interest_weights": legacy_config.interest_weights,
-        },
-        "migrated_config": migrated_dict,
+        "score": score.to_dict(),
         "query_timestamp": get_utc_timestamp(),
     }
 
@@ -1572,18 +1407,6 @@ def register_parsers(subparsers) -> None:
         help="System name to explain",
     )
     topo_explain_parser.set_defaults(func=cmd_topology_explain)
-
-    # topology-migrate
-    topo_migrate_parser = subparsers.add_parser(
-        "topology-migrate",
-        help="Migrate legacy topology config to context-aware format",
-    )
-    topo_migrate_parser.add_argument(
-        "--archetype",
-        choices=["hunter", "industrial", "sovereignty", "wormhole", "mission_runner"],
-        help="Suggest an archetype preset",
-    )
-    topo_migrate_parser.set_defaults(func=cmd_topology_migrate)
 
     # topology-presets
     topo_presets_parser = subparsers.add_parser(

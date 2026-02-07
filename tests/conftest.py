@@ -565,7 +565,7 @@ def sample_graph(sample_cache_path, tmp_path_factory):
     """Build sample graph from cache for testing."""
     from aria_esi.universe.builder import build_universe_graph
 
-    output = tmp_path_factory.mktemp("data") / "universe.pkl"
+    output = tmp_path_factory.mktemp("data") / "universe.universe"
     return build_universe_graph(sample_cache_path, output)
 
 
@@ -592,18 +592,13 @@ def mock_server(sample_graph_path):
 
 @pytest.fixture(scope="session")
 def real_graph_path() -> Path | None:
-    """Path to real universe graph if available (prefers new format)."""
+    """Path to real universe graph if available."""
     # Data directory is in src/aria_esi/data
     data_dir = PROJECT_ROOT / "src" / "aria_esi" / "data"
 
-    # Try new format first
     new_path = data_dir / "universe.universe"
     if new_path.exists():
         return new_path
-    # Fall back to legacy pickle
-    legacy_path = data_dir / "universe.pkl"
-    if legacy_path.exists():
-        return legacy_path
     return None
 
 

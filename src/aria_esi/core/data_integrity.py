@@ -373,7 +373,7 @@ def verify_eos_commit(repo_path: Path, expected_commit: str | None = None) -> tu
 
 def get_universe_graph_checksum() -> str | None:
     """
-    Get the expected checksum for universe.pkl from manifest.
+    Get the expected checksum for the universe graph from manifest.
 
     Returns:
         SHA256 checksum string if configured, None otherwise
@@ -393,13 +393,10 @@ def verify_universe_graph_integrity(
     break_glass: bool = False,
 ) -> tuple[bool, str]:
     """
-    Verify integrity of the universe graph pickle file.
-
-    This verification runs BEFORE pickle.load() to prevent RCE from
-    tampered pickle files.
+    Verify integrity of the universe graph file.
 
     Args:
-        file_path: Path to universe.pkl
+        file_path: Path to universe graph file
         expected_checksum: Expected SHA256. If None, uses manifest value.
         break_glass: If True, skip verification (always returns success)
 
@@ -410,12 +407,8 @@ def verify_universe_graph_integrity(
         IntegrityError: If verification fails and break_glass is False
 
     Security:
-        This is a critical security control. The pickle format allows
-        arbitrary code execution during deserialization. Checksum
-        verification ensures the file hasn't been tampered with before
-        we call pickle.load().
-
-        Reference: dev/reviews/SECURITY_000.md Finding #3
+        This is a critical security control. Checksum verification ensures
+        the file hasn't been tampered with before deserialization.
     """
     # Break-glass mode skips verification
     if break_glass or is_break_glass_enabled():
@@ -437,7 +430,7 @@ def verify_universe_graph_integrity(
         actual = compute_sha256(file_path)
         return (True, actual)
 
-    # Compute and verify BEFORE loading pickle
+    # Compute and verify before loading the graph
     actual = compute_sha256(file_path)
     if actual.lower() != expected_checksum.lower():
         raise IntegrityError(
@@ -445,7 +438,7 @@ def verify_universe_graph_integrity(
             f"Expected: {expected_checksum}\n"
             f"Actual:   {actual}\n"
             f"File:     {file_path}\n\n"
-            "The universe.pkl file may have been tampered with or corrupted.\n"
+            "The universe graph file may have been tampered with or corrupted.\n"
             "If you rebuilt the graph, run 'uv run aria-esi universe --update-checksum'.\n"
             "To bypass (UNSAFE): set ARIA_ALLOW_UNPINNED=1",
             expected=expected_checksum,
@@ -460,18 +453,18 @@ def update_universe_graph_checksum(file_path: Path, manifest_path: Path | None =
     """
     Compute and update the universe graph checksum in the manifest.
 
-    This should be called after building a new universe.pkl to record
+    This should be called after building a new universe graph file to record
     the known-good checksum.
 
     Args:
-        file_path: Path to universe.pkl
+        file_path: Path to universe graph file
         manifest_path: Path to data-sources.json (defaults to standard location)
 
     Returns:
         The computed SHA256 checksum
 
     Raises:
-        FileNotFoundError: If universe.pkl or manifest doesn't exist
+        FileNotFoundError: If graph file or manifest doesn't exist
     """
     path = manifest_path or MANIFEST_PATH
 

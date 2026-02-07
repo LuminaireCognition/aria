@@ -844,10 +844,10 @@ class TestGraphBuildCommand:
         return cache_path
 
     def test_build_success(self, sample_cache, tmp_path):
-        """Graph-build creates valid pickle from cache."""
+        """Graph-build creates valid .universe graph from cache."""
         from aria_esi.commands.universe import cmd_graph_build
 
-        output = tmp_path / "test_universe.pkl"
+        output = tmp_path / "test_universe.universe"
         args = argparse.Namespace()
         args.cache = str(sample_cache)
         args.output = str(output)
@@ -865,7 +865,7 @@ class TestGraphBuildCommand:
         """Build refuses to overwrite without --force."""
         from aria_esi.commands.universe import cmd_graph_build
 
-        output = tmp_path / "existing.pkl"
+        output = tmp_path / "existing.universe"
         output.touch()  # Create existing file
 
         args = argparse.Namespace()
@@ -882,7 +882,7 @@ class TestGraphBuildCommand:
         """Build overwrites with --force."""
         from aria_esi.commands.universe import cmd_graph_build
 
-        output = tmp_path / "existing.pkl"
+        output = tmp_path / "existing.universe"
         output.touch()
 
         args = argparse.Namespace()
@@ -900,7 +900,7 @@ class TestGraphBuildCommand:
 
         args = argparse.Namespace()
         args.cache = str(tmp_path / "nonexistent.json")
-        args.output = str(tmp_path / "output.pkl")
+        args.output = str(tmp_path / "output.universe")
         args.force = False
 
         result = cmd_graph_build(args)
@@ -974,7 +974,7 @@ class TestGraphVerifyCommand:
         cache_path = tmp_path / "universe_cache.json"
         cache_path.write_text(json.dumps(cache))
 
-        graph_path = tmp_path / "universe.pkl"
+        graph_path = tmp_path / "universe.universe"
         build_universe_graph(cache_path, graph_path)
         return graph_path
 
@@ -992,11 +992,11 @@ class TestGraphVerifyCommand:
         assert "query_timestamp" in result
 
     def test_verify_fails_corrupt_file(self, tmp_path):
-        """Verify fails on corrupt pickle."""
+        """Verify fails on corrupt graph file."""
         from aria_esi.commands.universe import cmd_graph_verify
 
-        bad_graph = tmp_path / "bad.pkl"
-        bad_graph.write_bytes(b"not a pickle")
+        bad_graph = tmp_path / "bad.universe"
+        bad_graph.write_bytes(b"not a universe graph")
 
         args = argparse.Namespace()
         args.graph = str(bad_graph)
@@ -1010,7 +1010,7 @@ class TestGraphVerifyCommand:
         from aria_esi.commands.universe import cmd_graph_verify
 
         args = argparse.Namespace()
-        args.graph = str(tmp_path / "nonexistent.pkl")
+        args.graph = str(tmp_path / "nonexistent.universe")
 
         result = cmd_graph_verify(args)
 
@@ -1072,7 +1072,7 @@ class TestGraphStatsCommand:
         cache_path = tmp_path / "universe_cache.json"
         cache_path.write_text(json.dumps(cache))
 
-        graph_path = tmp_path / "universe.pkl"
+        graph_path = tmp_path / "universe.universe"
         build_universe_graph(cache_path, graph_path)
         return graph_path
 
@@ -1115,7 +1115,7 @@ class TestGraphStatsCommand:
         from aria_esi.commands.universe import cmd_graph_stats
 
         args = argparse.Namespace()
-        args.graph = str(tmp_path / "nonexistent.pkl")
+        args.graph = str(tmp_path / "nonexistent.universe")
         args.detailed = False
 
         result = cmd_graph_stats(args)

@@ -12,7 +12,6 @@ from aria_esi.services.redisq.interest import (
     ContextAwareTopologyConfig,
     InterestCalculator,
     InterestScore,
-    migrate_legacy_config,
 )
 from aria_esi.services.redisq.interest.layers import (
     EntityConfig,
@@ -122,48 +121,6 @@ class TestContextAwareTopologyConfig:
 
 
 # =============================================================================
-# Migration Tests
-# =============================================================================
-
-
-class TestLegacyMigration:
-    """Tests for migrating legacy config to context-aware format."""
-
-    def test_migrate_legacy_config(self) -> None:
-        """Legacy config migrates to geographic layer."""
-        legacy = {
-            "enabled": True,
-            "operational_systems": ["Tama", "Sujarento"],
-            "interest_weights": {
-                "operational": 1.0,
-                "hop_1": 0.9,
-                "hop_2": 0.6,
-            },
-        }
-
-        config = migrate_legacy_config(legacy)
-
-        assert config.enabled is True
-        assert config.has_geographic is True
-
-        systems = config.geographic.get("systems", [])
-        assert len(systems) == 2
-        assert all(s["classification"] == "home" for s in systems)
-
-        weights = config.geographic.get("home_weights", {})
-        assert weights[0] == 1.0
-        assert weights[1] == 0.9
-        assert weights[2] == 0.6
-
-    def test_migrate_empty_legacy_returns_disabled(self) -> None:
-        """Empty legacy config returns disabled config."""
-        config = migrate_legacy_config({})
-
-        assert config.enabled is False
-        assert config.has_geographic is False
-
-
-# =============================================================================
 # Full Pipeline Tests
 # =============================================================================
 
@@ -201,21 +158,7 @@ class TestFullPipeline:
 
     def test_geographic_only_matches_legacy_behavior(self, test_universe) -> None:
         """Geographic-only config should behave like legacy topology."""
-        # Build from legacy-style config
-        legacy_config = {
-            "enabled": True,
-            "operational_systems": ["Tama"],
-            "interest_weights": {
-                "operational": 1.0,
-                "hop_1": 1.0,
-                "hop_2": 0.7,
-            },
-        }
-
-        # Migrate to new format
-        config = migrate_legacy_config(legacy_config)
-
-        # Build calculator (manually since we're not using full load())
+        # Build calculator from direct geographic config (legacy-equivalent weights)
         geo_layer = GeographicLayer.from_legacy_config(
             operational_systems=["Tama"],
             interest_weights={

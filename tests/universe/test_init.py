@@ -115,9 +115,3 @@ class TestConstantsExports:
         from aria_esi.universe import DEFAULT_GRAPH_PATH
 
         assert DEFAULT_GRAPH_PATH is not None
-
-    def test_legacy_graph_path_accessible(self):
-        """LEGACY_GRAPH_PATH can be imported."""
-        from aria_esi.universe import LEGACY_GRAPH_PATH
-
-        assert LEGACY_GRAPH_PATH is not None

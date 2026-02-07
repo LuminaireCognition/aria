@@ -9,15 +9,12 @@ STP-003: Graph Builder
 Security:
     The .universe format uses msgpack for Python data and igraph's native
     format for graph topology, eliminating pickle.load() for arbitrary
-    Python objects. Legacy .pkl files are still supported with deprecation
-    warnings - see serialization.py for format details.
+    Python objects.
 """
 
 from __future__ import annotations
 
 import json
-import pickle
-import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -55,8 +52,6 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 DEFAULT_CACHE_PATH = DATA_DIR / "universe_cache.json"
 # New default: .universe format (safe serialization)
 DEFAULT_GRAPH_PATH = DATA_DIR / "universe.universe"
-# Legacy path for backward compatibility
-LEGACY_GRAPH_PATH = DATA_DIR / "universe.pkl"
 
 
 def build_universe_graph(
@@ -68,7 +63,7 @@ def build_universe_graph(
 
     Args:
         cache_path: Path to universe_cache.json (defaults to package data dir)
-        output_path: Optional path to save pickled graph
+        output_path: Optional path to save .universe graph
 
     Returns:
         UniverseGraph instance ready for queries
@@ -288,8 +283,7 @@ def load_universe_graph(
     """
     Load pre-built universe graph from file.
 
-    Supports both the new .universe format (safe serialization) and
-    legacy .pkl format (with deprecation warning).
+    Supports only the .universe format (safe serialization).
 
     Args:
         graph_path: Path to graph file (defaults to package data dir)
@@ -304,18 +298,14 @@ def load_universe_graph(
 
     Security:
         The .universe format uses msgpack for metadata, eliminating pickle
-        deserialization of arbitrary Python objects. Legacy .pkl files
-        still require checksum verification before loading.
+        deserialization of arbitrary Python objects.
     """
     if graph_path is None:
-        # Try new format first, fall back to legacy
         if DEFAULT_GRAPH_PATH.exists():
             graph_path = DEFAULT_GRAPH_PATH
-        elif LEGACY_GRAPH_PATH.exists():
-            graph_path = LEGACY_GRAPH_PATH
         else:
             raise UniverseBuildError(
-                f"Universe graph not found at {DEFAULT_GRAPH_PATH} or {LEGACY_GRAPH_PATH}\n"
+                f"Universe graph not found at {DEFAULT_GRAPH_PATH}\n"
                 "Run 'uv run aria-esi universe --build' to generate it."
             )
 
@@ -353,50 +343,9 @@ def load_universe_graph(
                 "The file may be corrupted. Try rebuilding with 'uv run aria-esi universe --build'."
             ) from e
 
-    elif file_format == "pickle":
-        # Legacy pickle format - emit deprecation warning
-        warnings.warn(
-            f"Loading legacy pickle format from {graph_path}. "
-            "This format is deprecated and will be removed in a future release. "
-            "Rebuild with 'uv run aria-esi universe --build' to use the new safe format.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        # SECURITY: Verify checksum BEFORE deserializing pickle
-        if not skip_integrity_check:
-            from aria_esi.core.data_integrity import IntegrityError, verify_universe_graph_integrity
-
-            try:
-                verify_universe_graph_integrity(graph_path)
-            except IntegrityError:
-                raise
-            except Exception as e:
-                logger.warning("Integrity check failed with unexpected error: %s", e)
-
-        try:
-            with open(graph_path, "rb") as f:
-                graph = pickle.load(f)
-        except (pickle.UnpicklingError, EOFError, ModuleNotFoundError) as e:
-            raise UniverseBuildError(
-                f"Failed to load universe graph: {graph_path}\n"
-                f"Error: {e}\n"
-                "The pickle file may be corrupted or from an incompatible version.\n"
-                "Try rebuilding with 'uv run aria-esi universe --build'."
-            ) from e
-
-        if not isinstance(graph, UniverseGraph):
-            raise UniverseBuildError(
-                f"Invalid universe graph format in: {graph_path}\n"
-                f"Expected UniverseGraph, got {type(graph).__name__}.\n"
-                "Try rebuilding with 'uv run aria-esi universe --build'."
-            )
-
-        return graph
-
     else:
         raise UniverseBuildError(
             f"Unknown file format for {graph_path}. "
-            "Expected .universe (safe) or .pkl (legacy) format.\n"
+            "Expected .universe format.\n"
             "Try rebuilding with 'uv run aria-esi universe --build'."
         )

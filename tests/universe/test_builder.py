@@ -270,46 +270,46 @@ class TestSecuritySetsPartition:
 
 
 # =============================================================================
-# Pickle Roundtrip Tests
+# Universe Roundtrip Tests
 # =============================================================================
 
 
-class TestPickleRoundtrip:
-    """Test pickle serialization and deserialization."""
+class TestUniverseRoundtrip:
+    """Test .universe serialization and deserialization."""
 
-    def test_saves_to_pickle(self, sample_cache: Path, tmp_path: Path):
-        """Builder saves pickle when output_path provided."""
-        output = tmp_path / "universe.pkl"
+    def test_saves_to_universe(self, sample_cache: Path, tmp_path: Path):
+        """Builder saves .universe when output_path provided."""
+        output = tmp_path / "universe.universe"
         build_universe_graph(sample_cache, output)
         assert output.exists()
 
-    def test_pickle_file_not_empty(self, sample_cache: Path, tmp_path: Path):
-        """Pickle file has content."""
-        output = tmp_path / "universe.pkl"
+    def test_universe_file_not_empty(self, sample_cache: Path, tmp_path: Path):
+        """.universe file has content."""
+        output = tmp_path / "universe.universe"
         build_universe_graph(sample_cache, output)
         assert output.stat().st_size > 0
 
     def test_roundtrip_preserves_system_count(self, sample_cache: Path, tmp_path: Path):
-        """Graph survives pickle/unpickle."""
-        output = tmp_path / "universe.pkl"
+        """Graph survives save/load."""
+        output = tmp_path / "universe.universe"
         original = build_universe_graph(sample_cache, output)
-        # skip_integrity_check=True for test pickles that don't match manifest
+        # skip_integrity_check=True for test-generated graphs that don't match manifest
         loaded = load_universe_graph(output, skip_integrity_check=True)
         assert loaded.system_count == original.system_count
 
     def test_roundtrip_preserves_stargate_count(self, sample_cache: Path, tmp_path: Path):
-        """Stargate count preserved after pickle."""
-        output = tmp_path / "universe.pkl"
+        """Stargate count preserved after save/load."""
+        output = tmp_path / "universe.universe"
         original = build_universe_graph(sample_cache, output)
-        # skip_integrity_check=True for test pickles that don't match manifest
+        # skip_integrity_check=True for test-generated graphs that don't match manifest
         loaded = load_universe_graph(output, skip_integrity_check=True)
         assert loaded.stargate_count == original.stargate_count
 
     def test_roundtrip_preserves_name_resolution(self, sample_cache: Path, tmp_path: Path):
-        """Name resolution works after pickle."""
-        output = tmp_path / "universe.pkl"
+        """Name resolution works after save/load."""
+        output = tmp_path / "universe.universe"
         build_universe_graph(sample_cache, output)
-        # skip_integrity_check=True for test pickles that don't match manifest
+        # skip_integrity_check=True for test-generated graphs that don't match manifest
         loaded = load_universe_graph(output, skip_integrity_check=True)
         assert loaded.resolve_name("Jita") is not None
         assert loaded.resolve_name("jita") == loaded.resolve_name("JITA")
@@ -431,25 +431,25 @@ class TestRealGraphPerformance:
         assert universe.resolve_name("Amarr") is not None
         assert universe.resolve_name("Dodixie") is not None
 
-    def test_pickle_size_reasonable(self, tmp_path: Path):
-        """Pickle file is under 2MB."""
-        output = tmp_path / "universe.pkl"
+    def test_universe_size_reasonable(self, tmp_path: Path):
+        """.universe file is under 2MB."""
+        output = tmp_path / "universe.universe"
         build_universe_graph(output_path=output)
         size_mb = output.stat().st_size / (1024 * 1024)
-        assert size_mb < 2.0, f"Pickle size {size_mb:.2f}MB exceeds 2MB limit"
+        assert size_mb < 2.0, f"Universe graph size {size_mb:.2f}MB exceeds 2MB limit"
 
     def test_load_performance(self, tmp_path: Path):
         """Graph loads within 60ms latency budget.
 
         Note: Budget relaxed from 50ms to 60ms after P0 security changes
-        replaced pickle with safe msgpack serialization + checksum verification.
+        uses safe msgpack serialization + checksum verification.
         The ~10ms overhead is acceptable for eliminating RCE vulnerability.
         """
-        output = tmp_path / "universe.pkl"
+        output = tmp_path / "universe.universe"
         build_universe_graph(output_path=output)
 
         start = time.perf_counter()
-        # skip_integrity_check=True for test pickles that don't match manifest
+        # skip_integrity_check=True for test-generated graphs that don't match manifest
         load_universe_graph(output, skip_integrity_check=True)
         elapsed = time.perf_counter() - start
 

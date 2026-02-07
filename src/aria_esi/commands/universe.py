@@ -336,7 +336,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
     """
     Build universe graph from JSON cache.
 
-    Creates optimized pickle file for fast navigation queries.
+    Creates optimized .universe file for fast navigation queries.
     """
     query_ts = get_utc_timestamp()
 
@@ -1870,7 +1870,7 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_build_parser.add_argument(
         "--output",
         "-o",
-        help=f"Output path for universe.pkl (default: {DEFAULT_GRAPH_PATH})",
+        help=f"Output path for universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
     )
     graph_build_parser.add_argument(
         "--force",
@@ -1893,7 +1893,7 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_verify_parser.add_argument(
         "--graph",
         "-g",
-        help=f"Path to universe.pkl (default: {DEFAULT_GRAPH_PATH})",
+        help=f"Path to universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
     )
     graph_verify_parser.set_defaults(func=cmd_graph_verify)
 
@@ -1905,7 +1905,7 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_stats_parser.add_argument(
         "--graph",
         "-g",
-        help=f"Path to universe.pkl (default: {DEFAULT_GRAPH_PATH})",
+        help=f"Path to universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
     )
     graph_stats_parser.add_argument(
         "--detailed",

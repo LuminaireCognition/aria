@@ -92,7 +92,7 @@ uv run aria-esi loop Sortet --target-jumps 20 --min-borders 3
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ARIA_UNIVERSE_GRAPH` | `src/aria_esi/data/universe.universe` | Path to the universe graph (supports .universe and legacy .pkl) |
+| `ARIA_UNIVERSE_GRAPH` | `src/aria_esi/data/universe.universe` | Path to the universe graph (.universe format) |
 | `ARIA_UNIVERSE_LOG_LEVEL` | `WARNING` | Logging verbosity (DEBUG, INFO, WARNING, ERROR) |
 
 ## Troubleshooting
@@ -183,7 +183,7 @@ uv run aria-esi graph-stats | grep Version
 │                                                │               │
 │                                                ▼               │
 │                                      ┌────────────────────┐    │
-│                                      │   universe.pkl     │    │
+│                                      │ universe.universe  │    │
 │                                      │  (loaded at start) │    │
 │                                      └────────────────────┘    │
 │                                                                 │

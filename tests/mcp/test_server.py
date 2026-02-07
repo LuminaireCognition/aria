@@ -4,7 +4,6 @@ Tests for MCP Server and Tool Registration.
 STP-004: MCP Server Core Tests
 """
 
-import pickle
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -23,6 +22,7 @@ from aria_esi.mcp.tools import (
     resolve_system_name,
 )
 from aria_esi.universe import UniverseBuildError, UniverseGraph
+from aria_esi.universe.serialization import save_universe_graph
 
 # =============================================================================
 # Test Fixtures
@@ -123,10 +123,9 @@ def mock_universe() -> UniverseGraph:
 
 @pytest.fixture
 def test_graph_path(tmp_path: Path, mock_universe: UniverseGraph) -> Path:
-    """Create a pickled graph file for testing."""
-    graph_path = tmp_path / "universe.pkl"
-    with open(graph_path, "wb") as f:
-        pickle.dump(mock_universe, f, protocol=pickle.HIGHEST_PROTOCOL)
+    """Create a .universe graph file for testing."""
+    graph_path = tmp_path / "universe.universe"
+    save_universe_graph(mock_universe, graph_path)
     return graph_path
 
 
@@ -145,7 +144,7 @@ class TestUniverseServerInit:
 
     def test_custom_graph_path(self, tmp_path: Path):
         """Server accepts custom graph path."""
-        custom_path = tmp_path / "custom.pkl"
+        custom_path = tmp_path / "custom.universe"
         server = UniverseServer(graph_path=custom_path)
         assert server.graph_path == custom_path
 
@@ -166,7 +165,7 @@ class TestUniverseServerEnvVar:
 
     def test_env_var_overrides_default(self, tmp_path: Path, monkeypatch):
         """ARIA_UNIVERSE_GRAPH env var overrides default path."""
-        custom_path = tmp_path / "custom_env.pkl"
+        custom_path = tmp_path / "custom_env.universe"
         monkeypatch.setenv("ARIA_UNIVERSE_GRAPH", str(custom_path))
 
         server = UniverseServer()
@@ -174,8 +173,8 @@ class TestUniverseServerEnvVar:
 
     def test_explicit_path_overrides_env_var(self, tmp_path: Path, monkeypatch):
         """Explicit path parameter overrides env var."""
-        env_path = tmp_path / "env.pkl"
-        explicit_path = tmp_path / "explicit.pkl"
+        env_path = tmp_path / "env.universe"
+        explicit_path = tmp_path / "explicit.universe"
         monkeypatch.setenv("ARIA_UNIVERSE_GRAPH", str(env_path))
 
         server = UniverseServer(graph_path=explicit_path)
@@ -186,9 +185,9 @@ class TestUniverseServerLoadGraph:
     """Test graph loading."""
 
     def test_loads_graph_successfully(self, test_graph_path: Path):
-        """Server loads graph from pickle."""
+        """Server loads graph from .universe."""
         server = UniverseServer(graph_path=test_graph_path)
-        # skip_integrity_check=True for test pickles that don't match manifest
+        # skip_integrity_check=True for test-generated graphs that don't match manifest
         server.load_graph(skip_integrity_check=True)
 
         assert server.universe is not None
@@ -199,13 +198,13 @@ class TestUniverseServerLoadGraph:
         server = UniverseServer(graph_path=test_graph_path)
         assert server.universe is None
 
-        # skip_integrity_check=True for test pickles that don't match manifest
+        # skip_integrity_check=True for test-generated graphs that don't match manifest
         server.load_graph(skip_integrity_check=True)
         assert server.universe is not None
 
     def test_load_missing_file_raises(self, tmp_path: Path):
         """Loading non-existent file raises UniverseBuildError."""
-        missing_path = tmp_path / "missing.pkl"
+        missing_path = tmp_path / "missing.universe"
         server = UniverseServer(graph_path=missing_path)
 
         with pytest.raises(UniverseBuildError) as exc:
@@ -227,7 +226,7 @@ class TestUniverseServerRegisterTools:
     def test_register_tools_after_load(self, test_graph_path: Path):
         """Tool registration succeeds after loading graph."""
         server = UniverseServer(graph_path=test_graph_path)
-        # skip_integrity_check=True for test pickles that don't match manifest
+        # skip_integrity_check=True for test-generated graphs that don't match manifest
         server.load_graph(skip_integrity_check=True)
         server.register_tools()
 
@@ -236,7 +235,7 @@ class TestUniverseServerRegisterTools:
     def test_register_tools_idempotent(self, test_graph_path: Path):
         """Repeated registration is safe."""
         server = UniverseServer(graph_path=test_graph_path)
-        # skip_integrity_check=True for test pickles that don't match manifest
+        # skip_integrity_check=True for test-generated graphs that don't match manifest
         server.load_graph(skip_integrity_check=True)
 
         server.register_tools()

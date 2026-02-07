@@ -111,12 +111,12 @@ class TestAriaSettings:
         """Test path fields are parsed as Path objects."""
         env = {
             "ARIA_MCP_POLICY": "/custom/policy.json",
-            "ARIA_UNIVERSE_GRAPH": "/data/universe.pkl",
+            "ARIA_UNIVERSE_GRAPH": "/data/universe.universe",
         }
         with mock.patch.dict(os.environ, env, clear=True):
             settings = AriaSettings()
             assert settings.mcp_policy == Path("/custom/policy.json")
-            assert settings.universe_graph == Path("/data/universe.pkl")
+            assert settings.universe_graph == Path("/data/universe.universe")
 
     def test_data_paths(self):
         """Test data path properties return instance-local paths."""
