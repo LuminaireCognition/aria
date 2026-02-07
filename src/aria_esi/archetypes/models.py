@@ -14,13 +14,15 @@ from typing import Literal
 # Type Aliases
 # =============================================================================
 
-SkillTier = Literal["t1", "meta", "t2_budget", "t2_optimal"]
+SkillTier = Literal["t1", "meta", "t2", "t2_budget", "t2_buffer", "t2_optimal"]
 """
 Skill tier for archetype variants.
 
 - t1: Basic T1/Meta 0 modules, minimal skills
 - meta: Meta/Compact modules, moderate skills
+- t2: Standard T2 modules
 - t2_budget: Mix of T1/T2, good skills
+- t2_buffer: T2 buffer tank (shield or armor)
 - t2_optimal: Full T2, maxed relevant skills
 """
 
@@ -510,6 +512,7 @@ class ArchetypePath:
     Path formats:
       - Short: {hull}/{activity_branch}/{tier} (e.g., heron/exploration/t1)
       - Full: {hull}/{activity_branch}/{activity}/{level}/{tier} (e.g., vexor/pve/missions/l2/t1)
+      - Variant: {hull}/{activity_branch}/{activity}/{level}/{variant}/{tier} (e.g., vexor/pve/missions/l3/armor/t2)
     """
 
     hull: str
@@ -517,6 +520,7 @@ class ArchetypePath:
     activity: str | None  # e.g., "missions", "anomalies", "belt" (optional for simple activities)
     level: str | None  # e.g., "l2", "t1-electrical" (optional)
     tier: SkillTier
+    variant: str | None = None  # e.g., "armor", "shield" (optional tank variant)
 
     @property
     def relative_path(self) -> str:
@@ -526,6 +530,8 @@ class ArchetypePath:
             parts.append(self.activity)
         if self.level:
             parts.append(self.level)
+        if self.variant:
+            parts.append(self.variant)
         parts.append(f"{self.tier}.yaml")
         return "/".join(parts)
 
@@ -559,7 +565,9 @@ class ArchetypePath:
             # New tier names
             "t1",
             "meta",
+            "t2",
             "t2_budget",
+            "t2_buffer",
             "t2_optimal",
             # Legacy tier names (for backward compatibility)
             "low",
@@ -568,15 +576,19 @@ class ArchetypePath:
             "alpha",
         }
 
+        # Valid tank variants
+        valid_variants: set[str] = {"armor", "shield"}
+
         # Minimum: hull/activity_branch/tier (3 parts)
         if len(parts) < 3:
             raise ValueError(
                 f"Invalid archetype path: {path_str}. "
-                "Expected format: hull/activity_branch/[activity/][level/]tier"
+                "Expected format: hull/activity_branch/[activity/][level/][variant/]tier"
             )
 
         hull = parts[0]
         activity_branch = parts[1]
+        variant = None
 
         # Determine format based on number of parts
         if len(parts) == 3:
@@ -589,11 +601,23 @@ class ArchetypePath:
             activity = parts[2]
             level = None
             tier_str = parts[3]
-        else:
+        elif len(parts) == 5:
             # Full format: hull/activity_branch/activity/level/tier
             activity = parts[2]
             level = parts[3]
             tier_str = parts[4]
+        else:
+            # Variant format: hull/activity_branch/activity/level/variant/tier
+            activity = parts[2]
+            level = parts[3]
+            # Check if parts[4] is a variant or part of level
+            if parts[4] in valid_variants:
+                variant = parts[4]
+                tier_str = parts[5]
+            else:
+                # Extended level (e.g., l3/something/tier)
+                level = f"{parts[3]}/{parts[4]}"
+                tier_str = parts[5]
 
         if tier_str not in valid_tiers:
             raise ValueError(f"Invalid skill tier: {tier_str}. Expected one of: {valid_tiers}")
@@ -603,6 +627,7 @@ class ArchetypePath:
             activity_branch=activity_branch,
             activity=activity,
             level=level,
+            variant=variant,
             tier=tier_str,  # type: ignore[arg-type]
         )
 
@@ -613,6 +638,7 @@ class ArchetypePath:
             "activity_branch": self.activity_branch,
             "activity": self.activity,
             "level": self.level,
+            "variant": self.variant,
             "tier": self.tier,
             "relative_path": self.relative_path,
         }

@@ -46,6 +46,13 @@ from .selection import (
     get_recommended_fit,
     select_fits,
 )
+from .tank_selection import (
+    TankSelectionResult,
+    TankVariantConfig,
+    discover_tank_variants,
+    load_tank_variant_config,
+    select_tank_variant,
+)
 from .tuning import apply_faction_tuning
 from .validator import (
     ArchetypeValidator,
@@ -90,6 +97,12 @@ __all__ = [
     "can_fly_archetype",
     "get_recommended_fit",
     "select_fits",
+    # Tank Selection
+    "TankSelectionResult",
+    "TankVariantConfig",
+    "discover_tank_variants",
+    "load_tank_variant_config",
+    "select_tank_variant",
     # Pricing
     "estimate_fit_price",
     "update_archetype_price",

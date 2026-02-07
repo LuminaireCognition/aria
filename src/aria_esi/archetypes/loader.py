@@ -503,6 +503,8 @@ def load_archetype(path_or_str: str | ArchetypePath) -> Archetype | None:
         parts.append(arch_path.activity)
     if arch_path.level:
         parts.append(arch_path.level)
+    if arch_path.variant:
+        parts.append(arch_path.variant)
     parts.append(f"{arch_path.tier}.yaml")
 
     archetype_path = hull_dir / "/".join(parts)
@@ -570,9 +572,20 @@ def list_archetypes(hull: str | None = None) -> list[str]:
     # Find all archetype YAML files
     for hull_name, hull_dir in search_dirs:
         for yaml_file in hull_dir.rglob("*.yaml"):
-            # Skip manifest and design docs
+            # Skip manifest, design docs, and tank variant meta files
             if yaml_file.name in ("manifest.yaml", "_design.md"):
                 continue
+
+            # Skip meta.yaml files that are tank variant config
+            # (they have tank_variants section, not archetype fits)
+            if yaml_file.name == "meta.yaml":
+                # Check if parent directory has armor/shield subdirs
+                parent = yaml_file.parent
+                has_variant_subdirs = (
+                    (parent / "armor").is_dir() or (parent / "shield").is_dir()
+                )
+                if has_variant_subdirs:
+                    continue  # This is a variant config, not an archetype
 
             # Build relative path
             rel_path = yaml_file.relative_to(hull_dir)
@@ -778,6 +791,7 @@ def get_archetype_yaml_path(archetype_path: str) -> Path | None:
 
     Args:
         archetype_path: Path string like "vexor/pve/missions/l2/t1"
+                       or "vexor/pve/missions/l3/armor/t2"
 
     Returns:
         Path to the YAML file, or None if not found
@@ -797,6 +811,8 @@ def get_archetype_yaml_path(archetype_path: str) -> Path | None:
         parts.append(arch_path.activity)
     if arch_path.level:
         parts.append(arch_path.level)
+    if arch_path.variant:
+        parts.append(arch_path.variant)
     parts.append(f"{arch_path.tier}.yaml")
 
     return hull_dir / "/".join(parts)
