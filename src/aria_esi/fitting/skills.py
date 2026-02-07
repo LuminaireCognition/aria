@@ -90,15 +90,37 @@ class SkillFetchError(Exception):
 # =============================================================================
 
 
-def fetch_pilot_skills(creds: Credentials | None = None) -> dict[int, int]:
+class SkillFetchResult:
+    """Result from fetch_pilot_skills with source tracking."""
+
+    def __init__(self, skills: dict[int, int], source: str):
+        """
+        Args:
+            skills: Dict mapping skill_id to level
+            source: Where skills came from - "cache", "esi", or "all_v"
+        """
+        self.skills = skills
+        self.source = source
+
+    def __len__(self) -> int:
+        return len(self.skills)
+
+
+def fetch_pilot_skills(
+    creds: Credentials | None = None,
+    use_cache: bool = True,
+    cache_ttl_hours: int = 12,
+) -> SkillFetchResult:
     """
-    Fetch trained skill levels for the authenticated pilot.
+    Fetch trained skill levels, preferring cached data.
 
     Args:
         creds: Optional Credentials. If None, attempts to resolve from config.
+        use_cache: If True, check local cache first (default True)
+        cache_ttl_hours: Cache TTL in hours (default 12)
 
     Returns:
-        Dict mapping skill_id to trained level (1-5)
+        SkillFetchResult with skills dict and source indicator
 
     Raises:
         SkillFetchError: If skill fetching fails
@@ -110,6 +132,18 @@ def fetch_pilot_skills(creds: Credentials | None = None) -> dict[int, int]:
         get_authenticated_client,
     )
 
+    # 1. Try cache first
+    if use_cache:
+        from aria_esi.commands.skills import is_skills_cache_stale, load_cached_skills
+
+        cached = load_cached_skills()
+        if cached and not is_skills_cache_stale(ttl_hours=cache_ttl_hours):
+            logger.info("Using cached skills (%d skills)", len(cached))
+            return SkillFetchResult(cached, source="cache")
+        elif cached:
+            logger.debug("Cache exists but is stale, falling through to ESI")
+
+    # 2. Fall through to ESI fetch
     try:
         if creds is None:
             client, creds = get_authenticated_client()
@@ -138,8 +172,8 @@ def fetch_pilot_skills(creds: Credentials | None = None) -> dict[int, int]:
         if skill_id and trained_level > 0:
             skill_levels[skill_id] = trained_level
 
-    logger.info("Fetched %d trained skills for character %d", len(skill_levels), char_id)
-    return skill_levels
+    logger.info("Fetched %d trained skills for character %d from ESI", len(skill_levels), char_id)
+    return SkillFetchResult(skill_levels, source="esi")
 
 
 def get_all_v_skills() -> dict[int, int] | None:

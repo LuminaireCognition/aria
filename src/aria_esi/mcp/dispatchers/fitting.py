@@ -44,7 +44,7 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
         # calculate_stats params
         eft: str | None = None,
         damage_profile: dict | None = None,
-        use_pilot_skills: bool = False,
+        use_pilot_skills: bool = True,
         # check_requirements params
         pilot_skills: dict | None = None,
     ) -> dict:
@@ -66,7 +66,8 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
                      ...
                 damage_profile: Optional incoming damage profile for EHP
                                {"em": 25, "thermal": 25, "kinetic": 25, "explosive": 25}
-                use_pilot_skills: If True, use authenticated pilot's skills
+                use_pilot_skills: Use pilot's cached skills (default True).
+                                 Set False to use all skills at V.
 
             Check requirements params (action="check_requirements"):
                 eft: Ship fitting in EFT format
@@ -268,12 +269,19 @@ async def _calculate_stats(
 
     # Get skill levels if using pilot skills
     skill_levels = None
+    skill_source = "all_v"
+    skill_warning = None
+
     if use_pilot_skills:
         from aria_esi.fitting import SkillFetchError, fetch_pilot_skills
 
         try:
-            skill_levels = fetch_pilot_skills()
-            logger.info("Using pilot skills (%d skills loaded)", len(skill_levels))
+            fetch_result = fetch_pilot_skills()
+            skill_levels = fetch_result.skills
+            skill_source = fetch_result.source
+            logger.info(
+                "Using pilot skills (%d skills, source: %s)", len(skill_levels), skill_source
+            )
         except SkillFetchError as e:
             if e.is_auth_error:
                 return {
@@ -283,11 +291,36 @@ async def _calculate_stats(
                 }
             logger.warning("Could not fetch pilot skills, using all V: %s", e)
             skill_levels = None
+            skill_source = "all_v"
+            skill_warning = (
+                "Using All-V: could not fetch pilot skills. "
+                "Run 'uv run aria-esi sync-skills' to cache your skills."
+            )
+    else:
+        # Explicitly requested all-V mode
+        skill_source = "all_v"
+
+    # Check if we fell back to all-V unexpectedly (requested pilot skills but none found)
+    if use_pilot_skills and skill_levels is None and skill_warning is None:
+        skill_warning = (
+            "Using All-V: no cached skills found. "
+            "Run 'uv run aria-esi sync-skills' to cache your skills."
+        )
 
     # Calculate statistics
     try:
         result = calc_stats(parsed_fit, dmg_profile, skill_levels)
-        return wrap_scalar_output(result.to_dict(), count=1, source="eos")
+        result_dict = result.to_dict()
+
+        # Add skill source to metadata
+        if "metadata" not in result_dict:
+            result_dict["metadata"] = {}
+        result_dict["metadata"]["skill_mode"] = "pilot" if skill_levels else "all_v"
+        result_dict["metadata"]["skill_source"] = skill_source
+        if skill_warning:
+            result_dict["metadata"]["skill_warning"] = skill_warning
+
+        return wrap_scalar_output(result_dict, count=1, source="eos")
     except EOSBridgeError as e:
         return {
             "error": "eos_calculation_error",
