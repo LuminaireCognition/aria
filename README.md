@@ -1,10 +1,10 @@
 # ARIA - Adaptive Reasoning & Intelligence Array
 
-[![CI](https://github.com/availlancourt/aria/actions/workflows/ci.yml/badge.svg)](https://github.com/availlancourt/aria/actions/workflows/ci.yml)
+[![CI](https://github.com/LuminaireCognition/aria/actions/workflows/ci.yml/badge.svg)](https://github.com/LuminaireCognition/aria/actions/workflows/ci.yml)
 
 **Ship-Board AI Framework for EVE Online**
 
-> **This is a [Claude Code](https://docs.anthropic.com/en/docs/claude-code) extension.** It transforms Claude into a tactical EVE Online assistant with mission briefs, fitting advice, market analysis, and more.
+ARIA is a Claude Code extension that turns Claude into a tactical EVE Online assistant. It provides mission briefs, fitting advice, threat assessment, mining guidance, and exploration tips.
 
 ```
 ═══════════════════════════════════════════════════════════════════
@@ -12,29 +12,26 @@
    /   |  / __ \/  _/   |   Adaptive Reasoning & Intelligence Array
   / /| | / /_/ // // /| |   Ship-Board Tactical Assistant
  / ___ |/ _, _// // ___ |
-/_/  |_/_/ |_/___/_/  |_|   "Your faction. Your rules. Your AI."
-═══════════════════════════════════════════════════════════════════
+/_/  |_/_/ |_/___/_/  |_|   by Luminaire Cognition [LUCOS]
 ```
 
-ARIA is a tactical assistant for EVE Online, powered by [Claude Code](https://docs.anthropic.com/en/docs/claude-code) (Anthropic's AI-powered CLI tool). It provides mission briefs, fitting advice, threat assessment, mining guidance, and exploration tips. Roleplay mode is available but **off by default** - most users just want the facts.
+**Docs:** `docs/README.md` | **Quick reference:** `docs/TLDR.md`
+
+---
 
 ## Requirements
 
-- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** - Anthropic's AI coding assistant (required)
-- **An EVE Online character** - Any faction works
-- **[uv](https://docs.astral.sh/uv/)** - Python package manager (for ESI integration, optional)
-
-**Full documentation:** [docs/README.md](docs/README.md) | **Quick reference:** [docs/TLDR.md](docs/TLDR.md)
+- **Python 3.10+**
+- **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)**
+- **[uv](https://docs.astral.sh/uv/)**
 
 ---
 
 ## Quick Start
 
-### New Users
-
 ```bash
-# 1. Clone or fork this repository
-git clone <your-fork-url>
+# 1. Clone the repository
+git clone git@github.com:LuminaireCognition/aria.git
 cd aria
 
 # 2. Run the setup wizard
@@ -44,118 +41,173 @@ cd aria
 claude
 ```
 
-> **Note:** This is a template repository. Fork it to your own GitHub account, or download and push to your own repo. Your pilot profiles and credentials stay local to your copy.
+---
 
-The wizard guides you through:
-- Character name and faction selection
-- Experience level (affects explanation depth)
-- Roleplay preference (off by default)
+## Using ARIA
 
-That's it! ESI integration is optional and can be added later.
-
-### Returning Users
+Start a session from the repo root:
 
 ```bash
-cd /path/to/your/aria-installation
 claude
 ```
 
-ARIA starts and you can immediately ask questions.
-
-### ARIA In Action
-
-**Mission Intelligence**
-
-```
-You: Brief me on The Blockade against Serpentis
-
-┌─────────────────────────────────────────────────────┐
-│ THE BLOCKADE (L4) - Serpentis Corporation           │
-├─────────────────────────────────────────────────────┤
-│ DAMAGE PROFILE                                      │
-│   Incoming: Kinetic 55% / Thermal 45%               │
-│   Tank:     Kinetic primary, Thermal secondary      │
-│   Deal:     Thermal (best) > Kinetic                │
-│                                                     │
-│ THREATS                                             │
-│   ⚠ Sensor dampeners - bring ECCM or close range   │
-│   ⚠ Heavy alpha from BS in wave 3                  │
-│                                                     │
-│ RECOMMENDATION                                      │
-│   Passive shield tank, drone DPS                    │
-│   Stay mobile, kill frigates first                  │
-└─────────────────────────────────────────────────────┘
-```
-
-**Real-Time Threat Assessment**
-
-```
-You: Is Uedama safe?
-
-⚠️ HIGH RISK - Active gatecamp detected
-
-│ System │  Sec  │ Ship Kills │ Pod Kills │ Status            │
-│ Uedama │  0.50 │         12 │         8 │ Gank fleet active │
-
-Last kill: 4 minutes ago (Obelisk, 2.1B ISK)
-Recommendation: Use Ahbazon bypass (+3 jumps) or scout ahead
-```
-
-**Situational Awareness**
-
-```
-You: Just jumped into Tama, orient me
-
-═════════════════════════════════════════════
-TAMA (The Citadel) - Security: 0.3
-═════════════════════════════════════════════
-THREAT LEVEL: EXTREME
-  23 ship kills within 5 jumps (last hour)
-
-AVOID              ESCAPE ROUTES
-├─ Tama (gate)     ├─ Highsec: 1j → Nourvukaiken
-├─ Sujarento       └─ Lowsec:  2j → Okkamon
-└─ Nennamaila
-
-Faction Warfare frontline - expect frigate gangs
-```
-
-With roleplay mode enabled, responses include faction persona voice and in-universe framing. See [Roleplay Mode](#roleplay-mode-opt-in) below.
-
-### What ARIA Is Not
-
-- **Not a bot** - ARIA cannot control your ship or automate gameplay
-- **Not a game overlay** - It's a conversational assistant you run in terminal
-- **Not required for EVE** - It's an enhancement for players who want tactical advice
-- **Not connected to CCP** - This is a fan project using public APIs
-
-### Example Configurations
-
-Not sure how to configure your pilot? Start with a pre-built example:
-
-| Example | Playstyle | Focus |
-|---------|-----------|-------|
-| [gallente-selfsufficient](examples/gallente-selfsufficient/) | No market trading | Mining, manufacturing, self-reliance |
-| [caldari-mission-runner](examples/caldari-mission-runner/) | ISK optimization | L4 missions, LP store conversion |
-| [minmatar-explorer](examples/minmatar-explorer/) | Nomadic | Wormholes, nullsec, ghost sites |
-| [amarr-industrialist](examples/amarr-industrialist/) | Vertical integration | Blueprint research, T1 production |
-
-Copy an example to your pilot directory and customize:
-```bash
-cp -r examples/gallente-selfsufficient/* userdata/pilots/YOUR_PILOT/
-```
-
-See [examples/README.md](examples/README.md) for detailed descriptions.
-
-### Development Setup
-
-ARIA uses [uv](https://docs.astral.sh/uv/) for Python dependency management.
+You can also run the CLI directly for data lookups and utilities:
 
 ```bash
-# Install uv (if not already installed)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# or: brew install uv
+uv run aria-esi --help
+```
 
+---
+
+## Examples
+
+### Route Planning (Natural Language)
+
+```text
+❯ I just filamented into 7BIX-A. Find me a ~20 jump route through goon ratting systems, avoiding hotspots.
+```
+
+<details>
+<summary>MCP tool calls (collapsed)</summary>
+
+```text
+aria-universe (MCP) local_area: origin=7BIX-A max_jumps=15 include_realtime=true
+aria-universe (MCP) territory_analysis: coalition=imperium
+aria-universe (MCP) optimize_waypoints: origin=7BIX-A waypoints=[...]
+aria-universe (MCP) hotspots: origin=7BIX-A max_jumps=20 activity_type=kills limit=10
+```
+</details>
+
+```text
+You're in Fountain - Imperium territory. Threat level: LOW.
+
+Recommended ~20-jump loop (ratting-heavy systems):
+7BIX-A → G-UTHL → A-1CON → YZ-LQL → Z30S-A → V6-NY1 → 9DQW-W → PXF-RF → return
+
+Hotspots to avoid:
+- 75FA-Z (recent kills)
+- L7-APB (recent kills)
+```
+
+### Mission Brief (Natural Language)
+
+```text
+❯ I need to run level 2 Damsel in Distress in a vexor.
+```
+
+<details>
+<summary>MCP tool calls (collapsed)</summary>
+
+```text
+Read 2 files
+Found it in the cache. Let me pull the detailed intel.
+Read 2 files
+```
+</details>
+
+```text
+Damsel in Distress L2 - Vexor Briefing
+
+Mission Profile
+Faction: Mercenaries
+Incoming Damage: Thermal/Kinetic
+Deal Damage: Thermal > Kinetic
+Objective: Destroy Kruul's Pleasure Hub, loot "The Damsel"
+
+Enemy Forces
+Initial Spawn (auto-aggro, 10-20km):
+- 8x Frigate (Kruul's Henchman)
+- 1x Cruiser (Kruul) ⚠️ Trigger
+
+Reinforcements (if you attack Kruul):
+- 10x Elite Frigate (Mercenary Elite Fighter)
+
+Drone Loadout
+Vexor: 75 Mbit bandwidth, 125 m³ bay
+- Hammerhead II x5 (Thermal)
+- Hobgoblin II x5 (Thermal)
+Carry spares - 50 m³ bay remaining for 5 more Hobgoblins.
+
+Tank Priority
+Thermal > Kinetic - Fit thermal hardener(s) or rig for thermal resist. An Adaptive Invulnerability Field or Medium Armor Repairer with thermal membranes works well.
+
+Blitz Strategy
+1. Warp in, ignore Kruul (attacking him spawns 10 elite frigates)
+2. Destroy Kruul's Pleasure Hub - ⚠️ it deals AoE damage when it pops, keep 5-10km range
+3. Loot "The Damsel" from the wreck
+4. Warp out
+
+If you engage everything instead of blitzing, clear frigates first with Hobgoblins, then switch to Hammerheads for Kruul.
+```
+
+### Fit Recommendation (Natural Language)
+
+```text
+❯ Give me a vexor fit for level 2 damsel using t1/meta modules.
+```
+
+<details>
+<summary>MCP tool calls (collapsed)</summary>
+
+```text
+aria-universe (MCP) fitting.calculate_stats: [Vexor, Damsel L2 - T1/Meta]
+aria-universe (MCP) market.valuation: items=[Vexor + fit], region=jita
+```
+</details>
+
+```text
+Vexor - Damsel L2 (T1/Meta)
+
+[Vexor, Damsel L2 - T1/Meta]
+Medium Armor Repairer I
+Drone Damage Amplifier I
+Drone Damage Amplifier I
+Thermal Armor Hardener I
+Kinetic Armor Hardener I
+
+10MN Afterburner I
+Cap Recharger I
+Omnidirectional Tracking Link I
+Drone Navigation Computer I
+
+Drone Link Augmentor I
+
+Medium Auxiliary Nano Pump I
+Medium Capacitor Control Circuit I
+Medium Capacitor Control Circuit I
+
+Hammerhead I x5
+Hobgoblin I x5
+
+Stats (All V)
+DPS: 380 thermal
+EHP: 8,952
+Speed: 244 m/s
+Align: 6s
+
+Cost (Jita Sell)
+Total: 17.7M
+
+380 DPS is more than enough for L2 content. You'll clear slightly slower but save nearly 15M ISK while training into T2.
+```
+
+---
+
+## ESI Integration (Optional)
+
+ARIA works without ESI. If you want live character data, run the setup wizard:
+
+```bash
+uv run python .claude/scripts/aria-oauth-setup.py
+```
+
+Details: `docs/ESI.md`
+
+---
+
+## Development Setup
+
+```bash
 # Install dependencies (creates .venv automatically)
 uv sync
 
@@ -166,273 +218,19 @@ uv run pytest
 uv run python .claude/scripts/aria-esi-sync.py
 ```
 
-**Optional extras:**
-- `dev` - pytest, mypy, ruff (for development)
-- `resilient` - tenacity (enhanced retry logic for ESI)
-- `fitting` - eos (ship fitting calculations)
-- `full` - all optional dependencies
-
-Core functionality (MCP server, ESI client, routing) works with just `uv sync`.
-
-### Type Safety
-
-ARIA uses **gradual typing adoption** for maintainability without blocking development velocity.
-
-| Phase | Status | Focus |
-|-------|--------|-------|
-| Phase 1 | ✅ Complete | Baseline - syntax errors, undefined names |
-| Phase 2 | ✅ Complete | `union-attr`, `attr-defined` - dict/list annotations |
-| Phase 3 | ✅ Complete | `arg-type`, `return-value` - function signatures |
-| Phase 4 | 🔜 Next | `disallow_untyped_defs` on core modules |
-| Phase 5 | Planned | Strict mode on all modules |
-
-Run type checking with:
-```bash
-uv run mypy .
-```
-
-See `pyproject.toml` for the full mypy configuration and roadmap comments.
-
-### Use Slash Commands
-
-ARIA has 40+ specialized commands. Key ones by category:
-
-| Category | Commands |
-|----------|----------|
-| **Tactical** | `/mission-brief`, `/threat-assessment`, `/fitting`, `/route`, `/gatecamp` |
-| **Navigation** | `/route`, `/orient`, `/gatecamp` |
-| **Financial** | `/price`, `/arbitrage`, `/assets`, `/orders` |
-| **Operations** | `/mining-advisory`, `/exploration`, `/pi`, `/skillplan` |
-| **Identity** | `/aria-status`, `/pilot`, `/standings`, `/skillqueue` |
-
-Type `/help` to see all available commands.
-
----
-
-## Roleplay Mode (Opt-In)
-
-Roleplay is **off by default**. ARIA provides EVE knowledge without persona, formatted boxes, or in-universe framing.
-
-To enable immersive mode, set `rp_level` in your pilot profile:
-
-| Level | What You Get |
-|-------|--------------|
-| `off` | Just the facts (default) |
-| `on` | Faction persona voice, professional tone |
-| `full` | Full immersion with faction AI persona |
-
-### Faction Personas (RP Mode)
-
-When roleplay is enabled (`on` or `full`), ARIA adapts to your faction:
-
-| Faction | AI Persona | Cultural Style |
-|---------|------------|----------------|
-| Gallente | ARIA Mk.IV | Libertarian, cultured, witty |
-| Caldari | AURA-C | Corporate, efficient, formal |
-| Minmatar | VIND | Direct, passionate, tribal |
-| Amarr | THRONE | Reverent, dignified, imperial |
-| Pirate | PARIA | Outlaw code, sardonic wit |
-
-Your faction is set during `/setup`. With roleplay enabled, you'll get faction-appropriate greetings, formatted tactical reports, and in-universe framing.
-
-ARIA respects your playstyle choices regardless of RP setting.
-
----
-
-## ESI Integration (Optional Enhancement)
-
-ARIA works fully without ESI. All tactical features, mission briefs, fitting assistance, and reference data work out of the box.
-
-**ESI is an optional upgrade** you can add later when you're comfortable with ARIA. It enables automatic tracking instead of manual file updates. Multiple characters are supported - each pilot gets their own profile directory and credentials.
-
-### Without ESI (Default Experience)
-
-| Feature | How It Works |
-|---------|--------------|
-| Your standings | Update `userdata/pilots/{your_pilot}/profile.md` periodically |
-| Ship fittings | Update `userdata/pilots/{your_pilot}/ships.md` when you refit |
-| Current location | Tell ARIA: "I'm in Dodixie" |
-| All tactical features | Work fully - mission briefs, fittings, threat assessment |
-
-### With ESI (When You're Ready)
-
-| Feature | Benefit |
-|---------|---------|
-| Location awareness | ARIA detects your current system and ship |
-| Live standings | Automatic sync from the game |
-| Wallet tracking | Track ISK balance changes |
-| Skill monitoring | See training progress |
-
-### Setup ESI (5 minutes)
-
-When you're ready for automatic data sync:
-
-```bash
-uv run python .claude/scripts/aria-oauth-setup.py
-```
-
-The wizard guides you through:
-1. Creating an EVE Developer application
-2. Authorizing your character
-3. Saving credentials automatically
-
-**Detailed guide:** [docs/ESI.md](docs/ESI.md)
-
----
-
-## Project Structure
-
-```
-aria/
-├── README.md                    # This file
-├── CLAUDE.md                    # ARIA's core configuration
-├── LICENSE                      # MIT License
-├── aria-init                    # Setup wizard
-│
-├── docs/                        # Documentation
-│   ├── README.md                # Documentation index (start here)
-│   ├── TLDR.md                  # Quick reference
-│   ├── FIRST_RUN.md             # Setup guide for new users
-│   └── ...                      # See docs/README.md for full list
-│
-├── personas/                    # Faction AI personas (RP mode)
-│   ├── aria-mk4/                # Gallente persona
-│   ├── aura-c/                  # Caldari persona
-│   ├── vind/                    # Minmatar persona
-│   ├── throne/                  # Amarr persona
-│   ├── paria/                   # Pirate persona
-│   └── _shared/                 # Shared persona resources
-│
-├── .claude/
-│   ├── hooks/                   # Session hooks
-│   ├── scripts/                 # Utility scripts
-│   └── skills/                  # 40+ slash commands
-│
-├── src/aria_esi/                # Python package
-│   ├── commands/                # CLI commands
-│   ├── mcp/                     # MCP server tools
-│   └── services/                # Core services
-│
-├── userdata/                    # User data (gitignored)
-│   ├── config.json              # Active pilot selection
-│   ├── credentials/             # ESI tokens per pilot
-│   └── pilots/                  # Per-pilot profiles
-│
-├── reference/                   # Game reference data
-│   ├── mechanics/               # Static game data
-│   ├── archetypes/              # Ship fitting library
-│   └── missions/                # Mission intel cache
-│
-└── templates/                   # Profile templates
-```
-
----
-
-## Personalizing ARIA
-
-### Update Your Pilot Profile
-
-Edit your pilot profile at `userdata/pilots/{your_pilot}/profile.md` with:
-- Current standings
-- Skill focus
-- Goals
-
-### Track Your Ships
-
-Edit `userdata/pilots/{your_pilot}/ships.md` with your current fittings. ARIA can reference this for fitting advice.
-
-### Mission Log
-
-Use `userdata/pilots/{your_pilot}/missions.md` to track:
-- Completed missions
-- Standing progress
-- Lessons learned
-
-ARIA can reference your history in conversation.
-
----
-
-## Commands Reference
-
-### Talking to ARIA
-
-ARIA responds to natural conversation. Some examples:
-
-| You Say | ARIA Does |
-|---------|-----------|
-| "Status report" | Full operational summary |
-| "I'm going to mine in Dodixie" | Updates context, offers advice |
-| "Mission brief for Serpentis" | Tactical intelligence |
-| "Is Hek safe?" | Threat assessment |
-| "What's Plagioclase good for?" | Mining/industry info |
-| "Tell me about the Federation" | Lore discussion |
-
-### Roleplay Toggle (When RP Enabled)
-
-If you've enabled roleplay mode (`on` or `full`):
-
-| Command | Effect |
-|---------|--------|
-| "ARIA, drop RP" | Temporarily disable roleplay |
-| "ARIA, resume" | Re-enable roleplay |
-
-### CLI Commands
-
-ARIA includes a command-line interface for direct queries outside of Claude:
-
-```bash
-# Route planning
-uv run aria-esi route Jita Amarr --safe
-
-# Market prices
-uv run aria-esi price "Tritanium" --region jita
-
-# System activity
-uv run aria-esi activity Tama Amamake
-
-# List all commands
-uv run aria-esi --help
-```
-
-Run `uv run aria-esi --help` for the full command list.
-
-### Utility Scripts
-
-```bash
-# Check ESI token status
-.claude/scripts/aria-refresh --check
-
-# Refresh token manually
-.claude/scripts/aria-refresh
-
-# Force refresh
-.claude/scripts/aria-refresh --force
-
-# Run ESI setup wizard
-uv run python .claude/scripts/aria-oauth-setup.py
-```
-
 ---
 
 ## Troubleshooting
 
-### ARIA isn't using roleplay mode
-
-Roleplay is off by default. To enable it, edit your pilot profile and set:
-```
-- **RP Level:** on
-```
-Or `full` for maximum immersion. Then restart the session.
-
 ### Boot sequence doesn't appear
 
-The hook may need permissions. Check:
 ```bash
 ls -la .claude/hooks/aria-boot.sh
 # Should show: -rwxr-xr-x
 ```
 
 If not executable:
+
 ```bash
 chmod +x .claude/hooks/aria-boot.sh
 ```
@@ -444,38 +242,8 @@ chmod +x .claude/hooks/aria-boot.sh
 ```
 
 If refresh fails, re-run the setup wizard:
-```bash
-uv run python .claude/scripts/aria-oauth-setup.py
-```
-
-### "Credentials not found"
-
-You haven't set up ESI yet. This is optional - ARIA works fine without it, just without live game data. To set up:
-```bash
-uv run python .claude/scripts/aria-oauth-setup.py
-```
-
-### Starting Fresh
-
-If setup went wrong and you want to start over:
 
 ```bash
-# Remove generated pilot data
-rm -rf userdata/pilots/*/
-
-# Remove pilot registry
-rm -f userdata/pilots/_registry.json
-
-# Remove active pilot config
-rm -f userdata/config.json
-
-# Re-run setup
-./aria-init
-```
-
-If ESI setup failed specifically:
-```bash
-rm -rf userdata/credentials/
 uv run python .claude/scripts/aria-oauth-setup.py
 ```
 
@@ -483,36 +251,18 @@ uv run python .claude/scripts/aria-oauth-setup.py
 
 ## Security
 
-ARIA implements defense-in-depth security measures. See [SECURITY.md](SECURITY.md) for full details.
+See `SECURITY.md` for full details.
 
 **Key protections:**
 - **Path validation** - User-editable configs cannot load arbitrary files
 - **Data integrity** - External data verified via SHA256 checksums before loading
 - **Safe serialization** - Universe graph uses msgpack, not pickle
-- **Prompt injection defense** - Persona files treated as untrusted data with security delimiters
+- **Prompt injection defense** - Untrusted data is sandboxed with strict delimiters
 
 **Credential handling:**
 - OAuth tokens stored locally in `userdata/credentials/` (gitignored)
 - ESI scopes are read-only - ARIA cannot modify your game state
 - No telemetry or external data transmission (except ESI API calls)
-
----
-
-## About
-
-ARIA (Adaptive Reasoning & Intelligence Array) is a tactical assistant for EVE Online pilots. It provides mission intel, fitting advice, threat assessment, and exploration guidance.
-
-**Design Philosophy:**
-- **Facts first.** Roleplay is off by default. Most users want answers, not theater.
-- **RP when you want it.** The immersive mode is polished and complete - faction personas, formatted tactical reports, in-universe framing. It's there for pilots who want it.
-- **The flex is optional.** We built comprehensive roleplay because we could. Not because you have to use it.
-
-**With RP Enabled (Faction Personas):**
-- Gallente: Libertarian wit and cultural sophistication
-- Caldari: Corporate efficiency and honor-bound duty
-- Minmatar: Tribal solidarity and direct honesty
-- Amarr: Imperial dignity and reverent formality
-- Pirate: Outlaw code and sardonic professionalism
 
 ---
 
@@ -546,8 +296,8 @@ Your ships will explode. Some of those explosions may be ARIA's fault. This is E
 
 The developers and contributors accept no liability for lost vessels, empty wallets, or strongly-worded messages in Local. Remember the capsuleer's first rule: never undock what you can't afford to lose—*especially* on the advice of an AI who has never experienced the unique terror of watching her own capacitor hit zero.
 
-See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
+See `ATTRIBUTION.md` for complete attribution details.
 
 ---
 
-*"Your faction. Your rules. Your AI."*
+*by Luminaire Cognition [LUCOS]*
