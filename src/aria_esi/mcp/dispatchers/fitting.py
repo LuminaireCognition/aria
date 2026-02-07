@@ -44,7 +44,7 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
         # calculate_stats params
         eft: str | None = None,
         damage_profile: dict | None = None,
-        use_pilot_skills: bool = True,
+        use_pilot_skills: bool = False,
         # check_requirements params
         pilot_skills: dict | None = None,
     ) -> dict:
@@ -66,8 +66,8 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
                      ...
                 damage_profile: Optional incoming damage profile for EHP
                                {"em": 25, "thermal": 25, "kinetic": 25, "explosive": 25}
-                use_pilot_skills: Use pilot's cached skills (default True).
-                                 Set False to use all skills at V.
+                use_pilot_skills: Use pilot's cached skills (default False).
+                                 Set True to use pilot-specific stats.
 
             Check requirements params (action="check_requirements"):
                 eft: Ship fitting in EFT format
@@ -315,7 +315,7 @@ async def _calculate_stats(
         # Add skill source to metadata
         if "metadata" not in result_dict:
             result_dict["metadata"] = {}
-        result_dict["metadata"]["skill_mode"] = "pilot" if skill_levels else "all_v"
+        result_dict["metadata"]["skill_mode"] = "pilot_skills" if skill_levels else "all_v"
         result_dict["metadata"]["skill_source"] = skill_source
         if skill_warning:
             result_dict["metadata"]["skill_warning"] = skill_warning
