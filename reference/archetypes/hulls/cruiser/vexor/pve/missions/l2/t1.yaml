@@ -40,7 +40,7 @@ skill_requirements:
     Drones: 3
     Medium Drone Operation: 2
     Gallente Cruiser: 2
-    Armor Repair Systems: 2
+    Repair Systems: 2
     Hull Upgrades: 2
   recommended:
     Drone Interfacing: 2
@@ -134,7 +134,7 @@ notes:
     - "Recall drones before warping"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Medium ACM Compact Armor Repairer"
       upgrade_to: "Medium Armor Repairer I"

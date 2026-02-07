@@ -80,7 +80,7 @@ notes:
     - "Swap ammo type based on enemy faction weakness"
 
 upgrade_path:
-  next_tier: high
+  next_tier: t2_optimal
   key_upgrades:
     - module: "Heavy Missile Launcher I"
       upgrade_to: "Heavy Missile Launcher II"

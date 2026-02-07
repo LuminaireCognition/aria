@@ -1,0 +1,133 @@
+# Vexor L3 Missions - T2 Optimal Variant (Armor)
+#
+# Maximum DPS configuration for fast mission clears.
+# Trades some tank for third DDA - requires good aggro management.
+
+archetype:
+  hull: Vexor
+  skill_tier: t2_optimal
+  tank_type: armor_active
+  omega_required: true
+
+eft: |
+  [Vexor, L3 Missions - Armor T2 Optimal]
+
+  Drone Damage Amplifier II
+  Drone Damage Amplifier II
+  Drone Damage Amplifier II
+  Medium Armor Repairer II
+  Reactive Armor Hardener
+
+  10MN Y-S8 Compact Afterburner
+  Large Compact Pb-Acid Cap Battery
+  Omnidirectional Tracking Link II
+  Omnidirectional Tracking Link II
+
+  Drone Link Augmentor I
+  [Empty High slot]
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump II
+  Medium Auxiliary Nano Pump II
+  Medium Capacitor Control Circuit I
+
+  Hammerhead II x5
+  Hobgoblin II x5
+  Hornet EC-300 x5
+
+skill_requirements:
+  required:
+    Drones: 5
+    Medium Drone Operation: 5
+    Light Drone Operation: 5
+    Drone Interfacing: 4
+    Gallente Cruiser: 5
+    Repair Systems: 5
+    Hull Upgrades: 5
+    Weapon Upgrades: 4
+  recommended:
+    Drone Interfacing: 5
+    Drone Durability: 4
+    Mechanics: 5
+    Armor Compensation Skills: 4
+
+stats:
+  dps: 400
+  ehp: 9000
+  tank_sustained: 150
+  capacitor_stable: true
+  align_time: 9.5
+  speed_ab: 450
+  drone_control_range: 60000
+  validated_date: "2026-02-04"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: armor_active
+
+  overrides:
+    angel_cartel:
+      drones:
+        medium: "Valkyrie II"
+        light: "Warrior II"
+      notes: "Angels weak to Explosive. Fast clears reduce incoming damage."
+
+    blood_raiders:
+      drones:
+        medium: "Infiltrator II"
+        light: "Acolyte II"
+      notes: "Blood Raiders weak to EM. Clear fast before neuts drain you."
+
+    guristas:
+      drones:
+        medium: "Vespa II"
+        light: "Hornet II"
+      notes: "Guristas weak to Kinetic."
+
+    sansha:
+      drones:
+        medium: "Infiltrator II"
+        light: "Acolyte II"
+      notes: "Sansha weak to EM."
+
+    rogue_drones:
+      drones:
+        medium: "Infiltrator II"
+        light: "Acolyte II"
+      notes: "Rogue Drones weak to EM."
+
+    serpentis:
+      drones:
+        medium: "Hammerhead II"
+        light: "Hobgoblin II"
+      notes: "Serpentis weak to Thermal - default drones."
+
+    mercenaries:
+      drones:
+        medium: "Hammerhead II"
+        light: "Hobgoblin II"
+      notes: "Default fit works."
+
+notes:
+  purpose: "Glass cannon L3 runner - maximum DPS, reduced tank"
+  engagement: "Orbit at 30km, dual omni links for excellent application"
+  warnings:
+    - "Lower tank than T2 variant - aggro management critical"
+    - "Kill order matters more - eliminate DPS ships first"
+    - "Not recommended for newer pilots"
+    - "Reactive hardener only - profile shifts with incoming damage"
+    - "T2 rigs are expensive - commit to this hull"
+  playstyle:
+    - "Speed clears reduce total damage taken"
+    - "Better ISK/hour if you can manage the thinner tank"
+    - "EC-300s essential for emergency extraction"
+
+upgrade_path:
+  next_ship:
+    - ship: "Vexor Navy Issue"
+      notes: "Same playstyle, much better stats"
+    - ship: "Myrmidon"
+      notes: "More tank margin, heavy drones for bigger targets"
+    - ship: "Dominix"
+      notes: "L4 capable with this same drone-focused approach"

@@ -37,7 +37,7 @@ skill_requirements:
     Drones: 3
     Light Drone Operation: 2
     Gallente Frigate: 2
-    Armor Repair Systems: 1
+    Repair Systems: 1
   recommended:
     Drone Durability: 2
     Hull Upgrades: 2
@@ -87,7 +87,7 @@ notes:
     - "Drones do 70%+ of your damage"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Hobgoblin I"
       upgrade_to: "Hobgoblin II"

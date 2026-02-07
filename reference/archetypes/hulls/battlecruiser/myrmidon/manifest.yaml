@@ -28,6 +28,11 @@ roles:
 
 fitting_rules:
   tank_type: armor_active
+
+  # Alternative tank types supported
+  tank_variants:
+    - armor_active    # Traditional Gallente tank with hull bonus
+
   weapons:
     primary: drones
     secondary: null  # High slots for utility

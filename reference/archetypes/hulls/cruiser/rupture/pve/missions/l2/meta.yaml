@@ -45,7 +45,7 @@ skill_requirements:
     Minmatar Cruiser: 3
     Medium Projectile Turret: 4
     Gunnery: 4
-    Armor Repair Systems: 3
+    Repair Systems: 3
     Hull Upgrades: 3
     Weapon Upgrades: 4
   recommended:
@@ -115,7 +115,7 @@ notes:
     - "Guns use NO capacitor - very forgiving"
 
 upgrade_path:
-  next_tier: high
+  next_tier: t2_optimal
   key_upgrades:
     - module: "425mm AutoCannon I"
       upgrade_to: "425mm AutoCannon II"

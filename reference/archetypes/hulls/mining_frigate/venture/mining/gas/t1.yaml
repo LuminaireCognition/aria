@@ -73,7 +73,7 @@ notes:
       notes: "Safe, lower value"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Gas Cloud Scoop I"
       upgrade_to: "Gas Cloud Scoop II"

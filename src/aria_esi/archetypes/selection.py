@@ -264,14 +264,14 @@ def _check_damage_match(
 # Priority order for tier selection (best to worst)
 TIER_PRIORITY: list[SkillTier] = ["t2_optimal", "t2_buffer", "t2_budget", "t2", "meta", "t1"]
 
-# Legacy to new tier mapping for discovery
+# Canonical tier file mapping for discovery
 TIER_FILES: dict[str, list[str]] = {
-    "t2_optimal": ["t2_optimal.yaml", "high.yaml"],
+    "t2_optimal": ["t2_optimal.yaml"],
     "t2_buffer": ["t2_buffer.yaml"],
     "t2_budget": ["t2_budget.yaml"],
     "t2": ["t2.yaml"],
-    "meta": ["meta.yaml", "medium.yaml"],
-    "t1": ["t1.yaml", "low.yaml", "alpha.yaml"],
+    "meta": ["meta.yaml"],
+    "t1": ["t1.yaml"],
 }
 
 
@@ -461,7 +461,12 @@ def select_fits(
             config = load_tank_variant_config(meta_path)
             if config:
                 # Select tank variant based on skills or override
-                tank_selection = select_tank_variant(config, pilot_skills, tank_override)
+                tank_selection = select_tank_variant(
+                    config,
+                    pilot_skills,
+                    tank_override,
+                    available_variant_paths=tank_variants,
+                )
                 selected_variant = tank_selection.variant_path
                 result.tank_selection = tank_selection
                 result.filters_applied.append(
@@ -513,15 +518,6 @@ def select_fits(
                 tier_path = f"{archetype_path}/{tier}"
 
             archetype = loader.get_archetype(tier_path)
-            if not archetype:
-                # Try legacy tier name
-                legacy_tier = file_path.stem
-                if legacy_tier != tier:
-                    if selected_variant:
-                        tier_path = f"{archetype_path}/{selected_variant}/{legacy_tier}"
-                    else:
-                        tier_path = f"{archetype_path}/{legacy_tier}"
-                    archetype = loader.get_archetype(tier_path)
 
             if not archetype:
                 logger.warning("Could not load archetype: %s", tier_path)

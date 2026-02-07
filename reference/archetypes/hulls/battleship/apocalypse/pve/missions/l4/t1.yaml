@@ -49,7 +49,7 @@ skill_requirements:
     Amarr Battleship: 3
     Large Energy Turret: 3
     Gunnery: 4
-    Armor Repair Systems: 4
+    Repair Systems: 4
     Hull Upgrades: 4
   recommended:
     Controlled Bursts: 4
@@ -108,7 +108,7 @@ notes:
     - "Use drones for frigates"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Mega Pulse Laser I"
       upgrade_to: "Mega Pulse Laser II"

@@ -70,7 +70,7 @@ notes:
     - "Align and warp while cloaked"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Medium Shield Extender I"
       upgrade_to: "Medium Shield Extender II"

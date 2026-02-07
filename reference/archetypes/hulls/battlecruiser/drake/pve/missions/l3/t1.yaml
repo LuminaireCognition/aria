@@ -72,7 +72,7 @@ notes:
     - "Match ammo to enemy weakness for best results"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Arbalest Compact Heavy Missile Launcher"
       upgrade_to: "Heavy Missile Launcher I"

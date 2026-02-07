@@ -215,6 +215,7 @@ def select_tank_variant(
     config: TankVariantConfig,
     pilot_skills: dict[int, int],
     override: str | None = None,
+    available_variant_paths: list[str] | None = None,
 ) -> TankSelectionResult:
     """
     Select appropriate tank variant based on pilot skills.
@@ -229,19 +230,68 @@ def select_tank_variant(
         config: Tank variant configuration from meta.yaml
         pilot_skills: Dict mapping skill_id to trained level
         override: Optional explicit variant ("armor" or "shield")
+        available_variant_paths: Optional discovered variant directories
+            to constrain selection (e.g., ["armor", "shield"])
 
     Returns:
         TankSelectionResult with selected variant
     """
+    valid_paths = {"armor", "shield"}
+    discovered_paths = [
+        path for path in (available_variant_paths or []) if path in valid_paths
+    ]
+
+    available_variants = list(config.available)
+    if discovered_paths:
+        available_variants = [
+            variant
+            for variant in config.available
+            if _variant_to_path(variant) in discovered_paths
+        ]
+        if not available_variants:
+            available_variants = [path for path in discovered_paths]
+
+    if not available_variants:
+        available_variants = list(config.available)
+
+    available_paths = {_variant_to_path(variant) for variant in available_variants}
+    default_variant = _resolve_default_variant(config.default, available_variants)
+    default_path = _variant_to_path(default_variant)
+
     # Handle explicit override
     if override:
         variant_path = override.lower()
-        # Map override to variant name
-        variant_name = _map_path_to_variant(variant_path, config.available)
+        if variant_path in available_paths:
+            variant_name = _map_path_to_variant(variant_path, available_variants, default_variant)
+            return TankSelectionResult(
+                variant=variant_name,
+                variant_path=variant_path,
+                selection_reason="override",
+            )
+
+        variant_name = _map_path_to_variant(default_path, available_variants, default_variant)
+        return TankSelectionResult(
+            variant=variant_name,
+            variant_path=default_path,
+            selection_reason="override_unavailable",
+        )
+
+    # Single available variant: always use it, independent of scores/strategy.
+    if len(available_paths) == 1:
+        variant_path = next(iter(available_paths))
+        variant_name = _map_path_to_variant(variant_path, available_variants, default_variant)
         return TankSelectionResult(
             variant=variant_name,
             variant_path=variant_path,
-            selection_reason="override",
+            selection_reason="single_variant",
+        )
+
+    if config.selection_strategy != "skill_based":
+        variant_name = _map_path_to_variant(default_path, available_variants, default_variant)
+        return TankSelectionResult(
+            variant=variant_name,
+            variant_path=default_path,
+            selection_reason="default",
         )
 
     # Get skill lists from config
@@ -254,24 +304,36 @@ def select_tank_variant(
     armor_weight = armor_config.get("weight", 1.0)
     shield_weight = shield_config.get("weight", 1.0)
 
-    # Calculate scores
-    armor_score, armor_levels = calculate_tank_score(armor_skills, pilot_skills, armor_weight)
-    shield_score, shield_levels = calculate_tank_score(shield_skills, pilot_skills, shield_weight)
+    # Calculate scores only for available tank paths.
+    if "armor" in available_paths:
+        armor_score, armor_levels = calculate_tank_score(armor_skills, pilot_skills, armor_weight)
+    else:
+        armor_score, armor_levels = 0.0, {}
+
+    if "shield" in available_paths:
+        shield_score, shield_levels = calculate_tank_score(shield_skills, pilot_skills, shield_weight)
+    else:
+        shield_score, shield_levels = 0.0, {}
 
     # Determine selection
-    if armor_score > shield_score:
+    if "armor" in available_paths and (
+        "shield" not in available_paths or armor_score > shield_score
+    ):
         variant_path = "armor"
         selection_reason = "armor_skills_higher"
-    elif shield_score > armor_score:
+    elif "shield" in available_paths and (
+        "armor" not in available_paths or shield_score > armor_score
+    ):
         variant_path = "shield"
         selection_reason = "shield_skills_higher"
     else:
-        # Tie - use tie_breaker
-        variant_path = config.tie_breaker
+        # Tie - use tie_breaker only if available, else fallback to default.
+        tie_path = config.tie_breaker if config.tie_breaker in available_paths else default_path
+        variant_path = tie_path
         selection_reason = "tie_breaker"
 
     # Map path to variant name
-    variant_name = _map_path_to_variant(variant_path, config.available)
+    variant_name = _map_path_to_variant(variant_path, available_variants, default_variant)
 
     return TankSelectionResult(
         variant=variant_name,
@@ -286,7 +348,11 @@ def select_tank_variant(
     )
 
 
-def _map_path_to_variant(path: str, available_variants: list[str]) -> str:
+def _map_path_to_variant(
+    path: str,
+    available_variants: list[str],
+    default_variant: str | None = None,
+) -> str:
     """
     Map a variant path (armor/shield) to the full variant name.
 
@@ -301,8 +367,32 @@ def _map_path_to_variant(path: str, available_variants: list[str]) -> str:
         if variant.startswith(path):
             return variant
 
-    # Fallback to path as variant name
+    if default_variant and default_variant in available_variants:
+        return default_variant
+
+    if available_variants:
+        return available_variants[0]
+
+    # Final fallback for malformed metadata.
     return path
+
+
+def _variant_to_path(variant: str) -> str:
+    """Map full tank variant name to subdirectory path."""
+    return variant.split("_", 1)[0] if "_" in variant else variant
+
+
+def _resolve_default_variant(default: str, available_variants: list[str]) -> str:
+    """Resolve a default variant that exists in available variants."""
+    if default in available_variants:
+        return default
+
+    default_path = _variant_to_path(default)
+    for variant in available_variants:
+        if variant.startswith(default_path):
+            return variant
+
+    return available_variants[0] if available_variants else default
 
 
 # =============================================================================

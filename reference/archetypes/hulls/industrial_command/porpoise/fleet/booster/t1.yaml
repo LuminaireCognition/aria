@@ -75,7 +75,7 @@ notes:
     - "Return to asteroid and repeat"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Mining Foreman Burst I"
       upgrade_to: "Mining Foreman Burst II"

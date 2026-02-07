@@ -61,7 +61,7 @@ notes:
     - "Drones can handle weak rats if necessary"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Data Analyzer I"
       upgrade_to: "Data Analyzer II"

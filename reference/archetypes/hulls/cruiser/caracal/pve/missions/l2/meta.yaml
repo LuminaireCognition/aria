@@ -100,7 +100,7 @@ notes:
     - "Pulse MWD to manage cap"
 
 upgrade_path:
-  next_tier: high
+  next_tier: t2_optimal
   key_upgrades:
     - module: "Rapid Light Missile Launcher I"
       upgrade_to: "Rapid Light Missile Launcher II"

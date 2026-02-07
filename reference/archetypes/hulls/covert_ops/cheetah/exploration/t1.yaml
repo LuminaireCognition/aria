@@ -79,7 +79,7 @@ notes:
     - "Doesn't work against instalockers"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Nanofiber Internal Structure I"
       upgrade_to: "Nanofiber Internal Structure II"

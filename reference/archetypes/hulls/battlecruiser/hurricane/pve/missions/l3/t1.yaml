@@ -96,7 +96,7 @@ notes:
     - "Artillery can one-shot frigates with good volley"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "720mm Howitzer Artillery I"
       upgrade_to: "720mm Howitzer Artillery II"

@@ -47,7 +47,7 @@ skill_requirements:
     Amarr Battlecruiser: 3
     Medium Energy Turret: 3
     Gunnery: 3
-    Armor Repair Systems: 3
+    Repair Systems: 3
     Hull Upgrades: 4
   recommended:
     Controlled Bursts: 4
@@ -106,7 +106,7 @@ notes:
     - "Swap to Radio crystals for long range"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Heavy Modulated Energy Beam I"
       upgrade_to: "Heavy Modulated Energy Beam II"

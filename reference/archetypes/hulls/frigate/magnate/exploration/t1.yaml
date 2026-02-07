@@ -41,7 +41,7 @@ skill_requirements:
   recommended:
     Astrometric Rangefinding: 2
     Astrometric Pinpointing: 2
-    Armor Repair Systems: 2
+    Repair Systems: 2
 
 stats:
   probe_strength: 72
@@ -62,7 +62,7 @@ notes:
     - "Armor repairer helps survive Ghost site explosions"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Data Analyzer I"
       upgrade_to: "Data Analyzer II"

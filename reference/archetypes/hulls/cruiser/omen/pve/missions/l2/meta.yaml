@@ -43,7 +43,7 @@ skill_requirements:
     Amarr Cruiser: 3
     Medium Energy Turret: 4
     Gunnery: 4
-    Armor Repair Systems: 3
+    Repair Systems: 3
     Hull Upgrades: 4
     Weapon Upgrades: 4
   recommended:
@@ -97,7 +97,7 @@ notes:
     - "Swap to Radio crystals if you need range"
 
 upgrade_path:
-  next_tier: high
+  next_tier: t2_optimal
   key_upgrades:
     - module: "Focused Medium Pulse Laser I"
       upgrade_to: "Focused Medium Pulse Laser II"

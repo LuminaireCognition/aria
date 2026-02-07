@@ -296,8 +296,8 @@ class TestValidateSchema:
 
         assert any("invalid" in i.message.lower() and "skill_tier" in i.message.lower() for i in issues)
 
-    def test_legacy_tier_warning(self) -> None:
-        """Test legacy tier names generate warning."""
+    def test_legacy_tier_rejected(self) -> None:
+        """Test legacy tier names are rejected."""
         archetype = Archetype(
             archetype=ArchetypeHeader(hull="Vexor", skill_tier="medium"),  # type: ignore[arg-type]
             eft="[Vexor, Test]",
@@ -307,8 +307,8 @@ class TestValidateSchema:
 
         issues = _validate_schema(archetype, "vexor/pve/medium")
 
-        warnings = [i for i in issues if i.level == "warning"]
-        assert any("legacy" in w.message.lower() for w in warnings)
+        errors = [i for i in issues if i.level == "error"]
+        assert any("invalid skill_tier" in e.message.lower() for e in errors)
 
     def test_invalid_eft_header(self) -> None:
         """Test invalid EFT header is detected."""
@@ -651,12 +651,12 @@ class TestArchetypeValidator:
         assert len(result.errors) >= 1
         assert "not found" in result.errors[0].message.lower()
 
-    def test_validate_archetype_alpha_tier(self) -> None:
-        """Test alpha tier gets alpha restriction checks."""
+    def test_validate_archetype_non_omega_checks_alpha_restrictions(self) -> None:
+        """Test non-omega fits get alpha restriction checks."""
         validator = ArchetypeValidator()
 
         archetype = Archetype(
-            archetype=ArchetypeHeader(hull="Vexor", skill_tier="alpha"),  # type: ignore[arg-type]
+            archetype=ArchetypeHeader(hull="Vexor", skill_tier="t1", omega_required=False),
             eft="[Vexor, Alpha Test]\nDrone Damage Amplifier II",  # T2 module!
             skill_requirements=SkillRequirements(),
             stats=Stats(dps=200, ehp=20000),
@@ -664,7 +664,7 @@ class TestArchetypeValidator:
 
         with patch.object(validator._loader, "get_archetype", return_value=archetype):
             with patch.object(validator._loader, "get_manifest", return_value=None):
-                result = validator.validate_archetype("vexor/pve/alpha")
+                result = validator.validate_archetype("vexor/pve/t1")
 
         # Should have alpha restriction error
         alpha_errors = [i for i in result.issues if i.category == "alpha"]

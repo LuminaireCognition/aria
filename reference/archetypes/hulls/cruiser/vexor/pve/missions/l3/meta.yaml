@@ -1,0 +1,87 @@
+# Vexor L3 Missions - Variant Selection Metadata
+#
+# This file defines available tank variants and selection logic for
+# choosing between armor and shield fits based on pilot skills.
+
+hull: Vexor
+activity: pve/missions
+level: l3
+
+# Available tank variants
+tank_variants:
+  available:
+    - armor_active
+    - shield_buffer
+
+  default: armor_active
+
+  # How to select variant when not explicitly specified
+  selection_strategy: skill_based
+
+# Skill-based selection configuration
+skill_comparison:
+  armor:
+    # Skills that indicate armor tank proficiency
+    skills:
+      - Hull Upgrades
+      - Mechanics
+      - Repair Systems
+      - Armor Rigging
+    # Minimum total skill points across these skills to prefer armor
+    # Each skill contributes its level (0-5), so max = 20
+    weight: 1.0
+
+  shield:
+    # Skills that indicate shield tank proficiency
+    skills:
+      - Shield Management
+      - Shield Operation
+      - Shield Upgrades
+      - Tactical Shield Manipulation
+    weight: 1.0
+
+  # Tie-breaker: if scores are equal, prefer this
+  tie_breaker: armor
+
+# Variant descriptions for display
+variant_info:
+  armor_active:
+    name: "Active Armor"
+    description: "Traditional Gallente tank with active armor repair"
+    tiers: [meta, t2, t2_optimal]
+    pros:
+      - "Can repair damage during combat"
+      - "More forgiving of mistakes"
+      - "Matches Vexor hull bonuses"
+    cons:
+      - "Requires capacitor management"
+      - "Vulnerable to neutralizers"
+
+  shield_buffer:
+    name: "Shield Buffer"
+    description: "Speed-focused buffer tank for fast clears"
+    tiers: [t2_buffer]
+    pros:
+      - "Higher DPS (3x DDAs)"
+      - "Cap stable - immune to neuts"
+      - "Faster speed for kiting"
+    cons:
+      - "Cannot repair in-site"
+      - "Must dock to recover HP"
+      - "Less forgiving"
+
+# Selection algorithm pseudocode:
+#
+# def select_variant(pilot_skills: dict) -> str:
+#     armor_score = sum(pilot_skills.get(s, 0) for s in armor.skills)
+#     shield_score = sum(pilot_skills.get(s, 0) for s in shield.skills)
+#
+#     armor_score *= armor.weight
+#     shield_score *= shield.weight
+#
+#     if armor_score > shield_score:
+#         return "armor"
+#     elif shield_score > armor_score:
+#         return "shield"
+#     else:
+#         return tie_breaker

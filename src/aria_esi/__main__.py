@@ -254,8 +254,8 @@ Examples:
   aria-esi eos-status
   aria-esi archetype list
   aria-esi archetype list vexor
-  aria-esi archetype show vexor/pve/missions/l2/medium
-  aria-esi archetype generate vexor/pve/missions/l2/medium --faction serpentis
+  aria-esi archetype show vexor/pve/missions/l2/meta
+  aria-esi archetype generate vexor/pve/missions/l2/meta --faction serpentis
   aria-esi archetype validate --all --eos
   aria-esi notifications list
   aria-esi notifications templates

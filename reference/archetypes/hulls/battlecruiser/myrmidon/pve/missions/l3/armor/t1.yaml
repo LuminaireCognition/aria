@@ -44,7 +44,7 @@ skill_requirements:
     Drones: 4
     Heavy Drone Operation: 3
     Medium Drone Operation: 3
-    Armor Repair Systems: 3
+    Repair Systems: 3
     Hull Upgrades: 3
   recommended:
     Drone Interfacing: 3
@@ -107,7 +107,7 @@ notes:
     - "AB keeps signature down - better tank than MWD"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Ogre I"
       upgrade_to: "Ogre II"

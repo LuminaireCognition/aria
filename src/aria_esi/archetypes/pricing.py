@@ -394,7 +394,7 @@ def update_archetype_price(
     Update the estimated_isk and isk_updated fields in an archetype file.
 
     Args:
-        archetype_path: Path to archetype (e.g., "vexor/pve/missions/l2/medium")
+        archetype_path: Path to archetype (e.g., "vexor/pve/missions/l2/meta")
         region: Trade hub for price lookup
 
     Returns:

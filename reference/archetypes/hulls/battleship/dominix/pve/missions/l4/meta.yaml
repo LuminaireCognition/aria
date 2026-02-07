@@ -1,0 +1,46 @@
+# Dominix L4 Missions - Variant Selection Metadata
+#
+# This file defines available tank variants and selection logic for
+# choosing between armor and shield fits based on pilot skills.
+
+hull: Dominix
+activity: pve/missions
+level: l4
+
+# Available tank variants
+tank_variants:
+  available:
+    - armor_active
+
+  default: armor_active
+
+  # Single variant only; always use default.
+  selection_strategy: default
+
+# Skill-based selection configuration
+skill_comparison:
+  armor:
+    # Skills that indicate armor tank proficiency
+    skills:
+      - Hull Upgrades
+      - Mechanics
+      - Repair Systems
+      - Armor Rigging
+    weight: 1.0
+
+  # Tie-breaker: if scores are equal, prefer this
+  tie_breaker: armor
+
+# Variant descriptions for display
+variant_info:
+  armor_active:
+    name: "Active Armor"
+    description: "Traditional Gallente sentry boat with active armor tank"
+    tiers: [t1]
+    pros:
+      - "Sentry drones for ranged engagement"
+      - "Can repair damage during combat"
+      - "MJD for repositioning"
+    cons:
+      - "Slow - limited mobility"
+      - "Requires drone management"

@@ -13,13 +13,7 @@ from .loader import (
     load_hull_manifest,
     load_shared_config,
 )
-from .migration import (
-    migrate_archetypes,
-    run_migration,
-    update_omega_flags,
-)
 from .models import (
-    TIER_MIGRATION_MAP,
     Archetype,
     ArchetypePath,
     DamageTuning,
@@ -78,7 +72,6 @@ __all__ = [
     "SkillRequirements",
     "Stats",
     "UpgradePath",
-    "TIER_MIGRATION_MAP",
     # Loader
     "ArchetypeLoader",
     "get_archetypes_path",
@@ -88,10 +81,6 @@ __all__ = [
     "load_shared_config",
     # Tuning
     "apply_faction_tuning",
-    # Migration
-    "migrate_archetypes",
-    "run_migration",
-    "update_omega_flags",
     # Selection
     "SelectionResult",
     "can_fly_archetype",

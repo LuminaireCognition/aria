@@ -76,7 +76,7 @@ notes:
     - "Resume exploration"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Small Armor Repairer I"
       upgrade_to: "Small Armor Repairer II"

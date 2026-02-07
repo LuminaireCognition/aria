@@ -49,17 +49,10 @@ class TestModuleExports:
     def test_type_aliases_exported(self) -> None:
         """Test type aliases are exported."""
         assert hasattr(archetypes, "SkillTier")
-        assert hasattr(archetypes, "TIER_MIGRATION_MAP")
 
     def test_tuning_exports(self) -> None:
         """Test tuning function is exported."""
         assert hasattr(archetypes, "apply_faction_tuning")
-
-    def test_migration_exports(self) -> None:
-        """Test migration functions are exported."""
-        assert hasattr(archetypes, "migrate_archetypes")
-        assert hasattr(archetypes, "run_migration")
-        assert hasattr(archetypes, "update_omega_flags")
 
     def test_selection_exports(self) -> None:
         """Test selection functions are exported."""

@@ -55,7 +55,7 @@ notes:
     - "+2 warp core strength helps against single scramblers"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Miner I"
       upgrade_to: "Miner II"

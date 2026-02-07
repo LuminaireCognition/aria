@@ -348,7 +348,7 @@ def cmd_archetype_validate(args: argparse.Namespace) -> dict[str, Any]:
 
 
 # =============================================================================
-# Command: archetype migrate
+# Command: archetype recommend
 # =============================================================================
 
 
@@ -376,8 +376,12 @@ def cmd_archetype_recommend(args: argparse.Namespace) -> dict[str, Any]:
         try:
             from ..fitting.skills import fetch_pilot_skills
 
-            pilot_skills = fetch_pilot_skills()
-            print(f"Loaded {len(pilot_skills)} trained skills from ESI")
+            fetch_result = fetch_pilot_skills()
+            pilot_skills = fetch_result.skills
+            print(
+                f"Loaded {len(pilot_skills)} trained skills from ESI "
+                f"(source: {fetch_result.source})"
+            )
         except Exception as e:
             print(f"Failed to fetch pilot skills: {e}")
             print("Using empty skill set (will use tie_breaker for variant selection)")
@@ -469,76 +473,6 @@ def cmd_archetype_recommend(args: argparse.Namespace) -> dict[str, Any]:
     }
 
 
-def cmd_archetype_migrate(args: argparse.Namespace) -> dict[str, Any]:
-    """
-    Migrate archetype files to new tier naming scheme.
-
-    Renames tier files:
-    - low.yaml -> t1.yaml
-    - medium.yaml -> meta.yaml
-    - high.yaml -> t2_optimal.yaml
-    - alpha.yaml -> merged into t1.yaml with omega_required=false
-
-    Also adds omega_required flag based on T2 module detection.
-    """
-    from ..archetypes.migration import run_migration
-
-    query_ts = get_utc_timestamp()
-    dry_run = not getattr(args, "execute", False)
-    force = getattr(args, "force", False)
-    hull = getattr(args, "hull", None)
-
-    print("=" * 60)
-    print("ARCHETYPE MIGRATION")
-    print("=" * 60)
-    print(f"Mode: {'DRY RUN' if dry_run else 'EXECUTE'}")
-    print(f"Force overwrite: {'Yes' if force else 'No'}")
-    if hull:
-        print(f"Hull filter: {hull}")
-    print()
-
-    result = run_migration(dry_run=dry_run, force=force, hull=hull)
-
-    # Display results
-    for action in result.get("actions", []):
-        action_type = action.get("action", "unknown")
-        source = action.get("source", "")
-        target = action.get("target", "")
-        changes = action.get("changes", [])
-        error = action.get("error", "")
-
-        if action_type == "rename":
-            symbol = "[MIGRATE]" if not dry_run else "[WOULD MIGRATE]"
-            print(f"{symbol} {source}")
-            print(f"         -> {target}")
-            for change in changes:
-                print(f"            {change}")
-        elif action_type == "skip":
-            if error:
-                print(f"[ERROR] {source}")
-                print(f"        {error}")
-            else:
-                print(f"[SKIP] {source}")
-                if changes:
-                    print(f"       {changes[0]}")
-        print()
-
-    # Summary
-    print("-" * 60)
-    print(f"Total files: {result.get('total_files', 0)}")
-    print(f"{'Would migrate' if dry_run else 'Migrated'}: {result.get('migrated', 0)}")
-    print(f"Skipped: {result.get('skipped', 0)}")
-    print(f"Errors: {result.get('errors', 0)}")
-
-    if dry_run and result.get("migrated", 0) > 0:
-        print()
-        print("Run with --execute to apply changes")
-
-    result["query_timestamp"] = query_ts
-    result["command"] = "archetype-migrate"
-    return result
-
-
 # =============================================================================
 # Parser Registration
 # =============================================================================
@@ -581,7 +515,7 @@ def register_parsers(subparsers) -> None:
     )
     show_cmd.add_argument(
         "path",
-        help="Archetype path (e.g., vexor/pve/missions/l2/medium)",
+        help="Archetype path (e.g., vexor/pve/missions/l2/meta)",
     )
     show_cmd.add_argument(
         "--eft",
@@ -597,7 +531,7 @@ def register_parsers(subparsers) -> None:
     )
     gen_cmd.add_argument(
         "path",
-        help="Archetype path (e.g., vexor/pve/missions/l2/medium)",
+        help="Archetype path (e.g., vexor/pve/missions/l2/meta)",
     )
     gen_cmd.add_argument(
         "--faction",
@@ -632,27 +566,6 @@ def register_parsers(subparsers) -> None:
         help="Include EOS fit validation",
     )
     val_cmd.set_defaults(func=cmd_archetype_validate)
-
-    # archetype migrate
-    mig_cmd = archetype_subparsers.add_parser(
-        "migrate",
-        help="Migrate archetype files to new tier naming scheme",
-    )
-    mig_cmd.add_argument(
-        "--execute",
-        action="store_true",
-        help="Actually perform migration (default is dry-run)",
-    )
-    mig_cmd.add_argument(
-        "--force",
-        action="store_true",
-        help="Overwrite existing target files",
-    )
-    mig_cmd.add_argument(
-        "--hull",
-        help="Only migrate files for specific hull",
-    )
-    mig_cmd.set_defaults(func=cmd_archetype_migrate)
 
     # archetype recommend
     rec_cmd = archetype_subparsers.add_parser(
