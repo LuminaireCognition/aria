@@ -26,6 +26,7 @@ from aria_esi.fitting.eos_data import (
 )
 from aria_esi.fitting.skills import (
     SkillFetchError,
+    SkillFetchResult,
     extract_skills_for_fit,
     fetch_pilot_skills,
     get_all_v_skills,
@@ -59,6 +60,7 @@ __all__ = [
     "parse_eft",
     # Skills
     "SkillFetchError",
+    "SkillFetchResult",
     "extract_skills_for_fit",
     "fetch_pilot_skills",
     "get_all_v_skills",

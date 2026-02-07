@@ -76,6 +76,7 @@ Wallet Commands (authenticated):
 Skills Commands (authenticated):
   skills [filter]            Fetch trained skills
   skillqueue                 Skill training queue with ETA
+  sync-skills                Cache skills locally for fitting calculations
 
 Industry Commands (authenticated):
   industry-jobs [opts]       Manufacturing/research jobs
