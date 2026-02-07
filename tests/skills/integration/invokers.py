@@ -187,10 +187,14 @@ async def invoke_via_api(
 
     # Agentic loop - handle tool use
     while True:
+        # Force at least one tool invocation in Tier-2 tests so fixtures are exercised.
+        # After the first tool call, switch back to auto selection for normal completion.
+        tool_choice: dict[str, str] = {"type": "any"} if not tool_calls else {"type": "auto"}
         response = await client.messages.create(
             model=model,
             max_tokens=max_tokens,
             tools=tools,
+            tool_choice=tool_choice,
             messages=messages,
         )
 

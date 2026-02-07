@@ -43,12 +43,13 @@ class TestFetchPilotSkills:
             mock_client.get.return_value = mock_esi_skills_response
             mock_get_client.return_value = (mock_client, mock_credentials)
 
-            skills = fetch_pilot_skills()
+            result = fetch_pilot_skills()
 
-            assert len(skills) == 10
-            assert skills[3332] == 5  # Gallente Cruiser
-            assert skills[3436] == 5  # Drones
-            assert skills[3443] == 3  # Drone Interfacing
+            assert len(result) == 10
+            assert result.source == "esi"
+            assert result.skills[3332] == 5  # Gallente Cruiser
+            assert result.skills[3436] == 5  # Drones
+            assert result.skills[3443] == 3  # Drone Interfacing
 
     def test_fetch_skills_with_credentials(self, mock_credentials, mock_esi_skills_response):
         """Test fetch with explicit credentials."""
@@ -57,10 +58,11 @@ class TestFetchPilotSkills:
             mock_client.get.return_value = mock_esi_skills_response
             mock_esi_class.return_value = mock_client
 
-            skills = fetch_pilot_skills(creds=mock_credentials)
+            result = fetch_pilot_skills(creds=mock_credentials)
 
             mock_esi_class.assert_called_once_with(token=mock_credentials.access_token)
-            assert len(skills) == 10
+            assert len(result) == 10
+            assert result.source == "esi"
 
     def test_fetch_skills_empty_response(self, mock_credentials, mock_empty_skills_response):
         """Test fetch with no skills."""
@@ -69,9 +71,10 @@ class TestFetchPilotSkills:
             mock_client.get.return_value = mock_empty_skills_response
             mock_get_client.return_value = (mock_client, mock_credentials)
 
-            skills = fetch_pilot_skills()
+            result = fetch_pilot_skills()
 
-            assert skills == {}
+            assert result.skills == {}
+            assert result.source == "esi"
 
     def test_fetch_skills_auth_error(self):
         """Test that auth errors raise SkillFetchError with is_auth_error=True."""

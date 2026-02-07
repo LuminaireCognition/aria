@@ -149,8 +149,13 @@ def register_stats_tools(server: FastMCP) -> None:
             from aria_esi.fitting import SkillFetchError, fetch_pilot_skills
 
             try:
-                skill_levels = fetch_pilot_skills()
-                logger.info("Using pilot skills (%d skills loaded)", len(skill_levels))
+                fetch_result = fetch_pilot_skills()
+                skill_levels = fetch_result.skills
+                logger.info(
+                    "Using pilot skills (%d skills loaded, source: %s)",
+                    len(skill_levels),
+                    fetch_result.source,
+                )
             except SkillFetchError as e:
                 if e.is_auth_error:
                     return {

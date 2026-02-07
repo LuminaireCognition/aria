@@ -36,8 +36,9 @@ def cmd_fit_select(args: argparse.Namespace) -> dict[str, Any]:
     # Fetch pilot skills
     print("\nFetching pilot skills...")
     try:
-        pilot_skills = fetch_pilot_skills()
-        print(f"Loaded {len(pilot_skills)} trained skills")
+        fetch_result = fetch_pilot_skills()
+        pilot_skills = fetch_result.skills
+        print(f"Loaded {len(pilot_skills)} trained skills (source: {fetch_result.source})")
     except SkillFetchError as e:
         print(f"Error fetching skills: {e}")
         return {
@@ -177,8 +178,9 @@ def cmd_fit_check(args: argparse.Namespace) -> dict[str, Any]:
     # Fetch pilot skills
     print("\nFetching pilot skills...")
     try:
-        pilot_skills = fetch_pilot_skills()
-        print(f"Loaded {len(pilot_skills)} trained skills")
+        fetch_result = fetch_pilot_skills()
+        pilot_skills = fetch_result.skills
+        print(f"Loaded {len(pilot_skills)} trained skills (source: {fetch_result.source})")
     except SkillFetchError as e:
         print(f"Error fetching skills: {e}")
         return {

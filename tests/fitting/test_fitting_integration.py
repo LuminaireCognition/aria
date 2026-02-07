@@ -117,9 +117,11 @@ class TestPilotSkillsIntegration:
             mock_client.get.return_value = mock_esi_skills_response
             mock_get_client.return_value = (mock_client, mock_credentials)
 
-            pilot_skills = fetch_pilot_skills()
+            fetch_result = fetch_pilot_skills()
+            pilot_skills = fetch_result.skills
 
             assert len(pilot_skills) == 10
+            assert fetch_result.source == "esi"
             assert pilot_skills[3332] == 5  # Gallente Cruiser
 
         # Step 2: Calculate stats with pilot skills
