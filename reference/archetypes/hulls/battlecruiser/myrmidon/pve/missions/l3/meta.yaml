@@ -14,8 +14,8 @@ tank_variants:
 
   default: armor_active
 
-  # How to select variant when not explicitly specified
-  selection_strategy: skill_based
+  # Single variant only; always use default.
+  selection_strategy: default
 
 # Skill-based selection configuration
 skill_comparison:
@@ -26,15 +26,6 @@ skill_comparison:
       - Mechanics
       - Repair Systems
       - Armor Rigging
-    weight: 1.0
-
-  shield:
-    # Skills that indicate shield tank proficiency
-    skills:
-      - Shield Management
-      - Shield Operation
-      - Shield Upgrades
-      - Tactical Shield Manipulation
     weight: 1.0
 
   # Tie-breaker: if scores are equal, prefer this

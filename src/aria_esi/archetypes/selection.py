@@ -461,7 +461,12 @@ def select_fits(
             config = load_tank_variant_config(meta_path)
             if config:
                 # Select tank variant based on skills or override
-                tank_selection = select_tank_variant(config, pilot_skills, tank_override)
+                tank_selection = select_tank_variant(
+                    config,
+                    pilot_skills,
+                    tank_override,
+                    available_variant_paths=tank_variants,
+                )
                 selected_variant = tank_selection.variant_path
                 result.tank_selection = tank_selection
                 result.filters_applied.append(

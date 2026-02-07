@@ -29,6 +29,7 @@ from aria_esi.archetypes.selection import (
     get_recommended_fit,
     select_fits,
 )
+from aria_esi.archetypes.tank_selection import TankVariantConfig
 
 # =============================================================================
 # FitCandidate Tests
@@ -419,7 +420,7 @@ class TestDiscoverTiers:
         """Test TIER_PRIORITY constant has expected order."""
         assert TIER_PRIORITY[0] == "t2_optimal"
         assert TIER_PRIORITY[-1] == "t1"
-        assert len(TIER_PRIORITY) == 4
+        assert TIER_PRIORITY == ["t2_optimal", "t2_buffer", "t2_budget", "t2", "meta", "t1"]
 
     def test_tier_files_mapping(self) -> None:
         """Test TIER_FILES has all tiers mapped."""
@@ -481,6 +482,80 @@ class TestSelectFits:
 
             # Should have no candidates since omega required
             assert result.selection_mode == "none"
+
+    def test_select_constrains_to_existing_variant_dirs(self) -> None:
+        """Tank selection should never pick a variant path with no files."""
+        config = TankVariantConfig(
+            available=["armor_active"],
+            default="armor_active",
+            selection_strategy="skill_based",
+            skill_comparison={
+                "armor": {
+                    "skills": [
+                        "Hull Upgrades",
+                        "Mechanics",
+                        "Repair Systems",
+                        "Armor Rigging",
+                    ],
+                    "weight": 1.0,
+                },
+                "shield": {
+                    "skills": [
+                        "Shield Management",
+                        "Shield Operation",
+                        "Shield Upgrades",
+                        "Tactical Shield Manipulation",
+                    ],
+                    "weight": 1.0,
+                },
+                "tie_breaker": "armor",
+            },
+            tie_breaker="armor",
+        )
+
+        with patch(
+            "aria_esi.archetypes.selection._discover_tank_variants"
+        ) as mock_discover_variants, patch(
+            "aria_esi.archetypes.tank_selection.get_meta_yaml_path"
+        ) as mock_get_meta, patch(
+            "aria_esi.archetypes.tank_selection.load_tank_variant_config"
+        ) as mock_load_config, patch(
+            "aria_esi.archetypes.selection._discover_tiers_with_variant"
+        ) as mock_discover_tiers_with_variant, patch(
+            "aria_esi.archetypes.selection.load_yaml_file"
+        ) as mock_load_yaml, patch(
+            "aria_esi.archetypes.selection.ArchetypeLoader"
+        ) as mock_loader_cls, patch(
+            "aria_esi.archetypes.selection._check_skill_requirements"
+        ) as mock_check_skills:
+            mock_discover_variants.return_value = ["armor"]
+            mock_get_meta.return_value = Path("/fake/meta.yaml")
+            mock_load_config.return_value = config
+            mock_load_yaml.return_value = {
+                "archetype": {"omega_required": False, "skill_tier": "t1"}
+            }
+            mock_check_skills.return_value = (True, [])
+
+            tier_path = Path("/fake/armor/t1.yaml")
+            mock_discover_tiers_with_variant.side_effect = (
+                lambda _archetype_path, variant: [("t1", tier_path)] if variant == "armor" else []
+            )
+
+            mock_loader = mock_loader_cls.return_value
+            mock_archetype = MagicMock(spec=Archetype)
+            mock_archetype.stats = Stats(dps=200, ehp=20000, tank_type="active", tank_regen=120)
+            mock_archetype.damage_tuning = None
+            mock_loader.get_archetype.return_value = mock_archetype
+
+            # Shield-heavy pilot profile.
+            pilot_skills = {3416: 5, 3419: 5, 21059: 5, 3420: 5}
+
+            result = select_fits("myrmidon/pve/missions/l3", pilot_skills)
+
+            assert result.tank_selection is not None
+            assert result.tank_selection.variant_path == "armor"
+            assert result.selection_mode == "single"
+            assert not any("No archetype files found" in warning for warning in result.warnings)
 
 
 # =============================================================================
