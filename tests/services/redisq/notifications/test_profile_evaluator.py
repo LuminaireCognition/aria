@@ -592,8 +592,8 @@ class TestProfileEvaluatorV2Engine:
         assert result.has_matches is False
         assert "v2-filter-test" in result.filtered_by_interest
 
-    def test_v2_engine_fallback_on_error(self):
-        """V2 engine falls back to v1 on error."""
+    def test_v2_engine_init_error_fails_closed(self):
+        """V2 engine init errors fail closed and do not fall back to v1."""
         profile = NotificationProfile(
             name="v2-fallback",
             enabled=True,
@@ -611,18 +611,17 @@ class TestProfileEvaluatorV2Engine:
 
         with patch.object(ProfileEvaluator, "_build_v2_engine") as mock_build_v2:
             mock_build_v2.side_effect = ValueError("Invalid preset")
+            evaluator = ProfileEvaluator([profile])
 
-            with patch.object(ProfileEvaluator, "_build_calculator") as mock_build_v1:
-                mock_filter = MagicMock()
-                mock_filter.should_fetch.return_value = True
-                mock_build_v1.return_value = mock_filter
-
-                evaluator = ProfileEvaluator([profile])
-
-        # Profile should still be usable with v1 fallback
+        # Profile should be marked invalid and not configured with v1 fallback
         assert evaluator.profiles[0]._interest_engine_v2 is None
-        # v1 topology filter should be set
-        assert evaluator.profiles[0]._topology_filter is not None
+        assert evaluator.profiles[0]._topology_filter is None
+        assert evaluator.profiles[0]._init_error is not None
+
+        kill = make_kill(total_value=100)
+        result = evaluator.evaluate(kill)
+        assert result.has_matches is False
+        assert "v2-fallback" in result.filtered_by_engine_error
 
     def test_uses_interest_v2_property(self):
         """Profile uses_interest_v2 property works."""
