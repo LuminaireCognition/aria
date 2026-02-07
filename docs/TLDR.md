@@ -12,9 +12,15 @@ cd aria
 
 ## Configure
 
-First run triggers interactive setup. Or run manually:
+Use either setup path depending on context:
 
+```bash
+# From terminal (recommended first run)
+./aria-init
 ```
+
+```text
+# Inside Claude Code session
 /setup
 ```
 
@@ -69,7 +75,9 @@ Edit `userdata/pilots/{your_pilot}/profile.md` and add/change:
 
 - **Enable RP:** Set `rp_level` in profile (see above)
 - **Check token:** `.claude/scripts/aria-refresh --check`
-- **Full docs:** [README.md](README.md)
+- **Main README:** [../README.md](../README.md)
+- **Docs index:** [README.md](README.md)
+- **First run guide:** [FIRST_RUN.md](FIRST_RUN.md)
 
 ---
 

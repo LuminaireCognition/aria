@@ -2,6 +2,14 @@
 
 Quick navigation for ARIA documentation.
 
+<p><strong>Quick Links:</strong>
+<a href="./TLDR.md">TL;DR</a> |
+<a href="./FIRST_RUN.md">First Run</a> |
+<a href="./ESI.md">ESI Setup</a> |
+<a href="./FAQ.md">FAQ</a> |
+<a href="../README.md">Project README</a>
+</p>
+
 ## Where to Start
 
 **New to ARIA?**
@@ -19,6 +27,10 @@ Quick navigation for ARIA documentation.
 
 **Building or contributing?**
 → [PYTHON_ENVIRONMENT.md](PYTHON_ENVIRONMENT.md)
+
+Setup paths:
+- From terminal: `./aria-init`
+- In Claude Code: `/setup`
 
 ---
 
