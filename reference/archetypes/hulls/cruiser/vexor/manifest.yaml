@@ -37,8 +37,13 @@ fitting_rules:
     high: true
     reason: "Drone boat - primary DPS from drones. Highs are for utility only (Drone Link Augmentor, neuts, or empty)."
 
-  # Preferred tank type
+  # Preferred tank type (hull default)
   tank_type: armor_active
+
+  # Alternative tank types supported
+  tank_variants:
+    - armor_active    # Traditional Gallente tank
+    - shield_buffer   # Speed/buffer alternative
 
   # Weapon system
   weapons:

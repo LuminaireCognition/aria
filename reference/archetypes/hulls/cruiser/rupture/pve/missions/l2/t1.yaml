@@ -45,7 +45,7 @@ skill_requirements:
     Minmatar Cruiser: 2
     Medium Projectile Turret: 3
     Gunnery: 3
-    Armor Repair Systems: 2
+    Repair Systems: 2
     Hull Upgrades: 2
   recommended:
     Motion Prediction: 3

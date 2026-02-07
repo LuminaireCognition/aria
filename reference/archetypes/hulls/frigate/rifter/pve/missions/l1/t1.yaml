@@ -36,7 +36,7 @@ skill_requirements:
     Minmatar Frigate: 2
     Small Projectile Turret: 2
     Gunnery: 2
-    Armor Repair Systems: 1
+    Repair Systems: 1
   recommended:
     Motion Prediction: 2
     Surgical Strike: 2
