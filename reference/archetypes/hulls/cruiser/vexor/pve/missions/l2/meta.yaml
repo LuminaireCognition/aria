@@ -136,7 +136,7 @@ notes:
     - "Recall drones before warping"
 
 upgrade_path:
-  next_tier: high
+  next_tier: t2_optimal
   key_upgrades:
     - module: "Drone Damage Amplifier I"
       upgrade_to: "Drone Damage Amplifier II"

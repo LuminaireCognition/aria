@@ -90,9 +90,9 @@ Armor Hardener I
 Armor Hardener I
 
 10MN Afterburner I
-Cap Recharger II
-Cap Recharger II
-Cap Recharger II
+Cap Recharger I
+Cap Recharger I
+Cap Recharger I
 
 [Empty High slot]
 [Empty High slot]

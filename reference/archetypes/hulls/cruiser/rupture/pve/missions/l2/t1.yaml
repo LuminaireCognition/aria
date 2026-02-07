@@ -116,7 +116,7 @@ notes:
     - "Use tracking computer if struggling to hit frigates"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "425mm AutoCannon I"
       upgrade_to: "425mm AutoCannon II"

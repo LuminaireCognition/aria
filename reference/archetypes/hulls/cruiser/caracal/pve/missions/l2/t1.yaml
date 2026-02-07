@@ -100,7 +100,7 @@ notes:
     - "Carry multiple ammo types for different factions"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Rapid Light Missile Launcher I"
       upgrade_to: "Rapid Light Missile Launcher II"

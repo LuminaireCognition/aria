@@ -106,7 +106,7 @@ notes:
     - "Swap to Radio crystals for long range"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Heavy Modulated Energy Beam I"
       upgrade_to: "Heavy Modulated Energy Beam II"

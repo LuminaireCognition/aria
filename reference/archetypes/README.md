@@ -12,10 +12,10 @@ uv run aria-esi archetype list
 uv run aria-esi archetype list vexor
 
 # Show archetype details
-uv run aria-esi archetype show vexor/pve/missions/l2/medium
+uv run aria-esi archetype show vexor/pve/missions/l2/meta
 
 # Generate faction-tuned fit
-uv run aria-esi archetype generate vexor/pve/missions/l2/medium --faction serpentis
+uv run aria-esi archetype generate vexor/pve/missions/l2/meta --faction serpentis
 
 # Validate all archetypes
 uv run aria-esi archetype validate --all
@@ -63,19 +63,19 @@ reference/archetypes/
 
 Archetype paths follow this format:
 ```
-{hull}/{activity_branch}/{activity}/{level}/{tier}
+{hull}/{activity_branch}/{activity}/{level}/[{variant}/]{tier}
 ```
 
 Examples:
-- `vexor/pve/missions/l2/medium`
-- `drake/pve/missions/l3/alpha`
+- `vexor/pve/missions/l2/meta`
+- `drake/pve/missions/l3/t1`
 
 ## Faction Tuning
 
 Archetypes can be tuned for specific factions using the `--faction` flag:
 
 ```bash
-uv run aria-esi archetype generate vexor/pve/missions/l2/medium --faction serpentis
+uv run aria-esi archetype generate vexor/pve/missions/l2/meta --faction serpentis
 ```
 
 Supported factions:
@@ -132,7 +132,7 @@ uv run aria-esi archetype recommend vexor/pve/missions/l3
 uv run aria-esi archetype show vexor/pve/missions/l3/shield/t2_buffer
 
 # List all variants
-uv run aria-esi archetype list vexor/pve/missions/l3 --show-variants
+uv run aria-esi archetype list vexor
 ```
 
 ## Community Fits & Attribution
@@ -235,7 +235,7 @@ Validate archetypes to ensure correctness:
 
 ```bash
 # Validate specific archetype
-uv run aria-esi archetype validate vexor/pve/missions/l2/medium
+uv run aria-esi archetype validate vexor/pve/missions/l2/meta
 
 # Validate all archetypes
 uv run aria-esi archetype validate --all
@@ -246,7 +246,7 @@ uv run aria-esi archetype validate --all --eos
 
 Validation checks:
 - Schema compliance (required fields, valid values)
-- Alpha restrictions (no T2 modules for alpha tier)
+- Alpha restrictions (no T2 modules for non-omega fits)
 - Hull/manifest consistency
 - EOS fitting validity (optional, with `--eos`)
 

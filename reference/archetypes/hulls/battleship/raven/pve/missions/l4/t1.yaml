@@ -96,7 +96,7 @@ notes:
     - "Cap battery helps vs neuts"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Cruise Missile Launcher I"
       upgrade_to: "Cruise Missile Launcher II"

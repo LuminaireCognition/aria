@@ -115,7 +115,7 @@ notes:
     - "Guns use NO capacitor - very forgiving"
 
 upgrade_path:
-  next_tier: high
+  next_tier: t2_optimal
   key_upgrades:
     - module: "425mm AutoCannon I"
       upgrade_to: "425mm AutoCannon II"

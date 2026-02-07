@@ -56,7 +56,7 @@ notes:
     - "Don't bling the fit - keep it replaceable (~35-40M total)"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Strip Miner I"
       upgrade_to: "Strip Miner II"

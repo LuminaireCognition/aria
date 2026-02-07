@@ -107,7 +107,7 @@ notes:
     - "AB keeps signature down - better tank than MWD"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Ogre I"
       upgrade_to: "Ogre II"

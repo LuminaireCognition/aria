@@ -25,6 +25,7 @@ from aria_esi.archetypes.selection import (
     _check_skill_requirements,
     _check_tank_adequacy,
     _discover_tiers,
+    _discover_tiers_with_variant,
     can_fly_archetype,
     get_recommended_fit,
     select_fits,
@@ -556,6 +557,116 @@ class TestSelectFits:
             assert result.tank_selection.variant_path == "armor"
             assert result.selection_mode == "single"
             assert not any("No archetype files found" in warning for warning in result.warnings)
+
+    def test_discover_tiers_with_variant_handles_invalid_and_missing_paths(self) -> None:
+        """Variant tier discovery should return empty on invalid or missing locations."""
+        assert _discover_tiers_with_variant("too/short", "armor") == []
+
+        with patch("aria_esi.archetypes.selection.find_hull_directory", return_value=None):
+            assert _discover_tiers_with_variant("vexor/pve/missions/l2", "armor") == []
+
+    def test_discover_tiers_with_variant_finds_files(
+        self, tmp_path: Path
+    ) -> None:
+        hull_dir = tmp_path / "vexor"
+        variant_dir = hull_dir / "pve" / "missions" / "l2" / "shield"
+        variant_dir.mkdir(parents=True)
+        tier = TIER_PRIORITY[0]
+        tier_file = variant_dir / TIER_FILES[tier][0]
+        tier_file.write_text("archetype: {}", encoding="utf-8")
+
+        with patch(
+            "aria_esi.archetypes.selection.find_hull_directory", return_value=hull_dir
+        ):
+            found = _discover_tiers_with_variant("vexor/pve/missions/l2", "shield")
+
+        assert found == [(tier, tier_file)]
+
+    def test_select_with_tank_override_without_meta_yaml_uses_override(self) -> None:
+        with patch(
+            "aria_esi.archetypes.selection._discover_tank_variants",
+            return_value=["armor", "shield"],
+        ), patch(
+            "aria_esi.archetypes.tank_selection.get_meta_yaml_path",
+            return_value=None,
+        ), patch(
+            "aria_esi.archetypes.selection._discover_tiers_with_variant",
+            return_value=[("t1", Path("/fake/shield/t1.yaml"))],
+        ), patch(
+            "aria_esi.archetypes.selection.load_yaml_file",
+            return_value={"archetype": {"omega_required": False}},
+        ), patch(
+            "aria_esi.archetypes.selection.ArchetypeLoader"
+        ) as mock_loader_cls, patch(
+            "aria_esi.archetypes.selection._check_skill_requirements",
+            return_value=(True, []),
+        ):
+            mock_loader = mock_loader_cls.return_value
+            mock_archetype = MagicMock(spec=Archetype)
+            mock_archetype.stats = Stats(dps=200, ehp=20000, tank_type="active", tank_regen=120)
+            mock_archetype.damage_tuning = None
+            mock_loader.get_archetype.return_value = mock_archetype
+
+            result = select_fits("vexor/pve/missions/l2", {}, tank_override="shield")
+
+            assert result.tank_selection is not None
+            assert result.tank_selection.selection_reason == "override"
+            assert result.tank_selection.variant_path == "shield"
+            assert result.selection_mode == "single"
+
+    def test_select_skips_missing_archetype_after_yaml_load(self) -> None:
+        with patch(
+            "aria_esi.archetypes.selection._discover_tiers",
+            return_value=[("t1", Path("/fake/t1.yaml"))],
+        ), patch(
+            "aria_esi.archetypes.selection.load_yaml_file",
+            return_value={"archetype": {"omega_required": False}},
+        ), patch("aria_esi.archetypes.selection.ArchetypeLoader") as mock_loader_cls:
+            mock_loader = mock_loader_cls.return_value
+            mock_loader.get_archetype.return_value = None
+
+            result = select_fits("vexor/pve/missions/l2", {})
+
+            assert result.selection_mode == "none"
+            assert result.recommended is None
+            assert result.candidates == []
+
+    def test_select_with_mission_context_warns_when_no_fit_matches_filters(
+        self, mock_mission_context: MissionContext
+    ) -> None:
+        with patch(
+            "aria_esi.archetypes.selection._discover_tiers",
+            return_value=[
+                ("t1", Path("/fake/t1.yaml")),
+                ("meta", Path("/fake/meta.yaml")),
+            ],
+        ), patch(
+            "aria_esi.archetypes.selection.load_yaml_file",
+            return_value={"archetype": {"omega_required": False}},
+        ), patch(
+            "aria_esi.archetypes.selection.ArchetypeLoader"
+        ) as mock_loader_cls, patch(
+            "aria_esi.archetypes.selection._check_skill_requirements",
+            return_value=(True, []),
+        ), patch(
+            "aria_esi.archetypes.selection._check_tank_adequacy",
+            return_value=False,
+        ), patch(
+            "aria_esi.archetypes.selection._check_damage_match",
+            return_value=False,
+        ):
+            mock_loader = mock_loader_cls.return_value
+            mock_archetype = MagicMock(spec=Archetype)
+            mock_archetype.stats = Stats(dps=200, ehp=20000, tank_type="active", tank_regen=120)
+            mock_archetype.damage_tuning = None
+            mock_loader.get_archetype.return_value = mock_archetype
+
+            result = select_fits(
+                "vexor/pve/missions/l2", {}, mission_context=mock_mission_context
+            )
+
+            assert "Mission context filtering" in result.filters_applied
+            assert any("No fits meet mission requirements" in warning for warning in result.warnings)
 
 
 # =============================================================================

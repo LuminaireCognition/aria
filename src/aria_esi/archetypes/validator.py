@@ -240,20 +240,14 @@ def _validate_schema(archetype: Archetype, path: str) -> list[ValidationIssue]:
             )
         )
 
-    # Validate skill tier value (accept both old and new tier names)
+    # Validate skill tier value
     valid_tiers = {
-        # New tier names
         "t1",
         "meta",
         "t2",
         "t2_budget",
         "t2_buffer",
         "t2_optimal",
-        # Legacy tier names (for backward compatibility)
-        "low",
-        "medium",
-        "high",
-        "alpha",
     }
     if archetype.archetype.skill_tier not in valid_tiers:
         issues.append(
@@ -261,18 +255,6 @@ def _validate_schema(archetype: Archetype, path: str) -> list[ValidationIssue]:
                 level="error",
                 category="schema",
                 message=f"Invalid skill_tier: {archetype.archetype.skill_tier}. Expected one of: {valid_tiers}",
-                path=path,
-            )
-        )
-
-    # Warn about legacy tier names
-    legacy_tiers = {"low", "medium", "high", "alpha"}
-    if archetype.archetype.skill_tier in legacy_tiers:
-        issues.append(
-            ValidationIssue(
-                level="warning",
-                category="schema",
-                message=f"Legacy skill_tier '{archetype.archetype.skill_tier}' - consider migrating to new tier names",
                 path=path,
             )
         )
@@ -558,7 +540,7 @@ class ArchetypeValidator:
         Validate a single archetype.
 
         Args:
-            path: Archetype path string (e.g., "vexor/pve/missions/l2/medium")
+            path: Archetype path string (e.g., "vexor/pve/missions/l2/meta")
 
         Returns:
             ValidationResult
@@ -588,8 +570,8 @@ class ArchetypeValidator:
         # Schema validation
         result.issues.extend(_validate_schema(archetype, path))
 
-        # Alpha restrictions (only for alpha tier)
-        if archetype.archetype.skill_tier == "alpha":
+        # Alpha restrictions apply to non-omega fits.
+        if not archetype.archetype.omega_required:
             result.issues.extend(_check_alpha_restrictions(archetype.eft))
             result.issues.extend(_check_alpha_ship(archetype.eft))
 

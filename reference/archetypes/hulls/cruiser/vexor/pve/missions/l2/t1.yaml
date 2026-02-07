@@ -134,7 +134,7 @@ notes:
     - "Recall drones before warping"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Medium ACM Compact Armor Repairer"
       upgrade_to: "Medium Armor Repairer I"

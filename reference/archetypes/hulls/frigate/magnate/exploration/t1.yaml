@@ -62,7 +62,7 @@ notes:
     - "Armor repairer helps survive Ghost site explosions"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Data Analyzer I"
       upgrade_to: "Data Analyzer II"

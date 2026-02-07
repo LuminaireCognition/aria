@@ -102,7 +102,7 @@ notes:
     - "MWD drains cap fast - approach then turn off"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Focused Medium Pulse Laser I"
       upgrade_to: "Focused Medium Pulse Laser II"

@@ -83,7 +83,7 @@ notes:
     - "Pulse shield booster - don't run constantly"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Rocket Launcher I"
       upgrade_to: "Rocket Launcher II"

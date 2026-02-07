@@ -658,34 +658,6 @@ class TestArchetypePath:
         assert path.level == "l2"
         assert path.tier == "meta"
 
-    def test_parse_legacy_tier_low(self):
-        """Parses legacy 'low' tier."""
-        from aria_esi.archetypes.models import ArchetypePath
-
-        path = ArchetypePath.parse("heron/exploration/low")
-        assert path.tier == "low"
-
-    def test_parse_legacy_tier_medium(self):
-        """Parses legacy 'medium' tier."""
-        from aria_esi.archetypes.models import ArchetypePath
-
-        path = ArchetypePath.parse("heron/exploration/medium")
-        assert path.tier == "medium"
-
-    def test_parse_legacy_tier_high(self):
-        """Parses legacy 'high' tier."""
-        from aria_esi.archetypes.models import ArchetypePath
-
-        path = ArchetypePath.parse("heron/exploration/high")
-        assert path.tier == "high"
-
-    def test_parse_legacy_tier_alpha(self):
-        """Parses legacy 'alpha' tier."""
-        from aria_esi.archetypes.models import ArchetypePath
-
-        path = ArchetypePath.parse("heron/exploration/alpha")
-        assert path.tier == "alpha"
-
     def test_parse_invalid_too_short(self):
         """Raises error for too short path."""
         from aria_esi.archetypes.models import ArchetypePath
@@ -1076,21 +1048,3 @@ class TestMissionContext:
         assert result["enemy_weakness"] == "thermal"
         assert result["ewar_types"] == ["damps"]
         assert result["mission_name"] == "Enemies Abound"
-
-
-# =============================================================================
-# Constants Tests
-# =============================================================================
-
-
-class TestConstants:
-    """Test module constants."""
-
-    def test_tier_migration_map(self):
-        """TIER_MIGRATION_MAP contains expected mappings."""
-        from aria_esi.archetypes.models import TIER_MIGRATION_MAP
-
-        assert TIER_MIGRATION_MAP["low"] == "t1"
-        assert TIER_MIGRATION_MAP["medium"] == "meta"
-        assert TIER_MIGRATION_MAP["high"] == "t2_optimal"
-        assert TIER_MIGRATION_MAP["alpha"] == "t1"

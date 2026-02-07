@@ -84,7 +84,7 @@ notes:
     - "Use web on fast frigates"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "200mm AutoCannon I"
       upgrade_to: "200mm AutoCannon II"

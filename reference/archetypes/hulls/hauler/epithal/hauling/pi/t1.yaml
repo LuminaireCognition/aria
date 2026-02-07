@@ -77,7 +77,7 @@ notes:
     - "If hostile appears: Cloak - Safe - Wait"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Prototype Cloaking Device I"
       upgrade_to: "Improved Cloaking Device II"

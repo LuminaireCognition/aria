@@ -71,7 +71,7 @@ notes:
     - "Swap to Radio S for longer range"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Small Focused Pulse Laser I"
       upgrade_to: "Small Focused Pulse Laser II"

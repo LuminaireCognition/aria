@@ -26,18 +26,6 @@ Skill tier for archetype variants.
 - t2_optimal: Full T2, maxed relevant skills
 """
 
-# Legacy tier names for migration compatibility
-LegacySkillTier = Literal["low", "medium", "high", "alpha"]
-"""Legacy skill tier names (deprecated, use SkillTier instead)."""
-
-# Mapping from legacy to new tier names
-TIER_MIGRATION_MAP: dict[str, str] = {
-    "low": "t1",
-    "medium": "meta",
-    "high": "t2_optimal",
-    "alpha": "t1",  # Alpha fits become t1 with omega_required=False
-}
-
 TankProfile = Literal["armor_active", "armor_passive", "shield_active", "shield_passive"]
 """Tank philosophy classification."""
 
@@ -542,8 +530,8 @@ class ArchetypePath:
 
         Accepts:
           - heron/exploration/t1 (short format)
-          - vexor/pve/missions/l2/medium (full format)
-          - hulls/cruiser/vexor/pve/missions/l2/medium.yaml
+          - vexor/pve/missions/l2/meta (full format)
+          - hulls/cruiser/vexor/pve/missions/l2/meta.yaml
         """
         # Normalize path
         path_str = path_str.replace("\\", "/")
@@ -569,11 +557,6 @@ class ArchetypePath:
             "t2_budget",
             "t2_buffer",
             "t2_optimal",
-            # Legacy tier names (for backward compatibility)
-            "low",
-            "medium",
-            "high",
-            "alpha",
         }
 
         # Valid tank variants

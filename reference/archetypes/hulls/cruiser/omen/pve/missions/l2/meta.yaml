@@ -97,7 +97,7 @@ notes:
     - "Swap to Radio crystals if you need range"
 
 upgrade_path:
-  next_tier: high
+  next_tier: t2_optimal
   key_upgrades:
     - module: "Focused Medium Pulse Laser I"
       upgrade_to: "Focused Medium Pulse Laser II"

@@ -108,7 +108,7 @@ notes:
     - "Use drones for frigates"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Mega Pulse Laser I"
       upgrade_to: "Mega Pulse Laser II"

@@ -58,7 +58,7 @@ notes:
     - "Don't panic - you have time to react"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Strip Miner I"
       upgrade_to: "Strip Miner II"

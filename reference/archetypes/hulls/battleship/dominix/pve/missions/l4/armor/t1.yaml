@@ -105,7 +105,7 @@ notes:
     - "Remote rep can repair damaged sentries"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "Garde I"
       upgrade_to: "Garde II"

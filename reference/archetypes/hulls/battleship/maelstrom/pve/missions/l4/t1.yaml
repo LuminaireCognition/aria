@@ -99,7 +99,7 @@ notes:
     - "Massive volley damage one-shots cruisers"
 
 upgrade_path:
-  next_tier: medium
+  next_tier: meta
   key_upgrades:
     - module: "1200mm Artillery Cannon I"
       upgrade_to: "1200mm Artillery Cannon II"

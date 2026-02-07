@@ -479,7 +479,7 @@ def load_archetype(path_or_str: str | ArchetypePath) -> Archetype | None:
 
     Args:
         path_or_str: Either an ArchetypePath object or a path string like
-                     "vexor/pve/missions/l2/medium"
+                     "vexor/pve/missions/l2/meta"
 
     Returns:
         Archetype object or None if not found
