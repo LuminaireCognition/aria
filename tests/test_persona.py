@@ -426,7 +426,7 @@ class TestCmdPersonaContext:
         from aria_esi.commands.persona import cmd_persona_context
 
         # Create pilot structure
-        pilot_dir = tmp_path / "pilots" / "123_test"
+        pilot_dir = tmp_path / "userdata" / "pilots" / "123_test"
         pilot_dir.mkdir(parents=True)
 
         profile = pilot_dir / "profile.md"
@@ -459,7 +459,7 @@ class TestCmdValidateOverlays:
         from aria_esi.commands.persona import cmd_validate_overlays
 
         # Create pilot structure
-        pilot_dir = tmp_path / "pilots" / "123_test"
+        pilot_dir = tmp_path / "userdata" / "pilots" / "123_test"
         pilot_dir.mkdir(parents=True)
 
         profile = pilot_dir / "profile.md"
@@ -503,7 +503,7 @@ persona_context:
         from aria_esi.commands.persona import cmd_validate_overlays
 
         # Create pilot with stale context
-        pilot_dir = tmp_path / "pilots" / "123_test"
+        pilot_dir = tmp_path / "userdata" / "pilots" / "123_test"
         pilot_dir.mkdir(parents=True)
 
         profile = pilot_dir / "profile.md"
