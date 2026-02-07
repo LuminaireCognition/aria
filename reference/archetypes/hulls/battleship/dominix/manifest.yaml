@@ -27,7 +27,12 @@ roles:
   - armor_tank
 
 fitting_rules:
-  tank_type: armor_buffer  # Or active
+  tank_type: armor_active
+
+  # Alternative tank types supported
+  tank_variants:
+    - armor_active    # Traditional active armor tank
+
   weapons:
     primary: drones
     secondary: null  # High slots for utility
