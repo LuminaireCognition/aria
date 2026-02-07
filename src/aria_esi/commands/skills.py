@@ -6,7 +6,9 @@ All commands require authentication.
 """
 
 import argparse
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 
 from ..core import (
     CredentialsError,
@@ -14,10 +16,199 @@ from ..core import (
     ESIError,
     format_duration,
     get_authenticated_client,
+    get_pilot_directory,
     get_utc_timestamp,
     parse_datetime,
     to_roman,
 )
+
+# =============================================================================
+# Skill Cache Functions
+# =============================================================================
+
+
+def load_cached_skills(pilot_dir: Path | None = None) -> dict[int, int] | None:
+    """
+    Load skills from local cache.
+
+    Args:
+        pilot_dir: Pilot directory path. If None, resolves from config.
+
+    Returns:
+        Dict mapping skill_id to level, or None if cache not found.
+    """
+    if pilot_dir is None:
+        pilot_dir = get_pilot_directory()
+    if not pilot_dir:
+        return None
+
+    cache_path = pilot_dir / "skills.json"
+    if not cache_path.exists():
+        return None
+
+    try:
+        data = json.loads(cache_path.read_text())
+        return {int(k): v for k, v in data.get("skills", {}).items()}
+    except (json.JSONDecodeError, KeyError, ValueError):
+        return None
+
+
+def is_skills_cache_stale(pilot_dir: Path | None = None, ttl_hours: int = 12) -> bool:
+    """
+    Check if skill cache is older than TTL.
+
+    Args:
+        pilot_dir: Pilot directory path. If None, resolves from config.
+        ttl_hours: Cache TTL in hours (default 12).
+
+    Returns:
+        True if cache is stale or missing, False if fresh.
+    """
+    if pilot_dir is None:
+        pilot_dir = get_pilot_directory()
+    if not pilot_dir:
+        return True
+
+    cache_path = pilot_dir / "skills.json"
+    if not cache_path.exists():
+        return True
+
+    try:
+        data = json.loads(cache_path.read_text())
+        meta = data.get("_meta", {})
+        synced_at = meta.get("synced_at")
+        if not synced_at:
+            return True
+
+        # Parse ISO timestamp
+        sync_time = datetime.fromisoformat(synced_at.replace("Z", "+00:00"))
+        age_hours = (datetime.now(timezone.utc) - sync_time).total_seconds() / 3600
+        return age_hours > ttl_hours
+    except (json.JSONDecodeError, KeyError, ValueError):
+        return True
+
+
+def get_skills_cache_info(pilot_dir: Path | None = None) -> dict | None:
+    """
+    Get metadata about the skills cache.
+
+    Args:
+        pilot_dir: Pilot directory path. If None, resolves from config.
+
+    Returns:
+        Dict with cache metadata, or None if not cached.
+    """
+    if pilot_dir is None:
+        pilot_dir = get_pilot_directory()
+    if not pilot_dir:
+        return None
+
+    cache_path = pilot_dir / "skills.json"
+    if not cache_path.exists():
+        return None
+
+    try:
+        data = json.loads(cache_path.read_text())
+        return data.get("_meta")
+    except (json.JSONDecodeError, KeyError):
+        return None
+
+
+# =============================================================================
+# Sync Skills Command
+# =============================================================================
+
+
+def cmd_sync_skills(args: argparse.Namespace) -> dict:
+    """
+    Sync skills from ESI to local cache.
+
+    Fetches all trained skills and saves them to userdata/pilots/{dir}/skills.json
+    for use by fitting calculations.
+    """
+    query_ts = get_utc_timestamp()
+
+    try:
+        client, creds = get_authenticated_client()
+    except CredentialsError as e:
+        return e.to_dict() | {"query_timestamp": query_ts}
+
+    char_id = creds.character_id
+
+    # Resolve pilot directory
+    pilot_dir = get_pilot_directory()
+    if not pilot_dir:
+        return {
+            "error": "pilot_directory_not_found",
+            "message": "Could not find pilot directory",
+            "hint": "Ensure userdata/pilots/ contains a directory for this pilot",
+            "query_timestamp": query_ts,
+        }
+
+    # Fetch skills from ESI
+    try:
+        skills_data = client.get(f"/characters/{char_id}/skills/", auth=True)
+    except ESIError as e:
+        return {
+            "error": "esi_error",
+            "message": f"Could not fetch skills: {e.message}",
+            "query_timestamp": query_ts,
+        }
+
+    if not isinstance(skills_data, dict):
+        return {
+            "error": "invalid_response",
+            "message": "Invalid skills response from ESI",
+            "query_timestamp": query_ts,
+        }
+
+    total_sp = skills_data.get("total_sp", 0)
+    unallocated_sp = skills_data.get("unallocated_sp", 0)
+    skills = skills_data.get("skills", [])
+
+    # Build skill_id -> level mapping
+    skill_levels: dict[str, int] = {}
+    for skill in skills:
+        skill_id = skill.get("skill_id")
+        trained_level = skill.get("trained_skill_level", 0)
+        if skill_id and trained_level > 0:
+            # Store as string keys for JSON serialization
+            skill_levels[str(skill_id)] = trained_level
+
+    # Build cache file
+    cache_data = {
+        "_meta": {
+            "character_id": char_id,
+            "synced_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "total_sp": total_sp,
+            "unallocated_sp": unallocated_sp,
+            "skill_count": len(skill_levels),
+        },
+        "skills": skill_levels,
+    }
+
+    # Write cache file
+    cache_path = pilot_dir / "skills.json"
+    try:
+        cache_path.write_text(json.dumps(cache_data, indent=2))
+    except OSError as e:
+        return {
+            "error": "write_error",
+            "message": f"Could not write cache file: {e}",
+            "cache_path": str(cache_path),
+            "query_timestamp": query_ts,
+        }
+
+    return {
+        "query_timestamp": query_ts,
+        "status": "success",
+        "message": "Skills synced to local cache",
+        "cache_path": str(cache_path),
+        "character_id": char_id,
+        "total_sp": total_sp,
+        "skill_count": len(skill_levels),
+    }
+
 
 # =============================================================================
 # Skills Command
@@ -257,3 +448,9 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
         "skillqueue", help="Fetch skill training queue with ETA (volatile)"
     )
     queue_parser.set_defaults(func=cmd_skillqueue)
+
+    # Sync-skills command
+    sync_parser = subparsers.add_parser(
+        "sync-skills", help="Cache skills locally for fitting calculations"
+    )
+    sync_parser.set_defaults(func=cmd_sync_skills)

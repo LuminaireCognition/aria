@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from aria_esi.core.logging import get_logger
 
@@ -28,6 +28,9 @@ from .models import (
     MissionContext,
     SkillTier,
 )
+
+if TYPE_CHECKING:
+    from .tank_selection import TankSelectionResult
 
 logger = get_logger(__name__)
 
@@ -81,9 +84,13 @@ class SelectionResult:
     filters_applied: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
+    # Tank variant selection (if applicable)
+    tank_selection: TankSelectionResult | None = None
+    tank_variants_available: list[str] = field(default_factory=list)
+
     def to_dict(self) -> dict:
         """Convert to dictionary."""
-        result: dict[str, str | int | list[str] | dict] = {
+        result: dict[str, Any] = {
             "selection_mode": self.selection_mode,
             "filters_applied": self.filters_applied,
             "warnings": self.warnings,
@@ -96,6 +103,10 @@ class SelectionResult:
             result["efficient"] = self.efficient.to_dict()
         if self.premium:
             result["premium"] = self.premium.to_dict()
+        if self.tank_selection:
+            result["tank_selection"] = self.tank_selection.to_dict()
+        if self.tank_variants_available:
+            result["tank_variants_available"] = self.tank_variants_available
 
         return result
 
@@ -251,12 +262,14 @@ def _check_damage_match(
 # =============================================================================
 
 # Priority order for tier selection (best to worst)
-TIER_PRIORITY: list[SkillTier] = ["t2_optimal", "t2_budget", "meta", "t1"]
+TIER_PRIORITY: list[SkillTier] = ["t2_optimal", "t2_buffer", "t2_budget", "t2", "meta", "t1"]
 
 # Legacy to new tier mapping for discovery
 TIER_FILES: dict[str, list[str]] = {
     "t2_optimal": ["t2_optimal.yaml", "high.yaml"],
+    "t2_buffer": ["t2_buffer.yaml"],
     "t2_budget": ["t2_budget.yaml"],
+    "t2": ["t2.yaml"],
     "meta": ["meta.yaml", "medium.yaml"],
     "t1": ["t1.yaml", "low.yaml", "alpha.yaml"],
 }
@@ -301,6 +314,96 @@ def _discover_tiers(archetype_base_path: str) -> list[tuple[SkillTier, Path]]:
     return found
 
 
+def _discover_tank_variants(archetype_base_path: str) -> list[str]:
+    """
+    Discover available tank variant subdirectories for an archetype path.
+
+    Args:
+        archetype_base_path: Path without tier suffix
+                            e.g., "vexor/pve/missions/l3"
+
+    Returns:
+        List of variant subdirectory names (e.g., ["armor", "shield"])
+    """
+    # Parse path components
+    parts = archetype_base_path.replace("\\", "/").split("/")
+    if len(parts) < 3:
+        return []
+
+    hull = parts[0]
+    activity_path = "/".join(parts[1:])
+
+    # Find hull directory
+    hull_dir = find_hull_directory(hull)
+    if not hull_dir:
+        return []
+
+    base_dir = hull_dir / activity_path
+    if not base_dir.is_dir():
+        return []
+
+    # Check for variant subdirectories
+    variants = []
+    for subdir in base_dir.iterdir():
+        if subdir.is_dir() and subdir.name in ("armor", "shield"):
+            variants.append(subdir.name)
+
+    return sorted(variants)
+
+
+def _discover_tiers_with_variant(
+    archetype_base_path: str,
+    tank_variant: str | None = None,
+) -> list[tuple[SkillTier, Path]]:
+    """
+    Discover available tier files, optionally within a tank variant subdirectory.
+
+    Args:
+        archetype_base_path: Path without tier suffix
+                            e.g., "vexor/pve/missions/l3"
+        tank_variant: Optional tank variant subdirectory ("armor" or "shield")
+
+    Returns:
+        List of (tier, file_path) tuples in priority order
+    """
+    # Parse path components
+    parts = archetype_base_path.replace("\\", "/").split("/")
+    if len(parts) < 3:
+        logger.warning("Invalid archetype path: %s", archetype_base_path)
+        return []
+
+    hull = parts[0]
+    activity_path = "/".join(parts[1:])
+
+    # Find hull directory
+    hull_dir = find_hull_directory(hull)
+    if not hull_dir:
+        logger.warning("Hull directory not found: %s", hull)
+        return []
+
+    # Build search path
+    if tank_variant:
+        search_dir = hull_dir / activity_path / tank_variant
+    else:
+        search_dir = hull_dir / activity_path
+
+    if not search_dir.is_dir():
+        logger.debug("Search directory not found: %s", search_dir)
+        return []
+
+    # Check for each tier's possible file names
+    found: list[tuple[SkillTier, Path]] = []
+
+    for tier in TIER_PRIORITY:
+        for filename in TIER_FILES.get(tier, []):
+            file_path = search_dir / filename
+            if file_path.exists():
+                found.append((tier, file_path))
+                break  # Only take first match per tier
+
+    return found
+
+
 # =============================================================================
 # Main Selection Algorithm
 # =============================================================================
@@ -311,31 +414,76 @@ def select_fits(
     pilot_skills: dict[int, int],
     clone_status: Literal["alpha", "omega"] = "omega",
     mission_context: MissionContext | None = None,
+    tank_override: str | None = None,
 ) -> SelectionResult:
     """
     Select appropriate fit(s) based on pilot capabilities.
 
     Selection algorithm:
-    1. Discover all available tiers for the archetype
-    2. Filter by omega_required (if alpha clone)
-    3. Filter by skill requirements
-    4. Optionally filter by mission context (tank, damage)
-    5. Return single recommendation or dual efficient/premium
+    1. Check for tank variants and select if applicable
+    2. Discover all available tiers for the archetype (in variant subdir if selected)
+    3. Filter by omega_required (if alpha clone)
+    4. Filter by skill requirements
+    5. Optionally filter by mission context (tank, damage)
+    6. Return single recommendation or dual efficient/premium
 
     Args:
         archetype_path: Base path without tier (e.g., "vexor/pve/missions/l2")
         pilot_skills: Dict mapping skill_id to trained level
         clone_status: "alpha" or "omega"
         mission_context: Optional mission filtering context
+        tank_override: Optional explicit tank variant ("armor" or "shield")
 
     Returns:
         SelectionResult with recommended fit(s)
     """
+    from .tank_selection import (
+        TankSelectionResult,
+        get_meta_yaml_path,
+        load_tank_variant_config,
+        select_tank_variant,
+    )
+
     result = SelectionResult()
     loader = ArchetypeLoader()
 
-    # Discover available tiers
-    tiers = _discover_tiers(archetype_path)
+    # Check for tank variants
+    tank_variants = _discover_tank_variants(archetype_path)
+    result.tank_variants_available = tank_variants
+
+    selected_variant: str | None = None
+    tank_selection: TankSelectionResult | None = None
+
+    if tank_variants:
+        # Load meta.yaml for variant configuration
+        meta_path = get_meta_yaml_path(archetype_path)
+        if meta_path:
+            config = load_tank_variant_config(meta_path)
+            if config:
+                # Select tank variant based on skills or override
+                tank_selection = select_tank_variant(config, pilot_skills, tank_override)
+                selected_variant = tank_selection.variant_path
+                result.tank_selection = tank_selection
+                result.filters_applied.append(
+                    f"Tank variant: {selected_variant} ({tank_selection.selection_reason})"
+                )
+        elif tank_override:
+            # No meta.yaml but explicit override - use it directly
+            selected_variant = tank_override
+            tank_selection = TankSelectionResult(
+                variant=tank_override,
+                variant_path=tank_override,
+                selection_reason="override",
+            )
+            result.tank_selection = tank_selection
+            result.filters_applied.append(f"Tank variant: {selected_variant} (override)")
+
+    # Discover available tiers (with variant if selected)
+    if selected_variant:
+        tiers = _discover_tiers_with_variant(archetype_path, selected_variant)
+    else:
+        tiers = _discover_tiers(archetype_path)
+
     if not tiers:
         result.warnings.append(f"No archetype files found for: {archetype_path}")
         return result
@@ -358,13 +506,21 @@ def select_fits(
                 continue
 
             # Load full archetype
-            tier_path = f"{archetype_path}/{tier}"
+            # Include variant in path if applicable
+            if selected_variant:
+                tier_path = f"{archetype_path}/{selected_variant}/{tier}"
+            else:
+                tier_path = f"{archetype_path}/{tier}"
+
             archetype = loader.get_archetype(tier_path)
             if not archetype:
                 # Try legacy tier name
                 legacy_tier = file_path.stem
                 if legacy_tier != tier:
-                    tier_path = f"{archetype_path}/{legacy_tier}"
+                    if selected_variant:
+                        tier_path = f"{archetype_path}/{selected_variant}/{legacy_tier}"
+                    else:
+                        tier_path = f"{archetype_path}/{legacy_tier}"
                     archetype = loader.get_archetype(tier_path)
 
             if not archetype:

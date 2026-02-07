@@ -352,6 +352,123 @@ def cmd_archetype_validate(args: argparse.Namespace) -> dict[str, Any]:
 # =============================================================================
 
 
+def cmd_archetype_recommend(args: argparse.Namespace) -> dict[str, Any]:
+    """
+    Recommend fit based on pilot skills with tank variant selection.
+
+    Uses pilot's actual skill levels to:
+    1. Select the most appropriate tank variant (armor vs shield)
+    2. Choose the highest tier fit the pilot can fly
+    """
+    from ..archetypes import (
+        select_fits,
+    )
+
+    query_ts = get_utc_timestamp()
+    path = args.path
+    tank_override = getattr(args, "tank", None)
+    clone_status = getattr(args, "clone", "omega")
+    skip_skills = getattr(args, "no_skills", False)
+
+    # Fetch pilot skills (unless --no-skills flag)
+    pilot_skills: dict[int, int] = {}
+    if not skip_skills:
+        try:
+            from ..fitting.skills import fetch_pilot_skills
+
+            pilot_skills = fetch_pilot_skills()
+            print(f"Loaded {len(pilot_skills)} trained skills from ESI")
+        except Exception as e:
+            print(f"Failed to fetch pilot skills: {e}")
+            print("Using empty skill set (will use tie_breaker for variant selection)")
+    else:
+        print("Skipping skill fetch (--no-skills)")
+
+    # Run selection with tank variant support
+    result = select_fits(
+        archetype_path=path,
+        pilot_skills=pilot_skills,
+        clone_status=clone_status,
+        tank_override=tank_override,
+    )
+
+    # Display results
+    print("=" * 60)
+    print(f"ARCHETYPE RECOMMENDATION: {path}")
+    print("=" * 60)
+
+    # Show tank variant selection if applicable
+    if result.tank_selection:
+        ts = result.tank_selection
+        print("\nTank Variant Selection:")
+        print(f"  Selected: {ts.variant_path} ({ts.selection_reason})")
+
+        if ts.skill_details:
+            armor_skills = ts.skill_details.get("armor", {})
+            shield_skills = ts.skill_details.get("shield", {})
+
+            if armor_skills:
+                armor_breakdown = ", ".join(
+                    f"{name} {level}" for name, level in armor_skills.items() if level > 0
+                )
+                print(f"  Armor Score: {ts.armor_score:.1f}  ({armor_breakdown or 'no skills'})")
+
+            if shield_skills:
+                shield_breakdown = ", ".join(
+                    f"{name} {level}" for name, level in shield_skills.items() if level > 0
+                )
+                print(f"  Shield Score: {ts.shield_score:.1f}  ({shield_breakdown or 'no skills'})")
+
+    elif result.tank_variants_available:
+        print(f"\nTank variants available: {', '.join(result.tank_variants_available)}")
+        print("  (No meta.yaml found - use --tank to specify)")
+
+    # Show filters applied
+    if result.filters_applied:
+        print(f"\nFilters: {' -> '.join(result.filters_applied)}")
+
+    # Show warnings
+    for warning in result.warnings:
+        print(f"\nWARNING: {warning}")
+
+    # Show recommendation
+    if result.selection_mode == "none":
+        print("\nNo suitable fit found.")
+        if result.recommended:
+            print(f"\nClosest option ({result.recommended.tier}):")
+            print(f"  Missing skills: {len(result.recommended.missing_skills)}")
+    elif result.selection_mode == "single":
+        rec = result.recommended
+        if rec:
+            print(f"\nRecommended Fit: {rec.tier}")
+            if rec.estimated_isk:
+                print(f"  Estimated cost: {rec.estimated_isk:,} ISK")
+            print(f"\n{rec.archetype.eft}")
+    elif result.selection_mode == "dual":
+        print("\nDual Options Available:")
+        if result.efficient:
+            print(f"\n[EFFICIENT] {result.efficient.tier}")
+            if result.efficient.estimated_isk:
+                print(f"  Cost: {result.efficient.estimated_isk:,} ISK")
+        if result.premium:
+            print(f"\n[PREMIUM] {result.premium.tier}")
+            if result.premium.estimated_isk:
+                print(f"  Cost: {result.premium.estimated_isk:,} ISK")
+
+        # Show the premium fit by default
+        if result.premium:
+            print(f"\n--- Premium Fit ({result.premium.tier}) ---")
+            print(result.premium.archetype.eft)
+
+    return {
+        "command": "archetype-recommend",
+        "path": path,
+        "tank_override": tank_override,
+        "result": result.to_dict(),
+        "query_timestamp": query_ts,
+    }
+
+
 def cmd_archetype_migrate(args: argparse.Namespace) -> dict[str, Any]:
     """
     Migrate archetype files to new tier naming scheme.
@@ -536,6 +653,33 @@ def register_parsers(subparsers) -> None:
         help="Only migrate files for specific hull",
     )
     mig_cmd.set_defaults(func=cmd_archetype_migrate)
+
+    # archetype recommend
+    rec_cmd = archetype_subparsers.add_parser(
+        "recommend",
+        help="Recommend fit based on pilot skills with tank variant selection",
+    )
+    rec_cmd.add_argument(
+        "path",
+        help="Archetype path (e.g., vexor/pve/missions/l3)",
+    )
+    rec_cmd.add_argument(
+        "--tank",
+        choices=["armor", "shield"],
+        help="Override tank variant selection",
+    )
+    rec_cmd.add_argument(
+        "--clone",
+        choices=["alpha", "omega"],
+        default="omega",
+        help="Clone status (default: omega)",
+    )
+    rec_cmd.add_argument(
+        "--no-skills",
+        action="store_true",
+        help="Skip skill fetch, use empty skills (faster, uses tie_breaker)",
+    )
+    rec_cmd.set_defaults(func=cmd_archetype_recommend)
 
     # Default command handler
     list_parser.set_defaults(

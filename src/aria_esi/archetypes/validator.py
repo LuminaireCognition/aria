@@ -245,7 +245,9 @@ def _validate_schema(archetype: Archetype, path: str) -> list[ValidationIssue]:
         # New tier names
         "t1",
         "meta",
+        "t2",
         "t2_budget",
+        "t2_buffer",
         "t2_optimal",
         # Legacy tier names (for backward compatibility)
         "low",
