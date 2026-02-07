@@ -147,6 +147,7 @@ class NotificationProfile:
     _topology_filter: InterestCalculator | None = field(default=None, repr=False)
     _throttle: ThrottleManager | None = field(default=None, repr=False)
     _interest_engine_v2: InterestEngineV2 | None = field(default=None, repr=False)
+    _init_error: str | None = field(default=None, repr=False)
 
     def __post_init__(self) -> None:
         """Set defaults after initialization."""

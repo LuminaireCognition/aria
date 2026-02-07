@@ -52,6 +52,7 @@ class EvaluationResult:
     filtered_by_quiet_hours: list[str] = field(default_factory=list)
     filtered_by_triggers: list[str] = field(default_factory=list)
     filtered_by_interest: list[str] = field(default_factory=list)  # v2 engine filtering
+    filtered_by_engine_error: list[str] = field(default_factory=list)
 
     @property
     def has_matches(self) -> bool:
@@ -132,6 +133,8 @@ class ProfileEvaluator:
         - ThrottleManager
         - QuietHoursChecker
         """
+        profile._init_error = None
+
         # Initialize interest engine based on version
         if profile.uses_interest_v2:
             try:
@@ -144,20 +147,14 @@ class ProfileEvaluator:
                     profile.interest.get("preset"),
                 )
             except Exception as e:
-                logger.warning(
-                    "Failed to build v2 engine for profile '%s': %s, falling back to v1",
+                logger.error(
+                    "Failed to build v2 engine for profile '%s': %s. Profile will be disabled for evaluation.",
                     profile.name,
                     e,
                 )
                 profile._interest_engine_v2 = None
-                # Try v1 as fallback
-                if profile.has_topology:
-                    try:
-                        calculator = self._build_calculator(profile.topology)
-                        profile._topology_filter = calculator
-                    except Exception as e2:
-                        logger.warning("v1 fallback also failed: %s", e2)
-                        profile._topology_filter = None
+                profile._topology_filter = None
+                profile._init_error = str(e)
         elif profile.has_topology:
             # v1 engine
             try:
@@ -174,6 +171,7 @@ class ProfileEvaluator:
                     e,
                 )
                 profile._topology_filter = None
+                profile._init_error = str(e)
 
         # Initialize throttle manager
         profile._throttle = ThrottleManager(throttle_minutes=profile.throttle_minutes)
@@ -273,6 +271,8 @@ class ProfileEvaluator:
                 result.filtered_by_triggers.append(profile.name)
             elif filter_reason == "interest":
                 result.filtered_by_interest.append(profile.name)
+            elif filter_reason == "interest_engine_init_failed":
+                result.filtered_by_engine_error.append(profile.name)
             elif "trigger_result" in match_result:
                 # Profile matched
                 result.matches.append(
@@ -308,8 +308,11 @@ class ProfileEvaluator:
         Returns:
             Dict with trigger_result if matched, filtered_by key if filtered, None if error
         """
+        if profile._init_error:
+            return {"filtered_by": "interest_engine_init_failed"}
+
         # Check for v2 engine
-        if hasattr(profile, "_interest_engine_v2") and profile._interest_engine_v2 is not None:
+        if profile.uses_interest_v2:
             return self._evaluate_profile_v2(
                 profile=profile,
                 kill=kill,
@@ -609,11 +612,14 @@ class ProfileEvaluator:
                 {
                     "name": p.name,
                     "has_topology": p._topology_filter is not None,
+                    "uses_interest_v2": p.uses_interest_v2,
+                    "init_error": p._init_error,
                     "throttle_minutes": p.throttle_minutes,
                     "quiet_hours_enabled": p.quiet_hours.enabled,
                 }
                 for p in self.profiles
             ],
+            "invalid_profiles": [p.name for p in self.profiles if p._init_error],
         }
 
     def get_profile_by_name(self, name: str) -> NotificationProfile | None:
