@@ -351,11 +351,11 @@ def cmd_persona_context(args: argparse.Namespace) -> dict:
 
     if getattr(args, "all", False):
         # Process all pilots from registry
-        registry_path = base_path / "pilots" / "_registry.json"
+        registry_path = base_path / "userdata" / "pilots" / "_registry.json"
         if registry_path.exists():
             registry = json.loads(registry_path.read_text())
             for pilot in registry.get("pilots", []):
-                pilot_dir = base_path / "pilots" / pilot["directory"]
+                pilot_dir = base_path / "userdata" / "pilots" / pilot["directory"]
                 if pilot_dir.exists():
                     pilots_to_process.append(
                         {
@@ -959,11 +959,11 @@ def cmd_validate_overlays(args: argparse.Namespace) -> dict:
 
     if getattr(args, "all", False):
         # Validate all pilots from registry
-        registry_path = base_path / "pilots" / "_registry.json"
+        registry_path = base_path / "userdata" / "pilots" / "_registry.json"
         if registry_path.exists():
             registry = json.loads(registry_path.read_text())
             for pilot in registry.get("pilots", []):
-                pilot_dir = base_path / "pilots" / pilot["directory"]
+                pilot_dir = base_path / "userdata" / "pilots" / pilot["directory"]
                 if pilot_dir.exists():
                     pilots_to_validate.append(
                         {
