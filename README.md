@@ -15,7 +15,13 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 /_/  |_/_/ |_/___/_/  |_|   by Luminaire Cognition [LUCOS]
 ```
 
-**Docs:** `docs/README.md` | **Quick reference:** `docs/TLDR.md`
+<p><strong>Quick Docs:</strong>
+<a href="./docs/TLDR.md">TL;DR</a> |
+<a href="./docs/FIRST_RUN.md">First Run</a> |
+<a href="./docs/ESI.md">ESI Setup</a> |
+<a href="./docs/FAQ.md">FAQ</a> |
+<a href="./docs/README.md">Full Docs Index</a>
+</p>
 
 ---
 
@@ -32,6 +38,8 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 ```bash
 # 1. Clone the repository
 git clone git@github.com:LuminaireCognition/aria.git
+# or (HTTPS)
+git clone https://github.com/LuminaireCognition/aria.git
 cd aria
 
 # 2. Run the setup wizard
@@ -50,6 +58,11 @@ Start a session from the repo root:
 ```bash
 claude
 ```
+
+Setup paths:
+
+- From your shell, run `./aria-init` for first-time bootstrap and local file generation.
+- Inside Claude Code, run `/setup` to configure or update your pilot profile conversationally.
 
 You can also run the CLI directly for data lookups and utilities:
 
@@ -201,7 +214,17 @@ ARIA works without ESI. If you want live character data, run the setup wizard:
 uv run python .claude/scripts/aria-oauth-setup.py
 ```
 
-Details: `docs/ESI.md`
+Details: [docs/ESI.md](docs/ESI.md)
+
+---
+
+## Data Freshness & Trust
+
+Before relying on route safety, market prices, or mission detail timing, check:
+
+- [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) for source origin and update behavior
+- [docs/DATA_VERIFICATION.md](docs/DATA_VERIFICATION.md) for validation and integrity controls
+- [docs/ESI.md](docs/ESI.md) for live-data setup and token lifecycle
 
 ---
 
@@ -251,7 +274,7 @@ uv run python .claude/scripts/aria-oauth-setup.py
 
 ## Security
 
-See `SECURITY.md` for full details.
+See [SECURITY.md](SECURITY.md) for full details.
 
 **Key protections:**
 - **Path validation** - User-editable configs cannot load arbitrary files
@@ -296,7 +319,7 @@ Your ships will explode. Some of those explosions may be ARIA's fault. This is E
 
 The developers and contributors accept no liability for lost vessels, empty wallets, or strongly-worded messages in Local. Remember the capsuleer's first rule: never undock what you can't afford to lose—*especially* on the advice of an AI who has never experienced the unique terror of watching her own capacitor hit zero.
 
-See `ATTRIBUTION.md` for complete attribution details.
+See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
 
 ---
 
