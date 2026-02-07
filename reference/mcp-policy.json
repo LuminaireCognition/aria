@@ -5,11 +5,10 @@
     "allowed_levels": [
       "public",
       "aggregate",
-      "market"
-    ],
-    "require_confirmation": [
+      "market",
       "authenticated"
     ],
+    "require_confirmation": [],
     "denied_actions": [],
     "allowed_actions": [],
     "audit_logging": true,
