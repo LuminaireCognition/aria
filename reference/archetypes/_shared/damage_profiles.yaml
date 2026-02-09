@@ -1,0 +1,113 @@
+# Faction Damage Profiles
+#
+# Reference data for faction damage dealt and weaknesses.
+# Used by faction_tuning.yaml and displayed in mission briefs.
+#
+# Fields:
+#   damage_dealt: Percentage breakdown of damage types dealt by faction
+#   weakness: Most effective damage type against this faction
+#   ewar: Primary electronic warfare used by faction
+#   notes: Additional tactical considerations
+
+factions:
+  serpentis:
+    damage_dealt:
+      thermal: 55
+      kinetic: 45
+    weakness: thermal
+    ewar: sensor_dampener
+
+  guristas:
+    damage_dealt:
+      kinetic: 80
+      thermal: 20
+    weakness: kinetic
+    ewar: ecm
+
+  blood_raiders:
+    damage_dealt:
+      em: 50
+      thermal: 50
+    weakness: em
+    ewar: energy_neutralizer
+    notes: "Heavy neut pressure - passive tanks recommended"
+
+  sansha:
+    damage_dealt:
+      em: 55
+      thermal: 45
+    weakness: em
+    ewar: tracking_disruptor
+
+  angel_cartel:
+    damage_dealt:
+      explosive: 50
+      kinetic: 42
+      thermal: 8
+    weakness: explosive
+    ewar: target_painter
+    notes: "Fast ships with good tracking - maintain transversal"
+
+  rogue_drones:
+    damage_dealt:
+      explosive: 30
+      kinetic: 25
+      thermal: 25
+      em: 20
+    weakness: em
+    ewar: none
+    notes: "Omni damage dealt - general tank works well"
+
+  triglavian:
+    damage_dealt:
+      thermal: 60
+      explosive: 40
+    weakness: thermal
+    ewar: none
+    notes: "Damage ramps up over time - kill fast or tank hard"
+
+  mercenaries:
+    damage_dealt:
+      kinetic: 35
+      thermal: 35
+      explosive: 20
+      em: 10
+    weakness: thermal
+    ewar: varies
+    notes: "Mixed damage - adaptive tank recommended"
+
+  mordus_legion:
+    damage_dealt:
+      kinetic: 70
+      thermal: 30
+    weakness: kinetic
+    ewar: warp_disruptor
+    notes: "Long point range - be prepared for tackle"
+
+  sleepers:
+    damage_dealt:
+      em: 25
+      thermal: 25
+      kinetic: 25
+      explosive: 25
+    weakness: em
+    ewar: energy_neutralizer
+    notes: "True omni damage - remote reps and neuts common"
+
+  drifters:
+    damage_dealt:
+      em: 40
+      thermal: 30
+      kinetic: 20
+      explosive: 10
+    weakness: em
+    ewar: doomsday
+    notes: "Doomsday weapon at low health - have escape plan"
+
+# Damage type to drone type mapping
+# Used when resolving drone recommendations
+damage_to_drone:
+  em: "Acolyte/Infiltrator/Praetor"
+  thermal: "Hobgoblin/Hammerhead/Ogre"
+  kinetic: "Hornet/Vespa/Wasp"
+  explosive: "Warrior/Valkyrie/Berserker"

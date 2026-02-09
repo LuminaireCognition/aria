@@ -1,0 +1,158 @@
+{
+  "_meta": {
+    "description": "EVE Online Epic Arc missions - faction standings without derived losses",
+    "sources": [
+      "https://wiki.eveuniversity.org/Epic_arcs",
+      "https://wiki.eveuniversity.org/The_Blood-Stained_Stars"
+    ],
+    "last_verified": "2026-01-29",
+    "notes": "Epic arcs can be repeated every 90 days. Standing gain is ~10% of remaining to 10.0."
+  },
+
+  "cooldown_days": 90,
+
+  "arcs": {
+    "blood_stained_stars": {
+      "name": "The Blood-Stained Stars",
+      "faction": "Sisters of EVE",
+      "level": 1,
+      "starting_agent": "Sister Alitura",
+      "starting_system": "Arnon",
+      "starting_station": "Arnon IX - Moon 3 - Sisters of EVE Bureau",
+      "standing_required": null,
+      "ship_class": "Frigate/Destroyer",
+      "mission_count": 50,
+      "rewards": {
+        "isk": "~10M ISK",
+        "standing": "Choice of any empire faction (+10% of remaining)",
+        "items": "Dramatic story, skill books"
+      },
+      "notes": "Newbie-friendly. Only epic arc with no standing requirement. Great for repairing any empire faction."
+    },
+    "gallente_penumbra": {
+      "name": "Penumbra",
+      "faction": "Gallente Federation",
+      "level": 4,
+      "starting_agent": "Roineron Aviviere",
+      "starting_system": "Dodixie",
+      "starting_station": "Dodixie IX - Moon 20 - Federation Navy Assembly Plant",
+      "standing_required": 5.0,
+      "standing_entity": "Gallente Federation or Federal Intelligence Office",
+      "ship_class": "Battleship",
+      "mission_count": 16,
+      "rewards": {
+        "isk": "~75M ISK",
+        "standing": "+10% of remaining Gallente standing",
+        "items": "Implant"
+      },
+      "notes": "L4 combat missions. Some branching paths affect reward."
+    },
+    "caldari_penumbra": {
+      "name": "Penumbra",
+      "faction": "Caldari State",
+      "level": 4,
+      "starting_agent": "Aursa Kunai",
+      "starting_system": "Josameto",
+      "starting_station": "Josameto II - Lai Dai Corporation Factory",
+      "standing_required": 5.0,
+      "standing_entity": "Caldari State or Expert Distribution",
+      "ship_class": "Battleship",
+      "mission_count": 16,
+      "rewards": {
+        "isk": "~75M ISK",
+        "standing": "+10% of remaining Caldari standing",
+        "items": "Implant"
+      },
+      "notes": "L4 combat missions. Mirror of Gallente arc."
+    },
+    "amarr_right_to_rule": {
+      "name": "Right to Rule",
+      "faction": "Amarr Empire",
+      "level": 4,
+      "starting_agent": "Karde Roansen",
+      "starting_system": "Kor-Azor Prime",
+      "starting_station": "Kor-Azor Prime III - Kor-Azor Family Bureau",
+      "standing_required": 5.0,
+      "standing_entity": "Amarr Empire or Ministry of Internal Order",
+      "ship_class": "Battleship",
+      "mission_count": 16,
+      "rewards": {
+        "isk": "~75M ISK",
+        "standing": "+10% of remaining Amarr standing",
+        "items": "Implant"
+      },
+      "notes": "L4 combat. Some missions in low-sec."
+    },
+    "minmatar_wildfire": {
+      "name": "Wildfire",
+      "faction": "Minmatar Republic",
+      "level": 4,
+      "starting_agent": "Arsten Takalo",
+      "starting_system": "Frarn",
+      "starting_station": "Frarn VI - Moon 1 - Republic Parliament Bureau",
+      "standing_required": 5.0,
+      "standing_entity": "Minmatar Republic or Brutor Tribe",
+      "ship_class": "Battleship",
+      "mission_count": 16,
+      "rewards": {
+        "isk": "~75M ISK",
+        "standing": "+10% of remaining Minmatar standing",
+        "items": "Implant"
+      },
+      "notes": "L4 combat. Some missions in low-sec."
+    },
+    "angel_cartel": {
+      "name": "Angel Sound",
+      "faction": "Angel Cartel",
+      "level": 4,
+      "starting_agent": "Aton Hordner",
+      "starting_system": "Curse region (null-sec)",
+      "standing_required": -2.0,
+      "standing_entity": "Angel Cartel",
+      "ship_class": "Battleship",
+      "mission_count": "Variable",
+      "rewards": {
+        "isk": "~100M ISK",
+        "standing": "+10% of remaining Angel standing",
+        "items": "Pirate modules"
+      },
+      "notes": "Pirate arc. Requires travel to null-sec. Dangerous."
+    },
+    "guristas": {
+      "name": "Smash and Grab",
+      "faction": "Guristas",
+      "level": 4,
+      "starting_agent": "Yada Vansen",
+      "starting_system": "Venal region (null-sec)",
+      "standing_required": -2.0,
+      "standing_entity": "Guristas",
+      "ship_class": "Battleship",
+      "mission_count": "Variable",
+      "rewards": {
+        "isk": "~100M ISK",
+        "standing": "+10% of remaining Guristas standing",
+        "items": "Pirate modules"
+      },
+      "notes": "Pirate arc. Null-sec. Dangerous but lucrative."
+    }
+  },
+
+  "standing_gain_formula": {
+    "description": "Epic arcs give approximately 10% of remaining standing to 10.0",
+    "formula": "new_standing = old_standing + (10.0 - old_standing) * 0.10",
+    "examples": [
+      {"from": 0.0, "to": 1.0, "gain": 1.0},
+      {"from": 5.0, "to": 5.5, "gain": 0.5},
+      {"from": -2.0, "to": -0.8, "gain": 1.2},
+      {"from": 8.0, "to": 8.2, "gain": 0.2}
+    ],
+    "notes": "Diminishing returns at high standings. Most valuable for repairing negative standings."
+  },
+
+  "tips": {
+    "repair_negative": "Blood-Stained Stars is the best way to repair negative empire standings - no standing requirement and you choose which faction to boost",
+    "no_derived_loss": "Epic arcs don't cause derived standing losses - safe for multi-faction standings",
+    "cooldown_tracking": "Track your 90-day cooldowns - stagger arcs for continuous standing gains",
+    "lowsec_missions": "Amarr and Minmatar arcs have some low-sec missions - bring appropriate ship"
+  }
+}

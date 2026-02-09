@@ -1,0 +1,54 @@
+# Magnate Hull Manifest
+#
+# The Magnate is an Amarr T1 exploration frigate.
+# Extra low slots allow armor tank or cargo expansion.
+
+hull: Magnate
+class: frigate
+faction: amarr
+tech_level: 1
+role: exploration
+
+slots:
+  high: 3
+  mid: 3
+  low: 4
+  rig: 3
+
+drones:
+  bandwidth: 10
+  bay: 20
+
+bonuses:
+  - "7.5% bonus to probe scan strength per Amarr Frigate level"
+  - "5% bonus to salvager cycle time per Amarr Frigate level"
+
+roles:
+  - exploration
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_active
+  weapons:
+    primary: null
+    secondary: drones  # Utility
+
+  notes:
+    - "4 low slots - most durable T1 explorer"
+    - "Only 3 mid slots - tight on analyzers + utility"
+    - "Can fit armor repairer for Ghost sites"
+    - "Option for expanded cargoholds"
+
+exploration_bonuses:
+  probe_strength: "+7.5%/level"
+  virus_strength: "30 (base 25 + 5 role)"
+  cargo: "400m3"
+
+capacitor:
+  stable_expected: true
+  notes: "Exploration modules use minimal cap."
+
+engagement:
+  range: "N/A - avoid combat"
+  speed: "MWD for escape"
+  notes: "Armor repairer provides some sustain vs rats/Ghost sites."

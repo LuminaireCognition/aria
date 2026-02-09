@@ -1,0 +1,168 @@
+# Test fixture: Basic build cost calculation
+# Tests manufacturing cost with ME0 blueprint
+
+name: "Venture ME0 build cost"
+skill: build-cost
+description: |
+  Basic manufacturing cost calculation for Venture with ME0 blueprint.
+  No material efficiency applied, showing base material requirements.
+
+input:
+  item: Venture
+  me_level: 0
+  region: jita
+
+expected_output:
+  blueprint:
+    type_id: 32880
+    type_name: "Venture Blueprint"
+    product_type_id: 32880
+    product_name: "Venture"
+    manufacturing_time: 6000
+    produces_quantity: 1
+  materials:
+    - type_id: 34
+      type_name: "Tritanium"
+      base_quantity: 22222
+      adjusted_quantity: 22222
+      unit_price: 4.50
+      total_price: 99999.0
+    - type_id: 35
+      type_name: "Pyerite"
+      base_quantity: 6667
+      adjusted_quantity: 6667
+      unit_price: 22.0
+      total_price: 146674.0
+    - type_id: 36
+      type_name: "Mexallon"
+      base_quantity: 2333
+      adjusted_quantity: 2333
+      unit_price: 55.0
+      total_price: 128315.0
+    - type_id: 37
+      type_name: "Isogen"
+      base_quantity: 556
+      adjusted_quantity: 556
+      unit_price: 150.0
+      total_price: 83400.0
+    - type_id: 38
+      type_name: "Nocxium"
+      base_quantity: 111
+      adjusted_quantity: 111
+      unit_price: 450.0
+      total_price: 49950.0
+  total_material_cost: 508338.0
+  product_value: 650000.0
+  profit: 141662.0
+  margin_pct: 27.87
+  me_level: 0
+  runs: 1
+  region: "The Forge"
+  region_id: 10000002
+  source: "fuzzwork"
+  freshness: "fresh"
+  warnings: []
+
+expected_facts:
+  # Blueprint info
+  - path: "blueprint.product_name"
+    equals: "Venture"
+
+  - path: "blueprint.type_name"
+    equals: "Venture Blueprint"
+
+  # ME level should be 0
+  - path: "me_level"
+    equals: 0
+
+  # Materials count (Venture has 5 mineral types)
+  - path: "materials"
+    length: 5
+
+  # At ME0, adjusted = base
+  - path: "materials[0].base_quantity"
+    equals: 22222
+
+  - path: "materials[0].adjusted_quantity"
+    equals: 22222
+
+  # Total cost should be positive
+  - path: "total_material_cost"
+    range: [400000, 700000]
+
+  # Product value should be positive
+  - path: "product_value"
+    range: [500000, 800000]
+
+  # All material quantities should be >= 1
+  - path: "materials[*].base_quantity"
+    all_satisfy: ">= 1"
+
+  # All material prices should be positive
+  - path: "materials[*].unit_price"
+    all_satisfy: "> 0"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  sde_blueprint_info:
+    type_id: 32880
+    type_name: "Venture Blueprint"
+    product_type_id: 32880
+    product_name: "Venture"
+    manufacturing_time: 6000
+    produces_quantity: 1
+    materials:
+      - type_id: 34
+        type_name: "Tritanium"
+        quantity: 22222
+      - type_id: 35
+        type_name: "Pyerite"
+        quantity: 6667
+      - type_id: 36
+        type_name: "Mexallon"
+        quantity: 2333
+      - type_id: 37
+        type_name: "Isogen"
+        quantity: 556
+      - type_id: 38
+        type_name: "Nocxium"
+        quantity: 111
+
+  market_prices:
+    items:
+      - type_id: 34
+        type_name: "Tritanium"
+        sell:
+          min_price: 4.50
+          weighted_avg: 4.57
+      - type_id: 35
+        type_name: "Pyerite"
+        sell:
+          min_price: 22.0
+          weighted_avg: 24.01
+      - type_id: 36
+        type_name: "Mexallon"
+        sell:
+          min_price: 55.0
+          weighted_avg: 55.0
+      - type_id: 37
+        type_name: "Isogen"
+        sell:
+          min_price: 150.0
+          weighted_avg: 150.0
+      - type_id: 38
+        type_name: "Nocxium"
+        sell:
+          min_price: 450.0
+          weighted_avg: 450.0
+      - type_id: 32880
+        type_name: "Venture"
+        sell:
+          min_price: 650000.0
+          weighted_avg: 650000.0
+    region: "The Forge"
+    region_id: 10000002
+    source: "fuzzwork"
+    freshness: "fresh"

@@ -1,0 +1,145 @@
+# JSON Schema for /skillplan skill output validation
+# Validates the structure of skill planning responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: SkillplanSkillOutput
+description: Output schema for the /skillplan skill (skill planning advisor)
+type: object
+
+required:
+  - item
+  - found
+
+properties:
+  item:
+    type: string
+    description: Item or activity that was queried
+    minLength: 1
+
+  found:
+    type: boolean
+    description: Whether the item/activity was found
+
+  item_type:
+    type: string
+    description: Type of item (ship, module, activity)
+    enum: ["ship", "module", "skill", "activity", "unknown"]
+
+  type_id:
+    type: ["integer", "null"]
+    description: EVE type ID if applicable
+    minimum: 1
+
+  direct_requirements:
+    type: array
+    description: Direct skill requirements for the item
+    items:
+      $ref: "#/$defs/SkillRequirement"
+
+  full_skill_tree:
+    type: array
+    description: Complete prerequisite chain
+    items:
+      $ref: "#/$defs/SkillRequirement"
+
+  easy_80_plan:
+    $ref: "#/$defs/Easy80Plan"
+
+  training_time_estimate:
+    type: ["string", "null"]
+    description: Human-readable training time estimate
+
+  training_time_seconds:
+    type: ["integer", "null"]
+    description: Total training time in seconds
+    minimum: 0
+
+  efficacy_estimate:
+    type: ["number", "null"]
+    description: Estimated effectiveness percentage (0-100)
+    minimum: 0
+    maximum: 100
+
+  meta_suggestions:
+    type: array
+    description: Suggested meta/faction alternatives for T2 modules
+    items:
+      type: string
+
+  warnings:
+    type: array
+    description: Any warnings or notes
+    items:
+      type: string
+
+$defs:
+  SkillRequirement:
+    type: object
+    description: A single skill requirement
+    required:
+      - skill_name
+      - required_level
+    properties:
+      skill_id:
+        type: integer
+        description: Skill type ID
+        minimum: 1
+
+      skill_name:
+        type: string
+        description: Skill name
+        minLength: 1
+
+      required_level:
+        type: integer
+        description: Required skill level
+        minimum: 1
+        maximum: 5
+
+      current_level:
+        type: ["integer", "null"]
+        description: Pilot's current level (if known)
+        minimum: 0
+        maximum: 5
+
+      training_time_seconds:
+        type: ["integer", "null"]
+        description: Time to train to required level
+        minimum: 0
+
+      rank:
+        type: ["integer", "null"]
+        description: Skill rank (training multiplier)
+        minimum: 1
+
+  Easy80Plan:
+    type: object
+    description: Easy 80% skill plan recommendation
+    properties:
+      cap_at_4:
+        type: array
+        description: Skills to train to level 4
+        items:
+          type: string
+
+      train_to_5:
+        type: array
+        description: Skills to train to level 5
+        items:
+          type: string
+
+      skip_optional:
+        type: array
+        description: Optional skills to skip initially
+        items:
+          type: string
+
+      rationale:
+        type: string
+        description: Explanation of the Easy 80% approach
+
+      time_saved_percent:
+        type: ["number", "null"]
+        description: Estimated training time saved vs full plan
+        minimum: 0
+        maximum: 100

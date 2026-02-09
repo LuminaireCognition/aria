@@ -1,0 +1,18 @@
+#!/bin/bash
+# ARIA Token Refresh - Shell Wrapper
+# Convenience script to refresh EVE SSO tokens
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_SCRIPT="$SCRIPT_DIR/aria-token-refresh.py"
+
+# Require uv runtime
+if ! command -v uv &> /dev/null; then
+    echo "ARIA ALERT: uv not found on PATH. Install from https://docs.astral.sh/uv/"
+    exit 1
+fi
+
+# Set project dir for the script
+export CLAUDE_PROJECT_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
+
+# Run the Python script with all arguments
+exec uv run python "$PYTHON_SCRIPT" "$@"

@@ -1,0 +1,3 @@
+# Universe cache - large JSON, changes only with EVE expansions
+# Mark as binary to skip meaningless diffs
+src/aria_esi/data/universe_cache.json binary

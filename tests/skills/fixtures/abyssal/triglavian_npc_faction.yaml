@@ -1,0 +1,90 @@
+# Test fixture: Triglavian NPC faction information
+# Tests NPC faction response with damage profiles and mechanics
+
+name: "Triglavian NPC faction information"
+skill: abyssal
+description: |
+  Query for Triglavian NPC faction information in abyssal deadspace.
+  Tests faction response with damage profiles, resists, and special mechanics.
+
+input:
+  query_type: npc_faction
+  faction: triglavian
+
+expected_output:
+  faction_name: "Triglavian Collective"
+  damage_dealt:
+    em: 0
+    thermal: 50
+    kinetic: 0
+    explosive: 50
+  resist_profile:
+    em: "high"
+    thermal: "low"
+    kinetic: "medium"
+    explosive: "low"
+  recommended_damage: "Thermal/Explosive"
+  special_mechanics:
+    - "Ramping damage"
+    - "Remote repairs"
+  threat_priority: "High"
+  kill_priorities:
+    - npc_type: "Tessella Escort"
+      priority: 1
+      reason: "Remote repairs. Kill first to prevent healing."
+    - npc_type: "Vedmak"
+      priority: 2
+      reason: "Damage ramps up. Don't let it stack on you."
+    - npc_type: "Leshak"
+      priority: 1
+      reason: "Battleship-class damage. Extremely dangerous if allowed to ramp."
+  notes: "Kill logistics first. Ramping damage is deadly if ignored."
+
+expected_facts:
+  # Faction name
+  - path: "faction_name"
+    equals: "Triglavian Collective"
+
+  # Triglavians deal thermal/explosive (no EM/kinetic)
+  - path: "damage_dealt.em"
+    equals: 0
+
+  - path: "damage_dealt.thermal"
+    equals: 50
+
+  - path: "damage_dealt.kinetic"
+    equals: 0
+
+  - path: "damage_dealt.explosive"
+    equals: 50
+
+  # Weak to thermal
+  - path: "resist_profile.thermal"
+    equals: "low"
+
+  # Weak to explosive
+  - path: "resist_profile.explosive"
+    equals: "low"
+
+  # Strong EM resist
+  - path: "resist_profile.em"
+    equals: "high"
+
+  # Recommended damage
+  - path: "recommended_damage"
+    equals: "Thermal/Explosive"
+
+  # Has special mechanics
+  - path: "special_mechanics"
+    contains: "Ramping damage"
+
+  - path: "special_mechanics"
+    contains: "Remote repairs"
+
+  # High threat priority
+  - path: "threat_priority"
+    equals: "High"
+
+  # Has kill priorities
+  - path: "kill_priorities"
+    length: 3

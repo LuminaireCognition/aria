@@ -1,0 +1,262 @@
+# JSON Schema for /assets skill output validation
+# Validates the structure of asset inventory responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: AssetsSkillOutput
+description: Output schema for the /assets skill - character asset inventory
+type: object
+
+oneOf:
+  - $ref: "#/$defs/AssetOverviewResponse"
+  - $ref: "#/$defs/ShipsOnlyResponse"
+  - $ref: "#/$defs/LocationFilterResponse"
+  - $ref: "#/$defs/ValuationResponse"
+
+$defs:
+  # Base asset item
+  AssetItem:
+    type: object
+    required:
+      - item_id
+      - type_id
+    properties:
+      item_id:
+        type: integer
+        minimum: 1
+        description: Unique item instance ID
+      type_id:
+        type: integer
+        minimum: 1
+        description: Type ID from SDE
+      type_name:
+        type: string
+        description: Type name from SDE
+      location_id:
+        type: integer
+        minimum: 1
+        description: Station/structure/container ID
+      location_name:
+        type: string
+        description: Resolved location name
+      location_type:
+        type: string
+        enum: ["station", "structure", "other"]
+      quantity:
+        type: integer
+        minimum: 1
+      is_singleton:
+        type: boolean
+        description: True for assembled ships/fitted items
+
+  # Ship with additional metadata
+  ShipAsset:
+    type: object
+    required:
+      - item_id
+      - type_id
+      - type_name
+    properties:
+      item_id:
+        type: integer
+        minimum: 1
+      type_id:
+        type: integer
+        minimum: 1
+      type_name:
+        type: string
+        minLength: 1
+      hull_class:
+        type: string
+        description: Ship class (Frigate, Cruiser, etc.)
+      location_id:
+        type: integer
+        minimum: 1
+      location_name:
+        type: string
+      is_singleton:
+        type: boolean
+        const: true
+
+  # Location summary
+  LocationSummary:
+    type: object
+    required:
+      - location_id
+      - item_count
+    properties:
+      location_id:
+        type: integer
+        minimum: 1
+      location_name:
+        type: string
+      location_type:
+        type: string
+        enum: ["station", "structure", "other"]
+      system_name:
+        type: string
+      region_name:
+        type: string
+      item_count:
+        type: integer
+        minimum: 0
+      ship_count:
+        type: integer
+        minimum: 0
+      estimated_value:
+        type: number
+        minimum: 0
+
+  # High value item with pricing
+  ValuedItem:
+    type: object
+    required:
+      - type_name
+      - quantity
+    properties:
+      type_id:
+        type: integer
+        minimum: 1
+      type_name:
+        type: string
+        minLength: 1
+      quantity:
+        type: integer
+        minimum: 1
+      unit_price:
+        type: number
+        minimum: 0
+      total_value:
+        type: number
+        minimum: 0
+
+  # Basic asset overview response
+  AssetOverviewResponse:
+    type: object
+    required:
+      - total_unique_items
+      - total_locations
+    properties:
+      total_unique_items:
+        type: integer
+        minimum: 0
+      total_locations:
+        type: integer
+        minimum: 0
+      locations:
+        type: array
+        items:
+          $ref: "#/$defs/LocationSummary"
+      assembled_ships:
+        type: array
+        items:
+          $ref: "#/$defs/ShipAsset"
+
+  # Ships only response
+  ShipsOnlyResponse:
+    type: object
+    required:
+      - filter
+      - total_ships
+      - ships
+    properties:
+      filter:
+        type: string
+        const: "ships"
+      total_ships:
+        type: integer
+        minimum: 0
+      ships:
+        type: array
+        items:
+          $ref: "#/$defs/ShipAsset"
+
+  # Location filter response
+  LocationFilterResponse:
+    type: object
+    required:
+      - filter
+      - location
+      - total_items
+    properties:
+      filter:
+        type: string
+        const: "location"
+      location:
+        type: object
+        required:
+          - location_id
+          - location_name
+        properties:
+          location_id:
+            type: integer
+            minimum: 1
+          location_name:
+            type: string
+          location_type:
+            type: string
+            enum: ["station", "structure", "other"]
+          system_name:
+            type: string
+          region_name:
+            type: string
+      total_items:
+        type: integer
+        minimum: 0
+      ships:
+        type: array
+        items:
+          type: object
+          properties:
+            type_name:
+              type: string
+            item_id:
+              type: integer
+      high_value_items:
+        type: array
+        items:
+          type: object
+          properties:
+            type_name:
+              type: string
+            quantity:
+              type: integer
+      item_categories:
+        type: object
+        additionalProperties:
+          type: integer
+
+  # Valuation response
+  ValuationResponse:
+    type: object
+    required:
+      - filter
+      - total_estimated_value
+    properties:
+      filter:
+        type: string
+        const: "value"
+      valuation_date:
+        type: string
+        format: date-time
+      price_source:
+        type: string
+        description: Source of pricing data
+      total_estimated_value:
+        type: number
+        minimum: 0
+        description: Total estimated value in ISK
+      locations_by_value:
+        type: array
+        items:
+          $ref: "#/$defs/LocationSummary"
+        description: Locations sorted by value
+      top_value_items:
+        type: array
+        items:
+          $ref: "#/$defs/ValuedItem"
+        description: Highest value items
+      warnings:
+        type: array
+        items:
+          type: string
+        description: Caveats about valuation accuracy

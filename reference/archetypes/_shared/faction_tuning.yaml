@@ -1,0 +1,200 @@
+# Faction Tuning Rules
+#
+# Centralized module/drone substitutions by tank type.
+# Archetypes reference a tank_profile to inherit these rules.
+#
+# Structure:
+#   {tank_profile}:
+#     {faction}:
+#       modules: list of slot/to mappings
+#       drones: damage type preferences
+#       rigs: optional rig substitutions
+#       inherit: inherit rules from another faction
+
+armor_active:
+  serpentis:
+    modules:
+      - slot: resist
+        to: ["Armor Kinetic Hardener I", "Armor Thermal Hardener I"]
+    drones:
+      primary: thermal
+      anti_frigate: thermal
+
+  guristas:
+    modules:
+      - slot: resist
+        to: ["Armor Kinetic Hardener I", "Armor Thermal Hardener I"]
+    drones:
+      primary: kinetic
+      anti_frigate: kinetic
+
+  blood_raiders:
+    modules:
+      - slot: resist
+        to: ["Armor EM Hardener I", "Armor Thermal Hardener I"]
+    drones:
+      primary: em
+      anti_frigate: em
+
+  sansha:
+    inherit: blood_raiders
+
+  angel_cartel:
+    modules:
+      - slot: resist
+        to: ["Armor Explosive Hardener I", "Armor Kinetic Hardener I"]
+    rigs:
+      - slot: tank_rig
+        optional_swap: "Medium Anti-Explosive Pump I"
+    drones:
+      primary: explosive
+      anti_frigate: explosive
+
+  rogue_drones:
+    modules:
+      - slot: resist
+        to: ["Armor EM Hardener I", "Armor Thermal Hardener I"]
+    drones:
+      primary: em
+      anti_frigate: em
+
+  triglavian:
+    modules:
+      - slot: resist
+        to: ["Armor Thermal Hardener I", "Armor Explosive Hardener I"]
+    drones:
+      primary: thermal
+      anti_frigate: thermal
+
+  mercenaries:
+    modules:
+      - slot: resist
+        to: ["Energized Adaptive Nano Membrane I", "Armor Thermal Hardener I"]
+    drones:
+      primary: thermal
+      anti_frigate: thermal
+
+shield_passive:
+  serpentis:
+    modules:
+      - slot: resist
+        to: ["Kinetic Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: thermal
+      anti_frigate: thermal
+
+  guristas:
+    modules:
+      - slot: resist
+        to: ["Kinetic Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: kinetic
+      anti_frigate: kinetic
+
+  blood_raiders:
+    modules:
+      - slot: resist
+        to: ["EM Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: em
+      anti_frigate: em
+
+  sansha:
+    inherit: blood_raiders
+
+  angel_cartel:
+    modules:
+      - slot: resist
+        to: ["Explosive Shield Hardener I", "Kinetic Shield Hardener I"]
+    rigs:
+      - slot: tank_rig
+        optional_swap: "Medium Anti-Explosive Screen Reinforcer I"
+    drones:
+      primary: explosive
+      anti_frigate: explosive
+
+  rogue_drones:
+    modules:
+      - slot: resist
+        to: ["EM Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: em
+      anti_frigate: em
+
+shield_active:
+  serpentis:
+    modules:
+      - slot: resist
+        to: ["Kinetic Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: thermal
+      anti_frigate: thermal
+
+  guristas:
+    modules:
+      - slot: resist
+        to: ["Kinetic Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: kinetic
+      anti_frigate: kinetic
+
+  blood_raiders:
+    modules:
+      - slot: resist
+        to: ["EM Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: em
+      anti_frigate: em
+
+  sansha:
+    inherit: blood_raiders
+
+  angel_cartel:
+    modules:
+      - slot: resist
+        to: ["Explosive Shield Hardener I", "Kinetic Shield Hardener I"]
+    drones:
+      primary: explosive
+      anti_frigate: explosive
+
+  rogue_drones:
+    modules:
+      - slot: resist
+        to: ["EM Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: em
+      anti_frigate: em
+
+# Drone type resolution by damage type and tech level
+# Maps damage type keywords to actual drone names
+drone_types:
+  thermal:
+    light: "Hobgoblin"
+    medium: "Hammerhead"
+    heavy: "Ogre"
+    sentry: "Garde"
+
+  kinetic:
+    light: "Hornet"
+    medium: "Vespa"
+    heavy: "Wasp"
+    sentry: "Warden"
+
+  em:
+    light: "Acolyte"
+    medium: "Infiltrator"
+    heavy: "Praetor"
+    sentry: "Curator"
+
+  explosive:
+    light: "Warrior"
+    medium: "Valkyrie"
+    heavy: "Berserker"
+    sentry: "Bouncer"
+
+# Tech level suffixes
+drone_tech_suffix:
+  low: " I"
+  medium: " I"
+  high: " II"
+  alpha: " I"  # Alpha clones can use T1 drones

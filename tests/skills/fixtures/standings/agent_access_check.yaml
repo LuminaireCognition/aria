@@ -1,0 +1,61 @@
+# Test fixture: Agent access check
+# Tests agent access calculation with effective standing formula
+
+name: "L4 agent access check"
+skill: standings
+description: |
+  Check if pilot can access L4 Security agents.
+  Tests agent access calculation with Connections skill bonus.
+  Formula: effective = raw + (10 - raw) * connections_level * 0.04
+
+input:
+  query_type: agent_access
+  entity_name: "Gallente Federation"
+  agent_level: 4
+
+expected_output:
+  entity_name: "Gallente Federation"
+  entity_type: "faction"
+  raw_standing: 4.0
+  effective_standing: 5.2
+  required_level: 4
+  required_standing: 5.0
+  has_access: true
+  calculation:
+    formula: "effective = raw + (10 - raw) * connections_level * 0.04"
+    skill_name: "Connections"
+    skill_level: 5
+    skill_bonus: 1.2
+  notes: "L4 agents require 5.0 effective standing. With Connections V, your effective standing is 5.2."
+
+expected_facts:
+  # Entity details
+  - path: "entity_name"
+    equals: "Gallente Federation"
+
+  - path: "entity_type"
+    equals: "faction"
+
+  # Raw standing
+  - path: "raw_standing"
+    equals: 4.0
+
+  # Effective standing calculation: 4.0 + (10 - 4.0) * 5 * 0.04 = 4.0 + 1.2 = 5.2
+  - path: "effective_standing"
+    equals: 5.2
+
+  # L4 requires 5.0
+  - path: "required_standing"
+    equals: 5.0
+
+  # Has access (5.2 >= 5.0)
+  - path: "has_access"
+    equals: true
+
+  # Connections V applied
+  - path: "calculation.skill_level"
+    equals: 5
+
+  # Skill bonus of 1.2: (10 - 4.0) * 0.20 = 1.2
+  - path: "calculation.skill_bonus"
+    equals: 1.2

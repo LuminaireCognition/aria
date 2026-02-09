@@ -1,0 +1,46 @@
+# Epithal Hull Manifest
+#
+# The Epithal is a Gallente specialized hauler for planetary commodities.
+# 67,500 m3 dedicated PI hold that cannot be modified.
+
+hull: Epithal
+class: hauler
+faction: gallente
+tech_level: 1
+
+slots:
+  high: 3
+  mid: 3
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "5% bonus to max velocity per Gallente Industrial level"
+  - "5% bonus to cargo capacity per Gallente Industrial level"
+
+roles:
+  - pi_hauling
+  - specialized_transport
+
+fitting_rules:
+  tank_type: shield_buffer
+  weapons:
+    primary: none
+    secondary: none
+
+  notes:
+    - "67,500 m3 dedicated PI hold - CANNOT be modified by cargo rigs"
+    - "Regular cargo hold is small (~1,500 m3 fitted)"
+    - "No drone bay - cannot defend itself"
+    - "Cheap hull - ~600K ISK"
+
+pi_hold: 67500
+
+engagement:
+  range: "N/A - hauler"
+  speed: "~100 m/s (no prop), ~1,000 m/s (MWD)"
+  notes: "MWD + Cloak trick for escaping camps. Stay aligned at POCOs."

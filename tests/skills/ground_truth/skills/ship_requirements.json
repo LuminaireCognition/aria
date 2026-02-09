@@ -1,0 +1,76 @@
+{
+  "description": "Ground truth for ship skill requirements",
+  "source": "EVE Online SDE",
+  "last_verified": "2024-01-15",
+  "notes": "Direct requirements are what the ship directly needs. Full tree includes all prerequisites.",
+
+  "ships": {
+    "Vexor Navy Issue": {
+      "type_id": 17843,
+      "category": "Cruiser",
+      "faction": "Gallente Federation",
+      "direct_requirements": [
+        {"skill_id": 3327, "skill_name": "Gallente Cruiser", "required_level": 1}
+      ],
+      "full_tree": [
+        {"skill_id": 3327, "skill_name": "Gallente Cruiser", "required_level": 1, "rank": 5},
+        {"skill_id": 3330, "skill_name": "Gallente Destroyer", "required_level": 3, "rank": 2},
+        {"skill_id": 3328, "skill_name": "Gallente Frigate", "required_level": 3, "rank": 2},
+        {"skill_id": 3426, "skill_name": "Spaceship Command", "required_level": 3, "rank": 1}
+      ],
+      "full_tree_count": 4
+    },
+    "Dominix": {
+      "type_id": 645,
+      "category": "Battleship",
+      "faction": "Gallente Federation",
+      "direct_requirements": [
+        {"skill_id": 3329, "skill_name": "Gallente Battleship", "required_level": 1}
+      ],
+      "full_tree": [
+        {"skill_id": 3329, "skill_name": "Gallente Battleship", "required_level": 1, "rank": 8},
+        {"skill_id": 3338, "skill_name": "Gallente Battlecruiser", "required_level": 3, "rank": 6},
+        {"skill_id": 3327, "skill_name": "Gallente Cruiser", "required_level": 3, "rank": 5},
+        {"skill_id": 3330, "skill_name": "Gallente Destroyer", "required_level": 3, "rank": 2},
+        {"skill_id": 3328, "skill_name": "Gallente Frigate", "required_level": 3, "rank": 2},
+        {"skill_id": 3426, "skill_name": "Spaceship Command", "required_level": 4, "rank": 1}
+      ],
+      "full_tree_count": 6
+    },
+    "Venture": {
+      "type_id": 32880,
+      "category": "Mining Frigate",
+      "faction": "ORE",
+      "direct_requirements": [
+        {"skill_id": 32918, "skill_name": "Mining Frigate", "required_level": 1}
+      ],
+      "full_tree": [
+        {"skill_id": 32918, "skill_name": "Mining Frigate", "required_level": 1, "rank": 2},
+        {"skill_id": 3386, "skill_name": "Mining", "required_level": 1, "rank": 1},
+        {"skill_id": 3426, "skill_name": "Spaceship Command", "required_level": 1, "rank": 1}
+      ],
+      "full_tree_count": 3
+    }
+  },
+
+  "skill_rank_reference": {
+    "Spaceship Command": 1,
+    "Mining": 1,
+    "Mining Frigate": 2,
+    "Gallente Frigate": 2,
+    "Gallente Destroyer": 2,
+    "Gallente Cruiser": 5,
+    "Gallente Battlecruiser": 6,
+    "Gallente Battleship": 8
+  },
+
+  "easy_80_guidelines": {
+    "rule": "Train expensive skills (rank 5+) to level 4 instead of 5",
+    "time_savings": "Training 4→5 takes as long as 1→4 combined",
+    "exceptions": [
+      "Skills required at level 5 for T2 modules",
+      "Primary damage skills (Drone Interfacing, weapon specs)",
+      "Prerequisite skills needed at 5 for ship progression"
+    ]
+  }
+}

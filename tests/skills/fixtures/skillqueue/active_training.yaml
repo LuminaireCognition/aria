@@ -1,0 +1,137 @@
+# Test fixture: Active skill training queue
+# Tests standard skill queue display with skills training
+
+name: "Active Skill Training"
+skill: skillqueue
+description: |
+  Display active skill training queue with multiple skills.
+  Shows currently training skill, queue contents, and completion times.
+
+input:
+  command: status
+
+expected_facts:
+  - path: "queue_status"
+    equals: "active"
+
+  - path: "volatility"
+    equals: "volatile"
+
+  - path: "queue_length"
+    range: [1, 50]
+
+  - path: "currently_training.name"
+    equals: "Drones"
+
+  - path: "currently_training.progress"
+    range: [0, 100]
+
+  - path: "skills"
+    length: 5
+
+expected_output:
+  query_timestamp: "2026-01-31T12:30:00Z"
+  volatility: "volatile"
+  queue_status: "active"
+  queue_length: 5
+  total_queue_time: "4d 12h 30m"
+  queue_completion: "2026-02-05T01:00:00Z"
+  currently_training:
+    name: "Drones"
+    level: 5
+    level_display: "V"
+    progress: 42.5
+    time_remaining: "1d 6h 15m"
+    finish_date: "2026-02-01T18:45:00Z"
+  skills:
+    - queue_position: 0
+      skill_id: 3436
+      name: "Drones"
+      target_level: 5
+      level_display: "V"
+      status: "training"
+      progress_percent: 42.5
+      time_remaining: "1d 6h 15m"
+      finish_date: "2026-02-01T18:45:00Z"
+    - queue_position: 1
+      skill_id: 23618
+      name: "Gallente Drone Specialization"
+      target_level: 3
+      level_display: "III"
+      status: "queued"
+      progress_percent: 0
+      time_remaining: "2d 4h 30m"
+      finish_date: "2026-02-02T23:15:00Z"
+    - queue_position: 2
+      skill_id: 12305
+      name: "Heavy Drone Operation"
+      target_level: 4
+      level_display: "IV"
+      status: "queued"
+      progress_percent: 0
+      time_remaining: "3d 1h 45m"
+      finish_date: "2026-02-03T20:00:00Z"
+    - queue_position: 3
+      skill_id: 33699
+      name: "Drone Durability"
+      target_level: 3
+      level_display: "III"
+      status: "queued"
+      progress_percent: 0
+      time_remaining: "3d 18h 20m"
+      finish_date: "2026-02-04T12:35:00Z"
+    - queue_position: 4
+      skill_id: 12484
+      name: "Drone Navigation"
+      target_level: 4
+      level_display: "IV"
+      status: "queued"
+      progress_percent: 0
+      time_remaining: "4d 12h 30m"
+      finish_date: "2026-02-05T01:00:00Z"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  skillqueue:
+    - skill_id: 3436
+      finish_date: "2026-02-01T18:45:00Z"
+      finished_level: 5
+      queue_position: 0
+      start_date: "2026-01-30T06:30:00Z"
+      training_start_sp: 256000
+      level_start_sp: 256000
+      level_end_sp: 1280000
+    - skill_id: 23618
+      finish_date: "2026-02-02T23:15:00Z"
+      finished_level: 3
+      queue_position: 1
+      start_date: "2026-02-01T18:45:00Z"
+      training_start_sp: 0
+      level_start_sp: 8000
+      level_end_sp: 45255
+    - skill_id: 12305
+      finish_date: "2026-02-03T20:00:00Z"
+      finished_level: 4
+      queue_position: 2
+      start_date: "2026-02-02T23:15:00Z"
+      training_start_sp: 45255
+      level_start_sp: 45255
+      level_end_sp: 256000
+    - skill_id: 33699
+      finish_date: "2026-02-04T12:35:00Z"
+      finished_level: 3
+      queue_position: 3
+      start_date: "2026-02-03T20:00:00Z"
+      training_start_sp: 0
+      level_start_sp: 8000
+      level_end_sp: 45255
+    - skill_id: 12484
+      finish_date: "2026-02-05T01:00:00Z"
+      finished_level: 4
+      queue_position: 4
+      start_date: "2026-02-04T12:35:00Z"
+      training_start_sp: 45255
+      level_start_sp: 45255
+      level_end_sp: 256000

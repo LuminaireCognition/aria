@@ -1,0 +1,135 @@
+# Test fixture: T2 item warning
+# Tests that T2 items generate appropriate warnings
+
+name: "Hammerhead II T2 warning"
+skill: build-cost
+description: |
+  Build cost query for T2 item which requires invention.
+  Should return warning about T2 complexity not being fully supported.
+
+input:
+  item: Hammerhead II
+  me_level: 2
+  region: jita
+
+expected_output:
+  blueprint:
+    type_id: 31920
+    type_name: "Hammerhead II Blueprint"
+    product_type_id: 2183
+    product_name: "Hammerhead II"
+    manufacturing_time: 3600
+    produces_quantity: 1
+  materials:
+    - type_id: 34
+      type_name: "Tritanium"
+      base_quantity: 700
+      adjusted_quantity: 686
+      unit_price: 4.50
+      total_price: 3087.0
+    - type_id: 11399
+      type_name: "Morphite"
+      base_quantity: 4
+      adjusted_quantity: 4
+      unit_price: 8500.0
+      total_price: 34000.0
+    - type_id: 11542
+      type_name: "Drone Transceiver"
+      base_quantity: 1
+      adjusted_quantity: 1
+      unit_price: 25000.0
+      total_price: 25000.0
+  total_material_cost: 62087.0
+  product_value: 450000.0
+  profit: 387913.0
+  margin_pct: 624.74
+  me_level: 2
+  runs: 1
+  region: "The Forge"
+  region_id: 10000002
+  source: "fuzzwork"
+  freshness: "fresh"
+  warnings:
+    - "T2 items require invented blueprints with ME2/TE4 base. Actual ME may vary."
+    - "Component costs (Drone Transceiver) not fully calculated."
+
+expected_facts:
+  # Blueprint info for T2 item
+  - path: "blueprint.product_name"
+    equals: "Hammerhead II"
+
+  # ME level should be 2 (standard for T2)
+  - path: "me_level"
+    equals: 2
+
+  # Should have warnings about T2 complexity
+  - path: "warnings"
+    length: 2
+
+  # Warnings should mention T2
+  - path: "warnings[0]"
+    contains: "T2"
+
+  # Materials should include advanced materials
+  - path: "materials[1].type_name"
+    equals: "Morphite"
+
+  # Component materials present
+  - path: "materials[2].type_name"
+    equals: "Drone Transceiver"
+
+  # Total cost should be positive
+  - path: "total_material_cost"
+    range: [40000, 100000]
+
+  # T2 items typically have high margins
+  - path: "margin_pct"
+    range: [200, 1000]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  sde_blueprint_info:
+    type_id: 31920
+    type_name: "Hammerhead II Blueprint"
+    product_type_id: 2183
+    product_name: "Hammerhead II"
+    manufacturing_time: 3600
+    produces_quantity: 1
+    tech_level: 2
+    materials:
+      - type_id: 34
+        type_name: "Tritanium"
+        quantity: 700
+      - type_id: 11399
+        type_name: "Morphite"
+        quantity: 4
+      - type_id: 11542
+        type_name: "Drone Transceiver"
+        quantity: 1
+
+  market_prices:
+    items:
+      - type_id: 34
+        type_name: "Tritanium"
+        sell:
+          min_price: 4.50
+          volume: 1000000000
+      - type_id: 11399
+        type_name: "Morphite"
+        sell:
+          min_price: 8500.0
+          volume: 5000000
+      - type_id: 11542
+        type_name: "Drone Transceiver"
+        sell:
+          min_price: 25000.0
+          volume: 100000
+      - type_id: 2183
+        type_name: "Hammerhead II"
+        sell:
+          min_price: 450000.0
+          volume: 500000
+    region: "The Forge"
+    region_id: 10000002

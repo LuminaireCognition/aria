@@ -1,0 +1,137 @@
+# Test fixture: Build cost with ME efficiency
+# Tests manufacturing cost with ME10 blueprint
+
+name: "Hammerhead I ME10 build cost"
+skill: build-cost
+description: |
+  Manufacturing cost calculation for Hammerhead I with ME10 blueprint.
+  Material efficiency reduces requirements, showing cost savings.
+
+input:
+  item: Hammerhead I
+  me_level: 10
+  region: jita
+
+expected_output:
+  blueprint:
+    type_id: 2456
+    type_name: "Hammerhead I Blueprint"
+    product_type_id: 2185
+    product_name: "Hammerhead I"
+    manufacturing_time: 1200
+    produces_quantity: 1
+  materials:
+    - type_id: 34
+      type_name: "Tritanium"
+      base_quantity: 3500
+      adjusted_quantity: 3150
+      unit_price: 4.50
+      total_price: 14175.0
+    - type_id: 35
+      type_name: "Pyerite"
+      base_quantity: 1000
+      adjusted_quantity: 900
+      unit_price: 22.0
+      total_price: 19800.0
+    - type_id: 36
+      type_name: "Mexallon"
+      base_quantity: 250
+      adjusted_quantity: 225
+      unit_price: 55.0
+      total_price: 12375.0
+  total_material_cost: 46350.0
+  product_value: 85000.0
+  profit: 38650.0
+  margin_pct: 83.39
+  me_level: 10
+  runs: 1
+  region: "The Forge"
+  region_id: 10000002
+  source: "fuzzwork"
+  freshness: "fresh"
+  warnings: []
+
+expected_facts:
+  # Blueprint info
+  - path: "blueprint.product_name"
+    equals: "Hammerhead I"
+
+  # ME level should be 10
+  - path: "me_level"
+    equals: 10
+
+  # At ME10, adjusted < base (10% reduction, floor)
+  # adjusted_quantity = ceil(base_quantity * (1 - ME/100))
+  # For Tritanium: ceil(3500 * 0.90) = 3150
+
+  # Material count (Hammerhead I simplified to 3 for test)
+  - path: "materials"
+    length: 3
+
+  # Verify ME reduction applied
+  - path: "materials[0].base_quantity"
+    equals: 3500
+
+  - path: "materials[0].adjusted_quantity"
+    equals: 3150
+
+  # Total cost should be less than ME0 cost
+  - path: "total_material_cost"
+    range: [30000, 70000]
+
+  # Profit should be positive
+  - path: "profit"
+    range: [20000, 60000]
+
+  # Margin should be healthy for T1 drone
+  - path: "margin_pct"
+    range: [50, 150]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  sde_blueprint_info:
+    type_id: 2456
+    type_name: "Hammerhead I Blueprint"
+    product_type_id: 2185
+    product_name: "Hammerhead I"
+    manufacturing_time: 1200
+    produces_quantity: 1
+    materials:
+      - type_id: 34
+        type_name: "Tritanium"
+        quantity: 3500
+      - type_id: 35
+        type_name: "Pyerite"
+        quantity: 1000
+      - type_id: 36
+        type_name: "Mexallon"
+        quantity: 250
+
+  market_prices:
+    items:
+      - type_id: 34
+        type_name: "Tritanium"
+        sell:
+          min_price: 4.50
+          weighted_avg: 4.57
+      - type_id: 35
+        type_name: "Pyerite"
+        sell:
+          min_price: 22.0
+          weighted_avg: 24.01
+      - type_id: 36
+        type_name: "Mexallon"
+        sell:
+          min_price: 55.0
+          weighted_avg: 55.0
+      - type_id: 2185
+        type_name: "Hammerhead I"
+        sell:
+          min_price: 85000.0
+          weighted_avg: 85000.0
+    region: "The Forge"
+    region_id: 10000002
+    source: "fuzzwork"
+    freshness: "fresh"

@@ -1,0 +1,49 @@
+# ==============================================================================
+# Copyright (C) 2011 Diego Duclos
+# Copyright (C) 2011-2018 Anton Vorobyov
+#
+# This file is part of Eos.
+#
+# Eos is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Eos is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with Eos. If not, see <http://www.gnu.org/licenses/>.
+# ==============================================================================
+
+
+from abc import ABCMeta
+from abc import abstractmethod
+
+from aria_esi._vendor.eos.pubsub.subscriber import BaseSubscriber
+
+
+class BaseRestriction(metaclass=ABCMeta):
+    """Base class for all restrictions."""
+
+    @abstractmethod
+    def validate(self):
+        """Check all registered items for validity.
+
+        Both mutable and immutable item properties can be used during the
+        process.
+        """
+        ...
+
+    @property
+    @abstractmethod
+    def type(self):
+        """Get restriction type this register is dealing with."""
+        ...
+
+
+class BaseRestrictionRegister(BaseRestriction, BaseSubscriber):
+    """Base class for all restrictions which store some data on themselves."""
+    ...

@@ -1,0 +1,113 @@
+# Test fixture: Activity skill plan
+# Tests skill planning for a game activity
+
+name: "Gas huffing activity skill plan"
+skill: skillplan
+description: |
+  Skill plan for gas huffing activity.
+  Tests activity-based skill recommendations.
+
+input:
+  item: gas huffing
+
+expected_output:
+  item: "gas huffing"
+  found: true
+  item_type: "activity"
+  direct_requirements:
+    - skill_name: "Gas Cloud Harvesting"
+      required_level: 1
+      rank: 1
+    - skill_name: "Mining Frigate"
+      required_level: 1
+      rank: 2
+  full_skill_tree:
+    - skill_name: "Gas Cloud Harvesting"
+      required_level: 1
+      rank: 1
+    - skill_name: "Mining Frigate"
+      required_level: 1
+      rank: 2
+    - skill_name: "Mining"
+      required_level: 4
+      rank: 1
+    - skill_name: "Spaceship Command"
+      required_level: 1
+      rank: 1
+  easy_80_plan:
+    cap_at_4:
+      - "Mining Frigate"
+    train_to_5:
+      - "Gas Cloud Harvesting"
+    skip_optional:
+      - "Mining"
+    rationale: "Gas Cloud Harvesting directly improves yield. Mining Frigate at 4 gives good Venture bonuses."
+    time_saved_percent: 25.0
+  training_time_estimate: "3 days, 12 hours"
+  training_time_seconds: 302400
+  efficacy_estimate: 85.0
+  warnings: []
+
+expected_facts:
+  # Activity found
+  - path: "found"
+    equals: true
+
+  - path: "item"
+    equals: "gas huffing"
+
+  - path: "item_type"
+    equals: "activity"
+
+  # Primary skill for gas huffing
+  - path: "direct_requirements[0].skill_name"
+    equals: "Gas Cloud Harvesting"
+
+  # Ship skill required
+  - path: "direct_requirements[1].skill_name"
+    equals: "Mining Frigate"
+
+  # Easy 80 should prioritize gas harvesting skill
+  - path: "easy_80_plan.train_to_5"
+    contains: "Gas Cloud Harvesting"
+
+  # Efficacy in reasonable range for activity
+  - path: "efficacy_estimate"
+    range: [75, 95]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  skills_activity_plan:
+    activity: "gas huffing"
+    activity_id: "gas_huffing"
+    found: true
+    tiers:
+      minimum:
+        skills:
+          - skill_name: "Gas Cloud Harvesting"
+            level: 1
+          - skill_name: "Mining Frigate"
+            level: 1
+        training_time_seconds: 86400
+      easy_80:
+        skills:
+          - skill_name: "Gas Cloud Harvesting"
+            level: 5
+          - skill_name: "Mining Frigate"
+            level: 4
+        training_time_seconds: 302400
+      full:
+        skills:
+          - skill_name: "Gas Cloud Harvesting"
+            level: 5
+          - skill_name: "Mining Frigate"
+            level: 5
+          - skill_name: "Mining"
+            level: 4
+        training_time_seconds: 518400
+    recommended_tier: "easy_80"
+    rationale: "Gas Cloud Harvesting directly improves yield. Mining Frigate at 4 gives good Venture bonuses."
+    time_saved_percent: 25.0
+    efficacy_estimate: 85.0

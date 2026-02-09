@@ -1,0 +1,59 @@
+# Test fixture: Add corporation to watchlist
+# Tests adding a new entity to an existing watchlist
+
+name: "Add Corporation to Watchlist"
+skill: watchlist
+description: |
+  Add a corporation to the "Hostiles" manual watchlist.
+  Tests the add command with corporation entity type.
+
+input:
+  command: add
+  watchlist_name: "Hostiles"
+  entity_id: 98000003
+  entity_type: "corporation"
+  entity_name: "Safety."
+  reason: "Known ganker corp"
+
+expected_facts:
+  - path: "success"
+    equals: true
+
+  - path: "entity.entity_id"
+    equals: 98000003
+
+  - path: "entity.entity_type"
+    equals: "corporation"
+
+  - path: "watchlist_name"
+    equals: "Hostiles"
+
+expected_output:
+  success: true
+  action: "add"
+  watchlist_name: "Hostiles"
+  entity:
+    entity_id: 98000003
+    entity_name: "Safety."
+    entity_type: "corporation"
+    reason: "Known ganker corp"
+    added_at: "2026-01-31T12:00:00Z"
+  new_entity_count: 8
+  message: "Added Safety. to Hostiles watchlist"
+
+# =============================================================================
+# Mock CLI Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  cli_watchlist_add:
+    success: true
+    action: "add"
+    watchlist_name: "Hostiles"
+    entity:
+      entity_id: 98000003
+      entity_name: "Safety."
+      entity_type: "corporation"
+      reason: "Known ganker corp"
+      added_at: "2026-01-31T12:00:00Z"
+    new_entity_count: 8
+    message: "Added Safety. to Hostiles watchlist"

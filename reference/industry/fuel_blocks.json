@@ -1,0 +1,150 @@
+{
+  "_meta": {
+    "description": "EVE Online fuel block recipes and reaction data",
+    "sources": [
+      "https://wiki.eveuniversity.org/Fuel_blocks",
+      "https://wiki.eveuniversity.org/Reactions"
+    ],
+    "last_verified": "2026-02-02",
+    "notes": "Fuel blocks are manufactured via reactions at refineries. Each empire has its own isotope type."
+  },
+
+  "fuel_blocks": {
+    "Nitrogen Fuel Block": {
+      "type_id": 4051,
+      "faction": "Caldari",
+      "isotope": "Nitrogen Isotopes",
+      "inputs": {
+        "Coolant": 150,
+        "Enriched Uranium": 150,
+        "Mechanical Parts": 150,
+        "Oxygen": 450,
+        "Heavy Water": 170,
+        "Liquid Ozone": 350,
+        "Nitrogen Isotopes": 450,
+        "Robotics": 1
+      },
+      "output_quantity": 40,
+      "cycle_time_seconds": 900
+    },
+    "Hydrogen Fuel Block": {
+      "type_id": 4246,
+      "faction": "Minmatar",
+      "isotope": "Hydrogen Isotopes",
+      "inputs": {
+        "Coolant": 150,
+        "Enriched Uranium": 150,
+        "Mechanical Parts": 150,
+        "Oxygen": 450,
+        "Heavy Water": 170,
+        "Liquid Ozone": 350,
+        "Hydrogen Isotopes": 450,
+        "Robotics": 1
+      },
+      "output_quantity": 40,
+      "cycle_time_seconds": 900
+    },
+    "Helium Fuel Block": {
+      "type_id": 4247,
+      "faction": "Amarr",
+      "isotope": "Helium Isotopes",
+      "inputs": {
+        "Coolant": 150,
+        "Enriched Uranium": 150,
+        "Mechanical Parts": 150,
+        "Oxygen": 450,
+        "Heavy Water": 170,
+        "Liquid Ozone": 350,
+        "Helium Isotopes": 450,
+        "Robotics": 1
+      },
+      "output_quantity": 40,
+      "cycle_time_seconds": 900
+    },
+    "Oxygen Fuel Block": {
+      "type_id": 4312,
+      "faction": "Gallente",
+      "isotope": "Oxygen Isotopes",
+      "inputs": {
+        "Coolant": 150,
+        "Enriched Uranium": 150,
+        "Mechanical Parts": 150,
+        "Oxygen": 450,
+        "Heavy Water": 170,
+        "Liquid Ozone": 350,
+        "Oxygen Isotopes": 450,
+        "Robotics": 1
+      },
+      "output_quantity": 40,
+      "cycle_time_seconds": 900
+    }
+  },
+
+  "reaction_time_modifiers": {
+    "description": "Reactions skill reduces cycle time by 4% per level",
+    "per_level_reduction": 0.04,
+    "max_level": 5,
+    "formula": "cycle_time * (1 - reactions_skill_level * 0.04)"
+  },
+
+  "refinery_bonuses": {
+    "Athanor": {
+      "description": "Medium refinery",
+      "reaction_time_bonus": 0,
+      "reaction_slots": 3
+    },
+    "Tatara": {
+      "description": "Large refinery",
+      "reaction_time_bonus": 0.25,
+      "reaction_slots": 5,
+      "notes": "25% reduction to reaction cycle time"
+    }
+  },
+
+  "pi_material_sources": {
+    "Coolant": "P2 - Electrolytes + Water",
+    "Enriched Uranium": "P2 - Precious Metals + Toxic Metals",
+    "Mechanical Parts": "P2 - Reactive Metals + Precious Metals",
+    "Oxygen": "P1 - from Gas planets",
+    "Robotics": "P3 - Mechanical Parts + Consumer Electronics"
+  },
+
+  "ice_material_sources": {
+    "Heavy Water": "Ice mining - all ice types",
+    "Liquid Ozone": "Ice mining - all ice types",
+    "Nitrogen Isotopes": "Ice mining - White Glaze (Caldari space)",
+    "Hydrogen Isotopes": "Ice mining - Glacial Mass (Minmatar space)",
+    "Helium Isotopes": "Ice mining - Blue Ice (Amarr space)",
+    "Oxygen Isotopes": "Ice mining - Clear Icicle (Gallente space)",
+    "Strontium Clathrates": "Ice mining - all ice types"
+  },
+
+  "common_reactions": {
+    "description": "Frequently used moon goo reactions",
+    "categories": {
+      "simple": {
+        "description": "Direct moon goo processing",
+        "activity_id": 11,
+        "examples": ["Unrefined Platinum Technite", "Unrefined Fernite Alloy"]
+      },
+      "complex": {
+        "description": "Intermediate material reactions",
+        "activity_id": 9,
+        "examples": ["Platinum Technite", "Fernite Alloy", "Crystalline Carbonide"]
+      },
+      "composite": {
+        "description": "T2 component materials",
+        "activity_id": 9,
+        "examples": [
+          "Fulleride",
+          "Fermionic Condensates",
+          "Hypersynaptic Fibers",
+          "Nanotransistors",
+          "Phenolic Composites",
+          "Sylramic Fibers",
+          "Ferrogel"
+        ]
+      }
+    }
+  }
+}

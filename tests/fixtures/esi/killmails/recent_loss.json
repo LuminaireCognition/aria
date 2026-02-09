@@ -1,0 +1,24 @@
+{
+  "attackers": [
+    {
+      "character_id": 99999999,
+      "corporation_id": 1000001,
+      "damage_done": 5000,
+      "final_blow": true,
+      "security_status": 0.5,
+      "ship_type_id": 24690,
+      "weapon_type_id": 3170
+    }
+  ],
+  "killmail_id": 123456789,
+  "killmail_time": "2026-01-15T18:00:00Z",
+  "solar_system_id": 30002187,
+  "victim": {
+    "character_id": 12345678,
+    "corporation_id": 1000125,
+    "damage_taken": 5000,
+    "items": [],
+    "position": {"x": 0, "y": 0, "z": 0},
+    "ship_type_id": 587
+  }
+}

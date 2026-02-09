@@ -1,0 +1,76 @@
+# Test fixture: Niarja single system gatecamp check
+# Tests /gatecamp for single system activity query
+
+name: "Niarja single system gatecamp check"
+skill: gatecamp
+description: |
+  Single system activity check for Niarja, a known gank system.
+  Tests activity-based gatecamp detection.
+
+input:
+  systems:
+    - Niarja
+  include_realtime: true
+
+expected_output:
+  systems:
+    - name: "Niarja"
+      system_id: 30003504
+      security: 0.50
+      security_class: "HIGH"
+      ship_kills: 12
+      pod_kills: 8
+      npc_kills: 1
+      ship_jumps: 4200
+      activity_level: "high"
+  cache_age_seconds: 60
+  data_period: "last_hour"
+  warnings: []
+
+expected_facts:
+  # Single system query returns ActivityResult format
+  - path: "systems"
+    length: 1
+
+  - path: "systems[0].name"
+    equals: "Niarja"
+
+  # Known gank system should have kills
+  - path: "systems[0].ship_kills"
+    range: [3, 80]
+
+  - path: "systems[0].pod_kills"
+    range: [2, 60]
+
+  # Border highsec system
+  - path: "systems[0].security_class"
+    equals: "HIGH"
+
+  - path: "systems[0].security"
+    range: [0.45, 0.55]
+
+  # Activity level should reflect gank activity
+  - path: "systems[0].activity_level"
+    one_of: ["medium", "high", "extreme"]
+
+  # Cache should be fresh for realtime
+  - path: "cache_age_seconds"
+    range: [0, 300]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_activity:
+    systems:
+      - system_id: 30003504
+        name: "Niarja"
+        security: 0.50
+        security_class: "HIGH"
+        ship_kills: 12
+        pod_kills: 8
+        npc_kills: 1
+        ship_jumps: 4200
+        activity_level: "high"
+    cache_age_seconds: 60
+    data_period: "last_hour"

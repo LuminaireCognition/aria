@@ -1,0 +1,110 @@
+# Test fixture: Single planet P2 production
+# Tests single planet P2 lookup with exact reference data values
+
+name: "Single planet P2 production options"
+skill: pi
+description: |
+  Query for P2 products that can be produced on a single planet.
+  Tests single planet production mapping with all planet types.
+
+input:
+  query_type: single_planet_p2
+
+expected_output:
+  single_planet_products:
+    Barren:
+      - "Construction Blocks"
+      - "Enriched Uranium"
+      - "Mechanical Parts"
+      - "Miniature Electronics"
+      - "Nanites"
+    Gas:
+      - "Coolant"
+      - "Oxides"
+      - "Rocket Fuel"
+      - "Synthetic Oil"
+    Ice:
+      - "Supertensile Plastics"
+    Lava:
+      - "Consumer Electronics"
+      - "Miniature Electronics"
+      - "Silicate Glass"
+      - "Transmitter"
+    Oceanic:
+      - "Fertilizer"
+      - "Genetically Enhanced Livestock"
+      - "Livestock"
+      - "Supertensile Plastics"
+      - "Test Cultures"
+      - "Viral Agent"
+    Plasma:
+      - "Construction Blocks"
+      - "Consumer Electronics"
+      - "Enriched Uranium"
+      - "Mechanical Parts"
+      - "Transmitter"
+    Storm:
+      - "Coolant"
+      - "Oxides"
+      - "Rocket Fuel"
+      - "Superconductors"
+      - "Synthetic Oil"
+    Temperate:
+      - "Fertilizer"
+      - "Livestock"
+      - "Polytextiles"
+      - "Test Cultures"
+  best_planet_types:
+    - planet_type: "Oceanic"
+      p2_count: 6
+    - planet_type: "Barren"
+      p2_count: 5
+    - planet_type: "Plasma"
+      p2_count: 5
+    - planet_type: "Storm"
+      p2_count: 5
+  notes: "Oceanic planets offer the most single-planet P2 options. Ice planets are limited to Supertensile Plastics only."
+
+expected_facts:
+  # Has all 8 planet types
+  - path: "single_planet_products.Barren"
+    length: 5
+
+  - path: "single_planet_products.Gas"
+    length: 4
+
+  - path: "single_planet_products.Ice"
+    length: 1
+
+  - path: "single_planet_products.Lava"
+    length: 4
+
+  - path: "single_planet_products.Oceanic"
+    length: 6
+
+  - path: "single_planet_products.Plasma"
+    length: 5
+
+  - path: "single_planet_products.Storm"
+    length: 5
+
+  - path: "single_planet_products.Temperate"
+    length: 4
+
+  # Barren includes specific products
+  - path: "single_planet_products.Barren"
+    contains: "Construction Blocks"
+
+  - path: "single_planet_products.Barren"
+    contains: "Nanites"
+
+  # Ice only has one option
+  - path: "single_planet_products.Ice"
+    contains: "Supertensile Plastics"
+
+  # Oceanic is best for variety
+  - path: "best_planet_types[0].planet_type"
+    equals: "Oceanic"
+
+  - path: "best_planet_types[0].p2_count"
+    equals: 6

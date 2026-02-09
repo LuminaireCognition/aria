@@ -1,0 +1,124 @@
+# JSON Schema for /route skill output validation
+# Validates the structure of universe(action="route") responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: RouteSkillOutput
+description: Output schema for the /route skill (universe route action)
+type: object
+
+required:
+  - origin
+  - destination
+  - total_jumps
+  - mode
+  - route
+
+properties:
+  origin:
+    type: string
+    description: Starting system name
+    minLength: 1
+
+  destination:
+    type: string
+    description: Destination system name
+    minLength: 1
+
+  total_jumps:
+    type: integer
+    description: Total number of jumps in the route
+    minimum: 0
+
+  mode:
+    type: string
+    description: Routing mode used
+    enum: ["shortest", "safe", "unsafe"]
+
+  route:
+    type: array
+    description: Ordered list of systems in the route
+    items:
+      $ref: "#/$defs/RouteSystem"
+
+  security_profile:
+    type: object
+    description: Summary of security status along route
+    properties:
+      highsec_jumps:
+        type: integer
+        minimum: 0
+      lowsec_jumps:
+        type: integer
+        minimum: 0
+      nullsec_jumps:
+        type: integer
+        minimum: 0
+
+  avoid_systems:
+    type: array
+    description: Systems that were avoided in routing
+    items:
+      type: string
+
+  warnings:
+    type: array
+    description: Route warnings (gatecamps, high activity, etc.)
+    items:
+      type: string
+
+$defs:
+  RouteSystem:
+    type: object
+    description: A single system in the route
+    required:
+      - system
+      - security
+    properties:
+      system:
+        type: string
+        description: System name
+        minLength: 1
+
+      system_id:
+        type: integer
+        description: EVE system ID
+        minimum: 30000000
+        maximum: 32000000
+
+      security:
+        type: number
+        description: Security status (-1.0 to 1.0)
+        minimum: -1.0
+        maximum: 1.0
+
+      is_border:
+        type: boolean
+        description: Whether this is a border system (highsec adjacent to lowsec)
+
+      region:
+        type: string
+        description: Region name
+
+      constellation:
+        type: string
+        description: Constellation name
+
+      # Activity data (optional, from activity overlay)
+      ship_kills:
+        type: integer
+        description: Ship kills in last hour
+        minimum: 0
+
+      pod_kills:
+        type: integer
+        description: Pod kills in last hour
+        minimum: 0
+
+      jumps:
+        type: integer
+        description: Ship jumps in last hour
+        minimum: 0
+
+      notes:
+        type: string
+        description: Special notes (trade hub, gank pipe, etc.)

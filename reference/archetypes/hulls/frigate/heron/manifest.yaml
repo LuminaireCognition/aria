@@ -1,0 +1,53 @@
+# Heron Hull Manifest
+#
+# The Heron is a Caldari T1 exploration frigate.
+# 5 mid slots allow maximum utility without sacrifices.
+
+hull: Heron
+class: frigate
+faction: caldari
+tech_level: 1
+role: exploration
+
+slots:
+  high: 3
+  mid: 5
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 10
+  bay: 10
+
+bonuses:
+  - "7.5% bonus to probe scan strength per Caldari Frigate level"
+  - "5% bonus to salvager cycle time per Caldari Frigate level"
+
+roles:
+  - exploration
+  - shield_tank
+
+fitting_rules:
+  tank_type: shield_buffer
+  weapons:
+    primary: null  # Exploration focused
+    secondary: drones  # Utility only
+
+  notes:
+    - "5 mid slots - most utility of any T1 explorer"
+    - "Fit both analyzers + scan array + tank + MWD"
+    - "No hard choices required for basic exploration"
+
+exploration_bonuses:
+  probe_strength: "+7.5%/level"
+  virus_strength: "30 (base 25 + 5 role)"
+  cargo: "400m3"
+
+capacitor:
+  stable_expected: true
+  notes: "Exploration modules use minimal cap."
+
+engagement:
+  range: "N/A - avoid combat"
+  speed: "MWD for escape"
+  notes: "Cloak + speed = survival. Never fight."

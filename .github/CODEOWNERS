@@ -1,0 +1,9 @@
+# Default ownership for prompt review waiver resolution.
+* @AurelienVaillancourt
+
+# CI and policy surfaces
+.github/** @AurelienVaillancourt
+src/** @AurelienVaillancourt
+tests/** @AurelienVaillancourt
+docs/** @AurelienVaillancourt
+dev/prompts/** @AurelienVaillancourt

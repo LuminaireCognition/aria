@@ -1,0 +1,143 @@
+# Vexor L3 Missions - T2 Module Variant (Armor)
+#
+# Standard T2 fit for experienced pilots. Solid DPS and tank balance.
+# Requires T2 drone skills but delivers strong performance.
+
+archetype:
+  hull: Vexor
+  skill_tier: t2
+  tank_type: armor_active
+  omega_required: true
+
+eft: |
+  [Vexor, L3 Missions - Armor T2]
+
+  Drone Damage Amplifier II
+  Drone Damage Amplifier II
+  Medium Armor Repairer II
+  Multispectrum Energized Membrane II
+  Reactive Armor Hardener
+
+  10MN Y-S8 Compact Afterburner
+  Large Compact Pb-Acid Cap Battery
+  Omnidirectional Tracking Link II
+  Drone Navigation Computer I
+
+  Drone Link Augmentor I
+  [Empty High slot]
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Capacitor Control Circuit I
+
+  Hammerhead II x5
+  Hobgoblin II x5
+  Hornet EC-300 x5
+
+skill_requirements:
+  required:
+    Drones: 5
+    Medium Drone Operation: 5
+    Light Drone Operation: 5
+    Gallente Cruiser: 4
+    Repair Systems: 4
+    Hull Upgrades: 5
+    Weapon Upgrades: 4
+  recommended:
+    Drone Interfacing: 4
+    Drone Durability: 4
+    Mechanics: 5
+    Capacitor Systems Operation: 4
+
+stats:
+  dps: 340
+  ehp: 9900
+  tank_sustained: 130
+  capacitor_stable: true
+  align_time: 9.5
+  speed_ab: 450
+  drone_control_range: 60000
+  validated_date: "2026-02-04"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      modules:
+        - from: "Multispectrum Energized Membrane II"
+          to: "Armor Kinetic Hardener II"
+      drones:
+        medium: "Hammerhead II"
+        light: "Hobgoblin II"
+      notes: "Serpentis weak to Thermal - default drones optimal."
+
+    angel_cartel:
+      modules:
+        - from: "Multispectrum Energized Membrane II"
+          to: "Armor Explosive Hardener II"
+      drones:
+        medium: "Valkyrie II"
+        light: "Warrior II"
+      notes: "Angels weak to Explosive."
+
+    blood_raiders:
+      modules:
+        - from: "Multispectrum Energized Membrane II"
+          to: "Armor EM Hardener II"
+      drones:
+        medium: "Infiltrator II"
+        light: "Acolyte II"
+      notes: "Blood Raiders weak to EM. Neuts possible."
+
+    guristas:
+      modules:
+        - from: "Multispectrum Energized Membrane II"
+          to: "Armor Kinetic Hardener II"
+      drones:
+        medium: "Vespa II"
+        light: "Hornet II"
+      notes: "Guristas weak to Kinetic. ECM possible."
+
+    sansha:
+      modules:
+        - from: "Multispectrum Energized Membrane II"
+          to: "Armor EM Hardener II"
+      drones:
+        medium: "Infiltrator II"
+        light: "Acolyte II"
+      notes: "Sansha weak to EM."
+
+    rogue_drones:
+      drones:
+        medium: "Infiltrator II"
+        light: "Acolyte II"
+      notes: "Rogue Drones weak to EM."
+
+    mercenaries:
+      drones:
+        medium: "Hammerhead II"
+        light: "Hobgoblin II"
+      notes: "Mixed enemies - default fit works."
+
+notes:
+  purpose: "Solid L3 runner with T2 performance"
+  engagement: "Orbit at 30-40km, T2 drones clear faster with better tracking"
+  warnings:
+    - "Still a cruiser in BC content - manage aggro"
+    - "T2 drones are more expensive - recall before warping"
+    - "EC-300s for emergency escape"
+
+upgrade_path:
+  next_tier: t2_optimal
+  key_upgrades:
+    - module: "Omnidirectional Tracking Link II"
+      upgrade_to: "Second Omnidirectional Tracking Link II"
+      notes: "Trade Drone Nav Computer for more tracking"
+    - ship: "Myrmidon (Battlecruiser)"
+      notes: "More comfortable margin for L3s"
+    - ship: "Vexor Navy Issue"
+      notes: "Significant upgrade - more DPS and tank"

@@ -1,0 +1,165 @@
+# JSON Schema for /price skill output validation
+# Validates the structure of market(action="prices") responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: PriceSkillOutput
+description: Output schema for the /price skill (market prices action)
+type: object
+
+required:
+  - items
+  - region
+  - region_id
+  - source
+  - freshness
+
+properties:
+  items:
+    type: array
+    description: Price data for requested items
+    items:
+      $ref: "#/$defs/PriceItem"
+
+  region:
+    type: string
+    description: Region name where prices were fetched
+    minLength: 1
+
+  region_id:
+    type: integer
+    description: EVE region ID
+    minimum: 10000000
+    maximum: 12000000
+
+  station:
+    type: string
+    description: Station name (for trade hub queries)
+
+  station_id:
+    type: integer
+    description: Station ID (for trade hub queries)
+    minimum: 60000000
+
+  source:
+    type: string
+    description: Data source (fuzzwork, esi, etc.)
+    enum: ["fuzzwork", "esi", "esi_orders", "cache"]
+
+  freshness:
+    type: string
+    description: Cache freshness indicator
+    enum: ["fresh", "stale", "cached"]
+
+  cache_age_seconds:
+    type: integer
+    description: Age of cached data in seconds
+    minimum: 0
+
+  unresolved_items:
+    type: array
+    description: Items that could not be resolved
+    items:
+      type: string
+
+  warnings:
+    type: array
+    description: Any warnings about the data
+    items:
+      type: string
+
+  _meta:
+    type: object
+    description: Response metadata
+    properties:
+      count:
+        type: integer
+        minimum: 0
+      timestamp:
+        type: string
+        format: date-time
+
+$defs:
+  PriceItem:
+    type: object
+    description: Price data for a single item
+    required:
+      - type_id
+      - type_name
+      - buy
+      - sell
+    properties:
+      type_id:
+        type: integer
+        description: EVE type ID
+        minimum: 1
+
+      type_name:
+        type: string
+        description: Item name
+        minLength: 1
+
+      buy:
+        $ref: "#/$defs/OrderStats"
+
+      sell:
+        $ref: "#/$defs/OrderStats"
+
+      spread:
+        type: ["number", "null"]
+        description: Absolute spread (sell_min - buy_max)
+
+      spread_percent:
+        type: ["number", "null"]
+        description: Spread as percentage
+
+      freshness:
+        type: string
+        description: Per-item freshness indicator
+        enum: ["fresh", "stale", "cached"]
+
+  OrderStats:
+    type: object
+    description: Aggregated order statistics for buy or sell side
+    required:
+      - order_count
+      - volume
+    properties:
+      order_count:
+        type: integer
+        description: Number of orders
+        minimum: 0
+
+      volume:
+        type: integer
+        description: Total volume across all orders
+        minimum: 0
+
+      min_price:
+        type: ["number", "null"]
+        description: Minimum price (null if no orders)
+        minimum: 0
+
+      max_price:
+        type: ["number", "null"]
+        description: Maximum price (null if no orders)
+        minimum: 0
+
+      weighted_avg:
+        type: ["number", "null"]
+        description: Volume-weighted average price
+        minimum: 0
+
+      median:
+        type: ["number", "null"]
+        description: Median price
+        minimum: 0
+
+      percentile_5:
+        type: ["number", "null"]
+        description: 5th percentile price (useful for realistic buy/sell)
+        minimum: 0
+
+      stddev:
+        type: ["number", "null"]
+        description: Standard deviation of prices
+        minimum: 0

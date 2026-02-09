@@ -1,0 +1,85 @@
+# Test fixture: Self query (authenticated pilot)
+# Tests /pilot command for the authenticated pilot
+
+name: "Pilot Self Query"
+skill: pilot
+description: |
+  Show full identity card for the authenticated pilot.
+  Tests ESI integration for wallet, skills, and profile data.
+
+input:
+  command: self
+  character_id: 2123984364
+
+expected_facts:
+  - path: "query_type"
+    equals: "self"
+
+  - path: "character_id"
+    equals: 2123984364
+
+  - path: "character_name"
+    equals: "Federation Navy Suwayyah"
+
+  - path: "security_status"
+    range: [-10.0, 10.0]
+
+  - path: "account_snapshot.skill_points"
+    range: [1000000, 500000000]
+
+expected_output:
+  query_type: "self"
+  character_id: 2123984364
+  character_name: "Federation Navy Suwayyah"
+  corporation_id: 98000001
+  corporation_name: "Scope Works"
+  corporation_ticker: "SCOPE"
+  alliance_id: null
+  alliance_name: null
+  security_status: 2.45
+  security_description: "Upstanding"
+  birthday: "2024-03-15T12:00:00Z"
+  aria_configuration:
+    eve_experience: "intermediate"
+    rp_level: "lite"
+    module_tier: "T2"
+    faction: "Gallente Federation"
+  constraints:
+    market_trading: false
+    contracts: true
+    fleet_required: false
+    min_security: 0.5
+  esi_status:
+    connected: true
+    personal_scopes: 15
+    corporation_scopes: 0
+    token_expires: "2026-02-01T12:00:00Z"
+  account_snapshot:
+    query_timestamp: "2026-01-31T12:30:00Z"
+    wallet_balance: 125456789.50
+    skill_points: 12500000
+  profile_path: "userdata/pilots/2123984364_federation_navy_suwayyah/profile.md"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  characters:
+    character_id: 2123984364
+    name: "Federation Navy Suwayyah"
+    birthday: "2024-03-15T12:00:00Z"
+    corporation_id: 98000001
+    security_status: 2.45
+
+  corporations:
+    corporation_id: 98000001
+    name: "Scope Works"
+    ticker: "SCOPE"
+    alliance_id: null
+
+  wallet:
+    balance: 125456789.50
+
+  skills:
+    total_sp: 12500000
+    unallocated_sp: 0

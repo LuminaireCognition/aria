@@ -1,0 +1,47 @@
+# Test fixture: Tier 4 (Raging) information
+# Tests tier query response with exact reference data values
+
+name: "Tier 4 Raging information"
+skill: abyssal
+description: |
+  Query for Tier 4 (Raging) abyssal tier information.
+  Tests tier response structure with difficulty and loot data.
+
+input:
+  query_type: tier
+  tier: 4
+
+expected_output:
+  tier: 4
+  name: "Raging"
+  filament_prefix: "Raging"
+  ship_class: "Cruiser"
+  time_limit_seconds: 1200
+  difficulty: "Very Hard"
+  avg_loot_isk: 60000000
+  notes: "High risk. Faction/deadspace modules recommended."
+
+expected_facts:
+  # Tier number validation
+  - path: "tier"
+    equals: 4
+
+  # Name matches tier
+  - path: "name"
+    equals: "Raging"
+
+  # Cruiser-class ships
+  - path: "ship_class"
+    equals: "Cruiser"
+
+  # Standard 20-minute timer
+  - path: "time_limit_seconds"
+    equals: 1200
+
+  # High difficulty
+  - path: "difficulty"
+    equals: "Very Hard"
+
+  # Average loot around 60M ISK
+  - path: "avg_loot_isk"
+    range: [50000000, 70000000]

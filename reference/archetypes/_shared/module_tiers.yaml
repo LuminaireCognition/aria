@@ -1,0 +1,226 @@
+# Module Upgrade Paths
+#
+# Defines upgrade paths from T1 through meta variants to T2 and faction.
+# Used for generating skill tier variants and upgrade recommendations.
+#
+# Structure:
+#   {module_category}:
+#     enduring: Low cap use variant (meta)
+#     compact: Low fitting variant (meta)
+#     restrained: Low penalty variant (meta)
+#     t1: Tech I baseline
+#     t2: Tech II upgrade
+#     faction: Faction/officer variant
+
+upgrade_paths:
+  # Damage Amplifiers
+  drone_damage_amplifier:
+    t1: "Drone Damage Amplifier I"
+    t2: "Drone Damage Amplifier II"
+    faction: "Federation Navy Drone Damage Amplifier"
+
+  ballistic_control_system:
+    t1: "Ballistic Control System I"
+    t2: "Ballistic Control System II"
+    faction: "Caldari Navy Ballistic Control System"
+
+  heat_sink:
+    t1: "Heat Sink I"
+    t2: "Heat Sink II"
+    faction: "Imperial Navy Heat Sink"
+
+  magnetic_field_stabilizer:
+    t1: "Magnetic Field Stabilizer I"
+    t2: "Magnetic Field Stabilizer II"
+    faction: "Federation Navy Magnetic Field Stabilizer"
+
+  gyrostabilizer:
+    t1: "Gyrostabilizer I"
+    t2: "Gyrostabilizer II"
+    faction: "Republic Fleet Gyrostabilizer"
+
+  # Armor Repairers
+  small_armor_repairer:
+    enduring: "Small I-a Enduring Armor Repairer"
+    compact: "Small Compact Armor Repairer"
+    t1: "Small Armor Repairer I"
+    t2: "Small Armor Repairer II"
+    faction: "Corpii C-Type Small Armor Repairer"
+
+  medium_armor_repairer:
+    enduring: "Medium I-a Enduring Armor Repairer"
+    compact: "Medium Compact Armor Repairer"
+    t1: "Medium Armor Repairer I"
+    t2: "Medium Armor Repairer II"
+    faction: "Corpum C-Type Medium Armor Repairer"
+
+  large_armor_repairer:
+    enduring: "Large I-a Enduring Armor Repairer"
+    compact: "Large Compact Armor Repairer"
+    t1: "Large Armor Repairer I"
+    t2: "Large Armor Repairer II"
+    faction: "Corpus C-Type Large Armor Repairer"
+
+  # Armor Hardeners
+  energized_adaptive_nano_membrane:
+    compact: "Compact Energized Adaptive Nano Membrane"
+    t1: "Energized Adaptive Nano Membrane I"
+    t2: "Energized Adaptive Nano Membrane II"
+    faction: "Imperial Navy Energized Adaptive Nano Membrane"
+
+  reactive_armor_hardener:
+    t1: "Reactive Armor Hardener"
+    # No T2/faction variants - reactive is unique
+
+  damage_control:
+    compact: "Compact Damage Control"
+    t1: "Damage Control I"
+    t2: "Damage Control II"
+    faction: "IFFA Compact Damage Control"
+
+  # Shield Extenders
+  medium_shield_extender:
+    compact: "Medium Azeotropic Restrained Shield Extender"
+    t1: "Medium Shield Extender I"
+    t2: "Medium Shield Extender II"
+    faction: "Pithum C-Type Medium Shield Extender"
+
+  large_shield_extender:
+    compact: "Large Azeotropic Restrained Shield Extender"
+    t1: "Large Shield Extender I"
+    t2: "Large Shield Extender II"
+    faction: "Pithum C-Type Large Shield Extender"
+
+  # Shield Hardeners
+  adaptive_invulnerability_field:
+    enduring: "Enduring Multispectrum Shield Hardener"
+    compact: "Compact Multispectrum Shield Hardener"
+    t1: "Multispectrum Shield Hardener I"
+    t2: "Multispectrum Shield Hardener II"
+    faction: "Pithum C-Type Multispectrum Shield Hardener"
+
+  em_shield_amplifier:
+    t1: "EM Shield Amplifier I"
+    t2: "EM Shield Amplifier II"
+
+  thermal_shield_amplifier:
+    t1: "Thermal Shield Amplifier I"
+    t2: "Thermal Shield Amplifier II"
+
+  kinetic_shield_amplifier:
+    t1: "Kinetic Shield Amplifier I"
+    t2: "Kinetic Shield Amplifier II"
+
+  explosive_shield_amplifier:
+    t1: "Explosive Shield Amplifier I"
+    t2: "Explosive Shield Amplifier II"
+
+  # Propulsion
+  mwd_5mn:
+    enduring: "5MN Cold-Gas Enduring Microwarpdrive"
+    compact: "5MN Y-T8 Compact Microwarpdrive"
+    restrained: "5MN Quad LiF Restrained Microwarpdrive"
+    t1: "5MN Microwarpdrive I"
+    t2: "5MN Microwarpdrive II"
+
+  mwd_50mn:
+    enduring: "50MN Cold-Gas Enduring Microwarpdrive"
+    compact: "50MN Y-T8 Compact Microwarpdrive"
+    restrained: "50MN Quad LiF Restrained Microwarpdrive"
+    t1: "50MN Microwarpdrive I"
+    t2: "50MN Microwarpdrive II"
+
+  mwd_500mn:
+    enduring: "500MN Cold-Gas Enduring Microwarpdrive"
+    compact: "500MN Y-T8 Compact Microwarpdrive"
+    restrained: "500MN Quad LiF Restrained Microwarpdrive"
+    t1: "500MN Microwarpdrive I"
+    t2: "500MN Microwarpdrive II"
+
+  ab_1mn:
+    enduring: "1MN Monopropellant Enduring Afterburner"
+    compact: "1MN Y-S8 Compact Afterburner"
+    t1: "1MN Afterburner I"
+    t2: "1MN Afterburner II"
+
+  ab_10mn:
+    enduring: "10MN Monopropellant Enduring Afterburner"
+    compact: "10MN Y-S8 Compact Afterburner"
+    t1: "10MN Afterburner I"
+    t2: "10MN Afterburner II"
+
+  ab_100mn:
+    enduring: "100MN Monopropellant Enduring Afterburner"
+    compact: "100MN Y-S8 Compact Afterburner"
+    t1: "100MN Afterburner I"
+    t2: "100MN Afterburner II"
+
+  # Cap Batteries
+  cap_battery_small:
+    compact: "Small Compact Pb-Acid Cap Battery"
+    t1: "Small Cap Battery I"
+    t2: "Small Cap Battery II"
+
+  cap_battery_medium:
+    compact: "Medium Compact Pb-Acid Cap Battery"
+    t1: "Medium Cap Battery I"
+    t2: "Medium Cap Battery II"
+
+  cap_battery_large:
+    compact: "Large Compact Pb-Acid Cap Battery"
+    t1: "Large Cap Battery I"
+    t2: "Large Cap Battery II"
+
+  # Drone Modules
+  drone_navigation_computer:
+    t1: "Drone Navigation Computer I"
+    t2: "Drone Navigation Computer II"
+
+  drone_link_augmentor:
+    t1: "Drone Link Augmentor I"
+    t2: "Drone Link Augmentor II"
+
+  omnidirectional_tracking_link:
+    t1: "Omnidirectional Tracking Link I"
+    t2: "Omnidirectional Tracking Link II"
+
+  # Missile Launchers
+  light_missile_launcher:
+    compact: "Arbalest Compact Light Missile Launcher"
+    t1: "Light Missile Launcher I"
+    t2: "Light Missile Launcher II"
+
+  heavy_missile_launcher:
+    compact: "Arbalest Compact Heavy Missile Launcher"
+    t1: "Heavy Missile Launcher I"
+    t2: "Heavy Missile Launcher II"
+
+  rapid_light_missile_launcher:
+    compact: "Arbalest Compact Rapid Light Missile Launcher"
+    t1: "Rapid Light Missile Launcher I"
+    t2: "Rapid Light Missile Launcher II"
+
+  cruise_missile_launcher:
+    compact: "Arbalest Compact Cruise Missile Launcher"
+    t1: "Cruise Missile Launcher I"
+    t2: "Cruise Missile Launcher II"
+
+# Tier-to-variant mapping
+# Defines which variant to use for each skill tier
+tier_variant_preference:
+  low:
+    preference: ["enduring", "compact", "t1"]
+    reason: "Lower fitting requirements, cap efficiency"
+
+  medium:
+    preference: ["compact", "t1"]
+    reason: "Balanced fitting, good performance"
+
+  high:
+    preference: ["t2"]
+    reason: "Maximum performance"
+
+  alpha:
+    preference: ["compact", "t1"]
+    reason: "T1 only - no T2 modules"
+    restriction: "No T2 modules (pattern: ' II$')"

@@ -1,0 +1,176 @@
+{
+  "_meta": {
+    "description": "Terminal materials for manufacturing chain resolution",
+    "purpose": "Defines where to stop when resolving 'build from scratch' chains. Materials in 'always_terminal' can never be manufactured and must be acquired externally.",
+    "sources": [
+      "https://wiki.eveuniversity.org/Manufacturing",
+      "https://wiki.eveuniversity.org/Planetary_Industry"
+    ],
+    "last_verified": "2026-02-02"
+  },
+
+  "always_terminal": {
+    "description": "Raw materials that cannot be manufactured - always buy or extract",
+    "minerals": [
+      "Tritanium",
+      "Pyerite",
+      "Mexallon",
+      "Isogen",
+      "Nocxium",
+      "Zydrine",
+      "Megacyte",
+      "Morphite"
+    ],
+    "ice_products": [
+      "Heavy Water",
+      "Liquid Ozone",
+      "Strontium Clathrates",
+      "Helium Isotopes",
+      "Hydrogen Isotopes",
+      "Nitrogen Isotopes",
+      "Oxygen Isotopes"
+    ],
+    "moon_materials": [
+      "Atmospheric Gases",
+      "Cadmium",
+      "Caesium",
+      "Chromium",
+      "Cobalt",
+      "Dysprosium",
+      "Evaporite Deposits",
+      "Hafnium",
+      "Hydrocarbons",
+      "Mercury",
+      "Neodymium",
+      "Platinum",
+      "Promethium",
+      "Scandium",
+      "Silicates",
+      "Technetium",
+      "Thulium",
+      "Titanium",
+      "Tungsten",
+      "Vanadium"
+    ],
+    "pi_p0": [
+      "Aqueous Liquids",
+      "Autotrophs",
+      "Base Metals",
+      "Carbon Compounds",
+      "Complex Organisms",
+      "Felsic Magma",
+      "Heavy Metals",
+      "Ionic Solutions",
+      "Microorganisms",
+      "Noble Gas",
+      "Noble Metals",
+      "Non-CS Crystals",
+      "Planktic Colonies",
+      "Reactive Gas",
+      "Suspended Plasma"
+    ],
+    "pi_p1": [
+      "Bacteria",
+      "Biofuels",
+      "Biomass",
+      "Chiral Structures",
+      "Electrolytes",
+      "Industrial Fibers",
+      "Oxidizing Compound",
+      "Oxygen",
+      "Plasmoids",
+      "Precious Metals",
+      "Proteins",
+      "Reactive Metals",
+      "Silicon",
+      "Toxic Metals",
+      "Water"
+    ],
+    "salvage": [
+      "Alloyed Tritanium Bar",
+      "Armor Plates",
+      "Broken Drone Transceiver",
+      "Burned Logic Circuit",
+      "Charred Micro Circuit",
+      "Conductive Polymer",
+      "Contaminated Lorentz Fluid",
+      "Contaminated Nanite Compound",
+      "Damaged Artificial Neural Network",
+      "Defective Current Pump",
+      "Fried Interface Circuit",
+      "Malfunctioning Shield Emitter",
+      "Melted Capacitor Console",
+      "Scorched Telemetry Processor",
+      "Smashed Trigger Unit",
+      "Tangled Power Conduit",
+      "Thruster Console",
+      "Tripped Power Circuit",
+      "Ward Console"
+    ]
+  },
+
+  "default_terminal": {
+    "description": "Materials that are typically bought rather than built, but CAN be manufactured",
+    "pi_p2_plus": {
+      "terminal_by_default": true,
+      "note": "P2, P3, P4 can be manufactured at customs offices but are usually bought",
+      "items": "See material_sources.json pi_p2, pi_p3, pi_p4 arrays"
+    },
+    "reaction_intermediates": {
+      "terminal_by_default": true,
+      "note": "Moon goo reactions require refinery and reaction skills - usually bought",
+      "items": "See material_sources.json reaction_intermediates array"
+    }
+  },
+
+  "buildable_components": {
+    "description": "Components that have blueprints and are often worth building",
+    "ship_components": {
+      "Auto-Integrity Preservation Seal": {
+        "blueprint": "Auto-Integrity Preservation Seal Blueprint",
+        "typically_profitable": true,
+        "materials_include": ["minerals", "pi"]
+      },
+      "Core Temperature Regulator": {
+        "blueprint": "Core Temperature Regulator Blueprint",
+        "typically_profitable": true,
+        "materials_include": ["minerals", "pi"]
+      },
+      "Life Support Backup Unit": {
+        "blueprint": "Life Support Backup Unit Blueprint",
+        "typically_profitable": true,
+        "materials_include": ["minerals", "pi"]
+      }
+    },
+    "capital_components": {
+      "note": "Capital ship components - requires specialized manufacturing",
+      "typically_terminal": true
+    },
+    "t2_components": {
+      "note": "T2 components require reactions and advanced materials",
+      "typically_terminal": true
+    }
+  },
+
+  "chain_depth_limits": {
+    "description": "Safety limits to prevent infinite recursion",
+    "max_depth": 5,
+    "rationale": "T1 ships rarely go deeper than 2-3 levels. T2/T3 can go deeper but we cap at 5."
+  },
+
+  "resolution_modes": {
+    "buy_all_components": {
+      "description": "Stop at any manufactured component - show market prices only",
+      "terminals": ["all materials that have blueprints"]
+    },
+    "build_ship_components": {
+      "description": "Build ship components (Seals, Regulators, etc.) but buy PI/reactions",
+      "build": ["ship_components"],
+      "terminal": ["pi_p2", "pi_p3", "pi_p4", "reaction_intermediates"]
+    },
+    "build_all": {
+      "description": "Build everything possible down to raw materials",
+      "terminal": ["always_terminal items only"]
+    }
+  }
+}

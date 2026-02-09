@@ -1,0 +1,73 @@
+# Test fixture: NPC blueprint search
+# Tests finding NPC-seeded blueprints near origin
+
+name: "Venture Blueprint NPC source search"
+skill: find
+description: |
+  Search for Venture Blueprint from NPC sources.
+  NPC orders have duration >= 364 days and should be prioritized
+  for blueprint purchases due to stable availability.
+
+input:
+  item: Venture Blueprint
+  origin: Jita
+  source_filter: npc
+  max_jumps: 20
+
+expected_output:
+  type_id: 32880
+  type_name: "Venture Blueprint"
+  origin_system: "Jita"
+  origin_region: "The Forge"
+  source_filter_applied: "npc"
+  source_filter_suggested: "npc"
+  total_found: 3
+  regions_searched:
+    - "The Forge"
+    - "The Citadel"
+  sources:
+    - order_id: 6500000001
+      price: 500000.0
+      volume_remain: 50
+      volume_total: 50
+      station_id: 60003760
+      station_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+      system_id: 30000142
+      system_name: "Jita"
+      security: 0.95
+      region_id: 10000002
+      region_name: "The Forge"
+      jumps_from_origin: 0
+      route_security: "high"
+      duration: 365
+      is_npc: true
+      issued: "2024-01-01T00:00:00Z"
+      price_flags: []
+  warnings: []
+
+expected_facts:
+  # Type validation
+  - path: "type_id"
+    equals: 32880
+
+  - path: "type_name"
+    equals: "Venture Blueprint"
+
+  # Filter validation
+  - path: "source_filter_applied"
+    equals: "npc"
+
+  # All sources must be NPC (duration >= 364)
+  - path: "sources[*].is_npc"
+    all_satisfy: "== 1"
+
+  - path: "sources[*].duration"
+    all_satisfy: ">= 364"
+
+  # Prices should be positive
+  - path: "sources[*].price"
+    all_satisfy: "> 0"
+
+  # Distance should be non-negative
+  - path: "sources[*].jumps_from_origin"
+    all_satisfy: ">= 0"

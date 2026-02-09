@@ -1,0 +1,228 @@
+{
+  "encoding": "cl100k_base",
+  "files": {
+    "shared": [
+      {
+        "path": "personas/_shared/rp-levels.md",
+        "exists": true,
+        "tokens": 325,
+        "lines": 47,
+        "chars": 1362
+      },
+      {
+        "path": "personas/_shared/skill-loading.md",
+        "exists": true,
+        "tokens": 705,
+        "lines": 93,
+        "chars": 2678
+      }
+    ],
+    "aria-mk4": [
+      {
+        "path": "personas/aria-mk4/manifest.yaml",
+        "exists": true,
+        "tokens": 80,
+        "lines": 16,
+        "chars": 279
+      },
+      {
+        "path": "personas/aria-mk4/voice.md",
+        "exists": true,
+        "tokens": 335,
+        "lines": 50,
+        "chars": 1494
+      },
+      {
+        "path": "personas/aria-mk4/intel-sources.md",
+        "exists": true,
+        "tokens": 257,
+        "lines": 34,
+        "chars": 1141
+      }
+    ],
+    "aura-c": [
+      {
+        "path": "personas/aura-c/manifest.yaml",
+        "exists": true,
+        "tokens": 79,
+        "lines": 16,
+        "chars": 274
+      },
+      {
+        "path": "personas/aura-c/voice.md",
+        "exists": true,
+        "tokens": 297,
+        "lines": 50,
+        "chars": 1372
+      },
+      {
+        "path": "personas/aura-c/intel-sources.md",
+        "exists": true,
+        "tokens": 234,
+        "lines": 34,
+        "chars": 1086
+      }
+    ],
+    "vind": [
+      {
+        "path": "personas/vind/manifest.yaml",
+        "exists": true,
+        "tokens": 80,
+        "lines": 16,
+        "chars": 263
+      },
+      {
+        "path": "personas/vind/voice.md",
+        "exists": true,
+        "tokens": 309,
+        "lines": 50,
+        "chars": 1311
+      },
+      {
+        "path": "personas/vind/intel-sources.md",
+        "exists": true,
+        "tokens": 209,
+        "lines": 33,
+        "chars": 968
+      }
+    ],
+    "throne": [
+      {
+        "path": "personas/throne/manifest.yaml",
+        "exists": true,
+        "tokens": 74,
+        "lines": 16,
+        "chars": 260
+      },
+      {
+        "path": "personas/throne/voice.md",
+        "exists": true,
+        "tokens": 304,
+        "lines": 50,
+        "chars": 1317
+      },
+      {
+        "path": "personas/throne/intel-sources.md",
+        "exists": true,
+        "tokens": 220,
+        "lines": 33,
+        "chars": 994
+      }
+    ],
+    "paria": [
+      {
+        "path": "personas/paria/manifest.yaml",
+        "exists": true,
+        "tokens": 105,
+        "lines": 21,
+        "chars": 355
+      },
+      {
+        "path": "personas/paria/voice.md",
+        "exists": true,
+        "tokens": 711,
+        "lines": 84,
+        "chars": 2870
+      },
+      {
+        "path": "personas/paria/intel-sources.md",
+        "exists": true,
+        "tokens": 306,
+        "lines": 42,
+        "chars": 1318
+      }
+    ],
+    "paria-overlays": [
+      {
+        "path": "personas/paria/skill-overlays/threat-assessment.md",
+        "exists": true,
+        "tokens": 840,
+        "lines": 89,
+        "chars": 3302
+      },
+      {
+        "path": "personas/paria/skill-overlays/route.md",
+        "exists": true,
+        "tokens": 1174,
+        "lines": 107,
+        "chars": 4396
+      },
+      {
+        "path": "personas/paria/skill-overlays/fitting.md",
+        "exists": true,
+        "tokens": 1052,
+        "lines": 119,
+        "chars": 3797
+      },
+      {
+        "path": "personas/paria/skill-overlays/price.md",
+        "exists": true,
+        "tokens": 1176,
+        "lines": 130,
+        "chars": 4176
+      },
+      {
+        "path": "personas/paria/skill-overlays/mission-brief.md",
+        "exists": true,
+        "tokens": 960,
+        "lines": 117,
+        "chars": 3837
+      }
+    ],
+    "paria-exclusive": [
+      {
+        "path": "personas/paria-exclusive/mark-assessment.md",
+        "exists": true,
+        "tokens": 2044,
+        "lines": 236,
+        "chars": 6712
+      },
+      {
+        "path": "personas/paria-exclusive/hunting-grounds.md",
+        "exists": true,
+        "tokens": 1596,
+        "lines": 232,
+        "chars": 6285
+      },
+      {
+        "path": "personas/paria-exclusive/escape-route.md",
+        "exists": true,
+        "tokens": 1657,
+        "lines": 238,
+        "chars": 6213
+      },
+      {
+        "path": "personas/paria-exclusive/ransom-calc.md",
+        "exists": true,
+        "tokens": 1884,
+        "lines": 252,
+        "chars": 6512
+      },
+      {
+        "path": "personas/paria-exclusive/sec-status.md",
+        "exists": true,
+        "tokens": 1886,
+        "lines": 235,
+        "chars": 6378
+      }
+    ]
+  },
+  "totals": {
+    "by_group": {
+      "shared": 1030,
+      "aria-mk4": 672,
+      "aura-c": 610,
+      "vind": 598,
+      "throne": 598,
+      "paria": 1122,
+      "paria-overlays": 5202,
+      "paria-exclusive": 9067
+    },
+    "grand_total": 18899
+  },
+  "session_loads": {
+    "empire_avg": 1649,
+    "paria_base": 2152,
+    "paria_with_overlays": 7354
+  }
+}

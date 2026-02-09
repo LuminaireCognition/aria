@@ -1,0 +1,68 @@
+# G-Eval Configuration for /fitting skill
+# Layer 3 semantic validation using LLM-as-judge
+#
+# Run with: uv run pytest tests/skills/test_semantic.py -m semantic -k fitting
+# Requires: ANTHROPIC_API_KEY environment variable and deepeval package
+
+skill: fitting
+evaluator: g-eval
+model: claude-3-haiku-20240307  # Cost-effective for evals (~$0.001/eval)
+
+# Passing threshold: weighted average of all criteria must be >= this value
+passing_threshold: 3.5
+
+criteria:
+  fit_validity:
+    weight: 0.4
+    prompt: |
+      Score 1-5: Is the ship fitting valid and flyable?
+
+      A valid fit must:
+      - Have no slot overflow (not too many modules for available slots)
+      - Stay within CPU and powergrid limits
+      - Use modules that can actually be fit to that ship
+      - Include essential modules (tank, weapons appropriate to ship)
+
+      5 = Fully valid, would import into EVE without errors
+      4 = Valid with minor optimization opportunities
+      3 = Mostly valid, minor slot or fitting issues
+      2 = Has problems but partially flyable
+      1 = Invalid fit with major errors
+
+  purpose_match:
+    weight: 0.3
+    prompt: |
+      Score 1-5: Is this fit appropriate for the stated purpose?
+
+      Stated purpose: {purpose}
+
+      Check if the fit:
+      - Has appropriate tank type for the activity
+      - Deals appropriate damage type
+      - Has correct range (short vs long range)
+      - Is within reasonable skill requirements
+      - Matches the ship's bonuses and role
+
+      5 = Perfect match, optimal for stated purpose
+      4 = Good match, would perform well
+      3 = Adequate, would work but not optimal
+      2 = Suboptimal, significant compromises
+      1 = Wrong fit for purpose
+
+  explanation_quality:
+    weight: 0.3
+    prompt: |
+      Score 1-5: Does the explanation help the pilot understand?
+
+      Good explanations should cover:
+      - Why key modules were chosen
+      - How to fly the fit (range, engagement style)
+      - Skill requirements and training priorities
+      - Upgrade path as skills improve
+      - Warnings about weaknesses
+
+      5 = Comprehensive, educational explanation
+      4 = Good explanation covering essentials
+      3 = Basic explanation, covers main points
+      2 = Minimal explanation, missing key info
+      1 = No useful explanation

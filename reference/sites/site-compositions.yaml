@@ -1,0 +1,670 @@
+# reference/sites/site-compositions.yaml
+---
+# Metadata
+schema_version: "1.0"
+last_updated: "2026-01-19"
+maintainer: "ARIA Project"
+research_source: "dev/mechanics/EveOnlineSpecialSpawnSitesInventory.md"
+
+# =============================================================================
+# MINING ANOMALIES
+# =============================================================================
+mining_anomalies:
+
+  # ---------------------------------------------------------------------------
+  # Empire Border Rare Asteroids (Inventory Section 2)
+  # ---------------------------------------------------------------------------
+  empire_border_rare_asteroids:
+    display_name: "Empire Border Rare Asteroids"
+    description: "Rare ore deposits in 0.5 high-sec systems adjacent to low-sec"
+    category: "cosmic_anomaly"
+
+    spawn_conditions:
+      security_status: 0.5
+      security_type: "high-sec"
+      adjacency_requirement: "Gate connection to low-sec (0.1-0.4) system"
+      max_spawns_per_system: 1  # Catalyst patch restriction
+
+    respawn_behavior:
+      trigger: "clearance"
+      description: "Respawns elsewhere in region/constellation when fully mined"
+      mechanic: "whac-a-mole distribution"
+
+    contents:
+      - ore: "Ytirium"
+        type_id: 74525
+        group: "Ytirium"
+        count: 16
+        quantity: 200000
+        volume_m3: 120000
+        strategic_value: "Primary Isogen source in high-sec"
+      - ore: "Ducinium"
+        type_id: 74533
+        group: "Ducinium"
+        count: 1
+        quantity: 2073
+        volume_m3: 33168
+        strategic_value: "High-value Megacyte source"
+      - ore: "Eifyrium"
+        type_id: 74529
+        group: "Eifyrium"
+        count: 1
+        quantity: 2073
+        volume_m3: 33168
+        strategic_value: "High-value Zydrine source"
+      - ore: "Jet Ochre"
+        type_id: 46675
+        group: "Dark Ochre"
+        count: 1
+        quantity: 1036
+        volume_m3: 8288
+        strategic_value: "Compact Nocxium and Isogen"
+      - ore: "Pellucid Crokite"
+        type_id: 46677
+        group: "Crokite"
+        count: 1
+        quantity: 1036
+        volume_m3: 16576
+        strategic_value: "High-yield Nocxium, Zydrine, Megacyte"
+
+    totals:
+      asteroid_count: 20
+      total_quantity: 206218
+      total_volume_m3: 211200
+
+    tactical_notes:
+      - "Ducinium and Eifyrium are 'jackpot' nodes - extract first"
+      - "Single barge can clear high-value ores in <2 cycles"
+      - "Ytirium bulk suitable for subsequent miners"
+
+    sources:
+      - url: "https://wiki.eveuniversity.org/Empire_Border_Rare_Asteroids"
+        citation: 4
+        accessed: "2026-01-19"
+        verified: true
+      - url: "https://www.eveonline.com/news/view/catalyst-expansion-notes"
+        citation: 5
+        accessed: "2026-01-19"
+        note: "Spawn restriction patch"
+
+    tags:
+      - "border"
+      - "rare-ore"
+      - "high-sec"
+      - "isogen"
+      - "0.5-security"
+
+  # ---------------------------------------------------------------------------
+  # W-Space Blue A0 Rare Asteroids (Inventory Section 3.2.1)
+  # ---------------------------------------------------------------------------
+  wspace_blue_a0_rare_asteroids:
+    display_name: "W-Space Blue A0 Rare Asteroids"
+    description: "Rare ore deposits in wormhole systems with Type A0 (blue) stars"
+    category: "cosmic_anomaly"
+
+    spawn_conditions:
+      space_type: "wormhole"
+      stellar_class: "A0"
+      stellar_description: "Small Blue Star"
+
+    contents:
+      - ore: "Mordunium"
+        type_id: 74521
+        group: "Mordunium"
+        count: 15
+        quantity: 1335465
+        volume_m3: null  # High - needs verification
+        strategic_value: "Exclusive Pyerite/Mexallon source in W-space"
+      - ore: "Ytirium"
+        type_id: 74525
+        group: "Ytirium"
+        count: 30
+        quantity: 2000000
+        volume_m3: 1200000  # 0.6 m3/unit
+        strategic_value: "Isogen bulk source"
+      - ore: "Ducinium"
+        type_id: 74533
+        group: "Ducinium"
+        count: 2
+        quantity: 13554
+        volume_m3: 216864
+        strategic_value: "Zydrine/Megacyte"
+      - ore: "Eifyrium"
+        type_id: 74529
+        group: "Eifyrium"
+        count: 2
+        quantity: 8012
+        volume_m3: 128192
+        strategic_value: "Zydrine source"
+      - ore: "Jet Ochre"
+        type_id: 46675
+        group: "Dark Ochre"
+        count: 2
+        quantity: 5342
+        volume_m3: 42736
+        strategic_value: "Nocxium/Isogen"
+      - ore: "Pellucid Crokite"
+        type_id: 46677
+        group: "Crokite"
+        count: 2
+        quantity: 5342
+        volume_m3: 85472
+        strategic_value: "Nocxium/Zydrine"
+
+    tactical_notes:
+      - "30 Ytirium + 15 Mordunium = can sustain small WH corp industry"
+      - "Significantly larger than Empire EBRA sites"
+
+    sources:
+      - url: "http://wiki.eveuniversity.org/W-Space_Blue_A0_Rare_Asteroids"
+        citation: 6
+        accessed: "2026-01-19"
+        verified: true
+
+    tags:
+      - "wormhole"
+      - "a0-star"
+      - "rare-ore"
+      - "mordunium"
+
+  # ---------------------------------------------------------------------------
+  # Nullsec Blue A0 Rare Asteroids (Inventory Section 3.2.2)
+  # ---------------------------------------------------------------------------
+  nullsec_blue_a0_rare_asteroids:
+    display_name: "Nullsec Blue A0 Rare Asteroids"
+    description: "Massive rare ore deposits in nullsec systems with Type A0 stars"
+    category: "cosmic_anomaly"
+
+    spawn_conditions:
+      space_type: "nullsec"
+      stellar_class: "A0"
+      stellar_description: "Small Blue Star"
+      max_spawns_per_system: 1  # Catalyst patch restriction
+
+    contents:
+      - ore: "Moonshine Ytirium"
+        type_id: 74528
+        group: "Ytirium"
+        count: 94
+        quantity: 7000000
+        volume_m3: 4200000
+        strategic_value: "Massive Isogen deposit"
+      - ore: "Plunder Mordunium"
+        type_id: 74524
+        group: "Mordunium"
+        count: 20
+        quantity: 1795960
+        volume_m3: 179596
+        strategic_value: "Pyerite/Mexallon"
+      - ore: "Imperial Ducinium"
+        type_id: 74536
+        group: "Ducinium"
+        count: 2
+        quantity: 17960
+        volume_m3: 287360
+        strategic_value: "Enhanced Megacyte yield"
+      - ore: "Augmented Eifyrium"
+        type_id: 74532
+        group: "Eifyrium"
+        count: 2
+        quantity: 10776
+        volume_m3: 172416
+        strategic_value: "Enhanced Zydrine yield"
+      - ore: "Jet Ochre"
+        type_id: 46675
+        group: "Dark Ochre"
+        count: 2
+        quantity: 7184
+        volume_m3: 57472
+        strategic_value: "Nocxium/Isogen"
+
+    tactical_notes:
+      - "4.2M m3 Moonshine Ytirium requires Rorqual or compression"
+      - "Logistical challenge - not suitable for small fleets"
+
+    sources:
+      - url: "https://wiki.eveuniversity.org/Nullsec_Blue_A0_Rare_Asteroids"
+        citation: 8
+        accessed: "2026-01-19"
+        verified: true
+
+    tags:
+      - "nullsec"
+      - "a0-star"
+      - "rare-ore"
+      - "rorqual-scale"
+
+# =============================================================================
+# GAS SITES (Inventory Section 4)
+# =============================================================================
+gas_sites:
+
+  # ---------------------------------------------------------------------------
+  # Mykoserocin Distribution
+  # ---------------------------------------------------------------------------
+  mykoserocin:
+    description: "Synth booster gas, spawns in high-sec and low-sec"
+    security_types: ["high-sec", "low-sec"]
+
+    flavors:
+      amber_blue_pill:
+        gas_type: "Amber Mykoserocin"
+        type_id: 28694
+        booster: "Synth Blue Pill"
+        nebula: "Sunspark Nebula"
+        regions:
+          - "Black Rise"
+          - "Lonetrek"
+          - "Outer Passage"
+          - "Sinq Laison"
+          - "The Citadel"
+          - "The Forge"
+          - "The Spire"
+
+      azure_sooth_sayer:
+        gas_type: "Azure Mykoserocin"
+        type_id: 28695
+        booster: "Synth Sooth Sayer"
+        nebulae:
+          - "Ghost Nebula"
+          - "Eagle Nebula"
+        regions:
+          - "Derelik"
+          - "Devoid"
+          - "The Bleak Lands"
+          - "Heimatar"
+          - "Molden Heath"
+          - "Curse"
+        highsec_spawns:
+          confirmed: true
+          regions: ["Derelik", "Heimatar"]
+          security_min: 0.5
+          note: "Rare spawns, significantly lower volume than lowsec"
+        notes: "Minmatar/Ammatar border regions"
+
+      celadon_exile:
+        gas_type: "Celadon Mykoserocin"
+        type_id: 28696
+        booster: "Synth Exile"
+        nebula: "Calabash Nebula"
+        regions:
+          - "Domain"
+          - "Genesis"
+          - "Placid"
+          - "Solitude"
+          - "Fountain (Pegasus Constellation)"
+
+      golden_crash:
+        gas_type: "Golden Mykoserocin"
+        type_id: 28697
+        booster: "Synth Crash"
+        nebula: null
+        regions:
+          - "Lonetrek (Umamon constellation)"
+        notes: "Historical data - verify current spawn"
+
+      lime_frentix:
+        gas_type: "Lime Mykoserocin"
+        type_id: 28698
+        booster: "Synth Frentix"
+        nebula: "Sister Nebula"
+        regions:
+          - "Aridia"
+          - "Curse"
+          - "Derelik"
+          - "Kador"
+          - "Khanid"
+          - "Omist"
+          - "Solitude"
+          - "Wicked Creek"
+
+      malachite_mindflood:
+        gas_type: "Malachite Mykoserocin"
+        type_id: 28699
+        booster: "Synth Mindflood"
+        nebula: "Wild Nebula"
+        regions:
+          - "Aridia"
+          - "Insmother"
+          - "Kor-Azor"
+          - "Curse"
+          - "Omist"
+          - "Solitude"
+          - "Tash-Murkon"
+
+      vermillion_x_instinct:
+        gas_type: "Vermillion Mykoserocin"
+        type_id: 28700
+        booster: "Synth X-Instinct"
+        nebulae:
+          - "Flame Nebula"
+          - "Pipe Nebula"
+        regions:
+          - "Heimatar"
+          - "Great Wildlands"
+          - "Insmother"
+          - "Omist"
+          - "Tenerifis"
+          - "Metropolis"
+          - "Curse"
+        highsec_spawns:
+          confirmed: true
+          regions: ["Heimatar"]
+          security_min: 0.5
+          note: "Rare spawns, significantly lower volume than lowsec"
+        notes: "Minmatar space and southern nullsec"
+
+      viridian_drop:
+        gas_type: "Viridian Mykoserocin"
+        type_id: 28701
+        booster: "Synth Drop"
+        nebula: "Bright Nebula"
+        regions:
+          - "Essence"
+          - "Fountain"
+          - "Placid"
+          - "Tenal"
+          - "Venal"
+
+    respawn_behavior:
+      trigger: "depletion"
+      scope: "regional"
+      description: "Depleting a site triggers respawn elsewhere in region"
+
+    sources:
+      - url: "https://wiki.eveuniversity.org/Gas_cloud_harvesting"
+        citation: 9
+        accessed: "2026-01-19"
+
+  # ---------------------------------------------------------------------------
+  # Cytoserocin Distribution
+  # ---------------------------------------------------------------------------
+  cytoserocin:
+    description: "Standard/Strong booster gas, primarily nullsec"
+    security_types: ["nullsec", "low-sec"]
+
+    hazard:
+      type: "thermal"
+      description: "Clouds deal thermal damage to ships inside"
+      mitigation: "Hardened mining vessels or logistics support"
+
+    flavors:
+      amber_cytoserocin:
+        type_id: 25268
+        booster: "Blue Pill"
+      azure_cytoserocin:
+        type_id: 25279
+        booster: "Sooth Sayer"
+      celadon_cytoserocin:
+        type_id: 25275
+        booster: "Exile"
+      golden_cytoserocin:
+        type_id: 25273
+        booster: "Crash"
+      lime_cytoserocin:
+        type_id: 25277
+        booster: "Frentix"
+      malachite_cytoserocin:
+        type_id: 25276
+        booster: "Mindflood"
+      vermillion_cytoserocin:
+        type_id: 25278
+        booster: "X-Instinct"
+      viridian_cytoserocin:
+        type_id: 25274
+        booster: "Drop"
+
+    spawn_notes:
+      - "Specific constellations act as high-probability anchors"
+      - "Example: Serthoulde (Placid) for Viridian Cytoserocin"
+      - "Regional distribution needs research - Inventory Section 4.2 has partial data"
+
+    sources:
+      - url: "https://wiki.eveuniversity.org/Gas_cloud_harvesting"
+        citation: 9
+        accessed: "2026-01-19"
+      - url: "https://www.wckg.net/PVE/gas-mining"
+        citation: 12
+        accessed: "2026-01-19"
+
+  # ---------------------------------------------------------------------------
+  # Mission-Only Gas Commodities (NOT Harvestable)
+  # ---------------------------------------------------------------------------
+  mission_commodities:
+    description: |
+      These gas types exist in SDE but are NOT harvestable cosmic signatures.
+      They are mission objective items only, obtained from specific missions.
+
+    items:
+      chartreuse_cytoserocin:
+        type_id: 28630
+        mission: "Like Drones to a Cloud"
+        agent_type: "Distribution"
+        notes: "Mission objective item, not a harvestable gas site"
+
+      gamboge_cytoserocin:
+        type_id: 28629
+        mission: "Gas Injections"
+        agent_type: "Distribution"
+        notes: "Mission objective item, not a harvestable gas site"
+
+    sources:
+      - url: "dev/mechanics/EVEOnlineGasRegionalDataInquiry.md"
+        note: "Research document clarifying mission-only status"
+        accessed: "2026-01-19"
+
+# =============================================================================
+# SPECIAL NPC SPAWNS (Inventory Section 5)
+# =============================================================================
+special_npcs:
+
+  # ---------------------------------------------------------------------------
+  # Clone Soldiers (Inventory Section 5.1)
+  # ---------------------------------------------------------------------------
+  clone_soldiers:
+    description: "Security tag NPCs in low-sec asteroid belts"
+    spawn_location: "asteroid_belt"
+    security_type: "low-sec"
+    spawn_frequency: "~10% of belt spawns"
+
+    spawns_by_security:
+      - security: 0.4
+        designation: "Clone Soldier Trainer"
+        drop: "Clone Soldier Trainer Tag"
+        value_tier: "lowest"
+      - security: 0.3
+        designation: "Clone Soldier Recruiter"
+        drop: "Clone Soldier Recruiter Tag"
+        value_tier: "low"
+      - security: 0.2
+        designation: "Clone Soldier Transporter"
+        drop: "Clone Soldier Transporter Tag"
+        value_tier: "high"
+        estimated_value: "~25M ISK"
+      - security: 0.1
+        designation: "Clone Soldier Negotiator"
+        drop: "Clone Soldier Negotiator Tag"
+        value_tier: "highest"
+        estimated_value: "~30M+ ISK"
+
+    farming_mechanic:
+      method: "belt_chaining"
+      description: "Clear all rats (or just BS/commanders) to force respawn"
+      respawn_timer: "~20 minutes"
+
+    tactical_notes:
+      - "Negotiators/Transporters spawn in most dangerous 0.1/0.2 systems"
+      - "Dead-end systems have highest capital escalation risk"
+
+    sources:
+      - url: "https://wiki.eveuniversity.org/Security_tags"
+        citation: 14
+        accessed: "2026-01-19"
+
+  # ---------------------------------------------------------------------------
+  # Mordu's Legion (Inventory Section 5.2)
+  # ---------------------------------------------------------------------------
+  mordus_legion:
+    description: "Rare spawns dropping Garmur/Orthrus/Barghest BPCs"
+    spawn_location: "asteroid_belt"
+    security_type: "low-sec"
+    preferred_security: [0.1, 0.2]
+
+    spawn_conditions:
+      - "Non-Faction Warfare low-sec"
+      - "Replaces standard belt rat spawn"
+
+    combat_profile:
+      warning: "Not standard rats"
+      traits:
+        - "Fast and agile"
+        - "Long-range warp scramblers"
+        - "Can tackle/destroy unprepared frigates"
+
+    farming_mechanic:
+      method: "belt_clearing"
+      description: "Same as Clone Soldier farming - clear belts to roll for spawn"
+
+    sources:
+      - url: "https://www.reddit.com/r/Eve/comments/xq4mqt/beat_the_rare_npc_mordus_special_warfare_unit/"
+        citation: 19
+        accessed: "2026-01-19"
+
+# =============================================================================
+# COMBAT SITES (Inventory Section 5.3)
+# =============================================================================
+combat_sites:
+
+  # ---------------------------------------------------------------------------
+  # Besieged Covert Research Facility
+  # ---------------------------------------------------------------------------
+  besieged_covert_research_facility:
+    display_name: "Besieged Covert Research Facility"
+    description: "High-difficulty low-sec combat anomaly"
+    category: "combat_anomaly"
+    security_type: "low-sec"
+    gated: false
+
+    defenders:
+      faction: "Mordu's Legion"
+      dps_output: "up to 1000 DPS"
+      damage_types: ["Kinetic", "Thermal"]
+      ewar:
+        - type: "Web"
+          range: "100km"
+        - type: "Warp Disruptor"
+          range: "100km"
+
+    loot_table:
+      - category: "BPCs"
+        items: ["Mordu hull blueprints"]
+      - category: "Implants"
+        items: ["Low-Grade sets", "Mid-Grade sets (Virtue, Nomad, etc.)"]
+      - category: "Ammo"
+        items: ["Faction missiles/charges"]
+      - category: "Skillbooks"
+        items: ["Neurotoxin Recovery", "other drug skills"]
+
+    completion_mechanic:
+      method: "Destroy structure"
+      target: "Guristas Research and Trade Hub"
+      hacking_required: false
+
+    recommended_ships:
+      - "Passive Gila"
+      - "Marauder"
+
+    sources:
+      - url: "https://wiki.eveuniversity.org/Besieged_Covert_Research_Facility"
+        citation: 22
+        accessed: "2026-01-19"
+
+# =============================================================================
+# NULLSEC SPECIAL MECHANICS (Inventory Section 6)
+# =============================================================================
+nullsec_mechanics:
+
+  # ---------------------------------------------------------------------------
+  # True Security Thresholds
+  # ---------------------------------------------------------------------------
+  true_security_spawns:
+    description: "Spawns gated by True Sec (hidden floating-point value)"
+
+    officer_spawns:
+      threshold: -0.8
+      description: "Officers only spawn in -0.8 True Sec or lower"
+
+      faction_regions:
+        angel_cartel:
+          officers: ["Domination"]
+          regions: ["Curse", "Fountain", "Stain"]
+        blood_raiders:
+          officers: ["Dark Blood"]
+          regions: ["Delve", "Period Basis", "Querious"]
+        guristas:
+          officers: ["Dread Guristas"]
+          regions: ["Venal", "Tenal", "Tribute", "Deklein"]
+        sanshas_nation:
+          officers: ["True Sansha"]
+          regions: ["Stain", "Catch"]
+        drones:
+          officers: ["Sentient (Unit P, Unit F, etc.)"]
+          regions: ["Malpais", "Perrigen Falls"]
+
+    mercoxit:
+      threshold: -0.8
+      description: "Natural Mercoxit only in -0.8 True Sec or lower"
+      bypass: "Ore Prospecting Array IHUB upgrade forces spawns regardless of True Sec"
+      npc_nullsec_note: "No bypass available - -0.8 rule is absolute"
+
+    sources:
+      - url: "https://forums.eveonline.com/t/officer-spawns/116571"
+        citation: 24
+        accessed: "2026-01-19"
+
+# =============================================================================
+# METADATA
+# =============================================================================
+_metadata:
+  research_documents:
+    - path: "dev/mechanics/EveOnlineSpecialSpawnSitesInventory.md"
+      citations: 45
+      scope: "All site types (mining, gas, combat, special NPCs)"
+    - path: "dev/mechanics/EVEOnlineGasRegionalDataInquiry.md"
+      citations: 12
+      scope: "Gas regional distribution, mission item clarifications"
+  schema_version: "1.0"
+
+  sde_validation:
+    last_validated: "2026-01-19"
+    validation_method: "Cross-referenced via sde_search MCP tool and EVE University Wiki"
+    status: "complete"
+    findings:
+      - "All ore type_ids verified against SDE"
+      - "All gas type_ids verified against SDE"
+      - "Added 2 missing Mykoserocin flavors (Azure, Vermillion) with full regional data"
+      - "Azure Mykoserocin: Derelik, Devoid, Bleak Lands, Heimatar, Molden Heath, Curse"
+      - "Vermillion Mykoserocin: Heimatar, Great Wildlands, Insmother, Omist, Tenerifis, Metropolis, Curse"
+      - "Confirmed Chartreuse Cytoserocin is mission item ('Like Drones to a Cloud'), not harvestable"
+      - "Confirmed Gamboge Cytoserocin is mission item ('Gas Injections'), not harvestable"
+      - "Corrected 4 booster mappings per EVE Uni Wiki: Golden->Crash, Azure->Sooth Sayer, Vermillion->X-Instinct"
+      - "Ytirium volume confirmed: 0.6 m3/unit (W-Space totals calculated)"
+      - "Mission-only gas status (Chartreuse/Gamboge) validated - prevents false industrial advice"
+
+  coverage_notes: |
+    This file covers Phases 1-3 of the original proposal roadmap.
+    Additional content from Inventory not yet extracted:
+    - NPC Shipyard mechanics (Section 7)
+    - Pochven sites (Section 8.1-8.2)
+      NOTE: Observatory Flashpoint Keys are legacy/lore artifacts and are NOT
+      required to enter or warp to Pochven sites in the 2026 environment.
+    - Drifter Hives (Section 8.3)
+    - Shattered Wormhole Ice (Section 8.4)
+    - Metaliminal Storm effects (Section 9.1)
+    - Chemical Labs (Section 9.2)
+    - Thukker Component sites (Section 9.3)
+
+  data_gaps:
+    - "W-Space A0 Mordunium volume: Marked null, needs in-game verification"
+    - "Cytoserocin constellation-specific spawn weights: Inventory Section 4.2 has partial data"
+    - "High-sec Mykoserocin spawn frequency: Confirmed rare but no quantitative data"

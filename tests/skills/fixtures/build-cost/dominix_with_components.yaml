@@ -1,0 +1,282 @@
+# Test fixture: Dominix with ship components
+# This fixture validates that ship blueprints with manufactured components are handled correctly.
+# The Dominix requires 7 minerals plus 3 ship components (Auto-Integrity Preservation Seal,
+# Life Support Backup Unit, Core Temperature Regulator).
+#
+# This catches bugs where component materials are omitted from the materials list,
+# which was the original failure case motivating this fixture.
+
+name: "Dominix with ship components"
+skill: build-cost
+description: |
+  Validates the original failure case - ship blueprints with manufactured
+  components. This catches bugs where component materials are omitted from
+  the materials list.
+
+  Dominix requires:
+  - 7 minerals (Tritanium through Megacyte)
+  - 3 ship components (type IDs 57478, 57486, 57479)
+
+  If components are excluded, the build cost will be significantly underestimated
+  (missing ~20M+ ISK in component costs at current prices).
+
+input:
+  item: Dominix
+  me_level: 10
+  region: jita
+
+expected_output:
+  blueprint:
+    type_id: 999
+    type_name: "Dominix Blueprint"
+    product_type_id: 645
+    product_name: "Dominix"
+    produces_quantity: 1
+  materials:
+    # 7 minerals
+    - type_id: 34
+      type_name: "Tritanium"
+      base_quantity: 5200000
+      adjusted_quantity: 4680000
+      unit_price: 4.50
+      total_price: 21060000.0
+    - type_id: 35
+      type_name: "Pyerite"
+      base_quantity: 2600000
+      adjusted_quantity: 2340000
+      unit_price: 22.0
+      total_price: 51480000.0
+    - type_id: 36
+      type_name: "Mexallon"
+      base_quantity: 390000
+      adjusted_quantity: 351000
+      unit_price: 55.0
+      total_price: 19305000.0
+    - type_id: 37
+      type_name: "Isogen"
+      base_quantity: 130000
+      adjusted_quantity: 117000
+      unit_price: 150.0
+      total_price: 17550000.0
+    - type_id: 38
+      type_name: "Nocxium"
+      base_quantity: 15600
+      adjusted_quantity: 14040
+      unit_price: 450.0
+      total_price: 6318000.0
+    - type_id: 39
+      type_name: "Zydrine"
+      base_quantity: 3900
+      adjusted_quantity: 3510
+      unit_price: 1500.0
+      total_price: 5265000.0
+    - type_id: 40
+      type_name: "Megacyte"
+      base_quantity: 1950
+      adjusted_quantity: 1755
+      unit_price: 2500.0
+      total_price: 4387500.0
+    # 3 ship components - CRITICAL: These must be included
+    - type_id: 57478
+      type_name: "Auto-Integrity Preservation Seal"
+      base_quantity: 150
+      adjusted_quantity: 135
+      unit_price: 56000.0
+      total_price: 7560000.0
+    - type_id: 57486
+      type_name: "Life Support Backup Unit"
+      base_quantity: 75
+      adjusted_quantity: 68
+      unit_price: 85000.0
+      total_price: 5780000.0
+    - type_id: 57479
+      type_name: "Core Temperature Regulator"
+      base_quantity: 1
+      adjusted_quantity: 1
+      unit_price: 4800000.0
+      total_price: 4800000.0
+  total_material_cost: 143505500.0
+  product_value: 180000000.0
+  profit: 36494500.0
+  margin_pct: 25.43
+  me_level: 10
+  runs: 1
+  region: "The Forge"
+  region_id: 10000002
+  source: "fuzzwork"
+  freshness: "fresh"
+  warnings: []
+
+expected_facts:
+  # ==========================================================================
+  # CRITICAL: Verify component materials are present in the materials list
+  # These assertions will FAIL if component materials are excluded
+  # ==========================================================================
+
+  # Material count: 7 minerals + 3 components = 10 total
+  - path: "materials"
+    length: 10
+
+  # Verify specific component materials are in the list by type_id
+  # Auto-Integrity Preservation Seal
+  - path: "materials[*].type_id"
+    contains: 57478
+
+  # Life Support Backup Unit
+  - path: "materials[*].type_id"
+    contains: 57486
+
+  # Core Temperature Regulator
+  - path: "materials[*].type_id"
+    contains: 57479
+
+  # ==========================================================================
+  # Cost range assertions - will fail if components are missing
+  # ==========================================================================
+
+  # Total cost WITH components should be 100M-250M ISK
+  # WITHOUT components (minerals only), would be ~80-130M ISK
+  # This range ensures components must be included
+  - path: "total_material_cost"
+    range: [100000000, 300000000]
+
+  # Product value (sell price) for Dominix
+  - path: "product_value"
+    range: [150000000, 350000000]
+
+  # ==========================================================================
+  # Verify component costs are non-trivial
+  # ==========================================================================
+
+  # All material prices should be positive (catches null/zero price bugs)
+  - path: "materials[*].unit_price"
+    all_satisfy: "> 0"
+
+  # All total prices should be positive
+  - path: "materials[*].total_price"
+    all_satisfy: "> 0"
+
+  # ==========================================================================
+  # Blueprint and basic validation
+  # ==========================================================================
+
+  - path: "blueprint.product_name"
+    equals: "Dominix"
+
+  - path: "blueprint.type_id"
+    equals: 999
+
+  - path: "blueprint.product_type_id"
+    equals: 645
+
+  - path: "blueprint.produces_quantity"
+    equals: 1
+
+  - path: "me_level"
+    equals: 10
+
+  # Region should be The Forge (Jita)
+  - path: "region_id"
+    equals: 10000002
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  sde_blueprint_info:
+    type_id: 999
+    type_name: "Dominix Blueprint"
+    product_type_id: 645
+    product_name: "Dominix"
+    produces_quantity: 1
+    materials:
+      - type_id: 34
+        type_name: "Tritanium"
+        quantity: 5200000
+      - type_id: 35
+        type_name: "Pyerite"
+        quantity: 2600000
+      - type_id: 36
+        type_name: "Mexallon"
+        quantity: 390000
+      - type_id: 37
+        type_name: "Isogen"
+        quantity: 130000
+      - type_id: 38
+        type_name: "Nocxium"
+        quantity: 15600
+      - type_id: 39
+        type_name: "Zydrine"
+        quantity: 3900
+      - type_id: 40
+        type_name: "Megacyte"
+        quantity: 1950
+      - type_id: 57478
+        type_name: "Auto-Integrity Preservation Seal"
+        quantity: 150
+      - type_id: 57486
+        type_name: "Life Support Backup Unit"
+        quantity: 75
+      - type_id: 57479
+        type_name: "Core Temperature Regulator"
+        quantity: 1
+
+  market_prices:
+    items:
+      - type_id: 34
+        type_name: "Tritanium"
+        sell:
+          min_price: 4.50
+          volume: 1000000000
+      - type_id: 35
+        type_name: "Pyerite"
+        sell:
+          min_price: 22.0
+          volume: 500000000
+      - type_id: 36
+        type_name: "Mexallon"
+        sell:
+          min_price: 55.0
+          volume: 200000000
+      - type_id: 37
+        type_name: "Isogen"
+        sell:
+          min_price: 150.0
+          volume: 100000000
+      - type_id: 38
+        type_name: "Nocxium"
+        sell:
+          min_price: 450.0
+          volume: 50000000
+      - type_id: 39
+        type_name: "Zydrine"
+        sell:
+          min_price: 1500.0
+          volume: 10000000
+      - type_id: 40
+        type_name: "Megacyte"
+        sell:
+          min_price: 2500.0
+          volume: 5000000
+      - type_id: 57478
+        type_name: "Auto-Integrity Preservation Seal"
+        sell:
+          min_price: 56000.0
+          volume: 50000
+      - type_id: 57486
+        type_name: "Life Support Backup Unit"
+        sell:
+          min_price: 85000.0
+          volume: 30000
+      - type_id: 57479
+        type_name: "Core Temperature Regulator"
+        sell:
+          min_price: 4800000.0
+          volume: 5000
+      - type_id: 645
+        type_name: "Dominix"
+        sell:
+          min_price: 180000000.0
+          volume: 500
+    region: "The Forge"
+    region_id: 10000002

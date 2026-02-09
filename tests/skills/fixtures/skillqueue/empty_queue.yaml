@@ -1,0 +1,35 @@
+# Test fixture: Empty skill queue
+# Tests warning state when no skills are training
+
+name: "Empty Skill Queue"
+skill: skillqueue
+description: |
+  Handle empty skill queue with appropriate warning.
+  Pilot is not training any skills and needs to add some.
+
+input:
+  command: status
+
+expected_facts:
+  - path: "queue_status"
+    equals: "empty"
+
+  - path: "queue_length"
+    equals: 0
+
+  - path: "message"
+    contains: "empty"
+
+expected_output:
+  query_timestamp: "2026-01-31T12:30:00Z"
+  volatility: "volatile"
+  queue_status: "empty"
+  message: "Skill queue is empty - no skills training!"
+  queue_length: 0
+  skills: []
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  skillqueue: []

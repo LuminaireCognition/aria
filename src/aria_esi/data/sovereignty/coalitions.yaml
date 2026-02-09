@@ -1,0 +1,97 @@
+# Player Coalition Mappings for EVE Online
+# Community-maintained data - coalitions are player-defined groupings
+#
+# Schema version: 1.1
+# Last updated: 2026-02-04
+#
+# DATA AUTHORITY (see docs/DATA_AUTHORITY.md):
+# - Alliance IDs: MUST be validated against ESI before loading
+# - Coalition membership: Community-maintained (not in ESI)
+# - NPC data: Removed - query from SDE instead
+#
+# VALIDATION:
+# Run `uv run aria-esi sov-validate` before committing changes
+# Run `uv run aria-esi sov-validate --fix` to auto-correct from ESI
+#
+# Note: Coalition membership changes frequently. This file provides
+# a baseline that should be updated periodically from community sources
+# like Dotlan or EVE News.
+
+schema_version: "1.1"
+last_updated: "2026-02-04"
+
+coalitions:
+  # =========================================================================
+  # Major Null-Sec Coalitions
+  # =========================================================================
+
+  imperium:
+    display_name: "The Imperium"
+    aliases:
+      - "goons"
+      - "goonswarm"
+      - "gsf"
+      - "bees"
+      - "mittani"
+    alliances:
+      - id: 1354830081
+        name: "Goonswarm Federation"
+      - id: 131511956
+        name: "Tactical Narcotics Team"
+      - id: 1900696668
+        name: "The Initiative."
+      - id: 150097440
+        name: "Get Off My Lawn"
+      - id: 99009163
+        name: "Dracarys."
+
+  panfam:
+    display_name: "PanFam"
+    aliases:
+      - "pandemic"
+      - "horde"
+      - "ph"
+      - "pl"
+      - "ncpl"
+    alliances:
+      - id: 99005338
+        name: "Pandemic Horde"
+      - id: 386292982
+        name: "Pandemic Legion"
+      - id: 1727758877
+        name: "Northern Coalition."
+
+  fire:
+    display_name: "FI.RE Coalition"
+    aliases:
+      - "fire"
+      - "frt"
+      - "fraternity"
+      - "winterco"
+    alliances:
+      - id: 99003581
+        name: "Fraternity."
+      - id: 741557221
+        name: "RAZOR Alliance"
+
+# =========================================================================
+# Metadata
+# =========================================================================
+
+metadata:
+  source: "Community/DOTLAN"
+  update_frequency: "Monthly or on major changes"
+  data_authority: "docs/DATA_AUTHORITY.md"
+  notes: |
+    Coalition membership is fluid and changes based on diplomatic relations.
+    This file should be considered approximate and may not reflect the
+    current political state of null-sec.
+
+    To update:
+    1. Check current coalition status on Dotlan or EVE News
+    2. Update alliance lists (get IDs from DOTLAN alliance pages)
+    3. Run `uv run aria-esi sov-validate --fix` to verify/correct
+    4. Update last_updated timestamp
+    5. Commit changes
+
+    NPC null-sec data is NOT stored here - query from SDE instead.

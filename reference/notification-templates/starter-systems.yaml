@@ -1,0 +1,71 @@
+# Starter Systems Template
+# New player hubs and career agent systems
+#
+# Useful for helping new players, monitoring for griefing,
+# or tracking activity near newbie areas.
+#
+# Use: uv run aria-esi notifications create newbie-watch --template starter-systems --webhook <url>
+
+schema_version: 1
+
+name: "starter-systems"
+display_name: "Starter System Watch"
+description: "New player hubs and career agent systems"
+enabled: true
+webhook_url: ""  # User must fill in
+
+topology:
+  geographic:
+    systems:
+      # Gallente starter systems
+      - name: "Clellinon"
+        classification: "hunting"
+      - name: "Couster"
+        classification: "hunting"
+      - name: "Trossere"
+        classification: "hunting"
+      - name: "Duripant"
+        classification: "transit"
+
+      # Caldari starter systems
+      - name: "Akiainavas"
+        classification: "hunting"
+      - name: "Jouvulen"
+        classification: "hunting"
+      - name: "Todaki"
+        classification: "hunting"
+      - name: "Kisogo"
+        classification: "transit"
+
+      # Amarr starter systems
+      - name: "Deepari"
+        classification: "hunting"
+      - name: "Pasha"
+        classification: "hunting"
+      - name: "Chaven"
+        classification: "hunting"
+      - name: "Conoban"
+        classification: "transit"
+
+      # Minmatar starter systems
+      - name: "Ammold"
+        classification: "hunting"
+      - name: "Malukker"
+        classification: "hunting"
+      - name: "Hadaugago"
+        classification: "hunting"
+      - name: "Embod"
+        classification: "transit"
+
+triggers:
+  watchlist_activity: true
+  gatecamp_detected: true
+  high_value_threshold: 10000000  # 10M+ (notable for starter areas)
+
+throttle_minutes: 5
+
+quiet_hours:
+  enabled: false
+  start: "02:00"
+  end: "08:00"
+  timezone: "America/New_York"

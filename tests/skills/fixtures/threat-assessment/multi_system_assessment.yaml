@@ -1,0 +1,120 @@
+# Test fixture: Multi-system threat assessment
+# Tests /threat-assessment with multiple systems in a single query
+
+name: "Multi-system threat assessment"
+skill: threat-assessment
+description: |
+  Threat assessment for multiple systems along a route.
+  Tests batch activity lookup.
+
+input:
+  systems:
+    - Uedama
+    - Sivala
+    - Niarja
+  include_realtime: true
+
+expected_output:
+  systems:
+    - name: "Uedama"
+      system_id: 30002768
+      security: 0.50
+      security_class: "HIGH"
+      ship_kills: 15
+      pod_kills: 10
+      npc_kills: 2
+      ship_jumps: 3500
+      activity_level: "extreme"
+    - name: "Sivala"
+      system_id: 30002761
+      security: 0.54
+      security_class: "HIGH"
+      ship_kills: 3
+      pod_kills: 2
+      npc_kills: 5
+      ship_jumps: 2800
+      activity_level: "low"
+    - name: "Niarja"
+      system_id: 30003504
+      security: 0.50
+      security_class: "HIGH"
+      ship_kills: 12
+      pod_kills: 8
+      npc_kills: 1
+      ship_jumps: 4200
+      activity_level: "high"
+  cache_age_seconds: 60
+  data_period: "last_hour"
+  warnings: []
+
+expected_facts:
+  # Should return 3 systems
+  - path: "systems"
+    length: 3
+
+  # Uedama is a known gank system
+  - path: "systems[0].name"
+    equals: "Uedama"
+
+  - path: "systems[0].ship_kills"
+    range: [5, 100]
+
+  - path: "systems[0].activity_level"
+    one_of: ["high", "extreme"]
+
+  # Niarja is another gank pipe
+  - path: "systems[2].name"
+    equals: "Niarja"
+
+  - path: "systems[2].ship_kills"
+    range: [3, 80]
+
+  # All should be highsec (border systems)
+  - path: "systems[0].security_class"
+    equals: "HIGH"
+
+  - path: "systems[1].security_class"
+    equals: "HIGH"
+
+  - path: "systems[2].security_class"
+    equals: "HIGH"
+
+  # Security should be at the low end of highsec
+  - path: "systems[0].security"
+    range: [0.45, 0.55]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_activity:
+    systems:
+      - system_id: 30002768
+        name: "Uedama"
+        security: 0.50
+        security_class: "HIGH"
+        ship_kills: 15
+        pod_kills: 10
+        npc_kills: 2
+        ship_jumps: 3500
+        activity_level: "extreme"
+      - system_id: 30002761
+        name: "Sivala"
+        security: 0.54
+        security_class: "HIGH"
+        ship_kills: 3
+        pod_kills: 2
+        npc_kills: 5
+        ship_jumps: 2800
+        activity_level: "low"
+      - system_id: 30003504
+        name: "Niarja"
+        security: 0.50
+        security_class: "HIGH"
+        ship_kills: 12
+        pod_kills: 8
+        npc_kills: 1
+        ship_jumps: 4200
+        activity_level: "high"
+    cache_age_seconds: 60
+    data_period: "last_hour"

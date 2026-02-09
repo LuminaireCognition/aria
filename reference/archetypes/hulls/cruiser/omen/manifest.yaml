@@ -1,0 +1,68 @@
+# Omen Hull Manifest
+#
+# The Omen is an Amarr T1 cruiser specialized for lasers.
+# Excellent capacitor management skills required due to laser cap drain.
+
+hull: Omen
+class: cruiser
+faction: amarr
+tech_level: 1
+
+# Slot layout (from SDE)
+slots:
+  high: 5
+  mid: 3
+  low: 6
+  rig: 3
+
+# Drone/fighter capacity
+drones:
+  bandwidth: 30
+  bay: 30
+
+# Hull bonuses summary
+bonuses:
+  - "10% bonus to Medium Energy Turret damage per Amarr Cruiser level"
+  - "10% reduction in Medium Energy Turret capacitor use per Amarr Cruiser level"
+
+# Ship role classification
+roles:
+  - turret_boat
+  - armor_tank
+
+# Hull-specific fitting rules
+fitting_rules:
+  # Preferred tank type
+  tank_type: armor_active
+
+  # Weapon system
+  weapons:
+    primary: lasers
+    secondary: drones  # Limited drone bay, utility only
+
+  # Special instructions
+  notes:
+    - "4 turret hardpoints + 1 utility high"
+    - "Lasers use EM/Thermal damage - cannot change"
+    - "Heavy capacitor usage - train Controlled Bursts"
+    - "Cap Booster often required for sustained combat"
+    - "T1 crystals never break - carry all types"
+
+# Recommended crystal loadout
+crystal_recommendations:
+  brawling: "Multifrequency M"
+  general: "Standard M"
+  sniping: "Radio M"
+  note: "Crystals change optimal range, not damage type"
+
+# Cap stability expectations
+capacitor:
+  stable_expected: false
+  notes: "Lasers + active tank are very cap hungry. Expect to pulse modules or use cap booster."
+
+# Typical engagement profile
+engagement:
+  range: "8-15km (pulse), 30-40km (beam)"
+  speed: "approach with MWD, then brawl"
+  signature: "medium - MWD blooms sig"
+  notes: "Manage capacitor carefully. Pulse repper, don't run constantly."

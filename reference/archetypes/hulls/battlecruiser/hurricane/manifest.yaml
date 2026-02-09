@@ -1,0 +1,53 @@
+# Hurricane Hull Manifest
+#
+# The Hurricane is a Minmatar T1 battlecruiser - fast and versatile.
+# 6 turret hardpoints with excellent projectile bonuses.
+
+hull: Hurricane
+class: battlecruiser
+faction: minmatar
+tech_level: 1
+
+slots:
+  high: 8
+  mid: 4
+  low: 5
+  rig: 3
+
+drones:
+  bandwidth: 30
+  bay: 30
+
+bonuses:
+  - "5% bonus to Medium Projectile Turret Rate of Fire per Minmatar Battlecruiser level"
+  - "7.5% bonus to Shield Booster amount per Minmatar Battlecruiser level"
+
+roles:
+  - turret_boat
+  - flex_tank
+
+fitting_rules:
+  tank_type: shield_buffer  # Shield preferred for PvE
+  weapons:
+    primary: projectiles
+    secondary: drones  # Utility
+
+  notes:
+    - "6 turret hardpoints + 2 utility highs"
+    - "Projectiles use NO capacitor"
+    - "Selectable damage via ammo"
+    - "Shield bonus makes shield tank preferred"
+    - "Very fast for a battlecruiser"
+
+ammo_recommendations:
+  artillery: "Titanium Sabot M (range), EMP M (EM), Fusion M (explosive)"
+  autocannon: "Phased Plasma M (thermal), Fusion M (explosive)"
+
+capacitor:
+  stable_expected: true
+  notes: "Projectiles don't use cap. Only tank and prop mod drain cap."
+
+engagement:
+  range: "25-50km (artillery), 5-15km (autocannons)"
+  speed: "~1400 m/s with MWD"
+  notes: "Artillery for alpha strikes at range, autocannons for sustained brawling."

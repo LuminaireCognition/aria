@@ -1,0 +1,94 @@
+# Test fixture: Location filter
+# Tests assets filtered by station/structure
+
+name: "Assets by Location"
+skill: assets
+description: |
+  Show assets at a specific location (Jita 4-4).
+  Tests the /assets --location filter option.
+
+input:
+  command: location
+  location: "Jita"
+
+expected_facts:
+  - path: "location.location_name"
+    contains: "Jita"
+
+  - path: "location.location_id"
+    equals: 60003760
+
+  - path: "total_items"
+    range: [100, 500]
+
+expected_output:
+  filter: "location"
+  location:
+    location_id: 60003760
+    location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+    location_type: "station"
+    system_name: "Jita"
+    region_name: "The Forge"
+  total_items: 312
+  ships:
+    - type_name: "Gila"
+      item_id: 1234567890
+    - type_name: "Vexor Navy Issue"
+      item_id: 1234567891
+    - type_name: "Catalyst"
+      item_id: 1234567899
+  high_value_items:
+    - type_name: "PLEX"
+      quantity: 15
+    - type_name: "Skill Injector"
+      quantity: 3
+    - type_name: "Hammerhead II"
+      quantity: 25
+  item_categories:
+    modules: 150
+    drones: 45
+    ammunition: 80
+    ships: 3
+    blueprints: 12
+    other: 22
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  assets:
+    - item_id: 1234567890
+      type_id: 17715
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1234567891
+      type_id: 17709
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 1
+      is_singleton: true
+    - item_id: 1000000010
+      type_id: 44992
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 15
+      is_singleton: false
+    - item_id: 1000000011
+      type_id: 40520
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 3
+      is_singleton: false
+    - item_id: 1000000012
+      type_id: 2456
+      location_id: 60003760
+      location_type: "station"
+      location_flag: "Hangar"
+      quantity: 25
+      is_singleton: false

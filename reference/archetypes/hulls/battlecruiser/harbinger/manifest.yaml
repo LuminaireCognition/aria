@@ -1,0 +1,55 @@
+# Harbinger Hull Manifest
+#
+# The Harbinger is an Amarr T1 battlecruiser with heavy laser focus.
+# 6 turret hardpoints with excellent armor and cap bonuses.
+
+hull: Harbinger
+class: battlecruiser
+faction: amarr
+tech_level: 1
+
+slots:
+  high: 7
+  mid: 4
+  low: 7
+  rig: 3
+
+drones:
+  bandwidth: 50
+  bay: 50
+
+bonuses:
+  - "5% bonus to Medium Energy Turret damage per Amarr Battlecruiser level"
+  - "7.5% bonus to armor resistances per Amarr Battlecruiser level"
+
+roles:
+  - turret_boat
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_active
+  weapons:
+    primary: lasers
+    secondary: drones
+
+  notes:
+    - "6 turret hardpoints + 1 utility high"
+    - "Lasers deal EM/Thermal - fixed damage type"
+    - "Heavy capacitor usage - train Controlled Bursts"
+    - "Strong armor resist bonus"
+    - "Instant crystal swap - no reload"
+
+crystal_recommendations:
+  brawling: "Multifrequency M"
+  general: "Standard M"
+  sniping: "Radio M"
+  t2_optimal: "Scorch M"
+
+capacitor:
+  stable_expected: false
+  notes: "Lasers + active tank are very cap hungry. Needs cap rigs/mods."
+
+engagement:
+  range: "10-15km (pulse), 25-40km (beam)"
+  speed: "AB for tracking and cap efficiency"
+  notes: "Manage capacitor carefully. Swap crystals based on range."

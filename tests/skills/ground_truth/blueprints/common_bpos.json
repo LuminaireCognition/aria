@@ -1,0 +1,70 @@
+{
+  "description": "Ground truth for common blueprint manufacturing requirements",
+  "source": "EVE Online SDE",
+  "last_verified": "2024-01-15",
+  "notes": "Material quantities are base values before ME reduction",
+
+  "blueprints": {
+    "Venture": {
+      "blueprint_type_id": 32880,
+      "product_type_id": 32880,
+      "produces_quantity": 1,
+      "manufacturing_time_seconds": 6000,
+      "materials": [
+        {"type_id": 34, "type_name": "Tritanium", "base_quantity": 22222},
+        {"type_id": 35, "type_name": "Pyerite", "base_quantity": 6667},
+        {"type_id": 36, "type_name": "Mexallon", "base_quantity": 2333},
+        {"type_id": 37, "type_name": "Isogen", "base_quantity": 556},
+        {"type_id": 38, "type_name": "Nocxium", "base_quantity": 111}
+      ],
+      "material_count": 5
+    },
+    "Hammerhead I": {
+      "blueprint_type_id": 2456,
+      "product_type_id": 2185,
+      "produces_quantity": 1,
+      "manufacturing_time_seconds": 1200,
+      "materials": [
+        {"type_id": 34, "type_name": "Tritanium", "base_quantity": 3500},
+        {"type_id": 35, "type_name": "Pyerite", "base_quantity": 1000},
+        {"type_id": 36, "type_name": "Mexallon", "base_quantity": 250}
+      ],
+      "material_count": 3,
+      "notes": "Simplified for test - actual may have more materials"
+    },
+    "Hobgoblin I": {
+      "blueprint_type_id": 3530,
+      "product_type_id": 2454,
+      "produces_quantity": 1,
+      "manufacturing_time_seconds": 600,
+      "materials": [
+        {"type_id": 34, "type_name": "Tritanium", "base_quantity": 1750},
+        {"type_id": 35, "type_name": "Pyerite", "base_quantity": 500},
+        {"type_id": 36, "type_name": "Mexallon", "base_quantity": 125}
+      ],
+      "material_count": 3
+    }
+  },
+
+  "me_reduction_formula": "adjusted_quantity = ceil(base_quantity * (1 - ME/100))",
+  "te_reduction_formula": "adjusted_time = base_time * (1 - TE/100 * 2)",
+
+  "me_level_bounds": {
+    "minimum": 0,
+    "maximum": 10,
+    "npc_seeded": 0,
+    "researched_typical": 10,
+    "t2_base": 2
+  },
+
+  "common_material_type_ids": {
+    "Tritanium": 34,
+    "Pyerite": 35,
+    "Mexallon": 36,
+    "Isogen": 37,
+    "Nocxium": 38,
+    "Zydrine": 39,
+    "Megacyte": 40,
+    "Morphite": 11399
+  }
+}

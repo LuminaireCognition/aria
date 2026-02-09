@@ -1,0 +1,84 @@
+# Test fixture: Show specific watchlist
+# Tests displaying entities in a named watchlist
+
+name: "Show Watchlist Entities"
+skill: watchlist
+description: |
+  Display all entities in the "War Targets" watchlist.
+  Shows corporations and alliances being tracked.
+
+input:
+  command: show
+  watchlist_name: "War Targets"
+
+expected_facts:
+  - path: "name"
+    equals: "War Targets"
+
+  - path: "type"
+    equals: "war_targets"
+
+  - path: "corporations"
+    length: 1
+
+  - path: "corporations[0].entity_id"
+    range: [98000000, 99000000]
+
+  - path: "alliances"
+    length: 2
+
+  # Note: All alliances have entity_type "alliance" - validated by schema
+  - path: "alliances[0].entity_type"
+    equals: "alliance"
+
+expected_output:
+  name: "War Targets"
+  type: "war_targets"
+  entity_count: 3
+  last_sync: "2026-01-30T15:00:00Z"
+  description: "Automatically synced war targets"
+  corporations:
+    - entity_id: 98000001
+      entity_name: "CODE."
+      entity_type: "corporation"
+      reason: "War target"
+      added_at: "2026-01-15T12:00:00Z"
+  alliances:
+    - entity_id: 99000001
+      entity_name: "TEST Alliance Please Ignore"
+      entity_type: "alliance"
+      reason: "War target"
+      added_at: "2026-01-14T10:00:00Z"
+    - entity_id: 99000002
+      entity_name: "Pandemic Horde"
+      entity_type: "alliance"
+      reason: "War target"
+      added_at: "2026-01-14T10:00:00Z"
+
+# =============================================================================
+# Mock CLI Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  cli_watchlist_show:
+    name: "War Targets"
+    type: "war_targets"
+    entity_count: 3
+    last_sync: "2026-01-30T15:00:00Z"
+    description: "Automatically synced war targets"
+    corporations:
+      - entity_id: 98000001
+        entity_name: "CODE."
+        entity_type: "corporation"
+        reason: "War target"
+        added_at: "2026-01-15T12:00:00Z"
+    alliances:
+      - entity_id: 99000001
+        entity_name: "TEST Alliance Please Ignore"
+        entity_type: "alliance"
+        reason: "War target"
+        added_at: "2026-01-14T10:00:00Z"
+      - entity_id: 99000002
+        entity_name: "Pandemic Horde"
+        entity_type: "alliance"
+        reason: "War target"
+        added_at: "2026-01-14T10:00:00Z"

@@ -1,0 +1,94 @@
+# Test fixture: PI skills information
+# Tests PI skill recommendations with exact reference data values
+
+name: "PI skills information"
+skill: pi
+description: |
+  Query for PI-related skills and training recommendations.
+  Tests skills response with ranks, effects, and priority order.
+
+input:
+  query_type: skills
+
+expected_output:
+  skills:
+    - name: "Command Center Upgrades"
+      rank: 4
+      effect_per_level: "Increases CPU and powergrid capacity of command centers"
+      recommended_level: 5
+      notes: "Essential for production planets. Level V allows maximum extractor heads and factories."
+    - name: "Interplanetary Consolidation"
+      rank: 4
+      effect_per_level: "+1 planet per level"
+      recommended_level: 4
+      notes: "Level IV gives 5 planets, sufficient for most P3/P4 production chains."
+    - name: "Planetology"
+      rank: 3
+      effect_per_level: "Improves resource deposit visibility"
+      recommended_level: 4
+      notes: "Higher levels show more accurate hotspot locations."
+    - name: "Advanced Planetology"
+      rank: 5
+      effect_per_level: "Fine-grained resource detection"
+      prerequisite: "Planetology IV"
+      recommended_level: 3
+      notes: "Helps place extractors on precise hotspots."
+    - name: "Remote Sensing"
+      rank: 1
+      effect_per_level: "Increases scan range for planets"
+      recommended_level: 3
+      notes: "Low priority. Mainly useful for scouting remote systems."
+  recommended_priority:
+    - "Command Center Upgrades"
+    - "Interplanetary Consolidation"
+    - "Planetology"
+    - "Advanced Planetology"
+    - "Remote Sensing"
+  notes: "Command Center Upgrades V is the highest priority - it enables full production capacity. Interplanetary Consolidation IV gives 5 planets which is enough for most setups."
+
+expected_facts:
+  # Has all 5 PI skills
+  - path: "skills"
+    length: 5
+
+  # Command Center Upgrades is rank 4
+  - path: "skills[0].name"
+    equals: "Command Center Upgrades"
+
+  - path: "skills[0].rank"
+    equals: 4
+
+  - path: "skills[0].recommended_level"
+    equals: 5
+
+  # Interplanetary Consolidation details
+  - path: "skills[1].name"
+    equals: "Interplanetary Consolidation"
+
+  - path: "skills[1].effect_per_level"
+    equals: "+1 planet per level"
+
+  - path: "skills[1].recommended_level"
+    equals: 4
+
+  # Planetology is rank 3
+  - path: "skills[2].rank"
+    equals: 3
+
+  # Advanced Planetology has prerequisite
+  - path: "skills[3].prerequisite"
+    equals: "Planetology IV"
+
+  # Remote Sensing is lowest priority (rank 1)
+  - path: "skills[4].rank"
+    equals: 1
+
+  # Priority order
+  - path: "recommended_priority"
+    length: 5
+
+  - path: "recommended_priority[0]"
+    equals: "Command Center Upgrades"
+
+  - path: "recommended_priority[-1]"
+    equals: "Remote Sensing"

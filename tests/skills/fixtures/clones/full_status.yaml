@@ -1,0 +1,128 @@
+# Test fixture: Full clone status
+# Tests complete clone and implant display
+
+name: "Full Clone Status"
+skill: clones
+description: |
+  Display full clone status including medical clone location,
+  jump clones, and active implants.
+
+input:
+  command: status
+
+expected_facts:
+  - path: "medical_clone.system_name"
+    equals: "Masalle"
+
+  - path: "jump_clone_count"
+    equals: 2
+
+  - path: "active_implant_count"
+    range: [1, 10]
+
+  - path: "jump_cooldown.available"
+    equals: true
+
+expected_output:
+  query_timestamp: "2026-01-31T12:30:00Z"
+  medical_clone:
+    location_id: 60011866
+    location_name: "Masalle - X-Sense Chemical Refinery"
+    location_type: "station"
+    system_name: "Masalle"
+    system_security: 0.9
+  jump_clone_count: 2
+  jump_clones:
+    - clone_id: 1000001
+      name: "PvP Clone"
+      location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+      location_type: "station"
+      system_name: "Jita"
+      system_security: 0.9
+      implant_count: 0
+      implants: []
+    - clone_id: 1000002
+      name: "Learning Clone"
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Fed Navy Assembly Plant"
+      location_type: "station"
+      system_name: "Dodixie"
+      system_security: 0.9
+      implant_count: 5
+      implants:
+        - slot: 1
+          type_id: 9899
+          type_name: "Limited Social Adaptation Chip - Basic"
+          bonus_type: "charisma"
+          bonus_value: 3
+        - slot: 2
+          type_id: 9941
+          type_name: "Limited Memory Augmentation - Basic"
+          bonus_type: "memory"
+          bonus_value: 3
+        - slot: 3
+          type_id: 9942
+          type_name: "Limited Neural Boost - Basic"
+          bonus_type: "willpower"
+          bonus_value: 3
+        - slot: 4
+          type_id: 9943
+          type_name: "Limited Cybernetic Subprocessor - Basic"
+          bonus_type: "intelligence"
+          bonus_value: 3
+        - slot: 5
+          type_id: 9956
+          type_name: "Limited Ocular Filter - Basic"
+          bonus_type: "perception"
+          bonus_value: 3
+  jump_cooldown:
+    available: true
+    last_jump: "2026-01-29T15:30:00Z"
+    cooldown_remaining: null
+    available_at: null
+  active_implant_count: 3
+  active_implants:
+    - slot: 6
+      type_id: 20499
+      type_name: "Zainou 'Deadeye' Sharpshooter ST-901"
+      bonus_type: "turret_tracking"
+      bonus_value: 1
+    - slot: 7
+      type_id: 20497
+      type_name: "Inherent Implants 'Squire' Capacitor Management EM-801"
+      bonus_type: "capacitor_capacity"
+      bonus_value: 1
+    - slot: 8
+      type_id: 20501
+      type_name: "Zainou 'Gnome' Shield Management SM-801"
+      bonus_type: "shield_capacity"
+      bonus_value: 1
+  estimated_implant_value: 45000000
+  warning: "These implants will be lost if your pod is destroyed. Consider jumping to a clean clone before risky operations."
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  clones:
+    home_location:
+      location_id: 60011866
+      location_type: "station"
+    jump_clones:
+      - jump_clone_id: 1000001
+        location_id: 60003760
+        location_type: "station"
+        name: "PvP Clone"
+        implants: []
+      - jump_clone_id: 1000002
+        location_id: 60011866
+        location_type: "station"
+        name: "Learning Clone"
+        implants: [9899, 9941, 9942, 9943, 9956]
+    last_clone_jump_date: "2026-01-29T15:30:00Z"
+
+  implants:
+    - 20499
+    - 20497
+    - 20501

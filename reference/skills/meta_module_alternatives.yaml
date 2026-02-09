@@ -1,0 +1,370 @@
+# Meta Module Alternatives for Easy 80%
+# When T2 modules require Level V skills, suggest meta alternatives.
+#
+# Structure:
+#   category:
+#     t2_module:
+#       requires_v: List of skills requiring Level V
+#       meta_alternative:
+#         name: Meta 4 module name
+#         effectiveness: Percentage of T2 performance
+#         skill_savings: Training time saved vs T2 requirements
+#         notes: Additional context
+
+armor_repairers:
+  Small Armor Repairer II:
+    requires_v:
+      - Mechanics
+    meta_alternative:
+      name: Small I-a Enduring Armor Repairer
+      effectiveness: 89
+      notes: "89% rep amount, lower cap usage"
+    compact_alternative:
+      name: Small ACM Compact Armor Repairer
+      effectiveness: 85
+      notes: "Lower fitting requirements"
+
+  Medium Armor Repairer II:
+    requires_v:
+      - Mechanics
+    meta_alternative:
+      name: Medium I-a Enduring Armor Repairer
+      effectiveness: 89
+      notes: "89% rep amount, commonly available"
+    compact_alternative:
+      name: Medium ACM Compact Armor Repairer
+      effectiveness: 85
+      notes: "Lower fitting requirements"
+
+  Large Armor Repairer II:
+    requires_v:
+      - Mechanics
+    meta_alternative:
+      name: Large I-a Enduring Armor Repairer
+      effectiveness: 89
+      notes: "89% rep amount"
+    compact_alternative:
+      name: Large ACM Compact Armor Repairer
+      effectiveness: 85
+      notes: "Lower fitting requirements, good for tight fits"
+
+shield_boosters:
+  Medium Shield Booster II:
+    requires_v: []
+    meta_alternative:
+      name: Medium F-S9 Regolith Compact Shield Booster
+      effectiveness: 85
+      notes: "Lower CPU, good stepping stone"
+
+  Large Shield Booster II:
+    requires_v: []
+    meta_alternative:
+      name: Large F-S9 Regolith Compact Shield Booster
+      effectiveness: 85
+      notes: "Lower fitting requirements"
+
+armor_hardeners:
+  Energized Adaptive Nano Membrane II:
+    requires_v:
+      - Hull Upgrades
+    meta_alternative:
+      name: Energized Adaptive Nano Membrane I
+      effectiveness: 75
+      notes: "Significant step down, but usable"
+    faction_alternative:
+      name: Imperial Navy Energized Adaptive Nano Membrane
+      effectiveness: 95
+      notes: "Better than T2, but expensive (~50M ISK)"
+
+  Armor EM Hardener II:
+    requires_v:
+      - Hull Upgrades
+    meta_alternative:
+      name: Armor EM Hardener I
+      effectiveness: 80
+      notes: "Active hardener, simpler requirements"
+
+  Armor Thermal Hardener II:
+    requires_v:
+      - Hull Upgrades
+    meta_alternative:
+      name: Armor Thermal Hardener I
+      effectiveness: 80
+
+  Armor Kinetic Hardener II:
+    requires_v:
+      - Hull Upgrades
+    meta_alternative:
+      name: Armor Kinetic Hardener I
+      effectiveness: 80
+
+  Armor Explosive Hardener II:
+    requires_v:
+      - Hull Upgrades
+    meta_alternative:
+      name: Armor Explosive Hardener I
+      effectiveness: 80
+
+shield_hardeners:
+  Adaptive Invulnerability Field II:
+    requires_v: []
+    meta_alternative:
+      name: Compact Adaptive Invulnerability Shield Hardener
+      effectiveness: 88
+      notes: "Close to T2 performance"
+
+damage_modules:
+  Drone Damage Amplifier II:
+    requires_v:
+      - Drones
+    meta_alternative:
+      name: Drone Damage Amplifier I
+      effectiveness: 75
+      notes: "22.8% vs 30.5% damage bonus"
+    faction_alternative:
+      name: Federation Navy Drone Damage Amplifier
+      effectiveness: 100
+      notes: "Equal to T2, ~40M ISK"
+
+  Magnetic Field Stabilizer II:
+    requires_v:
+      - Gunnery
+    meta_alternative:
+      name: Magnetic Field Stabilizer I
+      effectiveness: 80
+      notes: "7.5% vs 10.5% damage/rof bonus"
+
+  Heat Sink II:
+    requires_v:
+      - Gunnery
+    meta_alternative:
+      name: Heat Sink I
+      effectiveness: 80
+
+  Gyrostabilizer II:
+    requires_v:
+      - Gunnery
+    meta_alternative:
+      name: Gyrostabilizer I
+      effectiveness: 80
+
+  Ballistic Control System II:
+    requires_v:
+      - Missile Launcher Operation
+    meta_alternative:
+      name: Ballistic Control System I
+      effectiveness: 80
+      notes: "7.5% vs 10.5% damage/rof bonus"
+
+propulsion:
+  10MN Afterburner II:
+    requires_v: []
+    meta_alternative:
+      name: 10MN Monopropellant Enduring Afterburner
+      effectiveness: 95
+      notes: "Nearly identical performance, lower cap"
+    compact_alternative:
+      name: 10MN Y-S8 Compact Afterburner
+      effectiveness: 90
+      notes: "Lower fitting requirements"
+
+  50MN Microwarpdrive II:
+    requires_v: []
+    meta_alternative:
+      name: 50MN Quad LiF Restrained Microwarpdrive
+      effectiveness: 95
+      notes: "Lower cap usage, same speed"
+    compact_alternative:
+      name: 50MN Y-T8 Compact Microwarpdrive
+      effectiveness: 90
+      notes: "Lower fitting requirements"
+
+  10MN Monopropellant Enduring Afterburner:
+    note: "This IS the meta alternative - already recommended"
+
+drones:
+  Hammerhead II:
+    requires_v:
+      - Drones
+      - Medium Drone Operation
+    meta_alternative:
+      name: Hammerhead I
+      effectiveness: 78
+      notes: "Significantly less damage but no skill V required"
+    faction_alternative:
+      name: Federation Navy Hammerhead
+      effectiveness: 95
+      notes: "Near-T2 performance, ~2M ISK each"
+
+  Hobgoblin II:
+    requires_v:
+      - Drones
+      - Light Drone Operation
+    meta_alternative:
+      name: Hobgoblin I
+      effectiveness: 78
+    faction_alternative:
+      name: Federation Navy Hobgoblin
+      effectiveness: 95
+
+  Ogre II:
+    requires_v:
+      - Drones
+      - Heavy Drone Operation
+    meta_alternative:
+      name: Ogre I
+      effectiveness: 78
+    faction_alternative:
+      name: Federation Navy Ogre
+      effectiveness: 95
+
+  Valkyrie II:
+    requires_v:
+      - Drones
+      - Medium Drone Operation
+    meta_alternative:
+      name: Valkyrie I
+      effectiveness: 78
+
+  Warrior II:
+    requires_v:
+      - Drones
+      - Light Drone Operation
+    meta_alternative:
+      name: Warrior I
+      effectiveness: 78
+    faction_alternative:
+      name: Republic Fleet Warrior
+      effectiveness: 95
+
+weapons:
+  Light Neutron Blaster II:
+    requires_v:
+      - Small Hybrid Turret
+    meta_alternative:
+      name: Modal Light Neutron Particle Accelerator I
+      effectiveness: 85
+      notes: "Meta 4 variant, good damage"
+
+  Heavy Neutron Blaster II:
+    requires_v:
+      - Medium Hybrid Turret
+    meta_alternative:
+      name: Modal Mega Neutron Particle Accelerator I
+      effectiveness: 85
+
+  Light Missile Launcher II:
+    requires_v:
+      - Light Missiles
+    meta_alternative:
+      name: Arbalest Compact Light Missile Launcher
+      effectiveness: 90
+      notes: "Very close to T2 performance"
+
+  Heavy Missile Launcher II:
+    requires_v:
+      - Heavy Missiles
+    meta_alternative:
+      name: Arbalest Compact Heavy Missile Launcher
+      effectiveness: 90
+
+  Rapid Light Missile Launcher II:
+    requires_v:
+      - Light Missiles
+    meta_alternative:
+      name: Arbalest Compact Rapid Light Missile Launcher
+      effectiveness: 90
+
+mining:
+  Miner II:
+    requires_v:
+      - Mining
+    meta_alternative:
+      name: EP-S Gaussian Scoped Mining Laser
+      effectiveness: 85
+      notes: "Good range, decent yield"
+    other_alternative:
+      name: Miner I
+      effectiveness: 70
+      notes: "Baseline mining laser"
+
+  Strip Miner II:
+    requires_v:
+      - Mining
+    meta_alternative:
+      name: Strip Miner I
+      effectiveness: 75
+      notes: "Significant yield difference, but usable"
+
+# =============================================================================
+# Skill Level V Requirements Summary
+# =============================================================================
+
+skills_commonly_requiring_v:
+  Mechanics:
+    unlocks:
+      - Armor Repairer II (all sizes)
+      - Damage Control II
+    training_time: "~4d 9h"
+    easy_80_verdict: "Consider T2 alternatives or wait for this one"
+
+  Hull Upgrades:
+    unlocks:
+      - Energized membranes
+      - Armor plates (T2)
+    training_time: "~4d 9h"
+    easy_80_verdict: "Not critical for Easy 80% - use T1 hardeners"
+
+  Drones:
+    unlocks:
+      - All T2 drones
+      - Drone Damage Amplifier II
+    training_time: "~4d 9h"
+    easy_80_verdict: "High priority for drone boats - train to V"
+
+  Gunnery:
+    unlocks:
+      - T2 damage mods
+      - Some T2 weapons
+    training_time: "~1d 20h"
+    easy_80_verdict: "Lower rank, reasonable to train"
+
+  Missile Launcher Operation:
+    unlocks:
+      - T2 launchers
+      - Ballistic Control II
+    training_time: "~1d 20h"
+    easy_80_verdict: "Lower rank, reasonable to train"
+
+# =============================================================================
+# Easy 80% Module Recommendations by Ship Role
+# =============================================================================
+
+role_module_recommendations:
+  drone_boat_cruiser:
+    damage:
+      budget: "Drone Damage Amplifier I"
+      recommended: "Drone Damage Amplifier I (wait for Drones V)"
+      optimal: "Drone Damage Amplifier II (requires Drones V)"
+    tank:
+      budget: "Medium Armor Repairer I"
+      recommended: "Medium I-a Enduring Armor Repairer"
+      optimal: "Medium Armor Repairer II (requires Mechanics V)"
+    drones:
+      budget: "Hammerhead I + Hobgoblin I"
+      recommended: "Federation Navy Hammerhead (if ISK available)"
+      optimal: "Hammerhead II (requires Drones V + Medium Drone Op V)"
+
+  missile_cruiser:
+    damage:
+      budget: "Ballistic Control System I"
+      recommended: "Ballistic Control System I"
+      optimal: "Ballistic Control System II (requires MLO V)"
+    tank:
+      budget: "Large Shield Extender I"
+      recommended: "Large F-S9 Regolith Compact Shield Extender"
+      optimal: "Large Shield Extender II"
+    weapons:
+      budget: "Heavy Missile Launcher I"
+      recommended: "Arbalest Compact Heavy Missile Launcher"
+      optimal: "Heavy Missile Launcher II"

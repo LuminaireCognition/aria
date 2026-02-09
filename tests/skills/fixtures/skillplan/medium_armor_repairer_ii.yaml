@@ -1,0 +1,123 @@
+# Test fixture: T2 module skill plan
+# Tests skill planning for a T2 module
+
+name: "Medium Armor Repairer II skill plan"
+skill: skillplan
+description: |
+  Skill plan for Medium Armor Repairer II module.
+  Tests T2 requirements including skill to level 5.
+
+input:
+  item: Medium Armor Repairer II
+
+expected_output:
+  item: "Medium Armor Repairer II"
+  found: true
+  item_type: "module"
+  type_id: 4534
+  direct_requirements:
+    - skill_id: 3393
+      skill_name: "Repair Systems"
+      required_level: 5
+      rank: 1
+    - skill_id: 3392
+      skill_name: "Hull Upgrades"
+      required_level: 4
+      rank: 2
+  full_skill_tree:
+    - skill_id: 3393
+      skill_name: "Repair Systems"
+      required_level: 5
+      rank: 1
+    - skill_id: 3392
+      skill_name: "Hull Upgrades"
+      required_level: 4
+      rank: 2
+    - skill_id: 3413
+      skill_name: "Mechanics"
+      required_level: 3
+      rank: 1
+  easy_80_plan:
+    cap_at_4:
+      - "Hull Upgrades"
+    train_to_5:
+      - "Repair Systems"
+      - "Mechanics"
+    skip_optional: []
+    rationale: "Repair Systems V is mandatory for T2. Hull Upgrades IV sufficient for module use."
+    time_saved_percent: 15.0
+  training_time_estimate: "5 days, 8 hours"
+  training_time_seconds: 460800
+  efficacy_estimate: 95.0
+  meta_suggestions:
+    - "Medium I-a Enduring Armor Repairer (meta, lower fitting)"
+    - "Corpum C-Type Medium Armor Repairer (faction, better stats)"
+  warnings: []
+
+expected_facts:
+  # Item found
+  - path: "found"
+    equals: true
+
+  - path: "item"
+    equals: "Medium Armor Repairer II"
+
+  - path: "item_type"
+    equals: "module"
+
+  # T2 module requires level 5 skill
+  - path: "direct_requirements[0].skill_name"
+    equals: "Repair Systems"
+
+  - path: "direct_requirements[0].required_level"
+    equals: 5
+
+  # Train to 5 list should include the primary skill
+  - path: "easy_80_plan.train_to_5"
+    contains: "Repair Systems"
+
+  # Meta suggestions should be present for T2 modules
+  - path: "meta_suggestions"
+    length: 2
+
+  # High efficacy for T2 module plan
+  - path: "efficacy_estimate"
+    range: [90, 100]
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  sde_skill_requirements:
+    item: "Medium Armor Repairer II"
+    type_id: 4534
+    found: true
+    skills:
+      - skill_id: 3393
+        skill_name: "Repair Systems"
+        required_level: 5
+        rank: 1
+      - skill_id: 3392
+        skill_name: "Hull Upgrades"
+        required_level: 4
+        rank: 2
+    total_skills: 3
+    skill_ids:
+      3393: 5
+      3392: 4
+      3413: 3
+
+  skills_easy_80_plan:
+    item: "Medium Armor Repairer II"
+    type_id: 4534
+    plan:
+      cap_at_4:
+        - "Hull Upgrades"
+      train_to_5:
+        - "Repair Systems"
+        - "Mechanics"
+      skip_optional: []
+    rationale: "Repair Systems V is mandatory for T2. Hull Upgrades IV sufficient for module use."
+    time_saved_percent: 15.0
+    training_time_seconds: 460800
+    efficacy_estimate: 95.0

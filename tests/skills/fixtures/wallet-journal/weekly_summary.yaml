@@ -1,0 +1,141 @@
+# Test fixture: Weekly wallet journal summary
+# Tests standard 7-day ISK flow analysis
+
+name: "Weekly Wallet Summary"
+skill: wallet-journal
+description: |
+  Display 7-day wallet journal with income/expense breakdown.
+  Shows bounties, mission rewards, market activity, and fees.
+
+input:
+  command: summary
+  days: 7
+
+expected_facts:
+  - path: "period_days"
+    equals: 7
+
+  - path: "volatility"
+    equals: "semi_stable"
+
+  - path: "summary.total_income"
+    range: [1000000, 100000000]
+
+  - path: "summary.net_change"
+    range: [-50000000, 50000000]
+
+expected_output:
+  query_timestamp: "2026-01-31T12:30:00Z"
+  volatility: "semi_stable"
+  period_days: 7
+  type_filter: null
+  summary:
+    total_income: 15234567.89
+    total_expenses: 3456789.12
+    net_change: 11777778.77
+    income_breakdown:
+      bounty_prizes: 8500000.00
+      agent_mission_reward: 4200000.00
+      market_transaction: 2534567.89
+    expense_breakdown:
+      market_transaction: 2100000.00
+      transaction_tax: 856789.12
+      brokers_fee: 500000.00
+  journal:
+    - date: "2026-01-31T10:30:00Z"
+      ref_type: "bounty_prizes"
+      amount: 125000.00
+      balance: 15234567.89
+      description: "For killing pirates in Essence"
+    - date: "2026-01-31T08:15:00Z"
+      ref_type: "agent_mission_reward"
+      amount: 450000.00
+      balance: 15109567.89
+      description: "Reward from Level 3 mission"
+    - date: "2026-01-30T22:00:00Z"
+      ref_type: "market_transaction"
+      amount: -2125000.00
+      balance: 14659567.89
+      description: "Market purchase"
+    - date: "2026-01-30T18:00:00Z"
+      ref_type: "transaction_tax"
+      amount: -156789.12
+      balance: 16784567.89
+      description: "Sales tax"
+    - date: "2026-01-30T17:55:00Z"
+      ref_type: "market_transaction"
+      amount: 1534567.89
+      balance: 16941357.01
+      description: "Market sale"
+  transactions:
+    - date: "2026-01-30T22:00:00Z"
+      type_id: 2456
+      type_name: "Hammerhead II"
+      quantity: 5
+      unit_price: 425000.00
+      total_price: 2125000.00
+      is_buy: true
+      location_id: 60011866
+      location_name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant"
+    - date: "2026-01-30T17:55:00Z"
+      type_id: 34
+      type_name: "Tritanium"
+      quantity: 500000
+      unit_price: 3.07
+      total_price: 1535000.00
+      is_buy: false
+      location_id: 60003760
+      location_name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  wallet_journal:
+    - id: 1001
+      date: "2026-01-31T10:30:00Z"
+      ref_type: "bounty_prizes"
+      amount: 125000.00
+      balance: 15234567.89
+      description: "For killing pirates in Essence"
+      first_party_id: 2123984364
+      second_party_id: 1000125
+    - id: 1002
+      date: "2026-01-31T08:15:00Z"
+      ref_type: "agent_mission_reward"
+      amount: 450000.00
+      balance: 15109567.89
+      description: "Reward from Level 3 mission"
+      first_party_id: 3019499
+      second_party_id: 2123984364
+    - id: 1003
+      date: "2026-01-30T22:00:00Z"
+      ref_type: "market_transaction"
+      amount: -2125000.00
+      balance: 14659567.89
+    - id: 1004
+      date: "2026-01-30T18:00:00Z"
+      ref_type: "transaction_tax"
+      amount: -156789.12
+      balance: 16784567.89
+    - id: 1005
+      date: "2026-01-30T17:55:00Z"
+      ref_type: "market_transaction"
+      amount: 1534567.89
+      balance: 16941357.01
+
+  wallet_transactions:
+    - transaction_id: 5001
+      date: "2026-01-30T22:00:00Z"
+      type_id: 2456
+      quantity: 5
+      unit_price: 425000.00
+      is_buy: true
+      location_id: 60011866
+    - transaction_id: 5002
+      date: "2026-01-30T17:55:00Z"
+      type_id: 34
+      quantity: 500000
+      unit_price: 3.07
+      is_buy: false
+      location_id: 60003760

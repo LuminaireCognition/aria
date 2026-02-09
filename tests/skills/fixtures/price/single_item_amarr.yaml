@@ -1,0 +1,114 @@
+# Test fixture: Single item price lookup in Amarr
+# Tests non-default region with single item
+
+name: "PLEX price lookup in Amarr"
+skill: price
+description: |
+  Single high-value item lookup in Amarr region.
+  Tests non-default region parameter.
+
+input:
+  items:
+    - PLEX
+  region: amarr
+
+expected_output:
+  region: "Domain"
+  region_id: 10000043
+  source: "fuzzwork"
+  freshness: "fresh"
+  items:
+    - type_id: 44992
+      type_name: "PLEX"
+      buy:
+        order_count: 20
+        volume: 5000
+        min_price: 1000000.0
+        max_price: 5000000.0
+        weighted_avg: 4500000.0
+        median: 4600000.0
+        percentile_5: 4800000.0
+        stddev: 500000.0
+      sell:
+        order_count: 30
+        volume: 10000
+        min_price: 5100000.0
+        max_price: 10000000.0
+        weighted_avg: 5200000.0
+        median: 5150000.0
+        percentile_5: 5110000.0
+        stddev: 200000.0
+      spread: -100000.0
+      spread_percent: -2.0
+      freshness: "fresh"
+  unresolved_items: []
+  warnings: []
+
+expected_facts:
+  # Region validation
+  - path: "region"
+    equals: "Domain"
+
+  - path: "region_id"
+    equals: 10000043
+
+  # Single item validation
+  - path: "items"
+    length: 1
+
+  - path: "items[0].type_name"
+    equals: "PLEX"
+
+  - path: "items[0].type_id"
+    equals: 44992
+
+  # PLEX prices are in millions - verify reasonable ranges
+  # Note: Using ranges because prices are dynamic
+  - path: "items[0].sell.min_price"
+    range: [1000000, 50000000]
+
+  - path: "items[0].buy.max_price"
+    range: [1000000, 50000000]
+
+  # PLEX market should have orders
+  - path: "items[0].buy.order_count"
+    all_satisfy: ">= 1"
+
+  - path: "items[0].sell.order_count"
+    all_satisfy: ">= 1"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  market_prices:
+    region: "Domain"
+    region_id: 10000043
+    source: "fuzzwork"
+    freshness: "fresh"
+    items:
+      - type_id: 44992
+        type_name: "PLEX"
+        buy:
+          order_count: 20
+          volume: 5000
+          min_price: 1000000.0
+          max_price: 5000000.0
+          weighted_avg: 4500000.0
+          median: 4600000.0
+          percentile_5: 4800000.0
+          stddev: 500000.0
+        sell:
+          order_count: 30
+          volume: 10000
+          min_price: 5100000.0
+          max_price: 10000000.0
+          weighted_avg: 5200000.0
+          median: 5150000.0
+          percentile_5: 5110000.0
+          stddev: 200000.0
+        spread: -100000.0
+        spread_percent: -2.0
+        freshness: "fresh"
+    unresolved_items: []
+    warnings: []

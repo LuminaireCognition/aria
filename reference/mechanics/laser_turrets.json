@@ -1,0 +1,242 @@
+{
+  "_meta": {
+    "description": "Master laser turret reference for ARIA project. ARIA must consult this file before making any claims about laser crystals or recommending laser ammo.",
+    "source": "https://wiki.eveuniversity.org/Frequency_crystals",
+    "last_verified": "2026-02-02"
+  },
+  "damage_profile": {
+    "_note": "All laser crystals deal EM/Thermal only. Damage type cannot be changed via ammo selection.",
+    "em": 0.50,
+    "thermal": 0.50
+  },
+  "turret_types": {
+    "pulse_laser": {
+      "range": "short",
+      "description": "High rate of fire, shorter range, more DPS",
+      "sizes": {
+        "small": ["Small Focused Pulse Laser", "Dual Light Pulse Laser", "Dual Anode Pulse Particle Stream"],
+        "medium": ["Focused Medium Pulse Laser", "Heavy Pulse Laser", "Dual Heavy Pulse Laser"],
+        "large": ["Mega Pulse Laser", "Dual Heavy Pulse Laser", "Tachyon Beam Laser"]
+      }
+    },
+    "beam_laser": {
+      "range": "long",
+      "description": "Longer range, lower rate of fire",
+      "sizes": {
+        "small": ["Small Focused Beam Laser", "Dual Light Beam Laser"],
+        "medium": ["Focused Medium Beam Laser", "Heavy Beam Laser", "Dual Heavy Beam Laser"],
+        "large": ["Mega Beam Laser", "Dual Giga Beam Laser", "Tachyon Beam Laser"]
+      }
+    }
+  },
+  "crystal_types": {
+    "t1_crystals": {
+      "_note": "T1 crystals NEVER deplete - infinite use",
+      "multifrequency": {
+        "range_modifier": -25,
+        "damage_modifier": 1.15,
+        "tracking_modifier": 0,
+        "best_for": "close range maximum DPS"
+      },
+      "gamma": {
+        "range_modifier": 0,
+        "damage_modifier": 1.00,
+        "tracking_modifier": 0,
+        "best_for": "general purpose"
+      },
+      "xray": {
+        "range_modifier": 10,
+        "damage_modifier": 0.925,
+        "tracking_modifier": 0,
+        "best_for": "medium range"
+      },
+      "ultraviolet": {
+        "range_modifier": 20,
+        "damage_modifier": 0.85,
+        "tracking_modifier": 0,
+        "best_for": "longer range"
+      },
+      "standard": {
+        "range_modifier": 40,
+        "damage_modifier": 0.75,
+        "tracking_modifier": 0,
+        "best_for": "extended range"
+      },
+      "infrared": {
+        "range_modifier": 50,
+        "damage_modifier": 0.625,
+        "tracking_modifier": 0,
+        "best_for": "very long range"
+      },
+      "microwave": {
+        "range_modifier": 60,
+        "damage_modifier": 0.50,
+        "tracking_modifier": 0,
+        "best_for": "extreme range"
+      },
+      "radio": {
+        "range_modifier": 80,
+        "damage_modifier": 0.375,
+        "tracking_modifier": 0,
+        "best_for": "maximum range, minimum damage"
+      }
+    },
+    "t2_crystals": {
+      "_note": "T2 crystals deplete after ~1000-3000 shots. Require T2 turrets.",
+      "conflagration": {
+        "range_modifier": -50,
+        "damage_modifier": 1.35,
+        "tracking_modifier": -25,
+        "depletion": true,
+        "best_for": "maximum DPS at very close range",
+        "turret_type": "pulse_laser"
+      },
+      "scorch": {
+        "range_modifier": 35,
+        "damage_modifier": 0.85,
+        "tracking_modifier": 0,
+        "depletion": true,
+        "best_for": "pulse lasers at extended range - exceptional",
+        "turret_type": "pulse_laser"
+      },
+      "gleam": {
+        "range_modifier": -50,
+        "damage_modifier": 1.35,
+        "tracking_modifier": -25,
+        "depletion": true,
+        "best_for": "maximum beam DPS at close range",
+        "turret_type": "beam_laser"
+      },
+      "aurora": {
+        "range_modifier": 100,
+        "damage_modifier": 0.65,
+        "tracking_modifier": -75,
+        "depletion": true,
+        "best_for": "extreme range sniping",
+        "turret_type": "beam_laser"
+      }
+    }
+  },
+  "enemy_recommendations": {
+    "_note": "Lasers excel against EM-weak factions. Against Explosive/Kinetic-weak factions, lasers are suboptimal - consider drones for damage matching.",
+    "serpentis": {
+      "weakness": "thermal",
+      "laser_effective": "moderate",
+      "t1_crystal": "Multifrequency",
+      "t2_short": "Conflagration",
+      "t2_long": "Scorch",
+      "note": "Thermal component matches; no kinetic. Drones recommended for optimal damage."
+    },
+    "angel_cartel": {
+      "weakness": "explosive",
+      "laser_effective": "poor",
+      "t1_crystal": "Multifrequency",
+      "t2_short": "Conflagration",
+      "t2_long": "Scorch",
+      "note": "Lasers cannot deal explosive damage. Use explosive drones (Warriors/Valkyries)."
+    },
+    "blood_raiders": {
+      "weakness": "em",
+      "laser_effective": "excellent",
+      "t1_crystal": "Multifrequency",
+      "t2_short": "Conflagration",
+      "t2_long": "Scorch",
+      "note": "Lasers are optimal against Blood Raiders - EM weakness matches perfectly."
+    },
+    "guristas": {
+      "weakness": "kinetic",
+      "laser_effective": "poor",
+      "t1_crystal": "Multifrequency",
+      "t2_short": "Conflagration",
+      "t2_long": "Scorch",
+      "note": "Lasers cannot deal kinetic damage. Use kinetic drones (Hornets/Vespas)."
+    },
+    "sansha": {
+      "weakness": "em",
+      "laser_effective": "excellent",
+      "t1_crystal": "Multifrequency",
+      "t2_short": "Conflagration",
+      "t2_long": "Scorch",
+      "note": "Lasers are optimal against Sansha - EM weakness matches perfectly."
+    },
+    "rogue_drones": {
+      "weakness": "em",
+      "laser_effective": "excellent",
+      "t1_crystal": "Multifrequency",
+      "t2_short": "Conflagration",
+      "t2_long": "Scorch",
+      "note": "Lasers are effective against Rogue Drones - EM weakness."
+    },
+    "mercenaries": {
+      "weakness": "thermal",
+      "laser_effective": "moderate",
+      "t1_crystal": "Multifrequency",
+      "t2_short": "Conflagration",
+      "t2_long": "Scorch",
+      "note": "Thermal component matches weakness."
+    },
+    "mordus_legion": {
+      "weakness": "kinetic",
+      "laser_effective": "poor",
+      "t1_crystal": "Multifrequency",
+      "t2_short": "Conflagration",
+      "t2_long": "Scorch",
+      "note": "Lasers cannot deal kinetic damage. Use kinetic drones."
+    }
+  },
+  "crystal_naming": {
+    "_note": "Crystal names are standardized - size suffix indicates turret size",
+    "sizes": {
+      "small": "S",
+      "medium": "M",
+      "large": "L"
+    },
+    "t1_examples": [
+      "Multifrequency S",
+      "Multifrequency M",
+      "Multifrequency L",
+      "Gamma S",
+      "Standard M"
+    ],
+    "t2_examples": [
+      "Conflagration S",
+      "Scorch M",
+      "Aurora L",
+      "Gleam M"
+    ]
+  },
+  "faction_ships": {
+    "amarr": {
+      "frigate": ["Punisher", "Executioner", "Tormentor"],
+      "destroyer": ["Coercer", "Dragoon"],
+      "cruiser": ["Omen", "Maller", "Arbitrator"],
+      "battlecruiser": ["Harbinger", "Oracle", "Prophecy"],
+      "battleship": ["Apocalypse", "Abaddon", "Armageddon"]
+    },
+    "blood_raiders": {
+      "frigate": ["Cruor"],
+      "cruiser": ["Ashimmu"],
+      "battleship": ["Bhaalgorn"]
+    },
+    "sansha": {
+      "frigate": ["Succubus"],
+      "cruiser": ["Phantasm"],
+      "battleship": ["Nightmare"]
+    }
+  },
+  "capacitor_note": {
+    "warning": "Laser turrets are capacitor-hungry. Ensure cap stability or bring cap boosters.",
+    "mitigation": [
+      "Capacitor Power Relay in lows",
+      "Cap Recharger in mids",
+      "Cap Battery for neut resistance",
+      "Pulse lasers use less cap than beams"
+    ]
+  },
+  "capacity_guidelines": {
+    "_note": "T1 crystals don't deplete - carry one set of each type needed",
+    "t1_crystals": "1 of each type (never deplete)",
+    "t2_crystals_per_mission": "2-3 of each type (they deplete)",
+    "extended_session": "5-10 T2 crystals of primary type"
+  }
+}

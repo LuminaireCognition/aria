@@ -1,0 +1,163 @@
+# JSON Schema for /skillqueue skill output validation
+# Validates the structure of skill training queue responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: SkillqueueSkillOutput
+description: Output schema for the /skillqueue skill - skill training queue status
+type: object
+
+oneOf:
+  - $ref: "#/$defs/ActiveQueueResponse"
+  - $ref: "#/$defs/EmptyQueueResponse"
+  - $ref: "#/$defs/ErrorResponse"
+
+$defs:
+  # Skill in queue
+  QueuedSkill:
+    type: object
+    required:
+      - queue_position
+      - skill_id
+      - name
+      - target_level
+    properties:
+      queue_position:
+        type: integer
+        minimum: 0
+        description: Position in queue (0-indexed)
+      skill_id:
+        type: integer
+        minimum: 1
+        description: Skill type ID from SDE
+      name:
+        type: string
+        minLength: 1
+        description: Skill name
+      target_level:
+        type: integer
+        minimum: 1
+        maximum: 5
+      level_display:
+        type: string
+        enum: ["I", "II", "III", "IV", "V"]
+      status:
+        type: string
+        enum: ["training", "queued", "paused"]
+      progress_percent:
+        type: number
+        minimum: 0
+        maximum: 100
+      time_remaining:
+        type: string
+        description: Human-readable time remaining
+      finish_date:
+        type: string
+        format: date-time
+
+  # Currently training skill details
+  CurrentlyTraining:
+    type: object
+    required:
+      - name
+      - level
+    properties:
+      name:
+        type: string
+        minLength: 1
+      level:
+        type: integer
+        minimum: 1
+        maximum: 5
+      level_display:
+        type: string
+        enum: ["I", "II", "III", "IV", "V"]
+      progress:
+        type: number
+        minimum: 0
+        maximum: 100
+      time_remaining:
+        type: string
+      finish_date:
+        type: string
+        format: date-time
+
+  # Active queue response
+  ActiveQueueResponse:
+    type: object
+    required:
+      - query_timestamp
+      - volatility
+      - queue_status
+      - queue_length
+      - skills
+    properties:
+      query_timestamp:
+        type: string
+        format: date-time
+      volatility:
+        type: string
+        const: "volatile"
+      queue_status:
+        type: string
+        const: "active"
+      queue_length:
+        type: integer
+        minimum: 1
+        maximum: 50
+      total_queue_time:
+        type: string
+        description: Human-readable total queue duration
+      queue_completion:
+        type: string
+        format: date-time
+      currently_training:
+        $ref: "#/$defs/CurrentlyTraining"
+      skills:
+        type: array
+        minItems: 1
+        items:
+          $ref: "#/$defs/QueuedSkill"
+
+  # Empty queue response
+  EmptyQueueResponse:
+    type: object
+    required:
+      - query_timestamp
+      - volatility
+      - queue_status
+      - queue_length
+    properties:
+      query_timestamp:
+        type: string
+        format: date-time
+      volatility:
+        type: string
+        const: "volatile"
+      queue_status:
+        type: string
+        const: "empty"
+      message:
+        type: string
+        description: Warning message about empty queue
+      queue_length:
+        type: integer
+        const: 0
+      skills:
+        type: array
+        maxItems: 0
+
+  # Error response (missing scope, ESI error)
+  ErrorResponse:
+    type: object
+    required:
+      - error
+    properties:
+      error:
+        type: string
+        description: Error message
+      error_type:
+        type: string
+        enum: ["missing_scope", "esi_error", "not_configured"]
+      suggestion:
+        type: string
+        description: Suggested action to resolve

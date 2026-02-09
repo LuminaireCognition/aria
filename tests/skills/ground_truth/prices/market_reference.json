@@ -1,0 +1,131 @@
+{
+  "description": "Ground truth reference data for market price tests",
+  "source": "EVE Online SDE / Fuzzwork Market API",
+  "last_verified": "2024-01-15",
+  "notes": "Static data (type_ids, region_ids) is stable. Price ranges are typical values for assertion bounds.",
+
+  "trade_hubs": {
+    "jita": {
+      "region": "The Forge",
+      "region_id": 10000002,
+      "station": "Jita IV - Moon 4 - Caldari Navy Assembly Plant",
+      "station_id": 60003760
+    },
+    "amarr": {
+      "region": "Domain",
+      "region_id": 10000043,
+      "station": "Amarr VIII (Oris) - Emperor Family Academy",
+      "station_id": 60008494
+    },
+    "dodixie": {
+      "region": "Sinq Laison",
+      "region_id": 10000032,
+      "station": "Dodixie IX - Moon 20 - Federation Navy Assembly Plant",
+      "station_id": 60011866
+    },
+    "rens": {
+      "region": "Heimatar",
+      "region_id": 10000030,
+      "station": "Rens VI - Moon 8 - Brutor Tribe Treasury",
+      "station_id": 60004588
+    },
+    "hek": {
+      "region": "Metropolis",
+      "region_id": 10000042,
+      "station": "Hek VIII - Moon 12 - Boundless Creation Factory",
+      "station_id": 60005686
+    }
+  },
+
+  "minerals": {
+    "Tritanium": {
+      "type_id": 34,
+      "typical_jita_sell_range": [3.0, 10.0],
+      "typical_jita_buy_range": [2.0, 8.0],
+      "notes": "Base mineral, very high volume"
+    },
+    "Pyerite": {
+      "type_id": 35,
+      "typical_jita_sell_range": [15.0, 50.0],
+      "typical_jita_buy_range": [10.0, 40.0],
+      "notes": "Second most common mineral"
+    },
+    "Mexallon": {
+      "type_id": 36,
+      "typical_jita_sell_range": [40.0, 150.0],
+      "typical_jita_buy_range": [30.0, 120.0],
+      "notes": "Third tier mineral"
+    },
+    "Isogen": {
+      "type_id": 37,
+      "typical_jita_sell_range": [50.0, 200.0],
+      "typical_jita_buy_range": [40.0, 150.0],
+      "notes": "Mid-tier mineral"
+    },
+    "Nocxium": {
+      "type_id": 38,
+      "typical_jita_sell_range": [200.0, 800.0],
+      "typical_jita_buy_range": [150.0, 600.0],
+      "notes": "Higher tier mineral"
+    },
+    "Zydrine": {
+      "type_id": 39,
+      "typical_jita_sell_range": [300.0, 1500.0],
+      "typical_jita_buy_range": [250.0, 1200.0],
+      "notes": "Rare mineral"
+    },
+    "Megacyte": {
+      "type_id": 40,
+      "typical_jita_sell_range": [400.0, 2000.0],
+      "typical_jita_buy_range": [350.0, 1800.0],
+      "notes": "Rarest common mineral"
+    }
+  },
+
+  "high_value_items": {
+    "PLEX": {
+      "type_id": 44992,
+      "typical_sell_range": [3000000, 10000000],
+      "typical_buy_range": [2500000, 9000000],
+      "notes": "Premium currency item, prices fluctuate significantly"
+    },
+    "Skill Injector": {
+      "type_id": 40520,
+      "typical_sell_range": [500000000, 1500000000],
+      "typical_buy_range": [400000000, 1300000000],
+      "notes": "Large Skill Injector, high value"
+    }
+  },
+
+  "region_id_range": {
+    "minimum": 10000000,
+    "maximum": 12000000,
+    "notes": "All valid EVE region IDs fall within this range"
+  },
+
+  "station_id_range": {
+    "minimum": 60000000,
+    "notes": "NPC station IDs start at 60000000, player structures have different ranges"
+  },
+
+  "data_sources": {
+    "fuzzwork": {
+      "description": "Fuzzwork market aggregator",
+      "freshness_threshold_seconds": 3600,
+      "notes": "Primary data source for trade hub prices"
+    },
+    "esi": {
+      "description": "ESI market orders endpoint",
+      "freshness_threshold_seconds": 300,
+      "notes": "Direct ESI queries, more current but rate limited"
+    }
+  },
+
+  "assertion_guidelines": {
+    "price_assertions": "Use ranges, not exact values - prices are dynamic",
+    "order_count_assertions": "Use >= 0, markets may have zero orders temporarily",
+    "volume_assertions": "Use >= 0, same reasoning as order counts",
+    "type_id_assertions": "Can use exact values - these are static SDE data",
+    "region_id_assertions": "Can use exact values - these are static SDE data"
+  }
+}

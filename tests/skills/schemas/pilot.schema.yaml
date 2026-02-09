@@ -1,0 +1,250 @@
+# JSON Schema for /pilot skill output validation
+# Validates the structure of pilot identity responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: PilotSkillOutput
+description: Output schema for the /pilot skill - character identity and configuration
+type: object
+
+oneOf:
+  - $ref: "#/$defs/SelfQueryResponse"
+  - $ref: "#/$defs/PublicLookupResponse"
+  - $ref: "#/$defs/NotFoundResponse"
+  - $ref: "#/$defs/ErrorResponse"
+
+$defs:
+  # Character identity (common fields)
+  CharacterIdentity:
+    type: object
+    required:
+      - character_id
+      - character_name
+    properties:
+      character_id:
+        type: integer
+        minimum: 1
+        description: EVE character ID
+      character_name:
+        type: string
+        minLength: 1
+        description: Character name
+      corporation_id:
+        type: integer
+        minimum: 1
+      corporation_name:
+        type: string
+      corporation_ticker:
+        type: string
+        maxLength: 5
+      alliance_id:
+        type:
+          - integer
+          - "null"
+      alliance_name:
+        type:
+          - string
+          - "null"
+      security_status:
+        type: number
+        minimum: -10.0
+        maximum: 10.0
+      security_description:
+        type: string
+        enum: ["Paragon", "Upstanding", "Neutral", "Suspect", "Criminal", "Outlaw"]
+      birthday:
+        type: string
+        format: date-time
+
+  # ARIA configuration from profile
+  AriaConfiguration:
+    type: object
+    properties:
+      eve_experience:
+        type: string
+        enum: ["new", "intermediate", "veteran"]
+      rp_level:
+        type: string
+        enum: ["off", "lite", "moderate", "full"]
+      module_tier:
+        type: string
+        enum: ["T1", "Meta", "T2"]
+      faction:
+        type: string
+        description: Primary faction alignment
+
+  # Operational constraints
+  OperationalConstraints:
+    type: object
+    properties:
+      market_trading:
+        type: boolean
+      contracts:
+        type: boolean
+      fleet_required:
+        type: boolean
+      min_security:
+        type: number
+        minimum: -1.0
+        maximum: 1.0
+
+  # ESI status information
+  EsiStatus:
+    type: object
+    properties:
+      connected:
+        type: boolean
+      personal_scopes:
+        type: integer
+        minimum: 0
+      corporation_scopes:
+        type: integer
+        minimum: 0
+      token_expires:
+        type: string
+        format: date-time
+
+  # Account snapshot (volatile data)
+  AccountSnapshot:
+    type: object
+    properties:
+      query_timestamp:
+        type: string
+        format: date-time
+      wallet_balance:
+        type: number
+        minimum: 0
+      skill_points:
+        type: integer
+        minimum: 0
+
+  # Full self-query response (authenticated pilot)
+  SelfQueryResponse:
+    type: object
+    required:
+      - query_type
+      - character_id
+      - character_name
+    properties:
+      query_type:
+        type: string
+        const: "self"
+      character_id:
+        type: integer
+        minimum: 1
+      character_name:
+        type: string
+        minLength: 1
+      corporation_id:
+        type: integer
+      corporation_name:
+        type: string
+      corporation_ticker:
+        type: string
+      alliance_id:
+        type:
+          - integer
+          - "null"
+      alliance_name:
+        type:
+          - string
+          - "null"
+      security_status:
+        type: number
+      security_description:
+        type: string
+      birthday:
+        type: string
+      aria_configuration:
+        $ref: "#/$defs/AriaConfiguration"
+      constraints:
+        $ref: "#/$defs/OperationalConstraints"
+      esi_status:
+        $ref: "#/$defs/EsiStatus"
+      account_snapshot:
+        $ref: "#/$defs/AccountSnapshot"
+      profile_path:
+        type: string
+        description: Path to pilot profile.md
+
+  # Public lookup response (other pilot)
+  PublicLookupResponse:
+    type: object
+    required:
+      - query_type
+      - character_id
+      - character_name
+    properties:
+      query_type:
+        type: string
+        const: "public"
+      character_id:
+        type: integer
+        minimum: 1
+      character_name:
+        type: string
+        minLength: 1
+      corporation_id:
+        type: integer
+      corporation_name:
+        type: string
+      corporation_ticker:
+        type: string
+      alliance_id:
+        type:
+          - integer
+          - "null"
+      alliance_name:
+        type:
+          - string
+          - "null"
+      security_status:
+        type: number
+      security_description:
+        type: string
+      birthday:
+        type: string
+      query_timestamp:
+        type: string
+        format: date-time
+      note:
+        type: string
+        const: "Public data only. Private data requires authentication."
+
+  # Not found response
+  NotFoundResponse:
+    type: object
+    required:
+      - query_type
+      - error
+      - query
+    properties:
+      query_type:
+        type: string
+        const: "not_found"
+      error:
+        type: string
+        const: "Character not found"
+      query:
+        type: string
+        description: The search query that was not found
+      suggestions:
+        type: array
+        items:
+          type: string
+
+  # ESI error response
+  ErrorResponse:
+    type: object
+    required:
+      - query_type
+      - error
+    properties:
+      query_type:
+        type: string
+        const: "error"
+      error:
+        type: string
+        description: Error message
+      suggestion:
+        type: string
+        description: Suggested action

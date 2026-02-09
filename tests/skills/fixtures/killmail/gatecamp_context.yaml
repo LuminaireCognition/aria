@@ -1,0 +1,128 @@
+# Test fixture: Killmail with gatecamp context
+# Tests killmail analysis when part of active gatecamp
+
+name: "Killmail with Gatecamp Context"
+skill: killmail
+description: |
+  Analyze a killmail that's part of an active gatecamp.
+  Tests threat cache integration and gatecamp detection.
+
+input:
+  url: "https://zkillboard.com/kill/12345679/"
+
+expected_facts:
+  - path: "context.is_gatecamp"
+    equals: true
+
+  - path: "context.gatecamp_kills"
+    range: [2, 10]
+
+  - path: "context.warnings[0]"
+    contains: "gatecamp"
+
+  - path: "system.security_class"
+    equals: "LOW"
+
+expected_output:
+  killmail_id: 12345679
+  killmail_time: "2026-01-15T18:45:32Z"
+  system:
+    system_id: 30002813
+    system_name: "Tama"
+    security: 0.28
+    security_class: "LOW"
+    region: "The Citadel"
+  victim:
+    character_id: 90000005
+    character_name: "UnluckyPilot"
+    corporation_id: 98000005
+    corporation_name: "Newbie Corp"
+    alliance_id: null
+    alliance_name: null
+    ship_type_id: 587
+    ship_type_name: "Rifter"
+    total_value: 15000000.0
+  fitting_analysis:
+    ship_class: "Frigate"
+    fit_type: "Autocannon brawler"
+    tank_type: "armor buffer"
+    estimated_ehp: 4500
+    estimated_dps: 120
+    notes: "Standard T1 frigate fit"
+  attackers:
+    - character_id: 90000010
+      character_name: "CampLeader"
+      corporation_id: 98000010
+      corporation_name: "Lowsec Pirates"
+      ship_type_name: "Svipul"
+      damage_done: 3500
+      final_blow: true
+    - character_id: 90000011
+      character_name: "CampHelper"
+      corporation_id: 98000010
+      corporation_name: "Lowsec Pirates"
+      ship_type_name: "Thrasher"
+      damage_done: 1200
+      final_blow: false
+  attacker_count: 2
+  attacker_summary:
+    corps:
+      - name: "Lowsec Pirates"
+        count: 2
+    ships:
+      - name: "Svipul"
+        count: 1
+      - name: "Thrasher"
+        count: 1
+  context:
+    is_gatecamp: true
+    gatecamp_kills: 5
+    gatecamp_duration_minutes: 45
+    system_kills_last_hour: 12
+    warnings:
+      - "Part of active gatecamp (5 kills in 45 min)"
+      - "Caution: High kill activity in system"
+  zkillboard_url: "https://zkillboard.com/kill/12345679/"
+
+# =============================================================================
+# Mock External API Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  zkillboard_api:
+    - killmail_id: 12345679
+      killmail_time: "2026-01-15T18:45:32Z"
+      solar_system_id: 30002813
+      victim:
+        character_id: 90000005
+        corporation_id: 98000005
+        ship_type_id: 587
+        damage_taken: 4700
+      attackers:
+        - character_id: 90000010
+          corporation_id: 98000010
+          ship_type_id: 34562
+          damage_done: 3500
+          final_blow: true
+        - character_id: 90000011
+          corporation_id: 98000010
+          ship_type_id: 16242
+          damage_done: 1200
+          final_blow: false
+      zkb:
+        hash: "ghi789jkl012"
+        totalValue: 15000000.0
+        points: 8
+        npc: false
+
+  threat_cache:
+    system_id: 30002813
+    gatecamp_active: true
+    gatecamp_kills: 5
+    gatecamp_duration_minutes: 45
+    kills_last_hour: 12
+
+  universe_systems:
+    system_id: 30002813
+    system_name: "Tama"
+    security: 0.28
+    region_name: "The Citadel"

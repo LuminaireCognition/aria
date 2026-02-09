@@ -1,0 +1,186 @@
+# Breakpoint skills - Level V unlocks non-linear gameplay effects beyond percentages
+# These override the "cap at IV" rule when the detected role applies.
+# Unlike multiplier skills (percentage bonuses), breakpoint skills unlock
+# discrete capabilities at specific levels.
+#
+# Categories:
+#   - combat: Combat role breakpoints (drone_boat, turret_boat, etc.)
+#   - tank: Tank-related breakpoints (armor_tank, active_tank)
+#   - stealth: Cloaking and covert operations
+#   - industrial: Mining, gas, ice harvesting
+#   - capital: Jump drives, cynos
+#   - universal: Applies to all combat roles
+
+# ==========================================================================
+# Combat Breakpoints
+# ==========================================================================
+Drones:
+  breakpoint_level: 5
+  effect: "Unlocks 5th active drone (25% damage increase)"
+  impact: "critical"
+  priority: 1
+  applies_to_roles:
+    - drone_boat
+  category: "combat"
+  # The tooltip says 5% damage/level, but the 5th drone slot is the real prize
+  reason: "5th drone slot at V provides 25% more damage, multiplies with all other bonuses"
+
+Advanced Weapon Upgrades:
+  breakpoint_level: 5
+  effect: "Required for fitting many T2/faction setups"
+  impact: "high"
+  priority: 2
+  applies_to_roles:
+    - turret_boat
+    - missile_boat
+  category: "combat"
+  reason: "CPU reduction often required to fit T2 weapons + damage mods together"
+
+Thermodynamics:
+  breakpoint_level: 4
+  effect: "Enables overheating modules (critical for PvP survival)"
+  impact: "high"
+  priority: 2
+  applies_to_roles: null  # All combat roles benefit
+  category: "universal"
+  reason: "Overheating provides 15-25% boost to module performance in critical moments"
+
+# ==========================================================================
+# Tank Breakpoints
+# ==========================================================================
+Hull Upgrades:
+  breakpoint_level: 5
+  effect: "Required for T2 Armor Hardeners, T2 Armor Plates, Damage Control II"
+  impact: "high"
+  priority: 2
+  applies_to_roles:
+    - armor_tank
+  category: "tank"
+  reason: "T2 armor modules provide significantly better resists than meta/T1"
+
+Capacitor Management:
+  breakpoint_level: 5
+  effect: "+5% capacitor per level - threshold for cap stability"
+  impact: "high"
+  priority: 2
+  applies_to_roles:
+    - active_tank
+    - logi
+  category: "tank"
+  reason: "Cap stability is often a hard threshold; the difference between stable and insufficient is binary in combat"
+
+# ==========================================================================
+# Stealth/Covert Ops Breakpoints
+# ==========================================================================
+Cloaking:
+  breakpoint_level: 4
+  effect: "Required for Covert Ops Cloaking Device II (warp while cloaked)"
+  impact: "critical"
+  priority: 1
+  applies_to_roles:
+    - stealth_ship
+    - explorer
+  category: "stealth"
+  reason: "Covert Ops Cloak is a binary capability unlock - enables warping while cloaked"
+
+# ==========================================================================
+# Industrial/Mining Breakpoints
+# ==========================================================================
+Mining:
+  breakpoint_level: 5
+  effect: "Required to inject Mining Barge skill (ship class unlock)"
+  impact: "high"
+  priority: 1
+  applies_to_roles:
+    - miner
+  category: "industrial"
+  reason: "Mining V is a gatekeeper - without it you cannot train for barges (Procurer, Retriever, Covetor)"
+
+Gas Cloud Harvesting:
+  breakpoint_level: 1
+  effect: "Binary unlock - enables gas harvesting entirely"
+  impact: "high"
+  priority: 1
+  applies_to_roles:
+    - gas_miner
+  category: "industrial"
+  reason: "Without this skill you cannot harvest gas at all; enables wormhole/nullsec gas income"
+
+Ice Harvesting:
+  breakpoint_level: 1
+  effect: "Binary unlock - enables ice harvesting entirely"
+  impact: "high"
+  priority: 1
+  applies_to_roles:
+    - ice_miner
+  category: "industrial"
+  reason: "Without this skill you cannot harvest ice at all; enables fuel block production chain"
+
+# ==========================================================================
+# Exploration Breakpoints
+# ==========================================================================
+Archaeology:
+  breakpoint_level: 3
+  effect: "Required for Relic Analyzer II (+10 virus coherence)"
+  impact: "high"
+  priority: 2
+  applies_to_roles:
+    - explorer
+  category: "exploration"
+  reason: "T2 analyzer provides +10 coherence over T1, significantly improving hack success rate"
+
+Hacking:
+  breakpoint_level: 3
+  effect: "Required for Data Analyzer II (+10 virus coherence)"
+  impact: "high"
+  priority: 2
+  applies_to_roles:
+    - explorer
+  category: "exploration"
+  reason: "T2 analyzer provides +10 coherence over T1, significantly improving hack success rate"
+
+# ==========================================================================
+# Capital/Jump Drive Breakpoints
+# ==========================================================================
+Jump Drive Calibration:
+  breakpoint_level: 5
+  effect: "+2 LY max jump range per level (discrete, not percentage)"
+  impact: "critical"
+  priority: 1
+  applies_to_roles:
+    - jump_capable
+  category: "capital"
+  reason: "Jump range is truly discrete - each level adds fixed lightyears, dramatically affecting operational reach"
+
+Cynosural Field Theory:
+  breakpoint_level: 1
+  effect: "Binary unlock - can light cynosural fields for capital jumps"
+  impact: "high"
+  priority: 1
+  applies_to_roles:
+    - capital_support
+  category: "capital"
+  reason: "Without this skill you cannot light cynos; essential for capital fleet logistics"
+
+# ==========================================================================
+# Logistics Breakpoints
+# ==========================================================================
+Remote Armor Repair Systems:
+  breakpoint_level: 5
+  effect: "Required for Large Remote Armor Repairer II"
+  impact: "high"
+  priority: 2
+  applies_to_roles:
+    - logi
+  category: "logi"
+  reason: "T2 large remote reps significantly outperform T1/meta for fleet logistics"
+
+Remote Shield Emission:
+  breakpoint_level: 5
+  effect: "Required for Large Shield Transporter II"
+  impact: "high"
+  priority: 2
+  applies_to_roles:
+    - logi
+  category: "logi"
+  reason: "T2 large shield transfers significantly outperform T1/meta for fleet logistics"

@@ -1,0 +1,46 @@
+# Anathema Hull Manifest
+#
+# The Anathema is an Amarr T2 Covert Ops frigate with 4 low slots.
+# Best drone bay and self-repair capability of any Covert Ops ship.
+
+hull: Anathema
+class: covert_ops
+faction: amarr
+tech_level: 2
+
+slots:
+  high: 2
+  mid: 3
+  low: 4
+  rig: 2
+
+drones:
+  bandwidth: 15
+  bay: 15
+
+bonuses:
+  - "10% bonus to Core and Combat Scanner Probe strength per Amarr Frigate level"
+  - "10% bonus to Virus strength per Covert Ops level"
+  - "37.5% role bonus to Probe strength"
+
+roles:
+  - exploration
+  - covert_ops
+  - scanning
+
+fitting_rules:
+  tank_type: armor_active
+  weapons:
+    primary: none
+    secondary: drones
+
+  notes:
+    - "4 low slots - most of any Covert Ops"
+    - "15 Mbit/s drone bandwidth - best of any Covert Ops"
+    - "Can fit armor repairer for self-sufficiency"
+    - "Best for extended operations without docking"
+
+engagement:
+  range: "N/A - explorer"
+  speed: "~2,600 m/s (MWD)"
+  notes: "Self-repair allows staying in space longer. Best drone capability."

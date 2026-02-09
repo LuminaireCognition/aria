@@ -1,0 +1,525 @@
+# ISK/Hour Estimates for EVE Online Activities
+#
+# These estimates are based on community benchmarks and represent typical
+# performance for pilots at the skill level indicated. Actual results vary
+# significantly based on:
+# - Market prices (LP conversion, loot values)
+# - Skill levels beyond minimum
+# - Ship fitting quality
+# - Player experience and efficiency
+# - RNG (exploration, drops)
+#
+# Last verified: 2026-01
+# Sources: EVE University, Reddit r/eve, community surveys
+
+_meta:
+  description: "Baseline ISK/hour estimates for common activities"
+  disclaimer: "Estimates only. Your results will vary."
+  update_frequency: "Review quarterly for market changes"
+
+# Mission Running
+missions:
+  l1_security:
+    isk_per_hour:
+      min: 1_000_000
+      max: 2_000_000
+      typical: 1_500_000
+    requirements:
+      skills:
+        - name: "Spaceship Command"
+          level: 1
+      standings: null
+    ships_recommended:
+      - "Starter frigate"
+      - "Faction frigate (career agent reward)"
+    effort: active
+    risk: safe
+    variance: low
+    notes: "Career agent ships work fine. Good for learning combat basics."
+
+  l2_security:
+    isk_per_hour:
+      min: 4_000_000
+      max: 8_000_000
+      typical: 5_000_000
+    requirements:
+      skills:
+        - name: "Cruiser skill (any race)"
+          level: 3
+      standings:
+        type: corporation
+        value: 1.0
+    ships_recommended:
+      - "Vexor"
+      - "Caracal"
+      - "Rupture"
+      - "Omen"
+    effort: active
+    risk: safe
+    variance: low
+    notes: "First real income jump. LP store conversion important."
+
+  l3_security:
+    isk_per_hour:
+      min: 8_000_000
+      max: 15_000_000
+      typical: 10_000_000
+    requirements:
+      skills:
+        - name: "Battlecruisers"
+          level: 3
+      standings:
+        type: corporation
+        value: 3.0
+    ships_recommended:
+      - "Drake"
+      - "Myrmidon"
+      - "Hurricane"
+      - "Harbinger"
+    effort: active
+    risk: safe
+    variance: medium
+    notes: "Sweet spot for casual mission running. Some missions give bonus LP."
+
+  l4_security:
+    isk_per_hour:
+      min: 15_000_000
+      max: 30_000_000
+      typical: 20_000_000
+    requirements:
+      skills:
+        - name: "Battleship skill (any race)"
+          level: 3
+      standings:
+        type: corporation
+        value: 5.0
+    ships_recommended:
+      - "Dominix"
+      - "Raven"
+      - "Maelstrom"
+      - "Apocalypse"
+    effort: active
+    risk: safe
+    variance: medium
+    notes: "Blitzing (objective only) can double ISK/hr. Learn mission mechanics."
+
+  l4_burners:
+    isk_per_hour:
+      min: 40_000_000
+      max: 80_000_000
+      typical: 60_000_000
+    requirements:
+      skills:
+        - name: "Assault Frigates"
+          level: 4
+        - name: "Specialization skills"
+          level: 4
+      standings:
+        type: corporation
+        value: 5.0
+    ships_recommended:
+      - "Daredevil"
+      - "Worm"
+      - "Garmur"
+      - "Assault frigates"
+    effort: active
+    risk: moderate
+    variance: high
+    notes: "Requires specific fits per burner type. Learn or die."
+
+# Exploration
+exploration:
+  highsec_data:
+    isk_per_hour:
+      min: 1_000_000
+      max: 5_000_000
+      typical: 2_000_000
+    requirements:
+      skills:
+        - name: "Astrometrics"
+          level: 3
+        - name: "Hacking"
+          level: 1
+    ships_recommended:
+      - "Heron"
+      - "Imicus"
+      - "Magnate"
+      - "Probe"
+    effort: active
+    risk: safe
+    variance: very_high
+    notes: "Often worthless. Do lowsec instead once comfortable."
+
+  highsec_relic:
+    isk_per_hour:
+      min: 2_000_000
+      max: 8_000_000
+      typical: 4_000_000
+    requirements:
+      skills:
+        - name: "Astrometrics"
+          level: 3
+        - name: "Archaeology"
+          level: 1
+    ships_recommended:
+      - "Heron"
+      - "Imicus"
+      - "Magnate"
+      - "Probe"
+    effort: active
+    risk: safe
+    variance: very_high
+    notes: "Slightly better than data sites. Still quite random."
+
+  lowsec_exploration:
+    isk_per_hour:
+      min: 10_000_000
+      max: 30_000_000
+      typical: 15_000_000
+    requirements:
+      skills:
+        - name: "Astrometrics"
+          level: 3
+        - name: "Hacking"
+          level: 3
+        - name: "Archaeology"
+          level: 3
+    ships_recommended:
+      - "Astero"
+      - "Covert Ops frigate"
+      - "T1 explorer (risky)"
+    effort: active
+    risk: moderate
+    variance: very_high
+    notes: "Significant upgrade from highsec. Use d-scan constantly."
+
+  nullsec_relic:
+    isk_per_hour:
+      min: 20_000_000
+      max: 50_000_000
+      typical: 30_000_000
+    requirements:
+      skills:
+        - name: "Astrometrics"
+          level: 4
+        - name: "Archaeology"
+          level: 4
+    ships_recommended:
+      - "Astero"
+      - "Covert Ops frigate"
+    effort: active
+    risk: dangerous
+    variance: very_high
+    notes: "High reward, high risk. Bubble camps, hunters. Use filaments."
+
+  wormhole_c1_c2:
+    isk_per_hour:
+      min: 15_000_000
+      max: 40_000_000
+      typical: 25_000_000
+    requirements:
+      skills:
+        - name: "Astrometrics"
+          level: 4
+        - name: "Hacking"
+          level: 4
+        - name: "Archaeology"
+          level: 4
+    ships_recommended:
+      - "Astero"
+      - "Covert Ops frigate"
+      - "Stratios (for combat sites)"
+    effort: active
+    risk: moderate
+    variance: high
+    notes: "Need to scan entry. Watch for other wormholers."
+
+# Mining
+mining:
+  venture_basic:
+    isk_per_hour:
+      min: 2_000_000
+      max: 3_000_000
+      typical: 2_500_000
+    requirements:
+      skills:
+        - name: "Mining"
+          level: 3
+    ships_recommended:
+      - "Venture"
+    effort: semi_active
+    risk: safe
+    variance: very_low
+    notes: "Consistent but low. Good while training, not as primary income."
+
+  venture_scordite:
+    isk_per_hour:
+      min: 3_000_000
+      max: 5_000_000
+      typical: 4_000_000
+    requirements:
+      skills:
+        - name: "Mining"
+          level: 4
+    ships_recommended:
+      - "Venture"
+    effort: semi_active
+    risk: safe
+    variance: very_low
+    notes: "Better ores in 0.5-0.6 systems. Still low yield."
+
+  retriever_highsec:
+    isk_per_hour:
+      min: 6_000_000
+      max: 10_000_000
+      typical: 8_000_000
+    requirements:
+      skills:
+        - name: "Mining Barge"
+          level: 3
+        - name: "Mining"
+          level: 4
+    ships_recommended:
+      - "Retriever"
+    effort: semi_active
+    risk: safe
+    variance: low
+    notes: "Max yield barge. Vulnerable to ganks - don't AFK."
+
+  procurer_highsec:
+    isk_per_hour:
+      min: 5_000_000
+      max: 8_000_000
+      typical: 6_500_000
+    requirements:
+      skills:
+        - name: "Mining Barge"
+          level: 3
+        - name: "Mining"
+          level: 4
+    ships_recommended:
+      - "Procurer"
+    effort: semi_active
+    risk: safe
+    variance: low
+    notes: "Lower yield but tanky. Safer in dangerous systems."
+
+  ice_mining:
+    isk_per_hour:
+      min: 8_000_000
+      max: 15_000_000
+      typical: 10_000_000
+    requirements:
+      skills:
+        - name: "Ice Harvesting"
+          level: 3
+        - name: "Mining Barge"
+          level: 3
+    ships_recommended:
+      - "Mining Barge with Ice Harvesters"
+    effort: semi_active
+    risk: safe
+    variance: low
+    notes: "Ice belt spawns on schedule. Price varies by demand."
+
+  gas_huffing_wh:
+    isk_per_hour:
+      min: 30_000_000
+      max: 100_000_000
+      typical: 50_000_000
+    requirements:
+      skills:
+        - name: "Gas Cloud Harvesting"
+          level: 1
+    ships_recommended:
+      - "Venture"
+      - "Prospect"
+    effort: active
+    risk: moderate
+    variance: high
+    notes: "C5/C6 Fullerite gas is very valuable. Sites have rats after 15-20 min."
+
+# Combat Sites
+combat:
+  highsec_anomalies:
+    isk_per_hour:
+      min: 2_000_000
+      max: 5_000_000
+      typical: 3_000_000
+    requirements:
+      skills:
+        - name: "Cruiser skill"
+          level: 3
+    ships_recommended:
+      - "T1 Cruiser"
+    effort: active
+    risk: safe
+    variance: low
+    notes: "Quick ISK while looking for better content."
+
+  abyssal_t1:
+    isk_per_hour:
+      min: 15_000_000
+      max: 20_000_000
+      typical: 17_000_000
+    requirements:
+      skills:
+        - name: "Cruiser skill"
+          level: 4
+    ships_recommended:
+      - "Gila"
+      - "Vexor Navy Issue"
+    capital_required: 50_000_000
+    effort: active
+    risk: moderate
+    variance: medium
+    notes: "Filaments from market. Timer-based, lose ship if fail."
+
+  abyssal_t2:
+    isk_per_hour:
+      min: 20_000_000
+      max: 30_000_000
+      typical: 25_000_000
+    requirements:
+      skills:
+        - name: "Cruiser skill"
+          level: 5
+        - name: "T2 tank skills"
+          level: 4
+    ships_recommended:
+      - "Gila"
+      - "Ishtar"
+    capital_required: 100_000_000
+    effort: active
+    risk: moderate
+    variance: medium
+    notes: "Stepping stone to higher tiers."
+
+  abyssal_t3:
+    isk_per_hour:
+      min: 30_000_000
+      max: 50_000_000
+      typical: 40_000_000
+    requirements:
+      skills:
+        - name: "Cruiser skill"
+          level: 5
+        - name: "T2 weapon skills"
+          level: 4
+    ships_recommended:
+      - "Gila"
+      - "Ishtar"
+    capital_required: 200_000_000
+    effort: active
+    risk: moderate
+    variance: medium
+    notes: "Good balance of risk/reward for experienced pilots."
+
+  ded_34:
+    isk_per_hour:
+      min: 20_000_000
+      max: 50_000_000
+      typical: 30_000_000
+    requirements:
+      skills:
+        - name: "Cruiser skill"
+          level: 4
+    ships_recommended:
+      - "T1 Cruiser"
+      - "Faction Cruiser"
+    effort: active
+    risk: safe_to_moderate
+    variance: high
+    notes: "Must scan down. Faction drops are lottery tickets."
+
+# Passive Income
+passive:
+  planetary_interaction_basic:
+    isk_per_day:
+      min: 1_000_000
+      max: 2_000_000
+      typical: 1_500_000
+    time_per_day: 5  # minutes
+    requirements:
+      skills:
+        - name: "Command Center Upgrades"
+          level: 1
+        - name: "Interplanetary Consolidation"
+          level: 1
+    effort: passive
+    risk: safe
+    variance: low
+    notes: "Per planet. Setup takes time to learn."
+
+  planetary_interaction_optimized:
+    isk_per_day:
+      min: 8_000_000
+      max: 15_000_000
+      typical: 10_000_000
+    time_per_day: 30  # minutes
+    requirements:
+      skills:
+        - name: "Command Center Upgrades"
+          level: 4
+        - name: "Interplanetary Consolidation"
+          level: 4
+    effort: passive
+    risk: safe
+    variance: low
+    notes: "5 planets, P2 or P3 production. Requires market research."
+
+  research_agents:
+    isk_per_day:
+      min: 500_000
+      max: 2_000_000
+      typical: 1_000_000
+    time_per_day: 0
+    requirements:
+      skills:
+        - name: "Research skill"
+          level: 4
+        - name: "Science"
+          level: 4
+      standings:
+        type: corporation
+        value: 3.0
+    effort: passive
+    risk: safe
+    variance: low
+    notes: "Truly passive. Low ISK but zero effort after setup."
+
+# Trading
+trading:
+  station_trading:
+    isk_per_hour:
+      min: 0  # Can lose money
+      max: 100_000_000
+      typical: 20_000_000
+    requirements:
+      skills:
+        - name: "Trade"
+          level: 4
+        - name: "Accounting"
+          level: 4
+        - name: "Broker Relations"
+          level: 4
+    capital_required: 100_000_000  # Minimum to start
+    effort: semi_active
+    risk: moderate  # Market risk
+    variance: high
+    notes: "Capital intensive. Need market knowledge. Can lose ISK."
+
+  hauling:
+    isk_per_hour:
+      min: 5_000_000
+      max: 15_000_000
+      typical: 10_000_000
+    requirements:
+      skills:
+        - name: "Industrial ship skill"
+          level: 3
+    capital_required: 0  # Courier contracts
+    effort: active
+    risk: moderate
+    variance: medium
+    notes: "Courier contracts provide cargo. Watch for ganks on valuable loads."

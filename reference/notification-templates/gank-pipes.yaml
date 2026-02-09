@@ -1,0 +1,60 @@
+# Gank Pipe Alerts Template
+# Known high-sec ganking corridors and choke points
+#
+# Use: uv run aria-esi notifications create gank-watch --template gank-pipes --webhook <url>
+
+schema_version: 1
+
+name: "gank-pipes"
+display_name: "Gank Pipe Alerts"
+description: "Known high-sec ganking corridors and choke points"
+enabled: true
+webhook_url: ""  # User must fill in
+
+topology:
+  geographic:
+    systems:
+      # Jita-Amarr pipe (most dangerous route)
+      - name: "Uedama"
+        classification: "hunting"
+      - name: "Sivala"
+        classification: "transit"
+      - name: "Ahtulaima"
+        classification: "transit"
+      - name: "Ikao"
+        classification: "hunting"
+
+      # Niarja chokepoint (highsec island connector)
+      - name: "Niarja"
+        classification: "hunting"
+      - name: "Kaaputenen"
+        classification: "transit"
+      - name: "Madirmilire"
+        classification: "hunting"
+
+      # Jita to Dodixie alternate routes
+      - name: "Aufay"
+        classification: "hunting"
+      - name: "Balle"
+        classification: "transit"
+
+      # Other known gank hotspots
+      - name: "Bahromab"
+        classification: "hunting"
+      - name: "Halaima"
+        classification: "hunting"
+      - name: "Isanamo"
+        classification: "hunting"
+
+triggers:
+  watchlist_activity: true
+  gatecamp_detected: true
+  high_value_threshold: 100000000  # 100M+ (lower threshold for gank intel)
+
+throttle_minutes: 1  # Fast updates for gank intel
+
+quiet_hours:
+  enabled: false
+  start: "02:00"
+  end: "08:00"
+  timezone: "America/New_York"

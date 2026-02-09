@@ -1,0 +1,11 @@
+{
+  "constellation_id": 20000020,
+  "name": "Jita",
+  "planets": [],
+  "position": {"x": 0, "y": 0, "z": 0},
+  "security_class": "B",
+  "security_status": 0.9459131360054016,
+  "star_id": 40009081,
+  "stargates": [50001248, 50001249],
+  "system_id": 30000142
+}

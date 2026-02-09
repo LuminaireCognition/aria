@@ -1,0 +1,96 @@
+# Test fixture: Sync war targets from ESI
+# Tests automatic war target synchronization
+
+name: "Sync War Targets"
+skill: watchlist
+description: |
+  Synchronize war targets from ESI corporation wars data.
+  Creates or updates the "War Targets" watchlist with current enemies.
+
+input:
+  command: sync-wars
+  character_id: 2123984364
+  corporation_id: 98000001
+
+expected_facts:
+  - path: "success"
+    equals: true
+
+  - path: "wars_checked"
+    range: [1, 10]
+
+  - path: "sync_results.entities_added"
+    range: [0, 10]
+
+  - path: "current_targets"
+    length: 2
+
+expected_output:
+  success: true
+  action: "sync-wars"
+  corporation_id: 98000001
+  corporation_name: "My Corp"
+  wars_checked: 3
+  sync_results:
+    entities_added: 2
+    entities_removed: 1
+    unchanged: 0
+  current_targets:
+    - entity_id: 99000001
+      entity_name: "Enemy Alliance"
+      entity_type: "alliance"
+      war_id: 12345
+    - entity_id: 98000002
+      entity_name: "Mercenary Corp"
+      entity_type: "corporation"
+      war_id: 12346
+  watchlist_name: "War Targets"
+  message: "War target sync complete: 2 added, 1 removed"
+
+# =============================================================================
+# Mock ESI Responses for Tier 1 Integration Tests
+# =============================================================================
+esi_responses:
+  corporation_wars:
+    - war_id: 12345
+      defender:
+        corporation_id: 98000001
+      aggressor:
+        alliance_id: 99000001
+      started: "2026-01-20T00:00:00Z"
+      finished: null
+      mutual: false
+    - war_id: 12346
+      defender:
+        corporation_id: 98000001
+      aggressor:
+        corporation_id: 98000002
+      started: "2026-01-25T00:00:00Z"
+      finished: null
+      mutual: false
+
+# =============================================================================
+# Mock CLI Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  cli_sync_wars:
+    success: true
+    action: "sync-wars"
+    corporation_id: 98000001
+    corporation_name: "My Corp"
+    wars_checked: 3
+    sync_results:
+      entities_added: 2
+      entities_removed: 1
+      unchanged: 0
+    current_targets:
+      - entity_id: 99000001
+        entity_name: "Enemy Alliance"
+        entity_type: "alliance"
+        war_id: 12345
+      - entity_id: 98000002
+        entity_name: "Mercenary Corp"
+        entity_type: "corporation"
+        war_id: 12346
+    watchlist_name: "War Targets"
+    message: "War target sync complete: 2 added, 1 removed"

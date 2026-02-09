@@ -1,0 +1,97 @@
+# Test fixture: Basic arbitrage scan
+# Tests default parameter arbitrage scanning
+
+name: "Basic arbitrage scan"
+skill: arbitrage
+description: |
+  Default arbitrage scan with standard parameters.
+  Scans all major trade hubs for profitable cross-region trades.
+
+input:
+  min_profit_pct: 5
+  min_volume: 10
+
+expected_output:
+  opportunities:
+    - type_id: 17858
+      type_name: "Carbon"
+      buy_region: "The Forge"
+      buy_region_id: 10000002
+      sell_region: "Domain"
+      sell_region_id: 10000043
+      buy_price: 50.0
+      sell_price: 75.0
+      profit_per_unit: 25.0
+      profit_pct: 50.0
+      available_volume: 50000
+      route_jumps: 45
+      route_safe: true
+      freshness: "fresh"
+      confidence: "high"
+      item_volume_m3: 0.01
+      trade_mode: "immediate"
+      broker_fee_pct: 0.03
+      sales_tax_pct: 0.036
+    - type_id: 16679
+      type_name: "Isogen"
+      buy_region: "Heimatar"
+      buy_region_id: 10000030
+      sell_region: "The Forge"
+      sell_region_id: 10000002
+      buy_price: 120.0
+      sell_price: 150.0
+      profit_per_unit: 30.0
+      profit_pct: 25.0
+      available_volume: 100000
+      route_jumps: 32
+      route_safe: true
+      freshness: "fresh"
+      confidence: "high"
+      item_volume_m3: 0.01
+      trade_mode: "immediate"
+      broker_fee_pct: 0.03
+      sales_tax_pct: 0.036
+  total_found: 25
+  regions_scanned:
+    - "The Forge"
+    - "Domain"
+    - "Sinq Laison"
+    - "Heimatar"
+    - "Metropolis"
+  scan_timestamp: 1705320000
+  data_freshness: "fresh"
+  refresh_performed: false
+  warnings: []
+
+expected_facts:
+  # Should find multiple opportunities
+  - path: "opportunities"
+    length: 2
+
+  # All opportunities should meet minimum profit threshold
+  - path: "opportunities[*].profit_pct"
+    all_satisfy: ">= 5"
+
+  # All opportunities should have positive available volume
+  - path: "opportunities[*].available_volume"
+    all_satisfy: "> 0"
+
+  # Should scan at least 5 regions (major hubs)
+  - path: "regions_scanned"
+    length: 5
+
+  # Total found >= displayed (may be filtered)
+  - path: "total_found"
+    range: [2, 100]
+
+  # Buy prices should be positive
+  - path: "opportunities[*].buy_price"
+    all_satisfy: "> 0"
+
+  # Sell prices should be greater than buy prices
+  - path: "opportunities[*].sell_price"
+    all_satisfy: "> 0"
+
+  # Data should be fresh
+  - path: "data_freshness"
+    equals: "fresh"

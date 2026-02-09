@@ -1,0 +1,148 @@
+# Vexor L3 Missions - Meta Module Variant (Armor)
+#
+# Entry point for pilots running L3s in a Vexor.
+# Uses named/meta modules for easier fitting. Cruiser in BC content requires solid skills.
+
+archetype:
+  hull: Vexor
+  skill_tier: meta
+  tank_type: armor_active
+  omega_required: false
+
+eft: |
+  [Vexor, L3 Missions - Armor Meta]
+
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Medium ACM Compact Armor Repairer
+  Multispectrum Energized Membrane I
+  Reactive Armor Hardener
+
+  10MN Y-S8 Compact Afterburner
+  Large Compact Pb-Acid Cap Battery
+  Omnidirectional Tracking Link I
+  Drone Navigation Computer I
+
+  Drone Link Augmentor I
+  [Empty High slot]
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Capacitor Control Circuit I
+
+  Hammerhead I x5
+  Hobgoblin I x5
+  Hornet EC-300 x5
+
+skill_requirements:
+  required:
+    Drones: 4
+    Medium Drone Operation: 3
+    Gallente Cruiser: 4
+    Repair Systems: 3
+    Hull Upgrades: 4
+    Capacitor Management: 3
+  recommended:
+    Drone Interfacing: 4
+    Drone Durability: 3
+    Mechanics: 4
+    Capacitor Systems Operation: 4
+
+stats:
+  dps: 220
+  ehp: 9600
+  tank_sustained: 95
+  capacitor_stable: true
+  align_time: 9.5
+  speed_ab: 450
+  drone_control_range: 60000
+  validated_date: "2026-02-04"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor Kinetic Hardener I"
+      drones:
+        medium: "Hammerhead I"
+        light: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal - default drones optimal. Sensor damps - stay close."
+
+    angel_cartel:
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor Explosive Hardener I"
+      drones:
+        medium: "Valkyrie I"
+        light: "Warrior I"
+      notes: "Angels weak to Explosive. Fast ships - maintain range with AB."
+
+    blood_raiders:
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor EM Hardener I"
+      drones:
+        medium: "Infiltrator I"
+        light: "Acolyte I"
+      notes: "Blood Raiders weak to EM. Neuts possible - watch cap."
+
+    guristas:
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor Kinetic Hardener I"
+      drones:
+        medium: "Vespa I"
+        light: "Hornet I"
+      notes: "Guristas weak to Kinetic. ECM possible - keep multiple targets."
+
+    sansha:
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Armor EM Hardener I"
+      drones:
+        medium: "Infiltrator I"
+        light: "Acolyte I"
+      notes: "Sansha weak to EM. Tracking disrupt - drones unaffected."
+
+    rogue_drones:
+      drones:
+        medium: "Infiltrator I"
+        light: "Acolyte I"
+      notes: "Rogue Drones weak to EM. Keep omni tank - they deal all types."
+
+    mercenaries:
+      drones:
+        medium: "Hammerhead I"
+        light: "Hobgoblin I"
+      notes: "Mixed enemy types - default fit works well."
+
+notes:
+  purpose: "Entry-level L3 runner for pilots transitioning from L2s"
+  engagement: "Orbit at 25-35km, deploy mediums for cruisers/BCs, lights for frigates"
+  warnings:
+    - "L3s are designed for battlecruisers - requires careful aggro management"
+    - "Focus fire to reduce incoming DPS quickly"
+    - "Always recall drones before warping"
+    - "EC-300s for emergency escape if overwhelmed"
+    - "AB keeps sig down - better survivability than MWD"
+  recommended_skills:
+    - "Gallente Cruiser 4+ strongly recommended"
+    - "Drone skills at 4 help with damage and survivability"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "Hammerhead I"
+      upgrade_to: "Hammerhead II"
+      skill_required: "Medium Drone Operation 5"
+    - module: "Drone Damage Amplifier I"
+      upgrade_to: "Drone Damage Amplifier II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Myrmidon (Battlecruiser)"
+      notes: "Purpose-built for L3s with heavier tank and more drones"

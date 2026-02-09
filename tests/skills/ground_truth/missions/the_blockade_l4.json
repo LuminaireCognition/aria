@@ -1,0 +1,47 @@
+{
+  "mission_name": "The Blockade",
+  "mission_level": 4,
+  "faction": "varies",
+  "notes": "Available against multiple factions (Blood Raiders, Serpentis, Guristas, etc.)",
+  "variants": {
+    "blood_raiders": {
+      "damage_dealt": ["em", "thermal"],
+      "damage_to_tank": ["em", "thermal"],
+      "primary_damage_dealt": "em",
+      "triggers": ["Destroying the Stargate triggers reinforcement wave"]
+    },
+    "serpentis": {
+      "damage_dealt": ["kinetic", "thermal"],
+      "damage_to_tank": ["kinetic", "thermal"],
+      "primary_damage_dealt": "thermal",
+      "triggers": ["Destroying the Stargate triggers reinforcement wave"]
+    },
+    "guristas": {
+      "damage_dealt": ["kinetic", "thermal"],
+      "damage_to_tank": ["kinetic", "thermal"],
+      "primary_damage_dealt": "kinetic",
+      "triggers": ["Destroying the Stargate triggers reinforcement wave"]
+    }
+  },
+  "common_facts": {
+    "objective": "Destroy the pirate stargate",
+    "has_trigger": true,
+    "trigger_description": "Destroying the stargate spawns reinforcements",
+    "recommended_ships": ["battleship", "marauder"],
+    "expected_enemy_count_range": [15, 30],
+    "has_elite_frigates": true,
+    "has_elite_cruisers": true,
+    "has_battleships": true,
+    "tactical_advice": [
+      "Clear initial spawns before attacking stargate",
+      "Tank omni damage or specific faction damage",
+      "Bring drones for frigate cleanup"
+    ]
+  },
+  "verification_points": [
+    "Must mention damage type to deal",
+    "Must mention damage type to tank",
+    "Must warn about trigger mechanics",
+    "Should recommend clearing adds first"
+  ]
+}

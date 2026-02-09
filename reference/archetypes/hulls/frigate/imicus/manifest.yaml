@@ -1,0 +1,53 @@
+# Imicus Hull Manifest
+#
+# The Imicus is a Gallente T1 exploration frigate.
+# Drone bonus provides some defensive capability.
+
+hull: Imicus
+class: frigate
+faction: gallente
+tech_level: 1
+role: exploration
+
+slots:
+  high: 3
+  mid: 4
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 15
+  bay: 30
+
+bonuses:
+  - "7.5% bonus to probe scan strength per Gallente Frigate level"
+  - "5% bonus to drone damage per Gallente Frigate level"
+
+roles:
+  - exploration
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_buffer  # If any tank
+  weapons:
+    primary: null
+    secondary: drones  # Slightly better than other explorers
+
+  notes:
+    - "4 mid slots - standard explorer layout"
+    - "Best drone capability of T1 explorers"
+    - "Fast align with inertial stabilizers"
+
+exploration_bonuses:
+  probe_strength: "+7.5%/level"
+  virus_strength: "30 (base 25 + 5 role)"
+  cargo: "400m3"
+
+capacitor:
+  stable_expected: true
+  notes: "Exploration modules use minimal cap."
+
+engagement:
+  range: "N/A - avoid combat"
+  speed: "MWD for escape"
+  notes: "Drones provide slight combat capability vs rats."

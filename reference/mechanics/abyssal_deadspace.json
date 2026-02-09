@@ -1,0 +1,393 @@
+{
+  "_meta": {
+    "description": "EVE Online Abyssal Deadspace mechanics, weather types, tiers, and NPC threat data",
+    "sources": [
+      "https://wiki.eveuniversity.org/Abyssal_Deadspace",
+      "https://wiki.eveuniversity.org/Abyssal_Deadspace_Rooms",
+      "https://abyss.eve-nt.uk/"
+    ],
+    "last_verified": "2026-01-29",
+    "notes": "Damage profiles are approximate. Actual room composition varies. Always verify current meta on community resources."
+  },
+
+  "weather_types": {
+    "electrical": {
+      "filament_color": "blue",
+      "effects": {
+        "em_damage_modifier": 1.5,
+        "capacitor_recharge_modifier": 0.5
+      },
+      "effect_description": "+50% EM damage dealt, -50% capacitor recharge time (faster)",
+      "npc_damage_profile": {
+        "em": 50,
+        "thermal": 30,
+        "kinetic": 10,
+        "explosive": 10
+      },
+      "recommended_resist": "EM",
+      "notes": "Favorable for capacitor-hungry fits. NPCs deal heavy EM damage."
+    },
+    "exotic": {
+      "filament_color": "yellow/gold",
+      "effects": {
+        "kinetic_damage_modifier": 1.5,
+        "scan_resolution_modifier": 0.5
+      },
+      "effect_description": "+50% kinetic damage dealt, -50% scan resolution",
+      "npc_damage_profile": {
+        "em": 10,
+        "thermal": 20,
+        "kinetic": 50,
+        "explosive": 20
+      },
+      "recommended_resist": "Kinetic",
+      "notes": "Slower target lock. NPCs deal heavy kinetic damage."
+    },
+    "firestorm": {
+      "filament_color": "red/orange",
+      "effects": {
+        "thermal_damage_modifier": 1.5,
+        "armor_hp_modifier": 0.5
+      },
+      "effect_description": "+50% thermal damage dealt, -50% armor HP",
+      "npc_damage_profile": {
+        "em": 10,
+        "thermal": 60,
+        "kinetic": 20,
+        "explosive": 10
+      },
+      "recommended_resist": "Thermal",
+      "notes": "Bad for armor tanks. Shield fits preferred."
+    },
+    "gamma": {
+      "filament_color": "green",
+      "effects": {
+        "explosive_damage_modifier": 1.5,
+        "shield_hp_modifier": 0.5
+      },
+      "effect_description": "+50% explosive damage dealt, -50% shield HP",
+      "npc_damage_profile": {
+        "em": 10,
+        "thermal": 10,
+        "kinetic": 20,
+        "explosive": 60
+      },
+      "recommended_resist": "Explosive",
+      "notes": "Bad for shield tanks. Armor fits preferred."
+    },
+    "dark": {
+      "filament_color": "purple/dark",
+      "effects": {
+        "turret_range_modifier": 0.5,
+        "velocity_modifier": 1.5
+      },
+      "effect_description": "-50% turret optimal/falloff, +50% ship velocity",
+      "npc_damage_profile": {
+        "em": 25,
+        "thermal": 25,
+        "kinetic": 25,
+        "explosive": 25
+      },
+      "recommended_resist": "Omni",
+      "notes": "Favors short-range weapons (drones, missiles). Speed tank viable."
+    }
+  },
+
+  "tiers": {
+    "0": {
+      "name": "Tranquil",
+      "filament_prefix": "Tranquil",
+      "ship_class": "Destroyer",
+      "time_limit_seconds": 1200,
+      "difficulty": "Tutorial",
+      "avg_loot_isk": 5000000,
+      "notes": "Training tier. Very easy, minimal risk."
+    },
+    "1": {
+      "name": "Calm",
+      "filament_prefix": "Calm",
+      "ship_class": "Cruiser",
+      "time_limit_seconds": 1200,
+      "difficulty": "Easy",
+      "avg_loot_isk": 15000000,
+      "notes": "Entry-level cruiser abyss. Good for learning."
+    },
+    "2": {
+      "name": "Agitated",
+      "filament_prefix": "Agitated",
+      "ship_class": "Cruiser",
+      "time_limit_seconds": 1200,
+      "difficulty": "Moderate",
+      "avg_loot_isk": 25000000,
+      "notes": "Moderate challenge. Decent skills recommended."
+    },
+    "3": {
+      "name": "Fierce",
+      "filament_prefix": "Fierce",
+      "ship_class": "Cruiser",
+      "time_limit_seconds": 1200,
+      "difficulty": "Hard",
+      "avg_loot_isk": 40000000,
+      "notes": "Significant challenge. T2 modules and good skills required."
+    },
+    "4": {
+      "name": "Raging",
+      "filament_prefix": "Raging",
+      "ship_class": "Cruiser",
+      "time_limit_seconds": 1200,
+      "difficulty": "Very Hard",
+      "avg_loot_isk": 60000000,
+      "notes": "High risk. Faction/deadspace modules recommended."
+    },
+    "5": {
+      "name": "Chaotic",
+      "filament_prefix": "Chaotic",
+      "ship_class": "Cruiser",
+      "time_limit_seconds": 1200,
+      "difficulty": "Extreme",
+      "avg_loot_isk": 100000000,
+      "notes": "Maximum difficulty. Expensive fits, max skills, experience required."
+    },
+    "6": {
+      "name": "Cataclysmic",
+      "filament_prefix": "Cataclysmic",
+      "ship_class": "Cruiser",
+      "time_limit_seconds": 1200,
+      "difficulty": "Extreme+",
+      "avg_loot_isk": 150000000,
+      "notes": "Brutal. Only for experts with optimized fits."
+    }
+  },
+
+  "ship_recommendations": {
+    "gila": {
+      "hull": "Gila",
+      "class": "Cruiser",
+      "max_recommended_tier": 5,
+      "strengths": ["Drone damage", "Passive shield tank", "Beginner friendly"],
+      "weaknesses": ["Expensive hull", "Drone travel time", "Weather dependent"],
+      "preferred_weather": ["electrical", "exotic"],
+      "notes": "Gold standard for abyssal running. Drone damage bonus makes it forgiving."
+    },
+    "ishtar": {
+      "hull": "Ishtar",
+      "class": "Heavy Assault Cruiser",
+      "max_recommended_tier": 5,
+      "strengths": ["High drone damage", "Tank flexibility", "Good tracking"],
+      "weaknesses": ["Requires HAC skills", "Lower EHP than Gila"],
+      "preferred_weather": ["electrical", "exotic"],
+      "notes": "Excellent drone boat. Faster clears than Gila at high skill."
+    },
+    "sacrilege": {
+      "hull": "Sacrilege",
+      "class": "Heavy Assault Cruiser",
+      "max_recommended_tier": 5,
+      "strengths": ["Strong armor tank", "HAM DPS", "Good in Gamma"],
+      "weaknesses": ["Capacitor hungry", "Requires good missile skills"],
+      "preferred_weather": ["gamma", "dark"],
+      "notes": "Top armor choice for Gamma weather."
+    },
+    "vagabond": {
+      "hull": "Vagabond",
+      "class": "Heavy Assault Cruiser",
+      "max_recommended_tier": 4,
+      "strengths": ["Speed tank", "Good in Dark", "Cheap losses"],
+      "weaknesses": ["Low EHP", "Less forgiving"],
+      "preferred_weather": ["dark"],
+      "notes": "Speed tanking specialist. Dark weather recommended."
+    },
+    "cerberus": {
+      "hull": "Cerberus",
+      "class": "Heavy Assault Cruiser",
+      "max_recommended_tier": 4,
+      "strengths": ["Long range missiles", "Good tracking", "Flexible tank"],
+      "weaknesses": ["Lower DPS than drone boats", "Missile travel time"],
+      "preferred_weather": ["exotic", "electrical"],
+      "notes": "Solid missile option with range flexibility."
+    },
+    "hawk": {
+      "hull": "Hawk",
+      "class": "Assault Frigate",
+      "max_recommended_tier": 3,
+      "strengths": ["Cheap", "Fast clears", "Good for T0 grinding"],
+      "weaknesses": ["Frigate-only filaments", "Limited progression"],
+      "preferred_weather": ["electrical"],
+      "notes": "For Abyssal Proving Grounds or frigate filaments."
+    },
+    "retribution": {
+      "hull": "Retribution",
+      "class": "Assault Frigate",
+      "max_recommended_tier": 3,
+      "strengths": ["Strong armor tank", "Good DPS"],
+      "weaknesses": ["Frigate-only", "Turret tracking issues"],
+      "preferred_weather": ["gamma", "firestorm"],
+      "notes": "Frigate option for specific weather types."
+    },
+    "stormbringer": {
+      "hull": "Stormbringer",
+      "class": "Cruiser",
+      "max_recommended_tier": 5,
+      "strengths": ["Ramping damage", "Unique mechanics", "High ceiling"],
+      "weaknesses": ["Expensive", "Complex gameplay", "Weak to neuts"],
+      "preferred_weather": ["electrical"],
+      "notes": "High-skill-cap option with Triglavian weapons."
+    }
+  },
+
+  "npc_factions": {
+    "triglavian": {
+      "name": "Triglavian Collective",
+      "damage_dealt": {"em": 0, "thermal": 50, "kinetic": 0, "explosive": 50},
+      "resist_profile": {"em": "high", "thermal": "low", "kinetic": "medium", "explosive": "low"},
+      "recommended_damage": "Thermal/Explosive",
+      "special_mechanics": ["Ramping damage", "Remote repairs"],
+      "threat_priority": "High",
+      "notes": "Kill logistics first. Ramping damage is deadly if ignored."
+    },
+    "drifter": {
+      "name": "Drifters",
+      "damage_dealt": {"em": 50, "thermal": 0, "kinetic": 50, "explosive": 0},
+      "resist_profile": {"em": "low", "thermal": "medium", "kinetic": "low", "explosive": "medium"},
+      "recommended_damage": "EM/Kinetic",
+      "special_mechanics": ["Doomsday weapon", "High alpha"],
+      "threat_priority": "Critical",
+      "notes": "Drifter battleships fire doomsday. Kill fast or die."
+    },
+    "sleeper": {
+      "name": "Sleepers",
+      "damage_dealt": {"em": 25, "thermal": 25, "kinetic": 25, "explosive": 25},
+      "resist_profile": {"em": "medium", "thermal": "medium", "kinetic": "medium", "explosive": "medium"},
+      "recommended_damage": "Any (Omni tank)",
+      "special_mechanics": ["Neuting", "ECM", "Remote repairs"],
+      "threat_priority": "Medium",
+      "notes": "Watch for neuting cruisers. ECM can disrupt drones."
+    },
+    "rogue_drones": {
+      "name": "Rogue Drones",
+      "damage_dealt": {"em": 30, "thermal": 30, "kinetic": 20, "explosive": 20},
+      "resist_profile": {"em": "low", "thermal": "low", "kinetic": "high", "explosive": "high"},
+      "recommended_damage": "EM/Thermal",
+      "special_mechanics": ["Swarm mechanics", "Web towers"],
+      "threat_priority": "Medium",
+      "notes": "Kill web towers quickly. EM damage most effective."
+    }
+  },
+
+  "special_npcs": {
+    "vila_swarmer": {
+      "faction": "rogue_drones",
+      "threat_level": "low",
+      "mechanic": "swarm",
+      "priority": 3,
+      "notes": "Low threat individually. Kill after higher priority targets."
+    },
+    "tessella_escort": {
+      "faction": "triglavian",
+      "threat_level": "medium",
+      "mechanic": "logistics",
+      "priority": 1,
+      "notes": "Remote repairs. Kill first to prevent healing."
+    },
+    "vedmak": {
+      "faction": "triglavian",
+      "threat_level": "high",
+      "mechanic": "ramping_damage",
+      "priority": 2,
+      "notes": "Damage ramps up. Don't let it stack on you."
+    },
+    "leshak": {
+      "faction": "triglavian",
+      "threat_level": "critical",
+      "mechanic": "ramping_damage",
+      "priority": 1,
+      "notes": "Battleship-class damage. Extremely dangerous if allowed to ramp."
+    },
+    "drifter_battleship": {
+      "faction": "drifter",
+      "threat_level": "critical",
+      "mechanic": "doomsday",
+      "priority": 1,
+      "notes": "Fires doomsday weapon. Must kill before overshield breaks."
+    },
+    "ephialtes_lancer": {
+      "faction": "sleeper",
+      "threat_level": "high",
+      "mechanic": "neuting",
+      "priority": 1,
+      "notes": "Heavy neuting. Threat to capacitor-dependent fits."
+    },
+    "tyrannos_bishop": {
+      "faction": "sleeper",
+      "threat_level": "medium",
+      "mechanic": "ecm",
+      "priority": 2,
+      "notes": "ECM disrupts drones and lock. Kill to maintain DPS."
+    }
+  },
+
+  "room_hazards": {
+    "deviant_automata_suppressor": {
+      "type": "tower",
+      "effect": "Neuts capacitor",
+      "priority": 1,
+      "notes": "Destroyable. Kill immediately for cap-dependent fits."
+    },
+    "multibody_tracking_pylon": {
+      "type": "tower",
+      "effect": "Tracking disruption",
+      "priority": 2,
+      "notes": "Reduces turret tracking. Destroyable."
+    },
+    "bioluminescence_cloud": {
+      "type": "cloud",
+      "effect": "Reduced signature radius",
+      "priority": "none",
+      "notes": "Beneficial for signature tanking. Fly into it."
+    },
+    "tachyon_cloud": {
+      "type": "cloud",
+      "effect": "Velocity penalty",
+      "priority": "none",
+      "notes": "Slows you down. Avoid if speed tanking."
+    },
+    "filament_cloud": {
+      "type": "cloud",
+      "effect": "Capacitor penalty",
+      "priority": "none",
+      "notes": "Drains capacitor. Avoid for cap-hungry fits."
+    }
+  },
+
+  "loot_items": {
+    "mutaplasmids": {
+      "description": "Used to mutate modules into Abyssal variants",
+      "tiers_found": [3, 4, 5, 6],
+      "notes": "Higher tiers drop better mutaplasmids."
+    },
+    "blueprints": {
+      "description": "Triglavian ship and module BPCs",
+      "tiers_found": [4, 5, 6],
+      "notes": "Rare drops. Includes Ikitursa, Zarmazd, etc."
+    },
+    "skill_books": {
+      "description": "Triglavian skill books",
+      "tiers_found": [3, 4, 5, 6],
+      "notes": "Precursor weapon skills and others."
+    },
+    "zero_point_condensate": {
+      "description": "Crafting material for Triglavian items",
+      "tiers_found": [1, 2, 3, 4, 5, 6],
+      "notes": "Common drop. Used in manufacturing."
+    }
+  },
+
+  "entry_requirements": {
+    "skills": {
+      "minimum": "Can fly T1 cruiser with T2 tank",
+      "recommended": "HAC skills, T2 weapons, good support skills"
+    },
+    "standings": "None required",
+    "location": "Anywhere in known space (not wormholes)",
+    "notes": "Filament activation creates trace visible on overview. PvP risk on exit."
+  }
+}

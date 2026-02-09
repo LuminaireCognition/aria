@@ -1,0 +1,46 @@
+# Buzzard Hull Manifest
+#
+# The Buzzard is a Caldari T2 Covert Ops frigate with 5 mid slots.
+# Best utility options of any Covert Ops ship.
+
+hull: Buzzard
+class: covert_ops
+faction: caldari
+tech_level: 2
+
+slots:
+  high: 2
+  mid: 5
+  low: 2
+  rig: 2
+
+drones:
+  bandwidth: 10
+  bay: 10
+
+bonuses:
+  - "10% bonus to Core and Combat Scanner Probe strength per Caldari Frigate level"
+  - "10% bonus to Virus strength per Covert Ops level"
+  - "37.5% role bonus to Probe strength"
+
+roles:
+  - exploration
+  - covert_ops
+  - scanning
+
+fitting_rules:
+  tank_type: shield_buffer
+  weapons:
+    primary: none
+    secondary: drones
+
+  notes:
+    - "5 mid slots - most of any Covert Ops"
+    - "Can fit both analyzers + cargo scanner + shield + MWD"
+    - "Best Ghost site runner due to shield buffer"
+    - "Inherits Heron's utility advantage"
+
+engagement:
+  range: "N/A - explorer"
+  speed: "~2,700 m/s (MWD)"
+  notes: "5 mids allow tank AND utility. Best for Ghost sites."

@@ -1,0 +1,103 @@
+version: v1
+engine: gitwildmatch
+case_sensitive: true
+rename_mode: old_and_new
+delete_mode: include_deleted_path
+
+foundation:
+  rule_id: foundation.core_surfaces.v1
+  prompt_paths:
+    - meta/review_orchestrator.md
+    - architecture/system_design.md
+    - security/audit_ai.md
+    - testing/test_harness.md
+    - cicd/pipeline_quality.md
+    - docs/onboarding_first_run_ux.md
+  triggers:
+    - src/**
+    - .github/workflows/**
+    - pyproject.toml
+    - dev/prompts/**
+    - README.md
+    - docs/**
+    - SECURITY.md
+
+deep_dive:
+  - rule_id: deep_dive.mcp_architecture.v1
+    prompt_path: architecture/mcp_architecture.md
+    deferred: false
+    triggers:
+      - src/aria_esi/mcp/**
+      - .mcp.json
+  - rule_id: deep_dive.data_flow_and_boundaries.v1
+    prompt_path: architecture/data_flow_and_boundaries.md
+    deferred: true
+    triggers:
+      - src/aria_esi/services/**
+      - src/aria_esi/core/**
+      - src/aria_esi/persona/**
+  - rule_id: deep_dive.supply_chain.v1
+    prompt_path: security/supply_chain_and_dependencies.md
+    deferred: false
+    triggers:
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/**
+  - rule_id: deep_dive.coverage_quality.v1
+    prompt_path: testing/coverage_quality.md
+    deferred: false
+    triggers:
+      - tests/**
+      - pyproject.toml
+      - .github/workflows/**
+  - rule_id: deep_dive.non_determinism_and_flakes.v1
+    prompt_path: testing/non_determinism_and_flakes.md
+    deferred: true
+    triggers:
+      - tests/**
+      - .github/workflows/**
+  - rule_id: deep_dive.github_first_impression.v1
+    prompt_path: repo/github_first_impression.md
+    deferred: false
+    triggers:
+      - .github/**
+      - README.md
+      - CONTRIBUTING.md
+      - LICENSE
+      - ATTRIBUTION.md
+
+gate:
+  rules:
+    - rule_id: gate.proposal_implementation_readiness.v1
+      prompt_path: dev/proposal_implementation_readiness.md
+    - rule_id: gate.premerge.v1
+      prompt_path: dev/premerge.md
+    - rule_id: gate.postmerge_regression_audit.v1
+      prompt_path: dev/postmerge_regression_audit.md
+
+fallback:
+  pull_request:
+    rule_id: fallback.pull_request.v1
+    prompt_paths:
+      - meta/review_orchestrator.md
+      - security/audit_ai.md
+      - testing/test_harness.md
+      - dev/premerge.md
+  push:
+    rule_id: fallback.push.v1
+    prompt_paths:
+      - meta/review_orchestrator.md
+      - security/audit_ai.md
+      - testing/test_harness.md
+  workflow_dispatch:
+    rule_id: fallback.workflow_dispatch.v1
+    prompt_paths:
+      - meta/review_orchestrator.md
+      - security/audit_ai.md
+      - testing/test_harness.md
+  schedule:
+    rule_id: fallback.schedule.v1
+    prompt_paths:
+      - meta/review_orchestrator.md
+      - security/audit_ai.md
+      - testing/test_harness.md

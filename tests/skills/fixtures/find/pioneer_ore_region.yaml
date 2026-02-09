@@ -1,0 +1,77 @@
+# Test fixture: Multi-region ore search
+# Tests finding specialized ore that may require searching multiple regions
+
+name: "Pioneer ore multi-region search"
+skill: find
+description: |
+  Search for Pioneer ore which is found in specific nullsec regions.
+  Tests the multi-region search capability and long-distance routing.
+
+input:
+  item: Pioneer
+  origin: Jita
+  source_filter: all
+  max_jumps: 50
+
+expected_output:
+  type_id: 73264
+  type_name: "Pioneer"
+  category_name: "Asteroid"
+  origin_system: "Jita"
+  origin_region: "The Forge"
+  source_filter_applied: "all"
+  source_filter_suggested: "all"
+  total_found: 5
+  regions_searched:
+    - "The Forge"
+    - "Lonetrek"
+    - "The Citadel"
+    - "Outer Ring"
+  sources:
+    - order_id: 6700000001
+      price: 1500.0
+      volume_remain: 100000
+      volume_total: 500000
+      station_id: 60015164
+      station_name: "4C-B7X VI - ORE Development Station"
+      system_id: 30004986
+      system_name: "4C-B7X"
+      security: -0.66
+      region_id: 10000057
+      region_name: "Outer Ring"
+      jumps_from_origin: 35
+      route_security: "mixed-null"
+      duration: 90
+      is_npc: false
+      issued: "2024-01-10T08:00:00Z"
+      price_flags: []
+  warnings:
+    - "Nearest sources are in null-sec space"
+
+expected_facts:
+  # Type validation
+  - path: "type_id"
+    equals: 73264
+
+  - path: "type_name"
+    equals: "Pioneer"
+
+  # Category validation (should be ore/asteroid)
+  - path: "category_name"
+    equals: "Asteroid"
+
+  # Should find sources in distant regions
+  - path: "regions_searched"
+    contains: "Outer Ring"
+
+  # First source should be in Outer Ring
+  - path: "sources[0].region_name"
+    equals: "Outer Ring"
+
+  # Sources may be in null-sec (security < 0)
+  - path: "sources[0].security"
+    range: [-1.0, 0.0]
+
+  # Long-distance search should show many jumps
+  - path: "sources[0].jumps_from_origin"
+    range: [20, 60]

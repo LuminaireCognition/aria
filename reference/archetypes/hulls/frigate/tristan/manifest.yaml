@@ -1,0 +1,53 @@
+# Tristan Hull Manifest
+#
+# The Tristan is a Gallente T1 frigate with exceptional drone capabilities.
+# 5 drone bandwidth matches cruiser-class drone capacity.
+
+hull: Tristan
+class: frigate
+faction: gallente
+tech_level: 1
+
+slots:
+  high: 3
+  mid: 3
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 25
+  bay: 40
+
+bonuses:
+  - "5% bonus to Drone damage and hitpoints per Gallente Frigate level"
+  - "7.5% bonus to Small Hybrid Turret tracking speed per Gallente Frigate level"
+
+roles:
+  - drone_boat
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_active
+  weapons:
+    primary: drones
+    secondary: hybrids  # Optional, drones do most damage
+
+  notes:
+    - "25 bandwidth = 5 light drones - same as many cruisers"
+    - "Primary DPS from drones, turrets optional"
+    - "Excellent for new players learning drone mechanics"
+    - "Cheap and effective for L1 missions"
+
+drone_recommendations:
+  primary: "Hobgoblin I"
+  backup: "Hobgoblin I x3 in bay"
+  note: "Carry spare drones - replace losses mid-mission"
+
+capacitor:
+  stable_expected: true
+  notes: "Drones use no cap. Only tank drains capacitor."
+
+engagement:
+  range: "Orbit at 7.5km for turrets, drones work at any range"
+  speed: "AB for speed tank"
+  notes: "Launch drones, orbit, let drones work. Recall before warp."

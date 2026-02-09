@@ -1,0 +1,52 @@
+# Raven Hull Manifest
+#
+# The Raven is a Caldari T1 battleship - the iconic L4 mission runner.
+# Cruise missiles with selectable damage and excellent range.
+
+hull: Raven
+class: battleship
+faction: caldari
+tech_level: 1
+
+slots:
+  high: 7
+  mid: 6
+  low: 4
+  rig: 3
+
+drones:
+  bandwidth: 75
+  bay: 75
+
+bonuses:
+  - "5% bonus to Cruise Missile and Torpedo Launcher rate of fire per Caldari Battleship level"
+  - "10% bonus to Cruise Missile and Torpedo velocity per Caldari Battleship level"
+
+roles:
+  - missile_boat
+  - shield_tank
+
+fitting_rules:
+  tank_type: shield_active
+  weapons:
+    primary: missiles
+    secondary: drones
+
+  notes:
+    - "6 launcher hardpoints + 1 utility high"
+    - "Missiles allow selectable damage type"
+    - "100km+ engagement range"
+    - "Active shield tank requires cap management"
+
+missile_recommendations:
+  l4_missions: "Cruise Missile Launcher I"
+  ammo: "Match damage type to enemy weakness"
+
+capacitor:
+  stable_expected: false
+  notes: "Active shield booster requires significant cap investment (rigs/mods)."
+
+engagement:
+  range: "80-120km (cruise missiles)"
+  speed: "~150 m/s with AB"
+  notes: "Engage at range, let missiles do the work. Drones for frigates."

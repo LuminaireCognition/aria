@@ -1,0 +1,61 @@
+# Test fixture: List all watchlists
+# Tests the basic list operation showing all configured watchlists
+
+name: "List All Watchlists"
+skill: watchlist
+description: |
+  List all configured watchlists with summary statistics.
+  Tests the basic /watchlist command with no arguments.
+
+input:
+  command: list
+
+expected_facts:
+  - path: "watchlists"
+    length: 2
+
+  - path: "watchlists[0].name"
+    equals: "War Targets"
+
+  - path: "watchlists[0].type"
+    equals: "war_targets"
+
+  - path: "watchlists[1].type"
+    equals: "manual"
+
+  - path: "total_entities"
+    range: [5, 15]
+
+expected_output:
+  watchlists:
+    - name: "War Targets"
+      type: "war_targets"
+      entity_count: 3
+      last_sync: "2026-01-30T15:00:00Z"
+      description: "Automatically synced war targets"
+    - name: "Hostiles"
+      type: "manual"
+      entity_count: 7
+      last_sync: null
+      description: "Known hostile corps in region"
+  total_watchlists: 2
+  total_entities: 10
+
+# =============================================================================
+# Mock CLI Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  cli_watchlist_list:
+    watchlists:
+      - name: "War Targets"
+        type: "war_targets"
+        entity_count: 3
+        last_sync: "2026-01-30T15:00:00Z"
+        description: "Automatically synced war targets"
+      - name: "Hostiles"
+        type: "manual"
+        entity_count: 7
+        last_sync: null
+        description: "Known hostile corps in region"
+    total_watchlists: 2
+    total_entities: 10

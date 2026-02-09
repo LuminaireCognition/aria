@@ -1,0 +1,40 @@
+# Test fixture: Invalid killmail URL
+# Tests error handling for invalid or not found killmails
+
+name: "Invalid Killmail URL"
+skill: killmail
+description: |
+  Test error handling when the killmail URL is invalid or not found.
+  Should return a helpful error message.
+
+input:
+  url: "https://zkillboard.com/kill/99999999999/"
+
+expected_facts:
+  - path: "error"
+    equals: true
+
+  - path: "error_type"
+    equals: "not_found"
+
+  - path: "killmail_id"
+    equals: 99999999999
+
+expected_output:
+  error: true
+  error_type: "not_found"
+  error_message: "Kill ID 99999999999 not found on zKillboard."
+  killmail_id: 99999999999
+  suggestions:
+    - "Verify the kill ID is correct"
+    - "If the kill just happened, wait a few minutes for it to sync"
+    - "Very old kills may no longer be available"
+
+# =============================================================================
+# Mock External API Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  zkillboard_api:
+    error: true
+    status: 404
+    message: "Kill not found"

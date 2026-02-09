@@ -1,0 +1,82 @@
+# Test fixture: Robotics production chain
+# Tests P3 production chain with exact reference data values
+
+name: "Robotics P3 production chain"
+skill: pi
+description: |
+  Query for Robotics (P3) production chain.
+  Tests production chain response with inputs, raw resources, and facility info.
+
+input:
+  query_type: production_chain
+  product: Robotics
+
+expected_output:
+  product_name: "Robotics"
+  product_tier: "P3"
+  inputs:
+    - name: "Consumer Electronics"
+      quantity: 10
+      tier: "P2"
+    - name: "Mechanical Parts"
+      quantity: 10
+      tier: "P2"
+  raw_resources:
+    - "Chiral Structures"
+    - "Toxic Metals"
+    - "Precious Metals"
+    - "Reactive Metals"
+  production_facility: "Advanced Industry Facility"
+  cycle_time_seconds: 3600
+  output_quantity: 3
+  notes: "Requires two P2 inputs. Consumer Electronics needs Chiral Structures + Toxic Metals. Mechanical Parts needs Precious Metals + Reactive Metals."
+
+expected_facts:
+  # Product name
+  - path: "product_name"
+    equals: "Robotics"
+
+  # P3 tier
+  - path: "product_tier"
+    equals: "P3"
+
+  # Two P2 inputs
+  - path: "inputs"
+    length: 2
+
+  # First input is Consumer Electronics
+  - path: "inputs[0].name"
+    equals: "Consumer Electronics"
+
+  - path: "inputs[0].tier"
+    equals: "P2"
+
+  # Second input is Mechanical Parts
+  - path: "inputs[1].name"
+    equals: "Mechanical Parts"
+
+  - path: "inputs[1].tier"
+    equals: "P2"
+
+  # Requires 10 of each P2 per cycle
+  - path: "inputs[0].quantity"
+    equals: 10
+
+  - path: "inputs[1].quantity"
+    equals: 10
+
+  # Four raw resources in chain
+  - path: "raw_resources"
+    length: 4
+
+  # Uses Advanced Industry Facility
+  - path: "production_facility"
+    equals: "Advanced Industry Facility"
+
+  # 1-hour cycle
+  - path: "cycle_time_seconds"
+    equals: 3600
+
+  # Produces 3 per cycle
+  - path: "output_quantity"
+    equals: 3

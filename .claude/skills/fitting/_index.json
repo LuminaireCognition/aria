@@ -1,0 +1,18 @@
+{
+  "name": "fitting",
+  "description": "Ship fitting assistance for Eve Online",
+  "category": "tactical",
+  "has_persona_overlay": true,
+  "requires_pilot": true,
+  "prerequisite_files": [
+    ".claude/skills/fitting/EFT-FORMAT.md",
+    "reference/mechanics/drones.json",
+    "reference/fittings/MODULE_NAMES.md"
+  ],
+  "data_sources": [
+    "userdata/pilots/{active_pilot}/profile.md",
+    "userdata/pilots/{active_pilot}/ships.md"
+  ],
+  "validation_tool": "fitting(action='calculate_stats')",
+  "related_skills": ["mission-brief", "exploration", "mining-advisory"]
+}

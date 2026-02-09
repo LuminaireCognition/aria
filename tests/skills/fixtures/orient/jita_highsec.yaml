@@ -1,0 +1,127 @@
+# Test fixture: Highsec trade hub orientation
+# Tests /orient in high security space
+
+name: "Jita highsec orientation"
+skill: orient
+description: |
+  Local area intelligence for Jita, the main trade hub.
+  Tests orientation in safe space with minimal threats.
+
+input:
+  origin: Jita
+  max_jumps: 5
+  include_realtime: false
+
+expected_output:
+  origin: "Jita"
+  origin_id: 30000142
+  security: 0.95
+  security_class: "HIGH"
+  region: "The Forge"
+  constellation: "Kimotoro"
+  threat_summary:
+    level: "LOW"
+    total_kills: 2
+    total_pods: 1
+    active_camps: []
+    hotspot_count: 0
+  hotspots: []
+  quiet_zones:
+    - system: "New Caldari"
+      system_id: 30000145
+      security: 1.0
+      security_class: "HIGH"
+      region: "The Forge"
+      jumps: 2
+      ship_kills: 0
+      pod_kills: 0
+      npc_kills: 0
+      ship_jumps: 150
+      activity_level: "none"
+  ratting_banks: []
+  escape_routes: []
+  borders: []
+  systems_scanned: 12
+  search_radius: 5
+  cache_age_seconds: 60
+  realtime_healthy: false
+  warnings: []
+
+expected_facts:
+  # Origin validation
+  - path: "origin"
+    equals: "Jita"
+
+  - path: "security_class"
+    equals: "HIGH"
+
+  # Highsec security (>= 0.45)
+  - path: "security"
+    range: [0.45, 1.0]
+
+  # Low threat in highsec
+  - path: "threat_summary.level"
+    equals: "LOW"
+
+  # Minimal kills expected
+  - path: "threat_summary.total_kills"
+    range: [0, 10]
+
+  # No active gatecamps in highsec
+  - path: "threat_summary.active_camps"
+    length: 0
+
+  # No hotspots expected in trade hub
+  - path: "hotspots"
+    length: 0
+
+  # No escape routes needed (already in safe space)
+  - path: "escape_routes"
+    length: 0
+
+  # No security borders within 5 jumps of Jita
+  - path: "borders"
+    length: 0
+
+  # Region should be The Forge
+  - path: "region"
+    equals: "The Forge"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_local_area:
+    origin: "Jita"
+    origin_id: 30000142
+    security: 0.95
+    security_class: "HIGH"
+    region: "The Forge"
+    constellation: "Kimotoro"
+    threat_summary:
+      level: "LOW"
+      total_kills: 2
+      total_pods: 1
+      active_camps: []
+      hotspot_count: 0
+    hotspots: []
+    quiet_zones:
+      - system: "New Caldari"
+        system_id: 30000145
+        security: 1.0
+        security_class: "HIGH"
+        region: "The Forge"
+        jumps: 2
+        ship_kills: 0
+        pod_kills: 0
+        npc_kills: 0
+        ship_jumps: 150
+        activity_level: "none"
+    ratting_banks: []
+    escape_routes: []
+    borders: []
+    systems_scanned: 12
+    search_radius: 5
+    cache_age_seconds: 60
+    realtime_healthy: false
+    warnings: []

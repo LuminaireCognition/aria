@@ -1,0 +1,92 @@
+# JSON Schema for /threat-assessment skill output validation
+# Validates the structure of universe(action="activity") responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: ThreatAssessmentSkillOutput
+description: Output schema for the /threat-assessment skill (universe activity action)
+type: object
+
+required:
+  - systems
+  - cache_age_seconds
+  - data_period
+
+properties:
+  systems:
+    type: array
+    description: Activity data for queried systems
+    items:
+      $ref: "#/$defs/SystemActivity"
+
+  cache_age_seconds:
+    type: ["integer", "null"]
+    description: Age of activity data in seconds
+    minimum: 0
+
+  data_period:
+    type: string
+    description: Time period for activity data
+    enum: ["last_hour", "last_24h"]
+
+  warnings:
+    type: array
+    description: Any warnings about the data
+    items:
+      type: string
+
+$defs:
+  SystemActivity:
+    type: object
+    description: Activity data for a single system
+    required:
+      - name
+      - system_id
+      - security
+      - security_class
+    properties:
+      name:
+        type: string
+        description: System name
+        minLength: 1
+
+      system_id:
+        type: integer
+        description: EVE system ID
+        minimum: 30000000
+        maximum: 32000000
+
+      security:
+        type: number
+        description: Security status
+        minimum: -1.0
+        maximum: 1.0
+
+      security_class:
+        type: string
+        description: Security classification
+        enum: ["HIGH", "LOW", "NULL"]
+
+      ship_kills:
+        type: integer
+        description: Ship kills in the data period
+        minimum: 0
+
+      pod_kills:
+        type: integer
+        description: Pod kills in the data period
+        minimum: 0
+
+      npc_kills:
+        type: integer
+        description: NPC kills in the data period
+        minimum: 0
+
+      ship_jumps:
+        type: integer
+        description: Ship jumps in the data period
+        minimum: 0
+
+      activity_level:
+        type: string
+        description: Activity classification
+        enum: ["none", "low", "medium", "high", "extreme"]

@@ -1,0 +1,79 @@
+# Test fixture: Simple 1-jump safe route
+# Tests basic route structure with minimal complexity
+
+name: "Jita to Perimeter safe route"
+skill: route
+description: |
+  Simple adjacent-system route in highsec.
+  Tests baseline route structure.
+
+input:
+  origin: Jita
+  destination: Perimeter
+  mode: safe
+
+expected_output:
+  origin: Jita
+  destination: Perimeter
+  total_jumps: 1
+  mode: safe
+  route:
+    - system: Jita
+      security: 0.95
+      system_id: 30000142
+    - system: Perimeter
+      security: 0.90
+      system_id: 30000144
+  security_profile:
+    highsec_jumps: 1
+    lowsec_jumps: 0
+    nullsec_jumps: 0
+
+expected_facts:
+  - path: "origin"
+    equals: "Jita"
+
+  - path: "destination"
+    equals: "Perimeter"
+
+  - path: "total_jumps"
+    equals: 1
+
+  - path: "mode"
+    equals: "safe"
+
+  - path: "route"
+    length: 2
+
+  - path: "route[0].system"
+    equals: "Jita"
+
+  - path: "route[-1].system"
+    equals: "Perimeter"
+
+  - path: "route[*].security"
+    all_satisfy: ">= 0.45"
+
+  - path: "security_profile.lowsec_jumps"
+    equals: 0
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_route:
+    origin: "Jita"
+    destination: "Perimeter"
+    mode: "safe"
+    total_jumps: 1
+    route:
+      - system: "Jita"
+        system_id: 30000142
+        security: 0.95
+      - system: "Perimeter"
+        system_id: 30000144
+        security: 0.90
+    security_profile:
+      highsec_jumps: 1
+      lowsec_jumps: 0
+      nullsec_jumps: 0

@@ -1,0 +1,176 @@
+# JSON Schema for /wallet-journal skill output validation
+# Validates the structure of wallet journal and transaction responses
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: WalletJournalSkillOutput
+description: Output schema for the /wallet-journal skill - ISK flow analysis
+type: object
+
+oneOf:
+  - $ref: "#/$defs/JournalSummaryResponse"
+  - $ref: "#/$defs/NoActivityResponse"
+  - $ref: "#/$defs/ErrorResponse"
+
+$defs:
+  # Income/expense breakdown
+  BreakdownEntry:
+    type: object
+    additionalProperties:
+      type: number
+      minimum: 0
+
+  # Journal entry
+  JournalEntry:
+    type: object
+    required:
+      - date
+      - ref_type
+      - amount
+    properties:
+      date:
+        type: string
+        format: date-time
+      ref_type:
+        type: string
+        description: ESI ref_type classification
+      amount:
+        type: number
+        description: ISK amount (positive=income, negative=expense)
+      balance:
+        type: number
+        minimum: 0
+        description: Wallet balance after transaction
+      description:
+        type: string
+      first_party_id:
+        type: integer
+      second_party_id:
+        type: integer
+      reason:
+        type: string
+
+  # Market transaction
+  MarketTransaction:
+    type: object
+    required:
+      - date
+      - type_name
+      - quantity
+      - unit_price
+      - is_buy
+    properties:
+      date:
+        type: string
+        format: date-time
+      type_id:
+        type: integer
+        minimum: 1
+      type_name:
+        type: string
+      quantity:
+        type: integer
+        minimum: 1
+      unit_price:
+        type: number
+        minimum: 0
+      total_price:
+        type: number
+      is_buy:
+        type: boolean
+      location_id:
+        type: integer
+      location_name:
+        type: string
+
+  # Summary statistics
+  JournalSummary:
+    type: object
+    required:
+      - total_income
+      - total_expenses
+      - net_change
+    properties:
+      total_income:
+        type: number
+        minimum: 0
+      total_expenses:
+        type: number
+        minimum: 0
+      net_change:
+        type: number
+        description: Can be positive or negative
+      income_breakdown:
+        $ref: "#/$defs/BreakdownEntry"
+      expense_breakdown:
+        $ref: "#/$defs/BreakdownEntry"
+
+  # Full journal summary response
+  JournalSummaryResponse:
+    type: object
+    required:
+      - query_timestamp
+      - volatility
+      - period_days
+      - summary
+    properties:
+      query_timestamp:
+        type: string
+        format: date-time
+      volatility:
+        type: string
+        const: "semi_stable"
+      period_days:
+        type: integer
+        minimum: 1
+        maximum: 30
+      type_filter:
+        type:
+          - string
+          - "null"
+        description: Filter applied (bounty, market, etc.)
+      summary:
+        $ref: "#/$defs/JournalSummary"
+      journal:
+        type: array
+        items:
+          $ref: "#/$defs/JournalEntry"
+      transactions:
+        type: array
+        items:
+          $ref: "#/$defs/MarketTransaction"
+
+  # No activity response
+  NoActivityResponse:
+    type: object
+    required:
+      - query_timestamp
+      - period_days
+      - message
+    properties:
+      query_timestamp:
+        type: string
+        format: date-time
+      period_days:
+        type: integer
+        minimum: 1
+      message:
+        type: string
+        description: No activity message
+      suggestions:
+        type: array
+        items:
+          type: string
+
+  # Error response
+  ErrorResponse:
+    type: object
+    required:
+      - error
+    properties:
+      error:
+        type: string
+      error_type:
+        type: string
+        enum: ["missing_scope", "esi_error", "not_configured"]
+      suggestion:
+        type: string

@@ -1,0 +1,163 @@
+# JSON Schema for /build-cost skill output validation
+# Validates the structure of blueprint manufacturing cost analysis
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+title: BuildCostSkillOutput
+description: Output schema for the /build-cost skill (blueprint manufacturing analysis)
+type: object
+
+required:
+  - blueprint
+  - materials
+  - total_material_cost
+  - product_value
+
+properties:
+  blueprint:
+    $ref: "#/$defs/BlueprintInfo"
+
+  materials:
+    type: array
+    description: Required materials for manufacturing
+    items:
+      $ref: "#/$defs/MaterialItem"
+
+  total_material_cost:
+    type: number
+    description: Sum of all material costs
+    minimum: 0
+
+  product_value:
+    type: number
+    description: Market value of the manufactured product
+    minimum: 0
+
+  profit:
+    type: number
+    description: product_value - total_material_cost (can be negative)
+
+  margin_pct:
+    type: number
+    description: Profit as percentage of material cost
+
+  me_level:
+    type: integer
+    description: Material Efficiency level (0-10)
+    minimum: 0
+    maximum: 10
+
+  te_level:
+    type: integer
+    description: Time Efficiency level (0-20)
+    minimum: 0
+    maximum: 20
+
+  runs:
+    type: integer
+    description: Number of manufacturing runs
+    minimum: 1
+
+  region:
+    type: string
+    description: Region used for pricing
+    minLength: 1
+
+  region_id:
+    type: integer
+    description: Region ID
+    minimum: 10000000
+    maximum: 12000000
+
+  source:
+    type: string
+    description: Price data source
+    enum: ["fuzzwork", "esi", "esi_orders", "cache"]
+
+  freshness:
+    type: string
+    description: Price data freshness
+    enum: ["fresh", "stale", "cached", "recent"]
+
+  warnings:
+    type: array
+    description: Any warnings about the calculation
+    items:
+      type: string
+
+$defs:
+  BlueprintInfo:
+    type: object
+    description: Blueprint metadata
+    required:
+      - type_id
+      - type_name
+      - product_type_id
+      - product_name
+    properties:
+      type_id:
+        type: integer
+        description: Blueprint type ID
+        minimum: 1
+
+      type_name:
+        type: string
+        description: Blueprint name
+        minLength: 1
+
+      product_type_id:
+        type: integer
+        description: Manufactured product type ID
+        minimum: 1
+
+      product_name:
+        type: string
+        description: Manufactured product name
+        minLength: 1
+
+      manufacturing_time:
+        type: integer
+        description: Base manufacturing time in seconds
+        minimum: 0
+
+      produces_quantity:
+        type: integer
+        description: Units produced per run
+        minimum: 1
+
+  MaterialItem:
+    type: object
+    description: Single material requirement
+    required:
+      - type_id
+      - type_name
+      - base_quantity
+    properties:
+      type_id:
+        type: integer
+        description: Material type ID
+        minimum: 1
+
+      type_name:
+        type: string
+        description: Material name
+        minLength: 1
+
+      base_quantity:
+        type: integer
+        description: Base quantity before ME reduction
+        minimum: 1
+
+      adjusted_quantity:
+        type: integer
+        description: Quantity after ME efficiency
+        minimum: 1
+
+      unit_price:
+        type: ["number", "null"]
+        description: Price per unit
+        minimum: 0
+
+      total_price:
+        type: ["number", "null"]
+        description: unit_price * adjusted_quantity
+        minimum: 0

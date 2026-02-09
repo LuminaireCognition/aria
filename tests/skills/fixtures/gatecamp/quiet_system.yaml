@@ -1,0 +1,77 @@
+# Test fixture: Quiet system with no camp detected
+# Tests /gatecamp for system with minimal activity
+
+name: "Quiet system no camp detected"
+skill: gatecamp
+description: |
+  Activity check for a quiet highsec system.
+  Tests low activity detection and none activity level.
+
+input:
+  systems:
+    - Amarr
+  include_realtime: false
+
+expected_output:
+  systems:
+    - name: "Amarr"
+      system_id: 30002187
+      security: 1.00
+      security_class: "HIGH"
+      ship_kills: 0
+      pod_kills: 0
+      npc_kills: 15
+      ship_jumps: 8500
+      activity_level: "low"
+  cache_age_seconds: 180
+  data_period: "last_hour"
+  warnings: []
+
+expected_facts:
+  # Single system query
+  - path: "systems"
+    length: 1
+
+  - path: "systems[0].name"
+    equals: "Amarr"
+
+  # 1.0 security trade hub
+  - path: "systems[0].security_class"
+    equals: "HIGH"
+
+  - path: "systems[0].security"
+    equals: 1.00
+
+  # No ganks in 1.0 systems (CONCORD response too fast)
+  - path: "systems[0].ship_kills"
+    range: [0, 5]
+
+  # Trade hub has high traffic
+  - path: "systems[0].ship_jumps"
+    range: [1000, 20000]
+
+  # Low PvP activity level despite traffic
+  - path: "systems[0].activity_level"
+    one_of: ["none", "low", "medium"]
+
+  # Data period
+  - path: "data_period"
+    equals: "last_hour"
+
+# =============================================================================
+# Mock MCP Responses for Tier 1 Integration Tests
+# =============================================================================
+mock_responses:
+  universe_activity:
+    systems:
+      - system_id: 30002187
+        name: "Amarr"
+        security: 1.00
+        security_class: "HIGH"
+        ship_kills: 0
+        pod_kills: 0
+        npc_kills: 15
+        ship_jumps: 8500
+        activity_level: "low"
+    cache_age_seconds: 180
+    data_period: "last_hour"

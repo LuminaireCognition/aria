@@ -1,0 +1,208 @@
+{
+  "_meta": {
+    "description": "Master projectile turret reference for ARIA project. ARIA must consult this file before making any claims about projectile damage types or recommending projectile ammo.",
+    "source": "https://wiki.eveuniversity.org/Projectile_ammunition",
+    "last_verified": "2026-02-02"
+  },
+  "turret_types": {
+    "autocannon": {
+      "range": "short",
+      "description": "High rate of fire, falloff-based damage",
+      "sizes": {
+        "small": ["125mm", "150mm", "200mm"],
+        "medium": ["220mm", "425mm", "650mm"],
+        "large": ["800mm", "1200mm", "1400mm"]
+      }
+    },
+    "artillery": {
+      "range": "long",
+      "description": "High alpha damage, slow rate of fire",
+      "sizes": {
+        "small": ["250mm", "280mm"],
+        "medium": ["650mm", "720mm"],
+        "large": ["1400mm"]
+      }
+    }
+  },
+  "ammo_types": {
+    "short_range": {
+      "_note": "-50% optimal range, +50% damage modifier",
+      "emp": {
+        "damage_profile": {"em": 0.54, "explosive": 0.06, "kinetic": 0.24, "thermal": 0.16},
+        "primary_damage": "em",
+        "best_against": ["blood_raiders", "sansha", "rogue_drones"]
+      },
+      "fusion": {
+        "damage_profile": {"em": 0.06, "explosive": 0.54, "kinetic": 0.24, "thermal": 0.16},
+        "primary_damage": "explosive",
+        "best_against": ["angel_cartel"]
+      },
+      "phased_plasma": {
+        "damage_profile": {"em": 0.06, "explosive": 0.06, "kinetic": 0.24, "thermal": 0.64},
+        "primary_damage": "thermal",
+        "best_against": ["serpentis", "mercenaries"]
+      }
+    },
+    "medium_range": {
+      "_note": "Standard optimal, +20% tracking bonus",
+      "titanium_sabot": {
+        "damage_profile": {"em": 0.08, "explosive": 0.08, "kinetic": 0.60, "thermal": 0.24},
+        "primary_damage": "kinetic",
+        "best_against": ["guristas", "caldari_navy"]
+      },
+      "depleted_uranium": {
+        "damage_profile": {"em": 0.24, "explosive": 0.24, "kinetic": 0.24, "thermal": 0.28},
+        "primary_damage": "mixed",
+        "best_against": ["general_purpose"]
+      }
+    },
+    "long_range": {
+      "_note": "+60% optimal range, 62.5% damage modifier",
+      "proton": {
+        "damage_profile": {"em": 0.54, "explosive": 0.06, "kinetic": 0.24, "thermal": 0.16},
+        "primary_damage": "em",
+        "best_against": ["blood_raiders", "sansha"]
+      },
+      "nuclear": {
+        "damage_profile": {"em": 0.06, "explosive": 0.54, "kinetic": 0.24, "thermal": 0.16},
+        "primary_damage": "explosive",
+        "best_against": ["angel_cartel"]
+      },
+      "carbonized_lead": {
+        "damage_profile": {"em": 0.08, "explosive": 0.08, "kinetic": 0.60, "thermal": 0.24},
+        "primary_damage": "kinetic",
+        "best_against": ["guristas"]
+      }
+    }
+  },
+  "t2_ammo": {
+    "autocannon": {
+      "hail": {
+        "effect": "+35% damage",
+        "drawback": "-50% optimal, -25% falloff, worse tracking",
+        "best_for": "close range brawling",
+        "damage_type": "matches base ammo"
+      },
+      "barrage": {
+        "effect": "+50% falloff range",
+        "drawback": "less damage than short-range",
+        "best_for": "kiting, extended falloff"
+      }
+    },
+    "artillery": {
+      "quake": {
+        "effect": "+35% damage",
+        "drawback": "-50% optimal, worse tracking",
+        "best_for": "alpha strikes at close range"
+      },
+      "tremor": {
+        "effect": "+75% optimal range",
+        "drawback": "less damage, worse tracking",
+        "best_for": "extreme range sniping"
+      }
+    }
+  },
+  "enemy_recommendations": {
+    "serpentis": {
+      "weakness": "thermal",
+      "short_range": "Phased Plasma",
+      "medium_range": "Depleted Uranium",
+      "long_range": "Carbonized Lead",
+      "t2_close": "Hail",
+      "t2_long": "Barrage"
+    },
+    "angel_cartel": {
+      "weakness": "explosive",
+      "short_range": "Fusion",
+      "medium_range": "Titanium Sabot",
+      "long_range": "Nuclear",
+      "t2_close": "Hail",
+      "t2_long": "Barrage"
+    },
+    "blood_raiders": {
+      "weakness": "em",
+      "short_range": "EMP",
+      "medium_range": "Titanium Sabot",
+      "long_range": "Proton",
+      "t2_close": "Hail",
+      "t2_long": "Barrage"
+    },
+    "guristas": {
+      "weakness": "kinetic",
+      "short_range": "Phased Plasma",
+      "medium_range": "Titanium Sabot",
+      "long_range": "Carbonized Lead",
+      "t2_close": "Hail",
+      "t2_long": "Barrage"
+    },
+    "sansha": {
+      "weakness": "em",
+      "short_range": "EMP",
+      "medium_range": "Depleted Uranium",
+      "long_range": "Proton",
+      "t2_close": "Hail",
+      "t2_long": "Barrage"
+    },
+    "rogue_drones": {
+      "weakness": "em",
+      "short_range": "EMP",
+      "medium_range": "Depleted Uranium",
+      "long_range": "Proton",
+      "t2_close": "Hail",
+      "t2_long": "Barrage"
+    },
+    "mercenaries": {
+      "weakness": "thermal",
+      "short_range": "Phased Plasma",
+      "medium_range": "Depleted Uranium",
+      "long_range": "Carbonized Lead",
+      "t2_close": "Hail",
+      "t2_long": "Barrage"
+    },
+    "mordus_legion": {
+      "weakness": "kinetic",
+      "short_range": "Phased Plasma",
+      "medium_range": "Titanium Sabot",
+      "long_range": "Carbonized Lead",
+      "t2_close": "Hail",
+      "t2_long": "Barrage"
+    }
+  },
+  "ammo_naming": {
+    "_note": "Ammo names are standardized - same name works for all turret sizes",
+    "short_range": ["EMP S/M/L", "Fusion S/M/L", "Phased Plasma S/M/L"],
+    "medium_range": ["Titanium Sabot S/M/L", "Depleted Uranium S/M/L"],
+    "long_range": ["Proton S/M/L", "Nuclear S/M/L", "Carbonized Lead S/M/L"],
+    "t2": ["Hail S/M/L", "Barrage S/M/L", "Quake S/M/L", "Tremor S/M/L"]
+  },
+  "faction_ships": {
+    "minmatar": {
+      "frigate": ["Rifter", "Slasher", "Breacher"],
+      "destroyer": ["Thrasher", "Talwar"],
+      "cruiser": ["Rupture", "Stabber", "Bellicose"],
+      "battlecruiser": ["Hurricane", "Cyclone"],
+      "battleship": ["Typhoon", "Tempest", "Maelstrom"]
+    },
+    "angel_cartel": {
+      "frigate": ["Dramiel"],
+      "cruiser": ["Cynabal"],
+      "battleship": ["Machariel"]
+    }
+  },
+  "capacity_guidelines": {
+    "l1_l2_missions": {
+      "small_ammo": 1000,
+      "note": "Single mission, bring optimal damage type"
+    },
+    "l3_missions": {
+      "medium_ammo": 2000,
+      "backup_type": 1000,
+      "note": "Projectiles consume ammo faster than missiles"
+    },
+    "l4_missions": {
+      "large_ammo": 3000,
+      "backup_types": 1500,
+      "note": "Artillery uses less; autocannons chew through ammo"
+    }
+  }
+}
