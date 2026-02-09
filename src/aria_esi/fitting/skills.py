@@ -205,12 +205,12 @@ FITTING_SKILL_IDS = [
 
 # Drone skills
 DRONE_SKILL_IDS = [
-    3436,   # Drones
+    3436,  # Drones
     24241,  # Light Drone Operation
     33699,  # Medium Drone Operation
-    3441,   # Heavy Drone Operation
-    3437,   # Drone Avionics
-    3442,   # Drone Interfacing
+    3441,  # Heavy Drone Operation
+    3437,  # Drone Avionics
+    3442,  # Drone Interfacing
     12305,  # Drone Navigation
     23606,  # Drone Sharpshooting
     23618,  # Drone Durability
@@ -218,12 +218,12 @@ DRONE_SKILL_IDS = [
 
 # Tank skills
 TANK_SKILL_IDS = [
-    3392,   # Mechanics (hull HP)
-    3394,   # Hull Upgrades (armor HP)
-    3416,   # Shield Operation (shield recharge)
-    3419,   # Shield Management (shield capacity)
+    3392,  # Mechanics (hull HP)
+    3394,  # Hull Upgrades (armor HP)
+    3416,  # Shield Operation (shield recharge)
+    3419,  # Shield Management (shield capacity)
     21059,  # Shield Compensation (resistance)
-    3425,   # Shield Upgrades (module PG)
+    3425,  # Shield Upgrades (module PG)
     26253,  # Armor Rigging
     26261,  # Shield Rigging
 ]
@@ -397,7 +397,12 @@ def extract_skills_for_fit(parsed_fit: ParsedFit, level: int = 5) -> dict[int, i
 
     if has_drones:
         # Add drone bonus skills
-        for skill_id in [3442, 23606, 12305, 23618]:  # Drone Interfacing, Sharpshooting, Navigation, Durability
+        for skill_id in [
+            3442,
+            23606,
+            12305,
+            23618,
+        ]:  # Drone Interfacing, Sharpshooting, Navigation, Durability
             if skill_id not in skills:
                 skills[skill_id] = level
 

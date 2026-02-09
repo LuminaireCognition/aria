@@ -75,7 +75,9 @@ def validate_high_waivers(
         with open(combined_json_path, encoding="utf-8") as fh:
             combined = json.load(fh)
     except FileNotFoundError as exc:
-        return WaiverValidationResult(ok=False, issues=[ValidationIssue("missing_combined", str(exc))])
+        return WaiverValidationResult(
+            ok=False, issues=[ValidationIssue("missing_combined", str(exc))]
+        )
 
     unresolved_high: list[dict] = []
     changed_files = set(combined.get("matcher", {}).get("changed_files", []))
@@ -98,17 +100,23 @@ def validate_high_waivers(
         with open(waiver_yaml_path, encoding="utf-8") as fh:
             waiver_doc = yaml.safe_load(fh) or {}
     except FileNotFoundError as exc:
-        return WaiverValidationResult(ok=False, issues=[ValidationIssue("missing_waiver_file", str(exc))])
+        return WaiverValidationResult(
+            ok=False, issues=[ValidationIssue("missing_waiver_file", str(exc))]
+        )
 
     waivers = waiver_doc.get("waivers", [])
     if not isinstance(waivers, list):
-        return WaiverValidationResult(ok=False, issues=[ValidationIssue("invalid_waiver_schema", "waivers must be list")])
+        return WaiverValidationResult(
+            ok=False, issues=[ValidationIssue("invalid_waiver_schema", "waivers must be list")]
+        )
 
     try:
         with open(codeowners_path, encoding="utf-8") as fh:
             codeowners_rules = _parse_codeowners(fh.read())
     except FileNotFoundError as exc:
-        return WaiverValidationResult(ok=False, issues=[ValidationIssue("missing_codeowners", str(exc))])
+        return WaiverValidationResult(
+            ok=False, issues=[ValidationIssue("missing_codeowners", str(exc))]
+        )
 
     waiver_lookup: dict[tuple[str, str], dict] = {}
     for waiver in waivers:
@@ -123,7 +131,11 @@ def validate_high_waivers(
             continue
 
         if waiver["severity"] != "High":
-            issues.append(ValidationIssue("waiver_invalid_severity", f"{waiver['waiver_id']} severity != High"))
+            issues.append(
+                ValidationIssue(
+                    "waiver_invalid_severity", f"{waiver['waiver_id']} severity != High"
+                )
+            )
             continue
 
         if _parse_date(waiver["expires_on"]) < now:
@@ -135,18 +147,28 @@ def validate_high_waivers(
             continue
 
         if waiver["owner"] not in waiver["approved_by"]:
-            issues.append(ValidationIssue("waiver_missing_prompt_owner_approval", waiver["waiver_id"]))
+            issues.append(
+                ValidationIssue("waiver_missing_prompt_owner_approval", waiver["waiver_id"])
+            )
             continue
 
         for path in waiver["paths"]:
             resolved = _resolved_code_owner(path, codeowners_rules)
             if resolved is None:
-                issues.append(ValidationIssue("waiver_no_codeowner_match", f"{waiver['waiver_id']}:{path}"))
+                issues.append(
+                    ValidationIssue("waiver_no_codeowner_match", f"{waiver['waiver_id']}:{path}")
+                )
                 continue
             if resolved not in waiver["approved_by"]:
-                issues.append(ValidationIssue("waiver_missing_codeowner_approval", f"{waiver['waiver_id']}:{path}"))
+                issues.append(
+                    ValidationIssue(
+                        "waiver_missing_codeowner_approval", f"{waiver['waiver_id']}:{path}"
+                    )
+                )
 
-        if not any(any(_path_match(changed, p) for p in waiver["paths"]) for changed in changed_files):
+        if not any(
+            any(_path_match(changed, p) for p in waiver["paths"]) for changed in changed_files
+        ):
             issues.append(ValidationIssue("waiver_path_mismatch", waiver["waiver_id"]))
             continue
 

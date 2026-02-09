@@ -6,7 +6,13 @@ from pathlib import Path
 
 from .models import SEVERITY_RANK, AggregateResult, ValidationIssue
 
-ALLOWED_PROMPT_STATUS = {"success", "failure", "timeout", "skipped_not_applicable", "skipped_deferred"}
+ALLOWED_PROMPT_STATUS = {
+    "success",
+    "failure",
+    "timeout",
+    "skipped_not_applicable",
+    "skipped_deferred",
+}
 ALLOWED_TIERS = {"foundation", "deep_dive", "gate", "fallback"}
 ALLOWED_SELECTION_REASONS = {
     "foundation_trigger",
@@ -63,7 +69,9 @@ def _sort_findings(findings: list[dict]) -> list[dict]:
     )
 
 
-def _normalize_with_adapter(combined: dict, now_utc: datetime, issues: list[ValidationIssue]) -> dict:
+def _normalize_with_adapter(
+    combined: dict, now_utc: datetime, issues: list[ValidationIssue]
+) -> dict:
     if now_utc >= ADAPTER_CUTOVER:
         return combined
 
@@ -166,7 +174,9 @@ def _validate_and_normalize_prompt(prompt: dict) -> dict:
     }
 
 
-def aggregate_combined_results(combined_json_path: str | Path, *, now_utc: datetime | None = None) -> AggregateResult:
+def aggregate_combined_results(
+    combined_json_path: str | Path, *, now_utc: datetime | None = None
+) -> AggregateResult:
     now = now_utc or datetime.now(UTC)
     issues: list[ValidationIssue] = []
 

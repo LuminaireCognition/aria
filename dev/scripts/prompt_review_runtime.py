@@ -203,7 +203,7 @@ def _emit_combined(
             "base_sha": base_sha,
             "head_sha": head_sha,
             "ref": os.getenv("GITHUB_REF", ""),
-            "pr_number": int(os.getenv("PR_NUMBER", "0")) or None,
+            "pr_number": int(os.getenv("PR_NUMBER") or "0") or None,
             "generated_at_utc": now,
         },
         "matcher": matcher,

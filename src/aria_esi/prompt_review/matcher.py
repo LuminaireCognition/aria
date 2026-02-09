@@ -56,7 +56,12 @@ def _dedup_by_precedence(selections: list[PromptSelection]) -> list[PromptSelect
                 e.get("rule_id") or "",
             ),
         ):
-            sig = (entry["tier"], entry["selection_reason"], entry["matched_by"], entry.get("rule_id"))
+            sig = (
+                entry["tier"],
+                entry["selection_reason"],
+                entry["matched_by"],
+                entry.get("rule_id"),
+            )
             if sig in seen:
                 continue
             seen.add(sig)
@@ -149,22 +154,22 @@ def select_prompts(
         prompt_path = rule["prompt_path"]
         prompt_id = _prompt_id_from_path(prompt_path)
         selections.append(
-                PromptSelection(
-                    prompt_id=prompt_id,
-                    prompt_instance_id=_instance_id(prompt_id),
-                    prompt_path=prompt_path,
-                    tier="deep_dive",
-                    selection_reason="deep_dive_trigger",
-                    selection_trace=[
-                        {
-                            "tier": "deep_dive",
-                            "selection_reason": "deep_dive_trigger",
-                            "matched_by": "rule_id",
-                            "rule_id": rule_id,
-                        }
-                    ],
-                )
+            PromptSelection(
+                prompt_id=prompt_id,
+                prompt_instance_id=_instance_id(prompt_id),
+                prompt_path=prompt_path,
+                tier="deep_dive",
+                selection_reason="deep_dive_trigger",
+                selection_trace=[
+                    {
+                        "tier": "deep_dive",
+                        "selection_reason": "deep_dive_trigger",
+                        "matched_by": "rule_id",
+                        "rule_id": rule_id,
+                    }
+                ],
             )
+        )
 
     if deferred_hit or not active_deep_dive:
         fallback_reason = "deferred_fallback" if deferred_hit else "global_fallback"

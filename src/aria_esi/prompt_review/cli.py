@@ -24,11 +24,19 @@ def _parse_now(value: str | None) -> datetime | None:
 def _cmd_match(args: argparse.Namespace) -> int:
     changed_files = []
     if args.changed_files:
-        changed_files = [line.strip() for line in Path(args.changed_files).read_text().splitlines() if line.strip()]
+        changed_files = [
+            line.strip()
+            for line in Path(args.changed_files).read_text().splitlines()
+            if line.strip()
+        ]
 
     proposal_paths = None
     if args.proposal_paths:
-        proposal_paths = [line.strip() for line in Path(args.proposal_paths).read_text().splitlines() if line.strip()]
+        proposal_paths = [
+            line.strip()
+            for line in Path(args.proposal_paths).read_text().splitlines()
+            if line.strip()
+        ]
 
     selected = select_prompts(
         config_path=args.config,
