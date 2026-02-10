@@ -63,6 +63,20 @@ def mock_db():
             PRIMARY KEY (type_id, corporation_id)
         );
 
+        CREATE TABLE types (
+            type_id INTEGER PRIMARY KEY,
+            type_name TEXT,
+            type_name_lower TEXT,
+            category_id INTEGER,
+            published INTEGER DEFAULT 1
+        );
+
+        CREATE TABLE groups (
+            group_id INTEGER PRIMARY KEY,
+            category_id INTEGER,
+            group_name TEXT
+        );
+
         CREATE TABLE categories (
             category_id INTEGER PRIMARY KEY,
             category_name TEXT,

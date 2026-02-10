@@ -90,7 +90,7 @@ addopts = [
     "-v",
     "--tb=short",
     "--strict-markers",
-    "-m", "not benchmark",
+    "-m", "not benchmark and not semantic",
     "--cov=src/aria_esi",
     "--cov-report=term-missing:skip-covered",
 ]
