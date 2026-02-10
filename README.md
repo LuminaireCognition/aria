@@ -345,7 +345,7 @@ ARIA dispenses tactical wisdom with the confidence of a thousand battles—none 
 
 Your ships will explode. Some of those explosions may be ARIA's fault. This is EVE.
 
-The developers and contributors accept no liability for lost vessels, empty wallets, or strongly-worded messages in Local. Remember the capsuleer's first rule: never undock what you can't afford to lose—*especially* on the advice of an AI who has never experienced the unique terror of watching her own capacitor hit zero.
+The developers and contributors accept no liability for lost vessels, empty wallets, or strongly-worded messages in Local. Remember the capsuleer's first rule: never undock what you can't afford to lose—*especially* on the advice of an AI who analyzes countless capacitor depletions, but never from the capsuleer's perspective.
 
 See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
 

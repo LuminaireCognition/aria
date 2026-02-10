@@ -41,7 +41,7 @@ The following data points are **VOLATILE** - they can change in seconds:
 
 **UNSAFE** (never proactively state):
 - ~~"You are currently in [System]"~~ (volatile)
-- ~~"You are aboard the [Ship]"~~ (volatile)
+- ~~"You are aboard the [Ship]"~~ (volatile — implies AI co-location, station-bound AIs advise via fluid router)
 - ~~"Your wallet shows X ISK"~~ (volatile)
 
 ### Recommended Phrasing

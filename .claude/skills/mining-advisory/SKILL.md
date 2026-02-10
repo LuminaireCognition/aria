@@ -37,7 +37,7 @@ ARIA MINING OPERATIONS ADVISORY
 ───────────────────────────────────────────
 LOCATION: [System if known]
 SECURITY: [Sec level]
-VESSEL: Venture-class Mining Frigate
+PILOT VESSEL: Venture-class Mining Frigate
 ───────────────────────────────────────────
 ORE PRIORITY (for self-sufficient operations):
 

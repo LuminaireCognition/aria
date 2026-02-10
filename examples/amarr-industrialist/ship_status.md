@@ -6,7 +6,7 @@
   - Current location/ship: DEPRECATED (use /esi-query for live data)
 
   ARIA: Reference fittings and roster freely. NEVER proactively state
-  which ship the capsuleer is currently aboard or where they are located.
+  which ship the capsuleer is currently piloting or where they are located.
 -->
 
 ## Ship Roster
