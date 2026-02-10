@@ -248,6 +248,7 @@ jobs:
             --output artifacts/prompt-results/aggregate.json
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: prompt-results-aggregate
           path: |
@@ -258,6 +259,7 @@ jobs:
     name: prompt-waiver-check
     runs-on: ubuntu-latest
     needs: [prompt-aggregate-parse]
+    if: always() && needs.prompt-aggregate-parse.result != 'cancelled'
     steps:
       - uses: actions/checkout@v4
 
@@ -284,6 +286,58 @@ jobs:
             --output artifacts/prompt-results/waiver-check.json
 
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: prompt-results-waiver
           path: artifacts/prompt-results/waiver-check.json
+
+  prompt-gate-enforce:
+    name: prompt-gate-enforce
+    runs-on: ubuntu-latest
+    needs: [prompt-aggregate-parse, prompt-waiver-check, prompt-metadata-check]
+    if: always()
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: prompt-results-aggregate
+          path: artifacts/prompt-results
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prompt-results-waiver
+          path: artifacts/prompt-results
+
+      - name: Enforce gate decision
+        run: |
+          aggregate="artifacts/prompt-results/aggregate.json"
+          waiver="artifacts/prompt-results/waiver-check.json"
+
+          if [ ! -f "$aggregate" ]; then
+            echo "::error::Aggregate artifact missing — fail closed"
+            exit 1
+          fi
+
+          gate=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d['gate_decision'])" "$aggregate")
+          high_count=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d['unresolved_high_count'])" "$aggregate")
+
+          echo "Gate decision: $gate"
+          echo "Unresolved High findings: $high_count"
+
+          if [ "$gate" != "pass" ]; then
+            echo "::error::Gate decision is FAIL — unresolved Critical findings or prompt failures detected"
+            exit 1
+          fi
+
+          if [ -f "$waiver" ]; then
+            waiver_ok=$(python3 -c "import json,sys; d=json.load(open(sys.argv[1])); print(d['ok'])" "$waiver")
+            echo "Waiver check: $waiver_ok"
+            if [ "$waiver_ok" = "False" ]; then
+              echo "::error::Waiver validation failed — unresolved High findings lack valid waivers"
+              exit 1
+            fi
+          elif [ "$high_count" != "0" ]; then
+            echo "::error::Waiver artifact missing with $high_count unresolved High findings — fail closed"
+            exit 1
+          fi
+
+          echo "Gate passed"

@@ -1,3 +1,8 @@
+<!-- owner: @anthropic/aria -->
+<!-- last_reviewed: 2026-02-10T00:00:00Z -->
+<!-- depends_on: [] -->
+<!-- adjacent_prompts: ["dev/premerge.md", "meta/review_orchestrator.md"] -->
+
 Act as an implementation-readiness gate reviewer for a complex codebase.
 
 Scope:
