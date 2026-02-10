@@ -6,7 +6,7 @@ This guide covers installing ARIA.
 
 - **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** with an active [Anthropic API plan](https://console.anthropic.com/)
 - **[uv](https://docs.astral.sh/uv/)** (Python package manager)
-- **Python 3.10+**
+- **Python 3.11+**
 - **An EVE Online account** (any faction, Alpha or Omega)
 
 ## Install
@@ -129,7 +129,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 ### Python Version Issues
 
-ARIA requires Python 3.10+. Check your version:
+ARIA requires Python 3.11+. Check your version:
 ```bash
 # Checking system Python version (not running ARIA code, so bare python is fine here)
 python --version

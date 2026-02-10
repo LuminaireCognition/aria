@@ -86,7 +86,7 @@ disable_error_code = ["attr-defined", "union-attr"]
 When writing new code:
 
 1. **Always add type hints** to function signatures
-2. **Use `Optional[T]`** for nullable values (or `T | None` for Python 3.10+)
+2. **Use `Optional[T]`** for nullable values (or `T | None` for Python 3.11+)
 3. **Prefer specific types** over `Any`
 4. **Add `# type: ignore[error-code]`** only when necessary, with comment explaining why
 

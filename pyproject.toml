@@ -7,7 +7,7 @@ name = "aria"
 version = "2.0.0"
 description = "ARIA - Adaptive Reasoning & Intelligence Array for EVE Online"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {text = "MIT"}
 dependencies = [
     "pydantic>=2.0.0",
@@ -170,10 +170,10 @@ ignore = [
     "E501",   # line too long (handled by formatter)
     "B008",   # do not perform function calls in argument defaults
     "B904",   # raise from - TODO: add exception chaining throughout codebase
-    "B905",   # zip without strict= (Python 3.10+)
+    "B905",   # zip without strict= (Python 3.10+, now baseline)
     "C401",   # unnecessary generator - set(x for x) vs {x for x} is style preference
-    "UP007",  # Use X | Y for Union - keep Union[] for Python <3.10 cron compatibility
-    "UP045",  # Use X | None for Optional - keep Optional[] for compatibility
+    "UP007",  # Use X | Y for Union - keep Union[] for readability
+    "UP045",  # Use X | None for Optional - keep Optional[] for readability
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -191,7 +191,7 @@ indent-style = "space"
 skip-magic-trailing-comma = false
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 files = ["src/aria_esi"]
 exclude = ["tests/", "__pycache__"]
 
