@@ -18,6 +18,15 @@ import json
 from typing import TYPE_CHECKING
 
 from aria_esi.core.logging import get_logger
+from aria_esi.fitting.skill_registry import (
+    BONUS_CORE_SKILL_NAMES,
+    BONUS_DRONE_SKILL_NAMES,
+    DRONE_SKILL_NAMES,
+    FITTING_SKILL_NAMES,
+    NAVIGATION_SKILL_NAMES,
+    TANK_SKILL_NAMES,
+    get_skill_registry,
+)
 
 if TYPE_CHECKING:
     from aria_esi.core.auth import Credentials
@@ -193,50 +202,18 @@ def get_all_v_skills() -> dict[int, int] | None:
 # =============================================================================
 # Common Skill Sets
 # =============================================================================
-
-# Core fitting skills that affect CPU/PG
-FITTING_SKILL_IDS = [
-    3318,  # Weapon Upgrades (CPU)
-    3426,  # Capacitor Systems Operation (cap recharge)
-    3424,  # Capacitor Management (cap capacity)
-    3319,  # Advanced Weapon Upgrades (PG)
-    3421,  # Capacitor Emission Systems (cap transfer)
-]
-
-# Drone skills
-DRONE_SKILL_IDS = [
-    3436,  # Drones
-    24241,  # Light Drone Operation
-    33699,  # Medium Drone Operation
-    3441,  # Heavy Drone Operation
-    3437,  # Drone Avionics
-    3442,  # Drone Interfacing
-    12305,  # Drone Navigation
-    23606,  # Drone Sharpshooting
-    23618,  # Drone Durability
-]
-
-# Tank skills
-TANK_SKILL_IDS = [
-    3392,  # Mechanics (hull HP)
-    3394,  # Hull Upgrades (armor HP)
-    3416,  # Shield Operation (shield recharge)
-    3419,  # Shield Management (shield capacity)
-    21059,  # Shield Compensation (resistance)
-    3425,  # Shield Upgrades (module PG)
-    26253,  # Armor Rigging
-    26261,  # Shield Rigging
-]
-
-# Navigation skills
-NAVIGATION_SKILL_IDS = [
-    3449,  # Navigation
-    3450,  # Afterburner
-    3451,  # Warp Drive Operation
-    3453,  # Evasive Maneuvering
-    3454,  # Fuel Conservation
-    3456,  # Acceleration Control
-]
+# Skill ID Resolution via Registry
+# =============================================================================
+#
+# Hardcoded skill ID constants have been replaced with registry-backed
+# resolution from the SDE. See skill_registry.py for name lists.
+#
+# OLD (hardcoded, buggy):
+#   FITTING_SKILL_IDS = [3318, 3426, ...]  # 4/5 IDs were wrong
+#
+# NEW (SDE-resolved):
+#   registry = get_skill_registry()
+#   fitting_ids = registry.ids(FITTING_SKILL_NAMES)  # Always correct
 
 
 def get_relevant_skills_for_fit(fit_type: str = "generic") -> list[int]:
@@ -247,54 +224,35 @@ def get_relevant_skills_for_fit(fit_type: str = "generic") -> list[int]:
         fit_type: Type of fit - "drone_boat", "armor_tank", "shield_tank", "generic"
 
     Returns:
-        List of relevant skill IDs
+        List of relevant skill IDs, or empty list if registry unavailable.
     """
+    registry = get_skill_registry()
+    if registry is None:
+        logger.warning(
+            "Skill registry unavailable — returning empty skill list for fit type '%s'",
+            fit_type,
+        )
+        return []
+
     # Start with common skills
-    skills = list(FITTING_SKILL_IDS)
+    skill_names = list(FITTING_SKILL_NAMES)
 
     if fit_type == "drone_boat":
-        skills.extend(DRONE_SKILL_IDS)
-    elif fit_type == "armor_tank":
-        skills.extend(TANK_SKILL_IDS)
-    elif fit_type == "shield_tank":
-        skills.extend(TANK_SKILL_IDS)
+        skill_names += DRONE_SKILL_NAMES
+    elif fit_type in ("armor_tank", "shield_tank"):
+        skill_names += TANK_SKILL_NAMES
 
     # Always include navigation
-    skills.extend(NAVIGATION_SKILL_IDS)
+    skill_names += NAVIGATION_SKILL_NAMES
 
-    return list(set(skills))  # Remove duplicates
+    # Deduplicate while preserving order (dict.fromkeys trick)
+    unique_names = list(dict.fromkeys(skill_names))
+    return registry.ids(unique_names)
 
 
 # =============================================================================
 # Dynamic Skill Extraction
 # =============================================================================
-
-# Bonus skills that provide important effects but may not be required
-# These are added at level 5 for "all V" calculations
-BONUS_SKILL_IDS = {
-    # Drone bonus skills
-    3442: "Drone Interfacing",  # +10% drone damage per level
-    23606: "Drone Sharpshooting",  # +5% drone optimal per level
-    12305: "Drone Navigation",  # +5% drone MWD velocity per level
-    23618: "Drone Durability",  # +5% drone shield/armor/hull per level
-    # Fitting skills
-    3318: "Weapon Upgrades",  # -5% CPU for weapons per level
-    3319: "Advanced Weapon Upgrades",  # -2% PG for weapons per level
-    # Capacitor skills
-    3426: "Capacitor Systems Operation",  # -5% cap recharge time per level
-    3424: "Capacitor Management",  # +5% cap capacity per level
-    # Tank skills
-    3392: "Mechanics",  # +5% hull HP per level
-    3393: "Hull Upgrades",  # +5% armor HP per level
-    3394: "Shield Operation",  # -5% shield recharge time per level
-    3416: "Shield Management",  # +5% shield capacity per level
-    # Navigation skills
-    3449: "Navigation",  # +5% sub-warp velocity per level
-    3453: "Evasive Maneuvering",  # +5% agility per level
-    3456: "Acceleration Control",  # +5% AB/MWD speed boost per level
-    # Engineering skills
-    3413: "Power Grid Management",  # +5% powergrid per level
-}
 
 
 def _get_direct_requirements(type_id: int) -> dict[int, int]:
@@ -394,32 +352,24 @@ def extract_skills_for_fit(parsed_fit: ParsedFit, level: int = 5) -> dict[int, i
     # Add bonus skills that provide important effects
     # Only add if relevant to the fit
     has_drones = len(parsed_fit.drones) > 0
+    registry = get_skill_registry()
 
     if has_drones:
         # Add drone bonus skills
-        for skill_id in [
-            3442,
-            23606,
-            12305,
-            23618,
-        ]:  # Drone Interfacing, Sharpshooting, Navigation, Durability
-            if skill_id not in skills:
-                skills[skill_id] = level
+        if registry is not None:
+            for skill_id in registry.ids(BONUS_DRONE_SKILL_NAMES):
+                if skill_id not in skills:
+                    skills[skill_id] = level
+        else:
+            logger.warning("Skill registry unavailable — skipping drone bonus injection")
 
     # Always add core fitting/tank/nav skills
-    core_skills = [
-        3318,  # Weapon Upgrades
-        3426,  # Capacitor Systems Operation
-        3424,  # Capacitor Management
-        3392,  # Mechanics
-        3393,  # Hull Upgrades
-        3449,  # Navigation
-        3453,  # Evasive Maneuvering
-    ]
-
-    for skill_id in core_skills:
-        if skill_id not in skills:
-            skills[skill_id] = level
+    if registry is not None:
+        for skill_id in registry.ids(BONUS_CORE_SKILL_NAMES):
+            if skill_id not in skills:
+                skills[skill_id] = level
+    else:
+        logger.warning("Skill registry unavailable — skipping core bonus injection")
 
     logger.debug(
         "Extracted %d skills for fit '%s' (ship: %s)",

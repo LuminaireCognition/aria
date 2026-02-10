@@ -26,11 +26,11 @@ from .constants import (
     PLAYER_CORP_MIN_ID,
     REF_TYPE_CATEGORIES,
     REF_TYPE_NAMES,
-    SHIP_GROUP_IDS,
     SLOT_ORDER,
-    STATION_NAMES,
     TRADE_HUB_REGIONS,
     TRADE_HUB_STATIONS,
+    get_ship_group_ids,
+    reset_ship_group_ids,
 )
 from .data_integrity import (
     IntegrityError,
@@ -184,10 +184,8 @@ __all__ = [
     # Constants
     "ESI_BASE_URL",
     "ESI_DATASOURCE",
-    "SHIP_GROUP_IDS",
     "TRADE_HUB_REGIONS",
     "TRADE_HUB_STATIONS",
-    "STATION_NAMES",
     "ACTIVITY_TYPES",
     "REF_TYPE_CATEGORIES",
     "REF_TYPE_NAMES",
@@ -197,6 +195,8 @@ __all__ = [
     "LOW_SEC_THRESHOLD",
     "CORP_SCOPES",
     "PLAYER_CORP_MIN_ID",
+    "get_ship_group_ids",
+    "reset_ship_group_ids",
     # Logging
     "get_logger",
     "set_log_level",

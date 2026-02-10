@@ -253,6 +253,124 @@ def load_meta_alternatives() -> dict:
     return data
 
 
+# =============================================================================
+# YAML Skill Reference Validation
+# =============================================================================
+
+
+def _extract_skill_names_efficacy(yaml_data: dict) -> list[tuple[str, str]]:
+    """Extract (context, skill_name) pairs from ship_efficacy_rules.yaml."""
+    if not isinstance(yaml_data, dict):
+        return []
+    results = []
+    ship_roles = yaml_data.get("ship_roles", {})
+    if not isinstance(ship_roles, dict):
+        return []
+    for role_name, role_data in ship_roles.items():
+        if not isinstance(role_data, dict):
+            continue
+        for skill_entry in role_data.get("skills", []):
+            if not isinstance(skill_entry, dict):
+                continue
+            skill_name = skill_entry.get("skill")
+            if skill_name:
+                results.append((f"role '{role_name}'", skill_name))
+    return results
+
+
+def _extract_skill_names_breakpoints(yaml_data: dict) -> list[tuple[str, str]]:
+    """Extract (context, skill_name) pairs from breakpoint_skills.yaml.
+
+    Schema: top-level keys are skill names (e.g., "Drones", "Advanced Weapon Upgrades").
+    Each key maps to a dict of properties (breakpoint_level, effect, etc.).
+    """
+    if not isinstance(yaml_data, dict):
+        return []
+    return [("breakpoint", skill_name) for skill_name in yaml_data.keys()]
+
+
+def _extract_skill_names_meta_alternatives(yaml_data: dict) -> list[tuple[str, str]]:
+    """Extract (context, skill_name) pairs from meta_module_alternatives.yaml.
+
+    Schema: category → module_name → {requires_v: ["Skill Name", ...], ...}
+    The requires_v field lists skills required at level V for the T2 module.
+    """
+    if not isinstance(yaml_data, dict):
+        return []
+    results = []
+    for _category, modules in yaml_data.items():
+        if not isinstance(modules, dict):
+            continue
+        for module_name, props in modules.items():
+            if not isinstance(props, dict):
+                continue
+            for skill_name in props.get("requires_v", []):
+                if isinstance(skill_name, str):
+                    results.append((f"module '{module_name}'", skill_name))
+    return results
+
+
+# Extractor registry — maps filename stems to their extractors
+YAML_SKILL_EXTRACTORS = {
+    "ship_efficacy_rules": _extract_skill_names_efficacy,
+    "breakpoint_skills": _extract_skill_names_breakpoints,
+    "meta_module_alternatives": _extract_skill_names_meta_alternatives,
+}
+
+
+def validate_yaml_skill_references(
+    yaml_data: dict,
+    source: str,
+    extractor_key: str,
+) -> list[str]:
+    """
+    Validate that all skill names in a YAML config resolve in the SDE.
+
+    Queries the SDE database directly (not the SkillRegistry) to validate
+    the full skill namespace. YAML files like ship_efficacy_rules.yaml
+    reference skills outside the fitting module's ALL_SKILL_NAMES set
+    (e.g., "Surgical Strike", "Rapid Firing"), so the limited registry
+    would produce false-positive warnings. Direct SDE validation covers
+    all ~400 skills in category 16.
+
+    Args:
+        yaml_data: Parsed YAML content
+        source: Human-readable source label for warning messages
+        extractor_key: Key into YAML_SKILL_EXTRACTORS for schema-specific extraction
+
+    Returns list of warning strings for unresolvable names.
+    Returns empty list if SDE is unavailable or extractor_key is unknown.
+    """
+    try:
+        from aria_esi.mcp.sde.queries import SDEResolutionError, get_sde_query_service
+
+        sde = get_sde_query_service()
+    except Exception:
+        return []
+
+    extractor = YAML_SKILL_EXTRACTORS.get(extractor_key)
+    if extractor is None:
+        return [f"{source}: No skill extractor registered for '{extractor_key}'"]
+
+    pairs = extractor(yaml_data)
+    if not pairs:
+        return []
+
+    # Deduplicate skill names for batch resolution
+    skill_names = list({name for _, name in pairs})
+    try:
+        sde.resolve_skill_ids(skill_names)
+        return []
+    except SDEResolutionError as e:
+        # Map missing names back to their contexts for actionable warnings
+        missing_set = set(e.missing_names)
+        return [
+            f"{source}: {context} references unknown skill '{name}'"
+            for context, name in pairs
+            if name in missing_set
+        ]
+
+
 def detect_ship_roles(group_name: str | None, type_name: str | None) -> list[str]:
     """
     Detect ship roles from group name and type name.

@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Optional
 
 from ..core import (
-    STATION_NAMES,
     ESIClient,
     ESIError,
     get_utc_timestamp,
@@ -182,10 +181,8 @@ def _format_orders(client: ESIClient, orders: list) -> list:
     for order in orders:
         location_id = order.get("location_id")
 
-        # Get station name (check cache first)
-        station_name = STATION_NAMES.get(location_id)
-        if not station_name:
-            station_name = client.get_station_name(location_id) or f"Station {location_id}"
+        # Get station name via SDE/ESI
+        station_name = client.get_station_name(location_id) or f"Station {location_id}"
 
         formatted.append(
             {

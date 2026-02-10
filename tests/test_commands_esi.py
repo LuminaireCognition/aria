@@ -78,8 +78,12 @@ def mock_public_client():
     client.get_safe = MagicMock(return_value=None)
 
     # Make type-safe getters delegate to get_safe for backward compatibility
-    client.get_dict_safe.side_effect = lambda *args, **kwargs: client.get_safe(*args, **kwargs) or {}
-    client.get_list_safe.side_effect = lambda *args, **kwargs: client.get_safe(*args, **kwargs) or []
+    client.get_dict_safe.side_effect = (
+        lambda *args, **kwargs: client.get_safe(*args, **kwargs) or {}
+    )
+    client.get_list_safe.side_effect = (
+        lambda *args, **kwargs: client.get_safe(*args, **kwargs) or []
+    )
 
     return client
 
@@ -135,9 +139,7 @@ class TestClonesCommand:
                     "name": "PvP Clone",
                 }
             ],
-            "last_clone_jump_date": (
-                datetime.now(timezone.utc) - timedelta(hours=30)
-            ).isoformat(),
+            "last_clone_jump_date": (datetime.now(timezone.utc) - timedelta(hours=30)).isoformat(),
         }
 
         mock_client.get.return_value = mock_clone_data
@@ -273,7 +275,10 @@ class TestClonesCommand:
         ):
             with patch("aria_esi.commands.clones.ESIClient") as MockPublicClient:
                 mock_public = create_mock_public_client()
-                mock_public.get_safe.return_value = {"name": "Jita IV - Moon 4", "system_id": 30000142}
+                mock_public.get_safe.return_value = {
+                    "name": "Jita IV - Moon 4",
+                    "system_id": 30000142,
+                }
                 MockPublicClient.return_value = mock_public
                 result = cmd_clones(empty_args)
 
@@ -1680,7 +1685,7 @@ class TestAssetsCommand:
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ):
-            with patch("aria_esi.commands.assets.SHIP_GROUP_IDS", {25}):
+            with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
                     mock_public.get_safe.side_effect = [
@@ -1900,7 +1905,7 @@ class TestFittingCommand:
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ):
-            with patch("aria_esi.commands.assets.SHIP_GROUP_IDS", {25}):
+            with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
                     mock_public.get_safe.return_value = {"name": "Rifter", "group_id": 25}
@@ -1924,7 +1929,7 @@ class TestFittingCommand:
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ):
-            with patch("aria_esi.commands.assets.SHIP_GROUP_IDS", {25}):
+            with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
 
@@ -1970,7 +1975,7 @@ class TestFittingCommand:
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ):
-            with patch("aria_esi.commands.assets.SHIP_GROUP_IDS", {25}):
+            with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
                     mock_public.get_safe.return_value = {"name": "Rifter", "group_id": 25}
@@ -1994,7 +1999,7 @@ class TestFittingCommand:
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ):
-            with patch("aria_esi.commands.assets.SHIP_GROUP_IDS", {25}):
+            with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
 
@@ -2031,7 +2036,7 @@ class TestFittingCommand:
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ):
-            with patch("aria_esi.commands.assets.SHIP_GROUP_IDS", {25}):
+            with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
 
@@ -2068,7 +2073,7 @@ class TestFittingCommand:
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ):
-            with patch("aria_esi.commands.assets.SHIP_GROUP_IDS", {25}):
+            with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
 
@@ -2099,7 +2104,9 @@ class TestFittingCommand:
         # EFT format should start with [ShipType, FitName]
         assert eft.startswith("[Rifter, ARIA Export]")
         # Should contain module names
-        assert "Damage Control II" in eft or "1MN Afterburner I" in eft or "150mm Autocannon I" in eft
+        assert (
+            "Damage Control II" in eft or "1MN Afterburner I" in eft or "150mm Autocannon I" in eft
+        )
         # Should contain drones with quantity
         assert "Hobgoblin I x5" in eft
 

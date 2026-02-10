@@ -12,6 +12,7 @@ STP-012: Testing & Deployment
 # at import time. If D-Bus is unavailable or the keyring is locked,
 # this call hangs indefinitely, causing the test suite to freeze.
 import os
+
 os.environ.setdefault("ARIA_NO_KEYRING", "1")
 
 import json
@@ -108,6 +109,7 @@ def test_data_dir(tmp_path: Path) -> Path:
 # Mock Credentials Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def mock_credentials_data() -> dict:
     """Return sample credentials data."""
@@ -121,7 +123,7 @@ def mock_credentials_data() -> dict:
             "esi-wallet.read_character_wallet.v1",
             "esi-skills.read_skills.v1",
             "esi-killmails.read_killmails.v1",
-        ]
+        ],
     }
 
 
@@ -149,10 +151,7 @@ def mock_project_with_credentials(tmp_path: Path, mock_credentials_data: dict) -
     creds_file.write_text(json.dumps(mock_credentials_data))
 
     # Write config
-    config = {
-        "version": "2.0",
-        "active_pilot": "12345678"
-    }
+    config = {"version": "2.0", "active_pilot": "12345678"}
     config_file = userdata / "config.json"
     config_file.write_text(json.dumps(config))
 
@@ -162,6 +161,7 @@ def mock_project_with_credentials(tmp_path: Path, mock_credentials_data: dict) -
 # =============================================================================
 # Mock ESI Response Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def mock_system_response() -> dict:
@@ -175,7 +175,7 @@ def mock_system_response() -> dict:
         "security_status": 0.9459131360054016,
         "star_id": 40009081,
         "stargates": [50001248, 50001249],
-        "system_id": 30000142
+        "system_id": 30000142,
     }
 
 
@@ -191,17 +191,14 @@ def mock_character_response() -> dict:
         "gender": "male",
         "name": "Test Pilot",
         "race_id": 1,
-        "security_status": 1.5
+        "security_status": 1.5,
     }
 
 
 @pytest.fixture
 def mock_location_response() -> dict:
     """Return a mock ESI location response."""
-    return {
-        "solar_system_id": 30000142,
-        "station_id": 60003760
-    }
+    return {"solar_system_id": 30000142, "station_id": 60003760}
 
 
 @pytest.fixture
@@ -226,7 +223,7 @@ def mock_type_response() -> dict:
         "published": True,
         "radius": 2,
         "type_id": 2454,
-        "volume": 5
+        "volume": 5,
     }
 
 
@@ -242,7 +239,7 @@ def mock_killmail_response() -> dict:
                 "final_blow": True,
                 "security_status": 0.5,
                 "ship_type_id": 24690,
-                "weapon_type_id": 3170
+                "weapon_type_id": 3170,
             }
         ],
         "killmail_id": 123456789,
@@ -254,14 +251,15 @@ def mock_killmail_response() -> dict:
             "damage_taken": 5000,
             "items": [],
             "position": {"x": 0, "y": 0, "z": 0},
-            "ship_type_id": 587
-        }
+            "ship_type_id": 587,
+        },
     }
 
 
 # =============================================================================
 # Mock Client Fixtures
 # =============================================================================
+
 
 @pytest.fixture
 def mock_esi_client():
@@ -281,6 +279,7 @@ def mock_esi_client():
 # Time Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def fixed_datetime() -> datetime:
     """Return a fixed datetime for consistent testing."""
@@ -290,13 +289,14 @@ def fixed_datetime() -> datetime:
 @pytest.fixture
 def mock_utc_now(fixed_datetime: datetime):
     """Patch get_utc_now to return a fixed datetime."""
-    with patch('aria_esi.core.formatters.get_utc_now', return_value=fixed_datetime):
+    with patch("aria_esi.core.formatters.get_utc_now", return_value=fixed_datetime):
         yield fixed_datetime
 
 
 # Conditional import for time-machine (optional dependency)
 try:
     import time_machine
+
     HAS_TIME_MACHINE = True
 except ImportError:
     time_machine = None  # type: ignore[assignment]
@@ -439,10 +439,12 @@ def assert_nullsec(sec: float) -> None:
 # Argument Namespace Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def empty_args():
     """Create an empty argparse.Namespace for command testing."""
     import argparse
+
     return argparse.Namespace()
 
 
@@ -450,6 +452,7 @@ def empty_args():
 def route_args():
     """Create args for route command."""
     import argparse
+
     args = argparse.Namespace()
     args.origin = "Dodixie"
     args.destination = "Jita"
@@ -461,6 +464,7 @@ def route_args():
 def killmails_args():
     """Create args for killmails command."""
     import argparse
+
     args = argparse.Namespace()
     args.limit = 10
     args.losses = False
@@ -471,6 +475,7 @@ def killmails_args():
 # =============================================================================
 # Universe MCP Server Fixtures (STP-012)
 # =============================================================================
+
 
 @pytest.fixture(scope="session")
 def sample_cache_data() -> dict:
@@ -492,43 +497,43 @@ def sample_cache_data() -> dict:
                 "name": "Jita",
                 "security": 0.9459,
                 "constellation_id": 20000020,
-                "stargates": [50001248]
+                "stargates": [50001248],
             },
             "30000144": {
                 "system_id": 30000144,
                 "name": "Perimeter",
                 "security": 0.9072,
                 "constellation_id": 20000020,
-                "stargates": [50001250, 50001251]
+                "stargates": [50001250, 50001251],
             },
             "30000139": {
                 "system_id": 30000139,
                 "name": "Urlen",
                 "security": 0.6500,
                 "constellation_id": 20000020,
-                "stargates": [50001252, 50001253]
+                "stargates": [50001252, 50001253],
             },
             "30000138": {
                 "system_id": 30000138,
                 "name": "Sivala",
                 "security": 0.5000,
                 "constellation_id": 20000020,
-                "stargates": [50001254, 50001255]
+                "stargates": [50001254, 50001255],
             },
             "30000137": {
                 "system_id": 30000137,
                 "name": "Aufay",
                 "security": 0.3500,
                 "constellation_id": 20000021,
-                "stargates": [50001256]
+                "stargates": [50001256],
             },
             "30000136": {
                 "system_id": 30000136,
                 "name": "Ala",
                 "security": 0.2000,
                 "constellation_id": 20000021,
-                "stargates": [50001257]
-            }
+                "stargates": [50001257],
+            },
         },
         "stargates": {
             "50001248": {"destination_system_id": 30000144},  # Jita -> Perimeter
@@ -539,16 +544,14 @@ def sample_cache_data() -> dict:
             "50001254": {"destination_system_id": 30000139},  # Sivala -> Urlen
             "50001255": {"destination_system_id": 30000137},  # Sivala -> Aufay
             "50001256": {"destination_system_id": 30000138},  # Aufay -> Sivala
-            "50001257": {"destination_system_id": 30000137}   # Ala -> Aufay (dead end)
+            "50001257": {"destination_system_id": 30000137},  # Ala -> Aufay (dead end)
         },
         "constellations": {
             "20000020": {"name": "Kimotoro", "region_id": 10000002},
-            "20000021": {"name": "Okkelen", "region_id": 10000002}
+            "20000021": {"name": "Okkelen", "region_id": 10000002},
         },
-        "regions": {
-            "10000002": {"name": "The Forge"}
-        },
-        "generated": "test-1.0"
+        "regions": {"10000002": {"name": "The Forge"}},
+        "generated": "test-1.0",
     }
 
 
@@ -608,6 +611,7 @@ def real_universe(real_graph_path):
     if real_graph_path is None:
         pytest.skip("Real universe graph not available")
     from aria_esi.universe.builder import load_universe_graph
+
     return load_universe_graph(real_graph_path)
 
 
@@ -797,10 +801,12 @@ def reset_all_singletons():
     Note: Some imports may fail if optional dependencies aren't installed.
     Each reset is wrapped in a try/except to allow partial resets.
     """
+
     def do_reset():
         # Settings cache (MUST be first - other modules read from settings)
         try:
             from aria_esi.core.config import reset_settings
+
             reset_settings()
         except ImportError:
             pass
@@ -808,6 +814,7 @@ def reset_all_singletons():
         # Logging state (reset early - affects propagation for caplog)
         try:
             from aria_esi.core.logging import reset_logging
+
             reset_logging()
         except ImportError:
             pass
@@ -815,6 +822,7 @@ def reset_all_singletons():
         # Market database
         try:
             from aria_esi.mcp.market.database import reset_market_database
+
             reset_market_database()
         except ImportError:
             pass
@@ -822,6 +830,7 @@ def reset_all_singletons():
         # Async market database (sync reset for non-async context)
         try:
             from aria_esi.mcp.market.database_async import reset_async_market_database_sync
+
             reset_async_market_database_sync()
         except ImportError:
             pass
@@ -829,6 +838,7 @@ def reset_all_singletons():
         # Market cache
         try:
             from aria_esi.mcp.market.cache import reset_market_cache
+
             reset_market_cache()
         except ImportError:
             pass
@@ -836,6 +846,7 @@ def reset_all_singletons():
         # Market refresh service
         try:
             from aria_esi.services.market_refresh import reset_refresh_service
+
             reset_refresh_service()
         except ImportError:
             pass
@@ -843,6 +854,7 @@ def reset_all_singletons():
         # Easy 80% YAML caches
         try:
             from aria_esi.mcp.sde.tools_easy80 import reset_easy80_caches
+
             reset_easy80_caches()
         except ImportError:
             pass
@@ -850,6 +862,7 @@ def reset_all_singletons():
         # Activities cache
         try:
             from aria_esi.mcp.sde.tools_activities import reset_activities_cache
+
             reset_activities_cache()
         except ImportError:
             pass
@@ -857,13 +870,31 @@ def reset_all_singletons():
         # Skill requirements cache
         try:
             from aria_esi.fitting.skills import reset_skill_requirements
+
             reset_skill_requirements()
+        except ImportError:
+            pass
+
+        # Skill registry singleton
+        try:
+            from aria_esi.fitting.skill_registry import reset_skill_registry
+
+            reset_skill_registry()
+        except ImportError:
+            pass
+
+        # Ship group IDs cache
+        try:
+            from aria_esi.core.constants import reset_ship_group_ids
+
+            reset_ship_group_ids()
         except ImportError:
             pass
 
         # EOS data manager
         try:
             from aria_esi.fitting.eos_data import reset_eos_data_manager
+
             reset_eos_data_manager()
         except ImportError:
             pass
@@ -871,6 +902,7 @@ def reset_all_singletons():
         # Universe graph
         try:
             from aria_esi.mcp.tools import reset_universe
+
             reset_universe()
         except ImportError:
             pass
@@ -878,6 +910,7 @@ def reset_all_singletons():
         # MCP activity cache
         try:
             from aria_esi.mcp.activity import reset_activity_cache
+
             reset_activity_cache()
         except ImportError:
             pass
@@ -885,6 +918,7 @@ def reset_all_singletons():
         # Navigation activity cache
         try:
             from aria_esi.commands.navigation import reset_navigation_activity_cache
+
             reset_navigation_activity_cache()
         except ImportError:
             pass
@@ -892,6 +926,7 @@ def reset_all_singletons():
         # Arbitrage engine
         try:
             from aria_esi.services.arbitrage_engine import reset_arbitrage_engine
+
             reset_arbitrage_engine()
         except ImportError:
             pass
@@ -899,6 +934,7 @@ def reset_all_singletons():
         # History cache service
         try:
             from aria_esi.services.history_cache import reset_history_cache_service
+
             reset_history_cache_service()
         except ImportError:
             pass
@@ -906,6 +942,7 @@ def reset_all_singletons():
         # SDE query service
         try:
             from aria_esi.mcp.sde.queries import reset_sde_query_service
+
             reset_sde_query_service()
         except ImportError:
             pass
@@ -913,6 +950,7 @@ def reset_all_singletons():
         # Keyring credential store
         try:
             from aria_esi.core.keyring_backend import reset_keyring_store
+
             reset_keyring_store()
         except ImportError:
             pass
@@ -920,6 +958,7 @@ def reset_all_singletons():
         # Universe JSON cache
         try:
             from aria_esi.cache import clear_cache
+
             clear_cache()
         except ImportError:
             pass
@@ -927,6 +966,7 @@ def reset_all_singletons():
         # Context budget
         try:
             from aria_esi.mcp.context_budget import reset_context_budget
+
             reset_context_budget()
         except ImportError:
             pass
@@ -934,6 +974,7 @@ def reset_all_singletons():
         # Async ESI client singleton
         try:
             from aria_esi.mcp.esi_client import reset_async_esi_client
+
             reset_async_esi_client()
         except ImportError:
             pass
@@ -941,6 +982,7 @@ def reset_all_singletons():
         # RedisQ - Name resolver
         try:
             from aria_esi.services.redisq.name_resolver import reset_name_resolver
+
             reset_name_resolver()
         except ImportError:
             pass
@@ -948,6 +990,7 @@ def reset_all_singletons():
         # RedisQ - War context provider
         try:
             from aria_esi.services.redisq.war_context import reset_war_context_provider
+
             reset_war_context_provider()
         except ImportError:
             pass
@@ -955,6 +998,7 @@ def reset_all_singletons():
         # RedisQ - Realtime database
         try:
             from aria_esi.services.redisq.database import reset_realtime_database
+
             reset_realtime_database()
         except ImportError:
             pass
@@ -962,6 +1006,7 @@ def reset_all_singletons():
         # RedisQ - Interest providers registry
         try:
             from aria_esi.services.redisq.interest_v2.providers.registry import reset_registry
+
             reset_registry()
         except ImportError:
             pass
@@ -969,6 +1014,7 @@ def reset_all_singletons():
         # RedisQ - Preset loader
         try:
             from aria_esi.services.redisq.interest_v2.presets.loader import reset_preset_loader
+
             reset_preset_loader()
         except ImportError:
             pass
@@ -976,6 +1022,7 @@ def reset_all_singletons():
         # RedisQ - Threat cache
         try:
             from aria_esi.services.redisq.threat_cache import reset_threat_cache
+
             reset_threat_cache()
         except ImportError:
             pass
@@ -983,6 +1030,7 @@ def reset_all_singletons():
         # RedisQ - Notification manager
         try:
             from aria_esi.services.redisq.notifications.manager import reset_notification_manager
+
             reset_notification_manager()
         except ImportError:
             pass
@@ -990,6 +1038,7 @@ def reset_all_singletons():
         # RedisQ - NPC faction mapper
         try:
             from aria_esi.services.redisq.notifications.npc_factions import reset_npc_faction_mapper
+
             reset_npc_faction_mapper()
         except ImportError:
             pass
@@ -997,6 +1046,7 @@ def reset_all_singletons():
         # RedisQ - Persona loader
         try:
             from aria_esi.services.redisq.notifications.persona import reset_persona_loader
+
             reset_persona_loader()
         except ImportError:
             pass
@@ -1004,6 +1054,7 @@ def reset_all_singletons():
         # RedisQ - Entity watchlist manager
         try:
             from aria_esi.services.redisq.entity_watchlist import reset_entity_watchlist_manager
+
             reset_entity_watchlist_manager()
         except ImportError:
             pass
@@ -1011,6 +1062,7 @@ def reset_all_singletons():
         # RedisQ - Fetch queue
         try:
             from aria_esi.services.redisq.fetch_queue import reset_fetch_queue
+
             reset_fetch_queue()
         except ImportError:
             pass
@@ -1018,6 +1070,7 @@ def reset_all_singletons():
         # RedisQ - Poller
         try:
             from aria_esi.services.redisq.poller import reset_poller
+
             reset_poller()
         except ImportError:
             pass
@@ -1025,6 +1078,7 @@ def reset_all_singletons():
         # RedisQ - Entity filter
         try:
             from aria_esi.services.redisq.entity_filter import reset_entity_filter
+
             reset_entity_filter()
         except ImportError:
             pass
@@ -1032,6 +1086,7 @@ def reset_all_singletons():
         # MCP - Trace context
         try:
             from aria_esi.mcp.context import reset_trace_context
+
             reset_trace_context()
         except ImportError:
             pass
@@ -1043,3 +1098,130 @@ def reset_all_singletons():
 
     # Reset after test
     do_reset()
+
+
+# =============================================================================
+# Mock Skill Registry Fixtures (Phase C)
+# =============================================================================
+
+# Ground truth: every skill in ALL_SKILL_NAMES mapped to its SDE type_id.
+# Sourced from the pre-implementation audit (verified via sde(action="item_info")).
+_SKILL_NAME_TO_ID = {
+    "Acceleration Control": 3452,
+    "Advanced Weapon Upgrades": 11207,
+    "Afterburner": 3450,
+    "Armor Rigging": 26253,
+    "Capacitor Emission Systems": 3423,
+    "Capacitor Management": 3418,
+    "Capacitor Systems Operation": 3417,
+    "Drone Avionics": 3437,
+    "Drone Durability": 23618,
+    "Drone Interfacing": 3442,
+    "Drone Navigation": 12305,
+    "Drone Sharpshooting": 23606,
+    "Drones": 3436,
+    "Evasive Maneuvering": 3453,
+    "Fuel Conservation": 3451,
+    "Heavy Drone Operation": 3441,
+    "Hull Upgrades": 3394,
+    "Light Drone Operation": 24241,
+    "Mechanics": 3392,
+    "Medium Drone Operation": 33699,
+    "Navigation": 3449,
+    "Power Grid Management": 3413,
+    "Repair Systems": 3393,
+    "Shield Compensation": 21059,
+    "Shield Management": 3419,
+    "Shield Operation": 3416,
+    "Shield Rigging": 26261,
+    "Shield Upgrades": 3425,
+    "Tactical Shield Manipulation": 3420,
+    "Warp Drive Operation": 3455,
+    "Weapon Upgrades": 3318,
+}
+
+
+@pytest.fixture
+def mock_sde_db(tmp_path):
+    """Create a minimal SDE SQLite database with all registry skills.
+
+    Creates all tables that ensure_sde_seeded() checks in required_tables,
+    plus the metadata table required by _check_cache_validity(), so
+    resolve_skill_ids() and get_all_ship_group_ids() pass both the seeding
+    gate and cache validity check without monkeypatching. Non-types tables
+    are empty — only their existence is required.
+    """
+    import sqlite3
+
+    db_path = tmp_path / "test_sde.db"
+    conn = sqlite3.connect(str(db_path))
+    # All tables in ensure_sde_seeded() required_tables list
+    conn.execute("""
+        CREATE TABLE types (
+            type_id INTEGER PRIMARY KEY,
+            type_name TEXT,
+            type_name_lower TEXT,
+            category_id INTEGER,
+            published INTEGER DEFAULT 1
+        )
+    """)
+    conn.execute(
+        "CREATE TABLE groups (group_id INTEGER PRIMARY KEY, category_id INTEGER, group_name TEXT)"
+    )
+    conn.execute("CREATE TABLE npc_corporations (corporation_id INTEGER PRIMARY KEY)")
+    conn.execute("CREATE TABLE npc_seeding (type_id INTEGER)")
+    conn.execute("CREATE TABLE stations (station_id INTEGER PRIMARY KEY)")
+    conn.execute("CREATE TABLE regions (region_id INTEGER PRIMARY KEY)")
+    # Required by _check_cache_validity()
+    conn.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT)")
+    for name, type_id in _SKILL_NAME_TO_ID.items():
+        conn.execute(
+            "INSERT INTO types VALUES (?, ?, ?, 16, 1)",
+            (type_id, name, name.lower()),
+        )
+    # Add a non-skill type to test category filtering
+    conn.execute("INSERT INTO types VALUES (626, 'Vexor', 'vexor', 6, 1)")
+    # Add ship groups for Phase E tests
+    conn.execute("INSERT INTO groups VALUES (25, 6, 'Frigate')")
+    conn.execute("INSERT INTO groups VALUES (26, 6, 'Cruiser')")
+    conn.commit()
+    conn.close()
+    return db_path
+
+
+@pytest.fixture
+def mock_sde_service(mock_sde_db, monkeypatch):
+    """Create an SDEQueryService backed by the mock SDE database.
+
+    For Phase A tests that need to call resolve_skill_ids() directly.
+    Uses the real SDEQueryService.__init__ via a real MarketDatabase
+    pointed at the mock DB, so new cache attributes added to __init__
+    are automatically initialized.
+    """
+    from aria_esi.mcp.market.database import MarketDatabase
+    from aria_esi.mcp.sde.queries import SDEQueryService
+
+    db = MarketDatabase(db_path=mock_sde_db)
+    db._initialized = True  # Skip market schema init on first connect
+
+    service = SDEQueryService(db)
+
+    monkeypatch.setattr("aria_esi.mcp.sde.queries._sde_query_service", service)
+    yield service
+    db.close()
+
+
+@pytest.fixture
+def mock_skill_registry(monkeypatch):
+    """Return a SkillRegistry backed by verified SDE ground truth.
+
+    Patches the module-level singleton so production code paths
+    (get_skill_registry()) return this mock during the test.
+    """
+    from aria_esi.fitting.skill_registry import SkillRegistry, reset_skill_registry
+
+    reset_skill_registry()
+    registry = SkillRegistry(_SKILL_NAME_TO_ID)
+    monkeypatch.setattr("aria_esi.fitting.skill_registry._skill_registry", registry)
+    yield registry
+    reset_skill_registry()

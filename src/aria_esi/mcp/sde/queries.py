@@ -40,6 +40,14 @@ class SDENotSeededError(Exception):
     pass
 
 
+class SDEResolutionError(Exception):
+    """Raised when type name resolution fails against SDE."""
+
+    def __init__(self, message: str, missing_names: list[str] | None = None):
+        super().__init__(message)
+        self.missing_names = missing_names or []
+
+
 # =============================================================================
 # Data Classes
 # =============================================================================
@@ -244,7 +252,7 @@ class SDEQueryService:
             "database not seeded" (raises exception).
         """
         conn = self._db._get_connection()
-        required_tables = ["npc_corporations", "npc_seeding", "stations", "regions"]
+        required_tables = ["npc_corporations", "npc_seeding", "stations", "regions", "types", "groups"]
         cursor = conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name IN ({})".format(
                 ",".join("?" * len(required_tables))
@@ -408,6 +416,58 @@ class SDEQueryService:
             self._category_ids[category_lower] = result
 
         return result
+
+    def resolve_skill_ids(self, names: list[str]) -> dict[str, int]:
+        """
+        Resolve skill names to type IDs from the SDE database.
+
+        Searches only category_id=16 (Skills). For non-skill type resolution,
+        use existing SDEQueryService methods (e.g., get_station_info() for stations).
+
+        Args:
+            names: List of exact skill names (case-insensitive)
+
+        Returns:
+            Dict mapping each input name to its type_id
+
+        Raises:
+            SDEResolutionError: If any name cannot be resolved in the Skills category
+
+        Note: Does not filter on ``published`` — all skills in category 16 are
+        considered, including unpublished. This is intentional: skill type IDs are
+        used as dictionary keys for pilot skill lookups, where the SDE record must
+        match regardless of publish status.
+        """
+        self._check_cache_validity()
+        self.ensure_sde_seeded()
+        if not names:
+            return {}
+        conn = self._db._get_connection()
+        lower_to_original = {n.lower(): n for n in names}
+        placeholders = ",".join("?" * len(lower_to_original))
+        rows = conn.execute(
+            f"SELECT type_name_lower, type_id FROM types "
+            f"WHERE type_name_lower IN ({placeholders}) AND category_id = 16",
+            list(lower_to_original.keys()),
+        ).fetchall()
+
+        found = {}
+        for lower_name, type_id in rows:
+            if lower_name in found:
+                raise SDEResolutionError(
+                    f"Ambiguous skill name '{lower_to_original[lower_name]}': "
+                    f"multiple matches in SDE",
+                    missing_names=[lower_to_original[lower_name]],
+                )
+            found[lower_name] = type_id
+
+        missing = [lower_to_original[ln] for ln in lower_to_original if ln not in found]
+        if missing:
+            raise SDEResolutionError(
+                f"Cannot resolve {len(missing)} type names from SDE: {missing}",
+                missing_names=missing,
+            )
+        return {lower_to_original[ln]: tid for ln, tid in found.items()}
 
     def get_corporation_info(self, corporation_id: int) -> CorporationInfo | None:
         """
@@ -996,6 +1056,16 @@ class SDEQueryService:
             self._parent_type[type_id] = result
 
         return result
+
+    def get_all_ship_group_ids(self) -> set[int]:
+        """Return all group IDs in the Ship category (category_id=6)."""
+        self._check_cache_validity()
+        self.ensure_sde_seeded()
+        conn = self._db._get_connection()
+        rows = conn.execute(
+            "SELECT DISTINCT group_id FROM groups WHERE category_id = 6"
+        ).fetchall()
+        return {row[0] for row in rows}
 
     def get_all_meta_groups(self) -> tuple[MetaGroup, ...]:
         """Get all meta groups."""

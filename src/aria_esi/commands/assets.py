@@ -14,12 +14,12 @@ from typing import Any
 import requests  # type: ignore[import-untyped]
 
 from ..core import (
-    SHIP_GROUP_IDS,
     SLOT_ORDER,
     CredentialsError,
     ESIClient,
     ESIError,
     get_authenticated_client,
+    get_ship_group_ids,
     get_utc_timestamp,
 )
 from ..services.asset_insights import (
@@ -150,7 +150,7 @@ def cmd_assets(args: argparse.Namespace) -> dict:
         # Apply filters
         if filter_type == "ships":
             # Only show assembled ships in hangars
-            if group_id not in SHIP_GROUP_IDS:
+            if group_id not in get_ship_group_ids():
                 continue
             if not a.get("is_singleton", False):
                 continue  # Packaged ships don't count
@@ -544,7 +544,7 @@ def _handle_asset_insights(creds: Any, query_ts: str, save_snapshot: bool = Fals
     duplicates = find_duplicate_ships(
         processed_assets,
         type_info,
-        SHIP_GROUP_IDS,
+        get_ship_group_ids(),
     )
 
     # Generate summary
@@ -755,7 +755,7 @@ def cmd_fitting(args: argparse.Namespace) -> dict:
         tinfo = type_info.get(tid, {"name": "", "group_id": 0})
 
         # Must be a ship
-        if tinfo["group_id"] not in SHIP_GROUP_IDS:
+        if tinfo["group_id"] not in get_ship_group_ids():
             continue
 
         # Must be assembled and in hangar

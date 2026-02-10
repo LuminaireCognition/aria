@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from aria_esi.core.logging import get_logger
+from aria_esi.fitting.skill_registry import get_skill_registry
 
 from .loader import find_hull_directory, load_yaml_file
 
@@ -77,51 +78,30 @@ class TankSelectionResult:
 # Skill Resolution
 # =============================================================================
 
-# Common tank skill name to ID mapping
-# These are the standard tank skills used for selection
-TANK_SKILL_IDS: dict[str, int] = {
-    # Armor skills
-    "Hull Upgrades": 3393,
-    "Mechanics": 3392,
-    "Repair Systems": 3394,
-    "Armor Rigging": 26252,
-    # Shield skills
-    "Shield Management": 3416,
-    "Shield Operation": 3419,
-    "Shield Upgrades": 21059,
-    "Tactical Shield Manipulation": 3420,
-}
-
 
 def resolve_skill_name_to_id(skill_name: str) -> int | None:
     """
-    Resolve a skill name to its type ID.
-
-    First checks the hardcoded mapping for common tank skills,
-    then falls back to database lookup if available.
+    Resolve a skill name to its type ID via the shared SkillRegistry.
 
     Args:
         skill_name: Skill name (e.g., "Hull Upgrades")
 
     Returns:
-        Skill type ID or None if not found
+        Skill type ID or None if not in registry or registry unavailable.
+        Callers receiving None should treat the skill as unresolvable (log and skip).
     """
-    # Check hardcoded mapping first
-    if skill_name in TANK_SKILL_IDS:
-        return TANK_SKILL_IDS[skill_name]
-
-    # Try database lookup
-    try:
-        from aria_esi.mcp.market.database import MarketDatabase
-
-        db = MarketDatabase()
-        type_info = db.resolve_type_name(skill_name)
-        if type_info:
-            return type_info.type_id
-    except Exception as e:
-        logger.debug("Could not resolve skill name via database: %s", e)
-
-    return None
+    registry = get_skill_registry()
+    if registry is None:
+        logger.warning("Skill registry unavailable — cannot resolve '%s'", skill_name)
+        return None
+    if not registry.contains(skill_name):
+        logger.warning(
+            "Skill '%s' not in registry — not a pre-registered skill. "
+            "Add to TANK_SKILL_NAMES in skill_registry.py if this is intentional.",
+            skill_name,
+        )
+        return None
+    return registry.id(skill_name)
 
 
 def resolve_skill_names_to_ids(skill_names: list[str]) -> dict[str, int]:

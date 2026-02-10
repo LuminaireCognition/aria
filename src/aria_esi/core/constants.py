@@ -5,6 +5,8 @@ Shared constants used across multiple ESI commands.
 Consolidates previously duplicated definitions.
 """
 
+import threading
+
 # =============================================================================
 # ESI Configuration
 # =============================================================================
@@ -16,10 +18,12 @@ ESI_DATASOURCE = "tranquility"
 # Ship Group IDs
 #
 # Used for filtering assembled ships from assets.
-# Group IDs from EVE's inventory type system.
+# Dynamically loaded from SDE at first use, with hardcoded fallback.
 # =============================================================================
 
-SHIP_GROUP_IDS = {
+# Hardcoded fallback set - used if SDE unavailable
+# These are the standard ship group IDs from EVE's inventory type system
+_SHIP_GROUP_IDS_FALLBACK = {
     25,  # Frigate
     26,  # Cruiser
     27,  # Battleship
@@ -67,6 +71,48 @@ SHIP_GROUP_IDS = {
     2001,  # Mining Frigate (Venture!)
 }
 
+_ship_group_ids: set[int] | None = None
+_ship_group_lock = threading.Lock()
+
+
+def get_ship_group_ids() -> set[int]:
+    """
+    Return all ship group IDs from SDE, with hardcoded fallback.
+
+    Delegates to ``SDEQueryService.get_all_ship_group_ids()`` on first
+    call. Result is cached for the process lifetime. Falls back to
+    ``_SHIP_GROUP_IDS_FALLBACK`` (the current hardcoded set) if SDE
+    is unavailable.
+
+    Thread-safe via double-checked locking, consistent with
+    ``get_skill_registry()``.
+    """
+    global _ship_group_ids
+    if _ship_group_ids is not None:
+        return _ship_group_ids
+    with _ship_group_lock:
+        if _ship_group_ids is not None:
+            return _ship_group_ids
+        try:
+            from aria_esi.mcp.sde.queries import get_sde_query_service
+
+            sde_result = get_sde_query_service().get_all_ship_group_ids()
+            # Guard against corrupted/empty SDE returning empty set.
+            # Note: a non-empty but smaller-than-expected set (e.g., CCP removed
+            # a ship group) is accepted as valid — the SDE is authoritative.
+            _ship_group_ids = sde_result if sde_result else _SHIP_GROUP_IDS_FALLBACK
+        except Exception:
+            _ship_group_ids = _SHIP_GROUP_IDS_FALLBACK
+        return _ship_group_ids
+
+
+def reset_ship_group_ids() -> None:
+    """Reset cached ship group IDs for testing. Not for production use."""
+    global _ship_group_ids
+    with _ship_group_lock:
+        _ship_group_ids = None
+
+
 # =============================================================================
 # Trade Hub Configuration
 #
@@ -87,14 +133,6 @@ TRADE_HUB_STATIONS = {
     "10000032": 60011866,  # Dodixie IX - Moon 20 - Federation Navy Assembly Plant
     "10000030": 60004588,  # Rens VI - Moon 8 - Brutor Tribe Treasury
     "10000042": 60005686,  # Hek VIII - Moon 12 - Boundless Creation Factory
-}
-
-STATION_NAMES = {
-    60003760: "Jita IV - Moon 4 - Caldari Navy Assembly Plant",
-    60008494: "Amarr VIII (Oris) - Emperor Family Academy",
-    60011866: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant",
-    60004588: "Rens VI - Moon 8 - Brutor Tribe Treasury",
-    60005686: "Hek VIII - Moon 12 - Boundless Creation Factory",
 }
 
 # =============================================================================

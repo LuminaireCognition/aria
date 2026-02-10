@@ -45,11 +45,11 @@ jobs:
 
       - name: Run MCP unit tests
         run: |
-          uv run pytest tests/mcp/ tests/universe/ -v --tb=short
+          uv run pytest tests/mcp/ tests/universe/ -v --tb=short --no-cov
 
       - name: Run integration tests
         run: |
-          uv run pytest tests/integration/ -v --tb=short -m "integration"
+          uv run pytest tests/integration/ -v --tb=short -m "integration" --no-cov
 
   benchmark:
     name: Performance Benchmarks
