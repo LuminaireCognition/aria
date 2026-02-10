@@ -104,8 +104,51 @@ def _cmd_orchestrator_check(args: argparse.Namespace) -> int:
     result = run_orchestrator_check(combined_results)
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     Path(args.output).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-    if "foundation" in failed_artifacts:
+    if failed_artifacts:
         return 1
+    return 0
+
+
+def _cmd_merge_tiers(args: argparse.Namespace) -> int:
+    tier_inputs = [
+        ("foundation", args.foundation),
+        ("deep_dive", args.deep_dive),
+        ("gate", args.gate),
+    ]
+
+    base: dict | None = None
+    seen: set[str] = set()
+    failed = False
+
+    for label, path in tier_inputs:
+        if not path:
+            continue
+        try:
+            data = json.loads(Path(path).read_text(encoding="utf-8"))
+        except (FileNotFoundError, json.JSONDecodeError) as exc:
+            print(
+                f"ERROR: Failed to load {label} tier from {path}: {exc}",
+                file=sys.stderr,
+            )
+            failed = True
+            continue
+
+        if base is None:
+            base = data
+            for p in base.get("prompts", []):
+                seen.add(p["prompt_instance_id"])
+        else:
+            for p in data.get("prompts", []):
+                if p["prompt_instance_id"] not in seen:
+                    base["prompts"].append(p)
+                    seen.add(p["prompt_instance_id"])
+
+    if failed or base is None:
+        return 1
+
+    base.setdefault("summary", {})["total_prompts"] = len(base["prompts"])
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.output).write_text(json.dumps(base, indent=2) + "\n", encoding="utf-8")
     return 0
 
 
@@ -172,6 +215,13 @@ def build_parser() -> argparse.ArgumentParser:
     meta.add_argument("--output", required=True)
     meta.add_argument("--now")
     meta.set_defaults(func=_cmd_metadata_check)
+
+    merge = sub.add_parser("merge-tiers")
+    merge.add_argument("--foundation", required=True)
+    merge.add_argument("--deep-dive", required=True)
+    merge.add_argument("--gate", required=True)
+    merge.add_argument("--output", required=True)
+    merge.set_defaults(func=_cmd_merge_tiers)
 
     return parser
 

@@ -6,7 +6,7 @@
   Act as a strict senior engineer performing a pre-merge review for `main`.
 
   Scope:
-  - Proposal: `dev/proposals/LINUX_VM_DOCKER_RUNTIME_PROPOSAL.md`
+  - Proposal: `<PROPOSAL_PATH>`
   - Current branch contains the implementation; `pytest` is already passing.
 
   Review goals:

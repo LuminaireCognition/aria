@@ -235,20 +235,11 @@ jobs:
 
       - name: Merge tier artifacts
         run: |
-          uv run python -c "
-          import json
-          from pathlib import Path
-          base = json.loads(Path('artifacts/prompt-results/foundation/combined.json').read_text())
-          for tier_dir in ['deep-dive', 'gate']:
-              tier_data = json.loads(Path(f'artifacts/prompt-results/{tier_dir}/combined.json').read_text())
-              seen = {p['prompt_instance_id'] for p in base['prompts']}
-              for p in tier_data['prompts']:
-                  if p['prompt_instance_id'] not in seen:
-                      base['prompts'].append(p)
-                      seen.add(p['prompt_instance_id'])
-          base['summary']['total_prompts'] = len(base['prompts'])
-          Path('artifacts/prompt-results/combined.json').write_text(json.dumps(base, indent=2) + '\n')
-          "
+          uv run python -m aria_esi.prompt_review.cli merge-tiers \
+            --foundation artifacts/prompt-results/foundation/combined.json \
+            --deep-dive artifacts/prompt-results/deep-dive/combined.json \
+            --gate artifacts/prompt-results/gate/combined.json \
+            --output artifacts/prompt-results/combined.json
 
       - name: Aggregate parse
         run: |

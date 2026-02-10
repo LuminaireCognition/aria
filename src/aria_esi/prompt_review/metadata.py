@@ -77,7 +77,7 @@ def _parse_metadata_block(content: str) -> dict[str, str]:
     metadata: dict[str, str] = {}
 
     # Try HTML comment metadata
-    comment_pattern = re.compile(r"<!--\s*([\w_]+)\s*:\s*(.+?)\s*-->")
+    comment_pattern = re.compile(r"<!--\s*([\w-]+)\s*:\s*(.+?)\s*-->")
     for match in comment_pattern.finditer(content):
         key = match.group(1)
         value = match.group(2).strip()

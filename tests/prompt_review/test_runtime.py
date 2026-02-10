@@ -13,19 +13,28 @@ _PROJECT_ROOT = Path(__file__).parent.parent.parent
 _CONFIG_PATH = str(_PROJECT_ROOT / "dev" / "policy" / "prompt_matcher_rules.yaml")
 
 
-@pytest.mark.skip(reason="requires post-merge infrastructure")
+@pytest.mark.skip(reason="requires post-merge infrastructure — tracking: #21")
 def test_postmerge_authoritative_run_tiebreaker_start_time_then_run_id():
-    """#28: Post-merge authoritative run tiebreaker uses start_time then run_id."""
+    """#28: Post-merge authoritative run tiebreaker uses start_time then run_id.
+
+    Tracking: https://github.com/LuminaireCognition/aria/issues/21
+    """
 
 
-@pytest.mark.skip(reason="requires post-merge infrastructure")
+@pytest.mark.skip(reason="requires post-merge infrastructure — tracking: #22")
 def test_non_authoritative_postmerge_run_emits_not_applicable_reason():
-    """#29: Non-authoritative post-merge run emits not_applicable_reason."""
+    """#29: Non-authoritative post-merge run emits not_applicable_reason.
+
+    Tracking: https://github.com/LuminaireCognition/aria/issues/22
+    """
 
 
-@pytest.mark.skip(reason="requires post-merge infrastructure")
+@pytest.mark.skip(reason="requires post-merge infrastructure — tracking: #23")
 def test_postmerge_status_target_sha_merge_vs_squash_vs_rebase():
-    """#36: Post-merge status target SHA differs for merge, squash, and rebase."""
+    """#36: Post-merge status target SHA differs for merge, squash, and rebase.
+
+    Tracking: https://github.com/LuminaireCognition/aria/issues/23
+    """
 
 
 def _import_runtime():
