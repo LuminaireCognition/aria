@@ -193,14 +193,12 @@ class TestConstantsExports:
     def test_trade_hub_constants_accessible(self):
         """Trade hub constants can be imported."""
         from aria_esi.core import (
-            STATION_NAMES,
             TRADE_HUB_REGIONS,
             TRADE_HUB_STATIONS,
         )
 
         assert isinstance(TRADE_HUB_REGIONS, dict)
         assert isinstance(TRADE_HUB_STATIONS, dict)
-        assert isinstance(STATION_NAMES, dict)
 
     def test_security_constants_accessible(self):
         """Security threshold constants can be imported."""

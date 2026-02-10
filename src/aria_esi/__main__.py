@@ -307,7 +307,7 @@ def cmd_test_core(args: argparse.Namespace) -> dict:
         )
 
     try:
-        from .core import ACTIVITY_TYPES, SHIP_GROUP_IDS, TRADE_HUB_REGIONS
+        from .core import ACTIVITY_TYPES, TRADE_HUB_REGIONS, get_ship_group_ids
 
         results["checks"].append({"module": "core.constants", "status": "ok"})
     except ImportError as e:

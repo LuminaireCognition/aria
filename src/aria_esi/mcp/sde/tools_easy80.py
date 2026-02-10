@@ -263,7 +263,10 @@ def _extract_skill_names_efficacy(yaml_data: dict) -> list[tuple[str, str]]:
     if not isinstance(yaml_data, dict):
         return []
     results = []
-    for role_name, role_data in yaml_data.get("ship_roles", {}).items():
+    ship_roles = yaml_data.get("ship_roles", {})
+    if not isinstance(ship_roles, dict):
+        return []
+    for role_name, role_data in ship_roles.items():
         if not isinstance(role_data, dict):
             continue
         for skill_entry in role_data.get("skills", []):
@@ -295,7 +298,7 @@ def _extract_skill_names_meta_alternatives(yaml_data: dict) -> list[tuple[str, s
     if not isinstance(yaml_data, dict):
         return []
     results = []
-    for category, modules in yaml_data.items():
+    for _category, modules in yaml_data.items():
         if not isinstance(modules, dict):
             continue
         for module_name, props in modules.items():
@@ -316,7 +319,9 @@ YAML_SKILL_EXTRACTORS = {
 
 
 def validate_yaml_skill_references(
-    yaml_data: dict, source: str, extractor_key: str,
+    yaml_data: dict,
+    source: str,
+    extractor_key: str,
 ) -> list[str]:
     """
     Validate that all skill names in a YAML config resolve in the SDE.
@@ -337,7 +342,8 @@ def validate_yaml_skill_references(
     Returns empty list if SDE is unavailable or extractor_key is unknown.
     """
     try:
-        from aria_esi.mcp.sde.queries import get_sde_query_service, SDEResolutionError
+        from aria_esi.mcp.sde.queries import SDEResolutionError, get_sde_query_service
+
         sde = get_sde_query_service()
     except Exception:
         return []

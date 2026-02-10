@@ -868,12 +868,17 @@ class ESIClient:
         Returns:
             Station name, or None if not found
         """
-        # Check cache first (for known trade hubs)
-        from .constants import STATION_NAMES
+        # Try SDE lookup first
+        try:
+            from aria_esi.mcp.sde.queries import get_sde_query_service
 
-        if station_id in STATION_NAMES:
-            return STATION_NAMES[station_id]
+            info = get_sde_query_service().get_station_info(station_id)
+            if info:
+                return info.station_name
+        except Exception:
+            pass
 
+        # Fallback to ESI API
         result = self.get_safe(f"/universe/stations/{station_id}/")
         return result.get("name") if isinstance(result, dict) else None
 

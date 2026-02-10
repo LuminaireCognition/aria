@@ -76,8 +76,8 @@ class TestDataModels:
 
 
 class TestSkillResolution:
-    def test_resolve_skill_name_to_id_uses_builtin_mapping(self) -> None:
-        assert resolve_skill_name_to_id("Hull Upgrades") == 3393
+    def test_resolve_skill_name_to_id_uses_registry(self, mock_skill_registry) -> None:
+        assert resolve_skill_name_to_id("Hull Upgrades") == mock_skill_registry.id("Hull Upgrades")
 
     def test_resolve_skill_name_to_id_returns_none_when_unresolvable(self) -> None:
         assert resolve_skill_name_to_id("Definitely Not A Real Skill Name") is None
@@ -104,9 +104,7 @@ class TestSkillResolution:
             lambda name: mapping[name],
         )
 
-        score, levels = calculate_tank_score(
-            ["A", "B", "Missing"], {100: 4, 200: 2}, weight=1.5
-        )
+        score, levels = calculate_tank_score(["A", "B", "Missing"], {100: 4, 200: 2}, weight=1.5)
 
         assert score == pytest.approx(9.0)
         assert levels == {"A": 4, "B": 2, "Missing": 0}
@@ -271,7 +269,7 @@ class TestSelectTankVariant:
         assert result.variant_path == "shield"
         assert result.selection_reason == "default"
 
-    def test_skill_strategy_picks_shield_when_score_higher(self) -> None:
+    def test_skill_strategy_picks_shield_when_score_higher(self, mock_skill_registry) -> None:
         config = TankVariantConfig(
             available=["armor_active", "shield_buffer"],
             default="armor_active",
@@ -283,15 +281,17 @@ class TestSelectTankVariant:
             },
             tie_breaker="armor",
         )
-
-        result = select_tank_variant(config, pilot_skills={3393: 1, 3416: 5})
+        # Hull Upgrades = 3394, Shield Management = 3419 (SDE ground truth)
+        hull_upgrades_id = mock_skill_registry.id("Hull Upgrades")
+        shield_mgmt_id = mock_skill_registry.id("Shield Management")
+        result = select_tank_variant(config, pilot_skills={hull_upgrades_id: 1, shield_mgmt_id: 5})
 
         assert result.variant_path == "shield"
         assert result.selection_reason == "shield_skills_higher"
         assert result.armor_score == pytest.approx(1.0)
         assert result.shield_score == pytest.approx(5.0)
 
-    def test_tie_breaker_falls_back_to_default_when_unavailable(self) -> None:
+    def test_tie_breaker_falls_back_to_default_when_unavailable(self, mock_skill_registry) -> None:
         config = TankVariantConfig(
             available=["armor_active", "shield_buffer"],
             default="armor_active",
@@ -303,8 +303,9 @@ class TestSelectTankVariant:
             },
             tie_breaker="invalid_path",
         )
-
-        result = select_tank_variant(config, pilot_skills={3393: 3, 3416: 3})
+        hull_upgrades_id = mock_skill_registry.id("Hull Upgrades")
+        shield_mgmt_id = mock_skill_registry.id("Shield Management")
+        result = select_tank_variant(config, pilot_skills={hull_upgrades_id: 3, shield_mgmt_id: 3})
 
         assert result.variant_path == "armor"
         assert result.selection_reason == "tie_breaker"
@@ -346,8 +347,7 @@ class TestInternalHelpers:
             == "armor_active"
         )
         assert (
-            _resolve_default_variant("armor", ["armor_active", "shield_buffer"])
-            == "armor_active"
+            _resolve_default_variant("armor", ["armor_active", "shield_buffer"]) == "armor_active"
         )
         assert _resolve_default_variant("armor", []) == "armor"
 

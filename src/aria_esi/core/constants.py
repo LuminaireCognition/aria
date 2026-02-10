@@ -5,6 +5,8 @@ Shared constants used across multiple ESI commands.
 Consolidates previously duplicated definitions.
 """
 
+import threading
+
 # =============================================================================
 # ESI Configuration
 # =============================================================================
@@ -18,8 +20,6 @@ ESI_DATASOURCE = "tranquility"
 # Used for filtering assembled ships from assets.
 # Dynamically loaded from SDE at first use, with hardcoded fallback.
 # =============================================================================
-
-import threading
 
 # Hardcoded fallback set - used if SDE unavailable
 # These are the standard ship group IDs from EVE's inventory type system
@@ -95,6 +95,7 @@ def get_ship_group_ids() -> set[int]:
             return _ship_group_ids
         try:
             from aria_esi.mcp.sde.queries import get_sde_query_service
+
             sde_result = get_sde_query_service().get_all_ship_group_ids()
             # Guard against corrupted/empty SDE returning empty set.
             # Note: a non-empty but smaller-than-expected set (e.g., CCP removed
@@ -111,9 +112,6 @@ def reset_ship_group_ids() -> None:
     with _ship_group_lock:
         _ship_group_ids = None
 
-
-# Backwards compatibility alias - deprecated, use get_ship_group_ids()
-SHIP_GROUP_IDS = _SHIP_GROUP_IDS_FALLBACK
 
 # =============================================================================
 # Trade Hub Configuration
@@ -135,14 +133,6 @@ TRADE_HUB_STATIONS = {
     "10000032": 60011866,  # Dodixie IX - Moon 20 - Federation Navy Assembly Plant
     "10000030": 60004588,  # Rens VI - Moon 8 - Brutor Tribe Treasury
     "10000042": 60005686,  # Hek VIII - Moon 12 - Boundless Creation Factory
-}
-
-STATION_NAMES = {
-    60003760: "Jita IV - Moon 4 - Caldari Navy Assembly Plant",
-    60008494: "Amarr VIII (Oris) - Emperor Family Academy",
-    60011866: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant",
-    60004588: "Rens VI - Moon 8 - Brutor Tribe Treasury",
-    60005686: "Hek VIII - Moon 12 - Boundless Creation Factory",
 }
 
 # =============================================================================
