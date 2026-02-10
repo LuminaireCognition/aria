@@ -85,7 +85,6 @@ SHIP_GROUP_IDS = {
     1534,
     1538,
     1972,
-    2001,  # 2001 = Mining Frigate (Venture)
 }
 
 

@@ -45,7 +45,6 @@ class TestShipGroupIDs:
         assert 27 in ids  # Battleship
         assert 420 in ids  # Destroyer
         assert 463 in ids  # Mining Barge
-        assert 2001 in ids  # Mining Frigate (Venture)
 
 
 class TestTradeHubConfiguration:
