@@ -14,12 +14,12 @@ from typing import Any
 import requests  # type: ignore[import-untyped]
 
 from ..core import (
-    get_ship_group_ids,
     SLOT_ORDER,
     CredentialsError,
     ESIClient,
     ESIError,
     get_authenticated_client,
+    get_ship_group_ids,
     get_utc_timestamp,
 )
 from ..services.asset_insights import (

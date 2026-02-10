@@ -12,13 +12,13 @@ from typing import Optional
 from ..core import (
     ACTIVITY_TYPES,
     PLAYER_CORP_MIN_ID,
-    get_ship_group_ids,
     Credentials,
     CredentialsError,
     ESIClient,
     ESIError,
     format_duration,
     get_authenticated_client,
+    get_ship_group_ids,
     get_utc_timestamp,
     parse_datetime,
 )

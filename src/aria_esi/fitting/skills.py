@@ -19,13 +19,13 @@ from typing import TYPE_CHECKING
 
 from aria_esi.core.logging import get_logger
 from aria_esi.fitting.skill_registry import (
-    get_skill_registry,
+    BONUS_CORE_SKILL_NAMES,
+    BONUS_DRONE_SKILL_NAMES,
     DRONE_SKILL_NAMES,
     FITTING_SKILL_NAMES,
-    TANK_SKILL_NAMES,
     NAVIGATION_SKILL_NAMES,
-    BONUS_DRONE_SKILL_NAMES,
-    BONUS_CORE_SKILL_NAMES,
+    TANK_SKILL_NAMES,
+    get_skill_registry,
 )
 
 if TYPE_CHECKING:
@@ -253,6 +253,7 @@ def get_relevant_skills_for_fit(fit_type: str = "generic") -> list[int]:
 # =============================================================================
 # Dynamic Skill Extraction
 # =============================================================================
+
 
 def _get_direct_requirements(type_id: int) -> dict[int, int]:
     """Get direct skill requirements for a type ID."""

@@ -9,6 +9,7 @@ mapping to the wrong type ID in production.
 from __future__ import annotations
 
 import threading
+
 from aria_esi.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -122,14 +123,16 @@ BONUS_CORE_SKILL_NAMES = [
 ]
 
 # All skill names the registry must resolve at startup
-ALL_SKILL_NAMES = sorted(set(
-    DRONE_SKILL_NAMES
-    + FITTING_SKILL_NAMES
-    + TANK_SKILL_NAMES
-    + NAVIGATION_SKILL_NAMES
-    + BONUS_DRONE_SKILL_NAMES
-    + BONUS_CORE_SKILL_NAMES
-))
+ALL_SKILL_NAMES = sorted(
+    set(
+        DRONE_SKILL_NAMES
+        + FITTING_SKILL_NAMES
+        + TANK_SKILL_NAMES
+        + NAVIGATION_SKILL_NAMES
+        + BONUS_DRONE_SKILL_NAMES
+        + BONUS_CORE_SKILL_NAMES
+    )
+)
 
 
 _skill_registry: SkillRegistry | None = None
@@ -164,8 +167,8 @@ def get_skill_registry() -> SkillRegistry | None:
 
         try:
             from aria_esi.mcp.sde.queries import (
-                get_sde_query_service,
                 SDEResolutionError,
+                get_sde_query_service,
             )
 
             sde = get_sde_query_service()

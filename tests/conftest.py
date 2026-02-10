@@ -1208,6 +1208,7 @@ def mock_sde_service(mock_sde_db, monkeypatch):
 
     monkeypatch.setattr("aria_esi.mcp.sde.queries._sde_query_service", service)
     yield service
+    db.close()
 
 
 @pytest.fixture

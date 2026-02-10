@@ -118,11 +118,12 @@ class UniverseServer:
     def _validate_yaml_configs(self) -> None:
         """Validate skill names in YAML config files against SDE."""
         from .sde.tools_easy80 import (
-            validate_yaml_skill_references,
             load_breakpoint_skills,
             load_efficacy_rules,
             load_meta_alternatives,
+            validate_yaml_skill_references,
         )
+
         yaml_sources = [
             (load_breakpoint_skills, "breakpoint_skills.yaml", "breakpoint_skills"),
             (load_efficacy_rules, "ship_efficacy_rules.yaml", "ship_efficacy_rules"),
