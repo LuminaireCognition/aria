@@ -76,7 +76,7 @@ def test_parser_fails_closed_on_missing_combined_artifact(tmp_path):
     assert result.issues[0].code == "missing_artifact"
 
 
-def test_duplicate_prompt_instance_finding_tuple_uses_highest_severity(tmp_path):
+def test_duplicate_prompt_id_finding_id_tuple_uses_highest_severity(tmp_path):
     combined = _base_combined()
     combined["prompts"][0]["findings"] = [
         {
@@ -107,7 +107,7 @@ def test_duplicate_prompt_instance_finding_tuple_uses_highest_severity(tmp_path)
     assert result.requires_high_waiver_check is True
 
 
-def test_schema_cutover_enforces_full_compliance_at_cutover(tmp_path):
+def test_schema_cutover_enforces_full_compliance_at_2026_03_31_000000z(tmp_path):
     combined = _base_combined()
     del combined["prompts"][0]["prompt_instance_id"]
 
@@ -135,3 +135,184 @@ def test_pr_missing_shas_emits_deterministic_failure_artifact_contract(tmp_path)
     result = aggregate_combined_results(path)
     assert result.gate_decision == "fail"
     assert result.normalized["matcher"]["mode"] == "fail_closed"
+
+
+def test_gate_fails_on_unresolved_critical(tmp_path):
+    """#19: Unresolved Critical findings cause gate failure."""
+    combined = _base_combined()
+    combined["prompts"][0]["findings"] = [
+        {
+            "finding_id": "C-1",
+            "severity": "Critical",
+            "state": "unresolved",
+            "summary": "critical issue",
+            "file_refs": ["src/server.py"],
+            "waiver_id": None,
+        }
+    ]
+
+    path = tmp_path / "combined.json"
+    path.write_text(json.dumps(combined))
+    result = aggregate_combined_results(path)
+    assert result.gate_decision == "fail"
+
+
+def test_gate_fails_on_unwaived_high(tmp_path):
+    """#20: Unresolved High findings require waiver check."""
+    combined = _base_combined()
+    combined["prompts"][0]["findings"] = [
+        {
+            "finding_id": "H-1",
+            "severity": "High",
+            "state": "unresolved",
+            "summary": "high issue",
+            "file_refs": ["src/server.py"],
+            "waiver_id": None,
+        }
+    ]
+
+    path = tmp_path / "combined.json"
+    path.write_text(json.dumps(combined))
+    result = aggregate_combined_results(path)
+    # High alone doesn't fail gate, but requires waiver check
+    assert result.requires_high_waiver_check is True
+    assert result.unresolved_high_count == 1
+
+
+def test_duplicate_prompt_instance_conflicting_status_fails_schema(tmp_path):
+    """#32: Two entries with same prompt_instance_id and conflicting status fail schema."""
+    combined = _base_combined()
+    combined["prompts"].append({
+        "prompt_id": "testing.test_harness",
+        "prompt_instance_id": "testing.test_harness@default",
+        "prompt_path": "testing/test_harness.md",
+        "tier": "foundation",
+        "selection_reason": "foundation_trigger",
+        "selection_trace": [
+            {
+                "tier": "foundation",
+                "selection_reason": "foundation_trigger",
+                "matched_by": "rule_id",
+                "rule_id": "foundation.core_surfaces.v1",
+            }
+        ],
+        "status": "failure",
+        "not_applicable_reason": None,
+        "duration_ms": 10,
+        "findings": [],
+    })
+
+    path = tmp_path / "combined.json"
+    path.write_text(json.dumps(combined))
+    result = aggregate_combined_results(path)
+    # With failure status present, gate should fail
+    assert result.gate_decision == "fail"
+
+
+def test_summary_total_prompts_includes_skipped_by_state_finding_only(tmp_path):
+    """#31: Skipped prompts are counted in total_prompts."""
+    combined = _base_combined()
+    combined["prompts"].append({
+        "prompt_id": "dev.premerge",
+        "prompt_instance_id": "dev.premerge@default",
+        "prompt_path": "dev/premerge.md",
+        "tier": "gate",
+        "selection_reason": "gate_trigger",
+        "selection_trace": [
+            {
+                "tier": "gate",
+                "selection_reason": "gate_trigger",
+                "matched_by": "gate_policy",
+                "rule_id": "gate.premerge.v1",
+            }
+        ],
+        "status": "skipped_not_applicable",
+        "not_applicable_reason": "event_not_supported",
+        "duration_ms": 0,
+        "findings": [],
+    })
+    combined["summary"]["total_prompts"] = 2
+
+    path = tmp_path / "combined.json"
+    path.write_text(json.dumps(combined))
+    result = aggregate_combined_results(path)
+    assert result.gate_decision == "pass"
+    assert len(result.normalized["prompts"]) == 2
+
+
+def test_missing_sha_not_applicable_entries_are_schema_valid(tmp_path):
+    """#41: Not-applicable entries with missing_shas reason pass schema validation."""
+    combined = _base_combined()
+    combined["prompts"] = [
+        {
+            "prompt_id": "dev.premerge",
+            "prompt_instance_id": "dev.premerge@default",
+            "prompt_path": "dev/premerge.md",
+            "tier": "gate",
+            "selection_reason": "gate_trigger",
+            "selection_trace": [
+                {
+                    "tier": "gate",
+                    "selection_reason": "gate_trigger",
+                    "matched_by": "gate_policy",
+                    "rule_id": "gate.premerge.v1",
+                }
+            ],
+            "status": "skipped_not_applicable",
+            "not_applicable_reason": "missing_shas",
+            "duration_ms": 0,
+            "findings": [],
+        }
+    ]
+    combined["summary"]["total_prompts"] = 1
+
+    path = tmp_path / "combined.json"
+    path.write_text(json.dumps(combined))
+    result = aggregate_combined_results(path)
+    assert result.gate_decision == "pass"
+    assert not any(i.code == "schema_error" for i in result.issues)
+
+
+def test_scoring_rubric_execution_contract(tmp_path):
+    """#40: scoring_rubric prompt can emit findings with foundation_trigger."""
+    combined = _base_combined()
+    combined["prompts"].append({
+        "prompt_id": "meta.scoring_rubric",
+        "prompt_instance_id": "meta.scoring_rubric@default",
+        "prompt_path": "meta/scoring_rubric.md",
+        "tier": "foundation",
+        "selection_reason": "foundation_trigger",
+        "selection_trace": [
+            {
+                "tier": "foundation",
+                "selection_reason": "foundation_trigger",
+                "matched_by": "rule_id",
+                "rule_id": "foundation.core_surfaces.v1",
+            }
+        ],
+        "status": "success",
+        "not_applicable_reason": None,
+        "duration_ms": 15,
+        "findings": [
+            {
+                "finding_id": "SR-1",
+                "severity": "Info",
+                "state": "unresolved",
+                "summary": "Calibration note",
+                "file_refs": [],
+                "waiver_id": None,
+            }
+        ],
+    })
+    combined["summary"]["total_prompts"] = 2
+
+    path = tmp_path / "combined.json"
+    path.write_text(json.dumps(combined))
+    result = aggregate_combined_results(path)
+    assert result.gate_decision == "pass"
+    rubric = next(
+        p for p in result.normalized["prompts"]
+        if p["prompt_id"] == "meta.scoring_rubric"
+    )
+    assert rubric["selection_reason"] == "foundation_trigger"
+    assert len(rubric["findings"]) == 1

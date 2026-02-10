@@ -8,6 +8,7 @@ foundation:
   rule_id: foundation.core_surfaces.v1
   prompt_paths:
     - meta/review_orchestrator.md
+    - meta/scoring_rubric.md
     - architecture/system_design.md
     - security/audit_ai.md
     - testing/test_harness.md

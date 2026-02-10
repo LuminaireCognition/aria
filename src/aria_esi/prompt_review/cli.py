@@ -8,6 +8,8 @@ from pathlib import Path
 
 from .aggregate import aggregate_combined_results
 from .matcher import select_prompts
+from .metadata import validate_prompt_metadata
+from .orchestrator import run_orchestrator_check
 from .waivers import validate_high_waivers
 
 
@@ -77,6 +79,60 @@ def _cmd_waiver_check(args: argparse.Namespace) -> int:
     return 0 if result.ok else 1
 
 
+def _cmd_orchestrator_check(args: argparse.Namespace) -> int:
+    combined_results: dict = {"foundation": [], "deep_dive": [], "gate": [], "matcher": {}}
+    failed_artifacts: list[str] = []
+    for label, path in [
+        ("foundation", args.foundation_results),
+        ("deep_dive", args.deep_dive_results),
+        ("gate", args.gate_results),
+    ]:
+        if path:
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    data = json.load(fh)
+                combined_results[label] = data.get("prompts", [])
+                if label == "foundation":
+                    combined_results["matcher"] = data.get("matcher", {})
+            except (FileNotFoundError, json.JSONDecodeError) as exc:
+                print(
+                    f"WARNING: Failed to load {label} artifact from {path}: {exc}",
+                    file=sys.stderr,
+                )
+                failed_artifacts.append(label)
+
+    result = run_orchestrator_check(combined_results)
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.output).write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    if "foundation" in failed_artifacts:
+        return 1
+    return 0
+
+
+def _cmd_metadata_check(args: argparse.Namespace) -> int:
+    result = validate_prompt_metadata(
+        args.prompts_dir,
+        now_utc=_parse_now(args.now),
+    )
+    payload = {
+        "ok": result.ok,
+        "prompts_checked": result.prompts_checked,
+        "issues": [
+            {
+                "prompt_path": issue.prompt_path,
+                "field": issue.field,
+                "code": issue.code,
+                "message": issue.message,
+                "is_error": issue.is_error,
+            }
+            for issue in result.issues
+        ],
+    }
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    Path(args.output).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return 0 if result.ok else 1
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="prompt-review")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -103,6 +159,19 @@ def build_parser() -> argparse.ArgumentParser:
     waiver.add_argument("--output", required=True)
     waiver.add_argument("--now")
     waiver.set_defaults(func=_cmd_waiver_check)
+
+    orch = sub.add_parser("orchestrator-check")
+    orch.add_argument("--foundation-results")
+    orch.add_argument("--deep-dive-results")
+    orch.add_argument("--gate-results")
+    orch.add_argument("--output", required=True)
+    orch.set_defaults(func=_cmd_orchestrator_check)
+
+    meta = sub.add_parser("metadata-check")
+    meta.add_argument("--prompts-dir", required=True)
+    meta.add_argument("--output", required=True)
+    meta.add_argument("--now")
+    meta.set_defaults(func=_cmd_metadata_check)
 
     return parser
 

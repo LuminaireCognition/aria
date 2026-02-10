@@ -1,3 +1,8 @@
+<!-- owner: @anthropic/aria -->
+<!-- last_reviewed: 2026-02-10T00:00:00Z -->
+<!-- depends_on: [] -->
+<!-- adjacent_prompts: ["dev/postmerge_regression_audit.md", "meta/review_orchestrator.md"] -->
+
   Act as a strict senior engineer performing a pre-merge review for `main`.
 
   Scope:

@@ -1,3 +1,8 @@
+<!-- owner: @anthropic/aria -->
+<!-- last_reviewed: 2026-02-10T00:00:00Z -->
+<!-- depends_on: [] -->
+<!-- adjacent_prompts: ["security/supply_chain_and_dependencies.md", "testing/test_harness.md"] -->
+
 # Codex security review prompt (LLM/MCP/Python)
 
 Review this repository from the perspective of an **AI application security engineer** specializing in **LLM/agent security** and **Python services**. Produce a **priority-ranked** security review with a sharp focus on **prompt injection** and **tool/agent misuse**, plus other high-impact risks.

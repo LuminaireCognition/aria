@@ -1,3 +1,8 @@
+<!-- owner: @anthropic/aria -->
+<!-- last_reviewed: 2026-02-10T00:00:00Z -->
+<!-- depends_on: [] -->
+<!-- adjacent_prompts: ["testing/coverage_quality.md", "dev/premerge.md"] -->
+
 # Testing Prompt: Review & Improve the Testing Harness for ARIA
 
 ## Scope

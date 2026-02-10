@@ -95,6 +95,33 @@ def select_prompts(
     with open(config_path, encoding="utf-8") as fh:
         config = yaml.safe_load(fh)
 
+    # Fail closed on duplicate rule_ids
+    all_rule_ids: list[str] = []
+    all_rule_ids.append(config["foundation"]["rule_id"])
+    for rule in config["deep_dive"]:
+        all_rule_ids.append(rule["rule_id"])
+    for gate_rule in config["gate"]["rules"]:
+        all_rule_ids.append(gate_rule["rule_id"])
+    for _evt_key, evt_val in config["fallback"].items():
+        all_rule_ids.append(evt_val["rule_id"])
+    seen_ids: set[str] = set()
+    duplicates: set[str] = set()
+    for rid in all_rule_ids:
+        if rid in seen_ids:
+            duplicates.add(rid)
+        seen_ids.add(rid)
+    if duplicates:
+        return {
+            "selected": [],
+            "skipped_deferred": [],
+            "changed_files": [_normalize(path) for path in changed_files],
+            "unmatched_files": [],
+            "matched_rules": [],
+            "mode": "fail_closed",
+            "error_code": "duplicate_rule_id",
+            "before_missing_fallback": None,
+        }
+
     normalized_changed = [_normalize(path) for path in changed_files]
     matched_files: set[str] = set()
     matched_rules: set[str] = set()

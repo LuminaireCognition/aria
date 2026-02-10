@@ -161,3 +161,37 @@ waivers:
 
     assert result.ok is False
     assert any(issue.code == "waiver_path_mismatch" for issue in result.issues)
+
+
+def test_dual_role_owner_requires_plus_one_distinct_approver(tmp_path):
+    """#30: When owner is also a codeowner, approved_by must have at least 2 entries."""
+    combined = _combined_with_high(tmp_path)
+    codeowners = _codeowners(tmp_path)
+    waivers = tmp_path / "waivers.yaml"
+    # Owner is same as codeowner, only 1 approver total = should fail
+    waivers.write_text(
+        """
+waivers:
+  - waiver_id: W-1
+    severity: High
+    finding_id: H-1
+    prompt_id: security.audit_ai
+    paths: [src/**]
+    approved_by: ["@org/devex"]
+    owner: "@org/devex"
+    follow_up_issue: "#123"
+    created_on: "2026-02-09T00:00:00Z"
+    expires_on: "2026-02-20T00:00:00Z"
+    status: active
+"""
+    )
+
+    result = validate_high_waivers(
+        combined_json_path=str(combined),
+        waiver_yaml_path=str(waivers),
+        codeowners_path=str(codeowners),
+        now_utc=datetime(2026, 2, 10, 0, 0, tzinfo=timezone.utc),
+    )
+
+    assert result.ok is False
+    assert any(issue.code == "waiver_insufficient_approvals" for issue in result.issues)

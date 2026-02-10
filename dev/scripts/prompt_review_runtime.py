@@ -305,6 +305,8 @@ def main() -> int:
         postmerge_applicable=postmerge_applicable,
     )
 
+    prompt_tier = os.getenv("PROMPT_TIER")
+
     prompts = []
     for selected in selection["selected"]:
         prompts.append(
@@ -347,6 +349,24 @@ def main() -> int:
                 reason="invalid_gate_input",
             )
         )
+
+    # Tier isolation: filter prompts to requested tier
+    if prompt_tier:
+        _TIER_MAP = {
+            "foundation": {"foundation"},
+            "deep_dive": {"deep_dive", "fallback"},
+            "gate": {"gate"},
+        }
+        allowed_tiers = _TIER_MAP.get(prompt_tier, set())
+        if prompt_tier == "foundation":
+            # Foundation tier also includes skipped_deferred entries
+            prompts = [
+                p for p in prompts
+                if p["tier"] in allowed_tiers or p.get("status") == "skipped_deferred"
+            ]
+        else:
+            prompts = [p for p in prompts if p["tier"] in allowed_tiers]
+
     return _emit_combined(
         event=event,
         base_sha=base_sha,

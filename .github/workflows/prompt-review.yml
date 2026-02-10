@@ -53,6 +53,7 @@ jobs:
           PROPOSAL_PATH: ${{ github.event.inputs.proposal_path }}
           POSTMERGE_APPLICABLE: ${{ github.event.inputs.postmerge_applicable || 'false' }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PROMPT_TIER: foundation
         run: uv run python dev/scripts/prompt_review_runtime.py
 
       - uses: actions/upload-artifact@v4
@@ -85,6 +86,7 @@ jobs:
           PROPOSAL_PATH: ${{ github.event.inputs.proposal_path }}
           POSTMERGE_APPLICABLE: ${{ github.event.inputs.postmerge_applicable || 'false' }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PROMPT_TIER: deep_dive
         run: uv run python dev/scripts/prompt_review_runtime.py
 
       - uses: actions/upload-artifact@v4
@@ -117,6 +119,7 @@ jobs:
           PROPOSAL_PATH: ${{ github.event.inputs.proposal_path }}
           POSTMERGE_APPLICABLE: ${{ github.event.inputs.postmerge_applicable || 'false' }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PROMPT_TIER: gate
         run: uv run python dev/scripts/prompt_review_runtime.py
 
       - uses: actions/upload-artifact@v4
@@ -124,10 +127,10 @@ jobs:
           name: prompt-results-gate
           path: artifacts/prompt-results/combined.json
 
-  prompt-aggregate-parse:
-    name: prompt-aggregate-parse
+  prompt-orchestrator-check:
+    name: prompt-orchestrator-check
     runs-on: ubuntu-latest
-    needs: [prompt-gate-check]
+    needs: [prompt-foundation-check, prompt-deep-dive-check, prompt-gate-check]
     steps:
       - uses: actions/checkout@v4
 
@@ -142,8 +145,110 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
+          name: prompt-results-foundation
+          path: artifacts/prompt-results/foundation
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prompt-results-deep-dive
+          path: artifacts/prompt-results/deep-dive
+
+      - uses: actions/download-artifact@v4
+        with:
           name: prompt-results-gate
-          path: artifacts/prompt-results
+          path: artifacts/prompt-results/gate
+
+      - name: Run orchestrator check
+        run: |
+          uv run python -m aria_esi.prompt_review.cli orchestrator-check \
+            --foundation-results artifacts/prompt-results/foundation/combined.json \
+            --deep-dive-results artifacts/prompt-results/deep-dive/combined.json \
+            --gate-results artifacts/prompt-results/gate/combined.json \
+            --output artifacts/prompt-results/orchestrator.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prompt-results-orchestrator
+          path: artifacts/prompt-results/orchestrator.json
+
+  prompt-metadata-check:
+    name: prompt-metadata-check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - name: Validate prompt metadata
+        run: |
+          uv run python -m aria_esi.prompt_review.cli metadata-check \
+            --prompts-dir dev/prompts \
+            --output artifacts/prompt-results/metadata-check.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prompt-results-metadata
+          path: artifacts/prompt-results/metadata-check.json
+
+  prompt-aggregate-parse:
+    name: prompt-aggregate-parse
+    runs-on: ubuntu-latest
+    needs: [prompt-foundation-check, prompt-deep-dive-check, prompt-gate-check, prompt-orchestrator-check]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-extras
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prompt-results-foundation
+          path: artifacts/prompt-results/foundation
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prompt-results-deep-dive
+          path: artifacts/prompt-results/deep-dive
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prompt-results-gate
+          path: artifacts/prompt-results/gate
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: prompt-results-orchestrator
+          path: artifacts/prompt-results/orchestrator
+
+      - name: Merge tier artifacts
+        run: |
+          uv run python -c "
+          import json
+          from pathlib import Path
+          base = json.loads(Path('artifacts/prompt-results/foundation/combined.json').read_text())
+          for tier_dir in ['deep-dive', 'gate']:
+              tier_data = json.loads(Path(f'artifacts/prompt-results/{tier_dir}/combined.json').read_text())
+              seen = {p['prompt_instance_id'] for p in base['prompts']}
+              for p in tier_data['prompts']:
+                  if p['prompt_instance_id'] not in seen:
+                      base['prompts'].append(p)
+                      seen.add(p['prompt_instance_id'])
+          base['summary']['total_prompts'] = len(base['prompts'])
+          Path('artifacts/prompt-results/combined.json').write_text(json.dumps(base, indent=2) + '\n')
+          "
 
       - name: Aggregate parse
         run: |
@@ -154,7 +259,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: prompt-results-aggregate
-          path: artifacts/prompt-results/aggregate.json
+          path: |
+            artifacts/prompt-results/aggregate.json
+            artifacts/prompt-results/combined.json
 
   prompt-waiver-check:
     name: prompt-waiver-check
@@ -174,7 +281,7 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: prompt-results-gate
+          name: prompt-results-aggregate
           path: artifacts/prompt-results
 
       - name: Validate waivers
