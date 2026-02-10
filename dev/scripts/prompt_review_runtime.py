@@ -5,7 +5,7 @@ import json
 import os
 import subprocess
 import sys
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import quote
 
@@ -57,7 +57,7 @@ def _validate_manual_proposal_path(path: str) -> tuple[str | None, str | None]:
 def _proposal_paths(changed_files: list[str], event: str, manual_path: str | None) -> tuple[list[str], str | None]:
     if manual_path:
         normalized, error = _validate_manual_proposal_path(manual_path)
-        if error:
+        if error or normalized is None:
             return [], error
         return [normalized], None
     if event != "pull_request":
@@ -195,7 +195,7 @@ def _emit_combined(
     matcher: dict,
     gate_decision: str,
 ) -> int:
-    now = datetime.now(UTC).isoformat().replace("+00:00", "Z")
+    now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     combined = {
         "schema_version": "v1",
         "run_context": {

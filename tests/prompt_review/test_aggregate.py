@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from aria_esi.prompt_review.aggregate import aggregate_combined_results
 
@@ -114,11 +114,11 @@ def test_schema_cutover_enforces_full_compliance_at_cutover(tmp_path):
     path = tmp_path / "combined.json"
     path.write_text(json.dumps(combined))
 
-    before = aggregate_combined_results(path, now_utc=datetime(2026, 3, 30, 12, 0, tzinfo=UTC))
+    before = aggregate_combined_results(path, now_utc=datetime(2026, 3, 30, 12, 0, tzinfo=timezone.utc))
     assert before.gate_decision == "pass"
     assert any("adapter_recoverable" in issue.code for issue in before.issues)
 
-    after = aggregate_combined_results(path, now_utc=datetime(2026, 3, 31, 0, 0, tzinfo=UTC))
+    after = aggregate_combined_results(path, now_utc=datetime(2026, 3, 31, 0, 0, tzinfo=timezone.utc))
     assert after.gate_decision == "fail"
     assert any(issue.code == "schema_error" for issue in after.issues)
 

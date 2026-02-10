@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from aria_esi.prompt_review.waivers import validate_high_waivers
 
@@ -93,7 +93,7 @@ waivers:
         combined_json_path=str(combined),
         waiver_yaml_path=str(waivers),
         codeowners_path=str(codeowners),
-        now_utc=datetime(2026, 2, 10, 0, 0, tzinfo=UTC),
+        now_utc=datetime(2026, 2, 10, 0, 0, tzinfo=timezone.utc),
     )
 
     assert result.ok is True
@@ -124,7 +124,7 @@ waivers:
         combined_json_path=str(combined),
         waiver_yaml_path=str(waivers),
         codeowners_path=str(codeowners),
-        now_utc=datetime(2026, 2, 11, 0, 0, tzinfo=UTC),
+        now_utc=datetime(2026, 2, 11, 0, 0, tzinfo=timezone.utc),
     )
 
     assert result.ok is False
@@ -156,7 +156,7 @@ waivers:
         combined_json_path=str(combined),
         waiver_yaml_path=str(waivers),
         codeowners_path=str(codeowners),
-        now_utc=datetime(2026, 2, 10, 0, 0, tzinfo=UTC),
+        now_utc=datetime(2026, 2, 10, 0, 0, tzinfo=timezone.utc),
     )
 
     assert result.ok is False
