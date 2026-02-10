@@ -93,7 +93,7 @@ class UniverseServer:
         logger.info("MCP tools registered successfully")
 
     def warm_sde_caches(self) -> None:
-        """Warm SDE query caches at startup."""
+        """Warm SDE query caches at startup and validate YAML configs."""
         try:
             from .sde.queries import get_sde_query_service
 
@@ -108,9 +108,34 @@ class UniverseServer:
                 )
             # If nothing warmed, SDE probably not seeded - that's fine
 
+            # Validate YAML skill references after SDE is confirmed available
+            self._validate_yaml_configs()
+
         except Exception as e:
             # Don't fail server startup due to cache warming issues
             logger.debug("SDE cache warming skipped (non-fatal): %s", e)
+
+    def _validate_yaml_configs(self) -> None:
+        """Validate skill names in YAML config files against SDE."""
+        from .sde.tools_easy80 import (
+            validate_yaml_skill_references,
+            load_breakpoint_skills,
+            load_efficacy_rules,
+            load_meta_alternatives,
+        )
+        yaml_sources = [
+            (load_breakpoint_skills, "breakpoint_skills.yaml", "breakpoint_skills"),
+            (load_efficacy_rules, "ship_efficacy_rules.yaml", "ship_efficacy_rules"),
+            (load_meta_alternatives, "meta_module_alternatives.yaml", "meta_module_alternatives"),
+        ]
+        for loader, source, extractor_key in yaml_sources:
+            try:
+                data = loader()
+                warnings = validate_yaml_skill_references(data, source, extractor_key)
+                for w in warnings:
+                    logger.warning(w)
+            except Exception as e:
+                logger.debug("YAML validation for %s skipped: %s", source, e)
 
     def run(self) -> None:
         """Start MCP server with stdio transport."""
