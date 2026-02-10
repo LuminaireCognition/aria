@@ -83,8 +83,8 @@ jobs:
       - name: Build universe graph
         if: steps.cache-check.outputs.cache_exists == 'true'
         run: |
-          uv run aria-esi universe build --force
-          uv run aria-esi universe verify
+          uv run aria-esi graph-build --force
+          uv run aria-esi graph-verify
 
       - name: Run benchmarks
         if: steps.cache-check.outputs.cache_exists == 'true'
@@ -134,8 +134,8 @@ jobs:
       - name: Build graph
         if: steps.cache-check.outputs.cache_exists == 'true'
         run: |
-          uv run aria-esi universe build --force
-          uv run aria-esi universe verify
+          uv run aria-esi graph-build --force
+          uv run aria-esi graph-verify
 
       - name: Upload graph artifact
         if: steps.cache-check.outputs.cache_exists == 'true'

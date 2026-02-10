@@ -252,7 +252,14 @@ class SDEQueryService:
             "database not seeded" (raises exception).
         """
         conn = self._db._get_connection()
-        required_tables = ["npc_corporations", "npc_seeding", "stations", "regions", "types", "groups"]
+        required_tables = [
+            "npc_corporations",
+            "npc_seeding",
+            "stations",
+            "regions",
+            "types",
+            "groups",
+        ]
         cursor = conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name IN ({})".format(
                 ",".join("?" * len(required_tables))
@@ -1062,9 +1069,7 @@ class SDEQueryService:
         self._check_cache_validity()
         self.ensure_sde_seeded()
         conn = self._db._get_connection()
-        rows = conn.execute(
-            "SELECT DISTINCT group_id FROM groups WHERE category_id = 6"
-        ).fetchall()
+        rows = conn.execute("SELECT DISTINCT group_id FROM groups WHERE category_id = 6").fetchall()
         return {row[0] for row in rows}
 
     def get_all_meta_groups(self) -> tuple[MetaGroup, ...]:
