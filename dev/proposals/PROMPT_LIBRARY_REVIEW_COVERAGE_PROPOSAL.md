@@ -230,6 +230,8 @@ Run all foundation prompts when any of these paths change:
 
 `meta/scoring_rubric.md` is executable in v1 (not reference-only) and, when selected under foundation rules, MUST emit `selection_reason=foundation_trigger`.
 
+`meta/review_orchestrator.md` is executable in v1 with deferred execution phase. When selected under foundation rules, it MUST emit `selection_reason=foundation_trigger` and execute after all other prompt tiers have produced results. See `### Orchestrator Behavioral Contract`.
+
 ### Deep-dive prompt triggers (path-based)
 
 Run deep-dive prompts only when their surfaces change:
@@ -299,17 +301,21 @@ Rationale: prevents silent coverage gaps as repository surfaces evolve.
    - Applies fallback trigger rule when no deep-dive match is found.
 3. `prompt-gate-check`:
    - Runs gate prompts (`dev/proposal_implementation_readiness.md`, `dev/premerge.md`, `dev/postmerge_regression_audit.md` when applicable).
-4. `prompt-aggregate-parse`:
+4. `prompt-orchestrator-check`:
+   - Runs `meta/review_orchestrator.md` after `prompt-foundation-check`, `prompt-deep-dive-check`, and `prompt-gate-check` complete.
+   - Input: per-job result artifacts from jobs 1-3 and matcher output.
+   - Output: `artifacts/prompt-results/prompt-orchestrator-check.json`, included in `combined.json` assembly.
+5. `prompt-aggregate-parse`:
    - Consumes only `artifacts/prompt-results/combined.json` and computes aggregate severity/runtime gate outcomes.
-5. `prompt-waiver-check`:
+6. `prompt-waiver-check`:
    - Validates unresolved `High` waivers against `dev/policy/prompt_waivers.yaml` and `.github/CODEOWNERS`.
-6. `prompt-metadata-check`:
+7. `prompt-metadata-check`:
    - Validates required prompt headers (`owner`, `last_reviewed`, `depends_on`, `adjacent_prompts`) on all v1 prompts.
    - Required status check behavior follows "## Prompt Ownership and Maintenance SLA (v1)" cutover dates.
-7. Always-on status behavior:
+8. Always-on status behavior:
    - All prompt-review jobs above always report a terminal status on PR and default-branch push events.
    - Non-applicable scenarios emit `skipped_not_applicable` prompt entries and job status remains success unless gate policy fails.
-8. Applicability matrix (required, deterministic):
+9. Applicability matrix (required, deterministic):
    - `prompt-foundation-check`:
      - `pull_request`: run when foundation trigger paths changed; otherwise terminal success with empty selection.
      - `push`: run with normal matcher semantics.
@@ -321,6 +327,10 @@ Rationale: prevents silent coverage gaps as repository surfaces evolve.
      - `workflow_dispatch|schedule` missing SHAs: do not execute prompt logic; emit required synthetic `skipped_not_applicable` entries.
    - `prompt-gate-check`:
      - all events: evaluate gate applicability rules and emit deterministic executed/skipped entries.
+   - `prompt-orchestrator-check`:
+     - `pull_request|push`: run after jobs 1-3 complete; input is their result artifacts plus matcher output.
+     - `workflow_dispatch|schedule` with SHAs: same as `pull_request|push`.
+     - `workflow_dispatch|schedule` missing SHAs: emit `skipped_not_applicable` with `not_applicable_reason=missing_shas`.
    - `prompt-aggregate-parse`:
      - all events: required; must consume `artifacts/prompt-results/combined.json`; missing required inputs fail closed.
    - `prompt-waiver-check`:
@@ -547,11 +557,12 @@ All prompt jobs must emit JSON artifacts conforming to one schema.
 7. Overlapping rules resolve by union then dedup (a prompt executes at most once per run).
    - Cross-tier dedup precedence is deterministic: `gate > deep_dive > foundation > fallback`.
    - Dedup must preserve lower-tier selection intent by emitting all matched intents in `selection_trace[]` on the single executed prompt entry.
-8. Prompt execution order is fixed: `Foundation -> Deep-dive/Fallback -> Gate`.
+8. Prompt execution order is fixed: `Foundation -> Deep-dive/Fallback -> Gate -> Orchestrator`.
+   - `meta/review_orchestrator.md` is classified as a foundation prompt for selection and tier purposes, but executes in a dedicated final phase after all other tiers have produced results. See `### Orchestrator Behavioral Contract`.
 
 ### Merge-block behavior
 
-1. `prompt-foundation-check`, `prompt-deep-dive-check`, and `prompt-gate-check` are required status checks for merge.
+1. `prompt-foundation-check`, `prompt-deep-dive-check`, `prompt-gate-check`, and `prompt-orchestrator-check` are required status checks for merge.
 2. `prompt-aggregate-parse` is required and fails closed on artifact/schema violations.
 3. `prompt-waiver-check` is required and is authoritative for unresolved `High` waiver validity.
 4. `prompt-metadata-check` is required and merge-blocking with cutover behavior from "## Prompt Ownership and Maintenance SLA (v1)".
@@ -587,6 +598,43 @@ Migration requirement for existing prompts:
 2. All v1 prompts (existing and new) must emit `prompt_results.schema.v1` and required headers by **2026-03-31** (`2026-03-31T00:00:00Z` enforcement boundary).
 3. Through `2026-03-30T23:59:59Z`, missing schema/header compliance is a CI warning when compatibility adapter normalization succeeds.
 4. On and after `2026-03-31T00:00:00Z`, missing schema/header compliance is a required-check failure.
+
+### Orchestrator Behavioral Contract (`meta/review_orchestrator.md`)
+
+`meta/review_orchestrator.md` is a **post-execution coverage auditor**. It does not review code directly; it reviews whether the prompt-driven review itself was complete and coherent.
+
+1. **Role:** Audit the review pipeline's output for coverage gaps, cross-prompt coherence, and finding completeness. The orchestrator never produces facet-specific code findings — those are the responsibility of individual facet prompts.
+
+2. **Input (required):**
+   - Per-job prompt result artifacts from `prompt-foundation-check`, `prompt-deep-dive-check`, and `prompt-gate-check` (all prompt entries except the orchestrator's own).
+   - Matcher output: `changed_files`, `unmatched_files`, `matched_rules`, and `mode`.
+
+3. **Execution phase:**
+   - The orchestrator is classified as a foundation prompt for selection, trigger, and tier purposes.
+   - It executes in a dedicated final phase **after** all foundation, deep-dive, fallback, and gate prompts have produced results.
+   - Pipeline order: `Foundation (excluding orchestrator) -> Deep-dive/Fallback -> Gate -> Orchestrator -> Aggregate parse`.
+   - The orchestrator's result artifact is included in `combined.json` before `prompt-aggregate-parse` runs.
+
+4. **Evaluation criteria (what the orchestrator checks):**
+   - **Coverage completeness:** Are there changed files in `unmatched_files` or `changed_files` that no prompt's `file_refs` addressed? Flag as coverage gaps.
+   - **Selection coherence:** Did the matcher's selected prompts align with the change surface? (Sanity check, not a re-selection.)
+   - **Cross-prompt consistency:** Are there contradictory findings across prompts for the same file or surface area?
+   - **Finding completeness:** Did any executed prompt produce zero findings for a non-trivial change surface? (Potential false quiet.)
+
+5. **Finding types the orchestrator may produce:**
+   - `coverage_gap`: A changed file or surface area was not addressed by any prompt's findings.
+   - `selection_anomaly`: The matcher's selection appears misaligned with the change surface.
+   - `cross_prompt_conflict`: Two or more prompts produced contradictory findings for the same file.
+   - `silent_review`: An executed prompt produced zero findings for a substantive change surface.
+
+6. **Finding types the orchestrator must NOT produce:**
+   - Code quality, security, architecture, or any facet-specific technical findings.
+   - Severity re-scoring of other prompts' findings (that is `meta/scoring_rubric.md`'s role).
+   - Prompt selection overrides or modifications.
+
+7. **Output:** Standard `prompt_results.schema.v1` entries with `prompt_id=meta.review_orchestrator`, `tier=foundation`, `selection_reason=foundation_trigger`.
+
+8. **When the orchestrator has no input** (all other prompts were `skipped_not_applicable`): emit a single `Info`-severity finding noting that no prompt results were available for coverage audit, rather than emitting zero findings silently.
 
 ## Suggested Rollout Plan
 
@@ -780,14 +828,20 @@ The implementation must include automated tests for matcher determinism, deferre
 44. `test_windows_proposal_path_normalization_accepts_backslashes`
 45. `test_duplicate_rule_id_fails_closed_at_startup`
 46. `test_mixed_valid_invalid_proposal_fanout_partial_behavior`
+47. `test_orchestrator_executes_after_all_other_prompt_tiers`
+48. `test_orchestrator_flags_unmatched_changed_files_as_coverage_gap`
+49. `test_orchestrator_does_not_produce_facet_specific_findings`
+50. `test_orchestrator_emits_info_finding_when_all_inputs_skipped`
+51. `test_orchestrator_detects_cross_prompt_contradictory_findings`
 
 ## v1 Overlap and Boundary Matrix
 
 Every v1 prompt must declare adjacent prompts and explicit "not covered" boundaries to prevent duplicate findings and review churn.
 
 1. `meta/review_orchestrator.md`
-   - Adjacent: all v1 prompts
-   - Not covered: facet-specific technical judgments
+   - Adjacent: all v1 prompts (consumes their results as input)
+   - Covered: review coverage gaps (unaddressed changed files), cross-prompt coherence, finding completeness
+   - Not covered: facet-specific technical judgments, code-level findings, severity re-scoring (see `meta/scoring_rubric.md`)
 2. `meta/scoring_rubric.md`
    - Adjacent: all v1 prompts
    - Not covered: evidence collection from repository files
@@ -833,7 +887,7 @@ Every v1 prompt must declare adjacent prompts and explicit "not covered" boundar
 - Risk: prompt sprawl and overlap.
   - Mitigation: require each prompt to declare in-scope/out-of-scope and dependencies.
 - Risk: reviewers run too many prompts each change.
-  - Mitigation: orchestrator prompt selects minimal prompt subset by change surface.
+  - Mitigation: changed-file matcher selects minimal prompt subset by change surface; orchestrator audits coverage completeness post-execution.
 - Risk: inconsistent output quality.
   - Mitigation: shared rubric and output schema under `meta/scoring_rubric.md`.
 
@@ -867,14 +921,16 @@ The following blockers are authoritative for implementation readiness and must e
    Status: `Resolved` (see `### Changed-file matcher contract` item 1 and `### Output schema and parser contract (required)` item 7).
 13. `BLK-013` - Matcher telemetry fields and canonical `rule_id` catalog are schema-defined and deterministic.  
    Status: `Resolved` (see `### Output schema and parser contract (required)` item 3, item 4, and `### Changed-file matcher contract` item 2-3).
-14. `BLK-014` - Governance metadata enforcement is explicitly required in CI and merge-block policy.  
+14. `BLK-014` - Governance metadata enforcement is explicitly required in CI and merge-block policy.
    Status: `Resolved` (see `### CI jobs (required)` and `### Merge-block behavior`).
+15. `BLK-015` - Orchestrator behavioral contract (input, execution phase, evaluation criteria, permitted finding types) is defined.
+   Status: `Resolved` (see `### Orchestrator Behavioral Contract`).
 
 ## Final Readiness Criteria
 
 The proposal is implementation-ready only when all items below are true:
 
-1. All implementation blockers in `## Implementation Blockers` (`BLK-001` through `BLK-014`) are marked resolved in this proposal text.
+1. All implementation blockers in `## Implementation Blockers` (`BLK-001` through `BLK-015`) are marked resolved in this proposal text.
 2. A concrete machine-readable result schema and parser contract are specified.
 3. Deferred prompt handling in v1 is explicitly defined and CI-testable.
 4. Post-merge applicability and waiver validation are deterministic and documented.
@@ -888,3 +944,4 @@ The proposal is implementation-ready only when all items below are true:
 12. Missing-SHA synthetic skipped behavior is schema-valid and deterministic.
 13. Prompt metadata fields have strict validation grammar.
 14. Bootstrap missing-file emission behavior is deterministic and tested.
+15. `meta/review_orchestrator.md` behavioral contract is defined with explicit input, execution phase, evaluation criteria, and permitted/prohibited finding types.
