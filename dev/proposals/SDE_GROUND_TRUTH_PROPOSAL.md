@@ -1,6 +1,6 @@
 # SDE Ground Truth: Eliminating Hardcoded EVE Data
 
-**Status:** PROPOSED (2026-02-08)
+**Status:** IMPLEMENTED (2026-02-09)
 **Related:** `sde()` MCP dispatcher, `fitting()` dispatcher, `SDEQueryService`, `fitting/skills.py`
 
 ---
