@@ -7,7 +7,7 @@ Snapshots are stored as YAML files in the pilot's assets directory.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, Optional
 
@@ -62,7 +62,7 @@ class AssetSnapshotService:
         self.ensure_dir()
 
         if timestamp is None:
-            timestamp = datetime.now(timezone.utc)
+            timestamp = datetime.now(UTC)
 
         snapshot: dict[str, Any] = {
             "timestamp": timestamp.isoformat(),
@@ -253,7 +253,7 @@ class AssetSnapshotService:
 
         from datetime import timedelta
 
-        cutoff = (datetime.now(timezone.utc) - timedelta(days=keep_days)).strftime("%Y-%m-%d")
+        cutoff = (datetime.now(UTC) - timedelta(days=keep_days)).strftime("%Y-%m-%d")
 
         removed = 0
         for f in self.snapshots_dir.glob("*.yaml"):

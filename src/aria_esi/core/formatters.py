@@ -5,7 +5,7 @@ Utility functions for formatting ESI data for display.
 Consolidates previously duplicated formatting logic.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Optional
 
 # =============================================================================
@@ -203,7 +203,7 @@ def parse_datetime(dt_str: str) -> Optional[datetime]:
     # Handle both formats from ESI
     for fmt in ["%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S.%fZ"]:
         try:
-            return datetime.strptime(dt_str, fmt).replace(tzinfo=timezone.utc)
+            return datetime.strptime(dt_str, fmt).replace(tzinfo=UTC)
         except ValueError:
             continue
 
@@ -230,7 +230,7 @@ def get_utc_now() -> datetime:
     Returns:
         Current datetime with UTC timezone
     """
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def get_utc_timestamp() -> str:

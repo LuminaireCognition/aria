@@ -7,7 +7,7 @@ All commands require authentication.
 
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from ..core import (
@@ -82,7 +82,7 @@ def is_skills_cache_stale(pilot_dir: Path | None = None, ttl_hours: int = 12) ->
 
         # Parse ISO timestamp
         sync_time = datetime.fromisoformat(synced_at.replace("Z", "+00:00"))
-        age_hours = (datetime.now(timezone.utc) - sync_time).total_seconds() / 3600
+        age_hours = (datetime.now(UTC) - sync_time).total_seconds() / 3600
         return age_hours > ttl_hours
     except (json.JSONDecodeError, KeyError, ValueError):
         return True
@@ -179,7 +179,7 @@ def cmd_sync_skills(args: argparse.Namespace) -> dict:
     cache_data = {
         "_meta": {
             "character_id": char_id,
-            "synced_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "synced_at": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
             "total_sp": total_sp,
             "unallocated_sp": unallocated_sp,
             "skill_count": len(skill_levels),
@@ -352,7 +352,7 @@ def cmd_skillqueue(args: argparse.Namespace) -> dict:
         if info and "name" in info:
             skill_names[sid] = info["name"]
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     queue_items = []
     currently_training = None
     queue_completion = None

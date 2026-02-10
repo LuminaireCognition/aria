@@ -30,7 +30,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 # Import keyring backend with graceful fallback
@@ -239,7 +239,7 @@ def parse_token_expiry(creds: dict) -> datetime:
 
     if not expiry_str:
         # No expiry set, assume expired
-        return datetime.now(timezone.utc) - timedelta(hours=1)
+        return datetime.now(UTC) - timedelta(hours=1)
 
     # Handle various ISO 8601 formats
     formats = [
@@ -253,13 +253,13 @@ def parse_token_expiry(creds: dict) -> datetime:
         try:
             dt = datetime.strptime(expiry_str, fmt)
             if dt.tzinfo is None:
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
             return dt
         except ValueError:
             continue
 
     # If we can't parse, assume expired
-    return datetime.now(timezone.utc) - timedelta(hours=1)
+    return datetime.now(UTC) - timedelta(hours=1)
 
 
 def is_token_valid(
@@ -272,7 +272,7 @@ def is_token_valid(
         (is_valid, expiry_time, time_remaining)
     """
     expiry = parse_token_expiry(creds)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     remaining = expiry - now
     buffer = timedelta(minutes=buffer_minutes)
 
@@ -363,7 +363,7 @@ def save_credentials(creds_path: Path, creds: dict, use_keyring: bool = True):
 
 def update_credentials_with_new_tokens(creds: dict, token_response: dict) -> dict:
     """Merge new token data into existing credentials."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # Calculate expiry time
     expires_in = token_response.get("expires_in", 1199)  # Default ~20 minutes

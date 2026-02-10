@@ -6,7 +6,7 @@ Most commands require authentication and CEO/Director role.
 """
 
 import argparse
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Optional
 
 from ..core import (
@@ -751,7 +751,7 @@ def cmd_corp_jobs(args: argparse.Namespace) -> dict:
     # Process jobs
     active_jobs = []
     completed_jobs = []
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     for job in jobs:
         activity_id = job.get("activity_id", 0)

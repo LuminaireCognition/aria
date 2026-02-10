@@ -94,7 +94,7 @@ def cmd_redisq_start(args: argparse.Namespace) -> dict:
         while not stop_event.is_set():
             try:
                 await asyncio.wait_for(stop_event.wait(), timeout=60)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Print periodic status
                 status = poller.get_status()
                 if status.kills_processed > 0:

@@ -7,7 +7,7 @@ Formats kill notifications as Discord webhook embeds.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -66,14 +66,13 @@ def format_time_ago(kill_time: datetime) -> str:
     Returns:
         Human-readable relative time (e.g., "2 min ago", "1 hour ago")
     """
-    from datetime import timezone
 
     # ESI/RedisQ times are UTC - ensure we compare in UTC
     if kill_time.tzinfo is None:
         # Assume naive datetime is UTC (ESI standard)
-        kill_time = kill_time.replace(tzinfo=timezone.utc)
+        kill_time = kill_time.replace(tzinfo=UTC)
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     delta = now - kill_time
 
     seconds = int(delta.total_seconds())

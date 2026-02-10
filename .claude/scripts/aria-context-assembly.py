@@ -23,7 +23,7 @@ import json
 import os
 import re
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # ═══════════════════════════════════════════════════════════════════
@@ -397,7 +397,7 @@ def assemble_context(pilot_dir: Path) -> dict:
     projects_dir = pilot_dir / "projects"
 
     context = {
-        "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generated": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "active_pilot": pilot_dir.name.split("_")[0],
         "pilot_directory": str(pilot_dir),
         "active_projects": [],

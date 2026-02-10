@@ -6,7 +6,7 @@ All commands require authentication.
 """
 
 import argparse
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Optional
 
 from ..core import (
@@ -100,7 +100,7 @@ def _calculate_days_remaining(expiry_str: Optional[str]) -> Optional[int]:
     if not expiry:
         return None
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     delta = expiry - now
     return max(0, delta.days)
 
@@ -202,7 +202,7 @@ def cmd_contracts(args: argparse.Namespace) -> dict:
             location_names[lid] = name
 
     # Process contracts
-    datetime.now(timezone.utc)
+    datetime.now(UTC)
     processed_contracts = []
     summary = {
         "total_contracts": 0,

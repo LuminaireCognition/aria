@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .models import SEVERITY_RANK, AggregateResult, ValidationIssue
@@ -35,7 +35,7 @@ ALLOWED_NOT_APPLICABLE_REASONS = {
     "no_gate_input",
     "invalid_gate_input",
 }
-ADAPTER_CUTOVER = datetime(2026, 3, 31, 0, 0, 0, tzinfo=timezone.utc)
+ADAPTER_CUTOVER = datetime(2026, 3, 31, 0, 0, 0, tzinfo=UTC)
 
 
 class SchemaError(ValueError):
@@ -45,7 +45,7 @@ class SchemaError(ValueError):
 def _parse_timestamp(value: str) -> datetime:
     if value.endswith("Z"):
         value = value.replace("Z", "+00:00")
-    return datetime.fromisoformat(value).astimezone(timezone.utc)
+    return datetime.fromisoformat(value).astimezone(UTC)
 
 
 def _required(obj: dict, key: str):
@@ -177,7 +177,7 @@ def _validate_and_normalize_prompt(prompt: dict) -> dict:
 def aggregate_combined_results(
     combined_json_path: str | Path, *, now_utc: datetime | None = None
 ) -> AggregateResult:
-    now = now_utc or datetime.now(timezone.utc)
+    now = now_utc or datetime.now(UTC)
     issues: list[ValidationIssue] = []
 
     try:

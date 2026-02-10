@@ -40,7 +40,7 @@ import time
 from collections.abc import Callable
 from contextvars import ContextVar
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, TypeVar
 
 from ..core.logging import get_logger
@@ -124,7 +124,7 @@ class OutputMeta:
     def __post_init__(self) -> None:
         """Set timestamp if not provided."""
         if not self.timestamp:
-            self.timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            self.timestamp = datetime.now(UTC).isoformat(timespec="seconds")
 
     def to_dict(self) -> dict[str, Any]:
         """
@@ -533,7 +533,7 @@ def wrap_output_multi(
         "lists": lists_meta,
         "total_count": total_count,
         "truncated": any_truncated,
-        "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "timestamp": datetime.now(UTC).isoformat(timespec="seconds"),
     }
 
     # Add provenance if provided

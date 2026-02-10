@@ -6,7 +6,7 @@ All commands require authentication.
 """
 
 import argparse
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..core import (
     CredentialsError,
@@ -162,7 +162,7 @@ def cmd_orders(args: argparse.Namespace) -> dict:
             else:
                 region_names[rid] = f"Region-{rid}"
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     processed_orders = []
     summary = {
         "active_orders": 0,

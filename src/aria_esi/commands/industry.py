@@ -6,7 +6,7 @@ All commands require authentication.
 """
 
 import argparse
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..core import (
     ACTIVITY_TYPES,
@@ -96,7 +96,7 @@ def cmd_industry_jobs(args: argparse.Namespace) -> dict:
             else:
                 location_names[lid] = f"Structure-{lid}"
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     processed_jobs = []
     summary = {
         "active_jobs": 0,

@@ -7,7 +7,7 @@ Estimates ISK cost of fits using market data from the MCP market dispatcher.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from aria_esi.core.logging import get_logger
@@ -253,7 +253,7 @@ def estimate_fit_price(
     result = FitPriceEstimate(
         total_isk=0,
         price_source=region,
-        updated=datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        updated=datetime.now(UTC).strftime("%Y-%m-%d"),
     )
 
     # Parse EFT

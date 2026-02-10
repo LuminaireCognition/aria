@@ -6,6 +6,7 @@ Safety-critical information for mission running and PvP.
 """
 
 import argparse
+from datetime import UTC
 
 from ..core import (
     CredentialsError,
@@ -222,9 +223,9 @@ def cmd_clones(args: argparse.Namespace) -> dict:
     if last_jump:
         last_jump_dt = parse_datetime(last_jump)
         if last_jump_dt:
-            from datetime import datetime, timedelta, timezone
+            from datetime import datetime, timedelta
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             cooldown_end = last_jump_dt + timedelta(hours=24)
 
             if now < cooldown_end:
@@ -435,9 +436,9 @@ def cmd_jump_clones(args: argparse.Namespace) -> dict:
     if last_jump:
         last_jump_dt = parse_datetime(last_jump)
         if last_jump_dt:
-            from datetime import datetime, timedelta, timezone
+            from datetime import datetime, timedelta
 
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             cooldown_end = last_jump_dt + timedelta(hours=24)
 
             if now < cooldown_end:

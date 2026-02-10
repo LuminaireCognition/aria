@@ -243,7 +243,7 @@ class ExpungeTask:
             self._task.cancel()
             try:
                 await asyncio.wait_for(self._task, timeout=timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Expunge task did not stop within timeout")
             except asyncio.CancelledError:
                 pass

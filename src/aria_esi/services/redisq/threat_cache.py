@@ -11,7 +11,7 @@ import json
 import time
 from collections import Counter
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 from ...core.logging import get_logger
@@ -379,7 +379,7 @@ class ThreatCache:
             if last_poll is None:
                 return False
 
-            age = (datetime.now(timezone.utc).replace(tzinfo=None) - last_poll).total_seconds()
+            age = (datetime.now(UTC).replace(tzinfo=None) - last_poll).total_seconds()
             return age <= POLLER_HEALTHY_MAX_POLL_AGE_SECONDS
 
         except Exception as e:
@@ -482,8 +482,7 @@ class ThreatCache:
         kills_10m = [
             k
             for k in kills_1h
-            if k.kill_time
-            >= datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(minutes=10)
+            if k.kill_time >= datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=10)
         ]
 
         # Count pod kills separately
