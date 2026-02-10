@@ -12,7 +12,7 @@ from typing import Optional
 from ..core import (
     ACTIVITY_TYPES,
     PLAYER_CORP_MIN_ID,
-    SHIP_GROUP_IDS,
+    get_ship_group_ids,
     Credentials,
     CredentialsError,
     ESIClient,
@@ -497,7 +497,7 @@ def cmd_corp_assets(args: argparse.Namespace) -> dict:
 
         # Check if ship
         if show_ships:
-            if group_id in SHIP_GROUP_IDS and a.get("is_singleton"):
+            if group_id in get_ship_group_ids() and a.get("is_singleton"):
                 ships.append(
                     {
                         "item_id": a["item_id"],

@@ -861,6 +861,13 @@ def reset_all_singletons():
         except ImportError:
             pass
 
+        # Skill registry singleton
+        try:
+            from aria_esi.fitting.skill_registry import reset_skill_registry
+            reset_skill_registry()
+        except ImportError:
+            pass
+
         # EOS data manager
         try:
             from aria_esi.fitting.eos_data import reset_eos_data_manager
@@ -1043,3 +1050,62 @@ def reset_all_singletons():
 
     # Reset after test
     do_reset()
+
+
+# =============================================================================
+# Mock Skill Registry Fixtures (Phase C)
+# =============================================================================
+
+# Ground truth: every skill in ALL_SKILL_NAMES mapped to its SDE type_id.
+# Sourced from the pre-implementation audit (verified via sde(action="item_info")).
+_SKILL_NAME_TO_ID = {
+    "Acceleration Control": 3452,
+    "Advanced Weapon Upgrades": 11207,
+    "Afterburner": 3450,
+    "Armor Rigging": 26253,
+    "Capacitor Emission Systems": 3423,
+    "Capacitor Management": 3418,
+    "Capacitor Systems Operation": 3417,
+    "Drone Avionics": 3437,
+    "Drone Durability": 23618,
+    "Drone Interfacing": 3442,
+    "Drone Navigation": 12305,
+    "Drone Sharpshooting": 23606,
+    "Drones": 3436,
+    "Evasive Maneuvering": 3453,
+    "Fuel Conservation": 3451,
+    "Heavy Drone Operation": 3441,
+    "Hull Upgrades": 3394,
+    "Light Drone Operation": 24241,
+    "Mechanics": 3392,
+    "Medium Drone Operation": 33699,
+    "Navigation": 3449,
+    "Power Grid Management": 3413,
+    "Repair Systems": 3393,
+    "Shield Compensation": 21059,
+    "Shield Management": 3419,
+    "Shield Operation": 3416,
+    "Shield Rigging": 26261,
+    "Shield Upgrades": 3425,
+    "Tactical Shield Manipulation": 3420,
+    "Warp Drive Operation": 3455,
+    "Weapon Upgrades": 3318,
+}
+
+
+@pytest.fixture
+def mock_skill_registry(monkeypatch):
+    """Return a SkillRegistry backed by verified SDE ground truth.
+
+    Patches the module-level singleton so production code paths
+    (get_skill_registry()) return this mock during the test.
+    """
+    from aria_esi.fitting.skill_registry import SkillRegistry, reset_skill_registry
+
+    reset_skill_registry()
+    registry = SkillRegistry(_SKILL_NAME_TO_ID)
+    monkeypatch.setattr(
+        "aria_esi.fitting.skill_registry._skill_registry", registry
+    )
+    yield registry
+    reset_skill_registry()

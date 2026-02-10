@@ -15,12 +15,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from aria_esi.fitting.skill_registry import (
+    DRONE_SKILL_NAMES,
+    FITTING_SKILL_NAMES,
+    NAVIGATION_SKILL_NAMES,
+    TANK_SKILL_NAMES,
+    BONUS_DRONE_SKILL_NAMES,
+    BONUS_CORE_SKILL_NAMES,
+)
 from aria_esi.fitting.skills import (
-    BONUS_SKILL_IDS,
-    DRONE_SKILL_IDS,
-    FITTING_SKILL_IDS,
-    NAVIGATION_SKILL_IDS,
-    TANK_SKILL_IDS,
     SkillFetchError,
     extract_skills_for_fit,
     fetch_pilot_skills,
@@ -139,36 +142,44 @@ class TestGetAllVSkills:
 class TestGetRelevantSkillsForFit:
     """Tests for fit-type-specific skill lists."""
 
-    def test_generic_includes_fitting_and_navigation(self):
+    def test_generic_includes_fitting_and_navigation(self, mock_skill_registry):
         """Test generic fit includes base skills."""
         skills = get_relevant_skills_for_fit("generic")
 
         # Should include fitting skills
-        for skill_id in FITTING_SKILL_IDS:
-            assert skill_id in skills
+        for name in FITTING_SKILL_NAMES:
+            assert mock_skill_registry.id(name) in skills
 
         # Should include navigation skills
-        for skill_id in NAVIGATION_SKILL_IDS:
-            assert skill_id in skills
+        for name in NAVIGATION_SKILL_NAMES:
+            assert mock_skill_registry.id(name) in skills
 
-    def test_drone_boat_includes_drone_skills(self):
+    def test_drone_boat_includes_drone_skills(self, mock_skill_registry):
         """Test drone boat fit includes drone skills."""
         skills = get_relevant_skills_for_fit("drone_boat")
 
-        for skill_id in DRONE_SKILL_IDS:
-            assert skill_id in skills
+        for name in DRONE_SKILL_NAMES:
+            assert mock_skill_registry.id(name) in skills
 
-    def test_armor_tank_includes_tank_skills(self):
+    def test_armor_tank_includes_tank_skills(self, mock_skill_registry):
         """Test armor tank fit includes tank skills."""
         skills = get_relevant_skills_for_fit("armor_tank")
 
-        for skill_id in TANK_SKILL_IDS:
-            assert skill_id in skills
+        for name in TANK_SKILL_NAMES:
+            assert mock_skill_registry.id(name) in skills
 
-    def test_no_duplicates(self):
+    def test_no_duplicates(self, mock_skill_registry):
         """Test that returned list has no duplicates."""
         skills = get_relevant_skills_for_fit("drone_boat")
         assert len(skills) == len(set(skills))
+
+    def test_registry_none_returns_empty(self, monkeypatch):
+        """Test that unavailable registry returns empty list."""
+        monkeypatch.setattr(
+            "aria_esi.fitting.skills.get_skill_registry", lambda: None
+        )
+        skills = get_relevant_skills_for_fit("generic")
+        assert skills == []
 
 
 # =============================================================================
@@ -239,7 +250,9 @@ class TestExtractSkillsForFit:
             assert 33699 in skills
             assert skills[33699] == 5
 
-    def test_extract_bonus_skills_for_drones(self, vexor_parsed_fit, mock_skill_requirements_data):
+    def test_extract_bonus_skills_for_drones(
+        self, vexor_parsed_fit, mock_skill_requirements_data, mock_skill_registry
+    ):
         """Test that bonus skills are added for drone fits."""
         with patch("aria_esi.fitting.skills._load_skill_requirements") as mock_load:
             requirements = {
@@ -255,9 +268,11 @@ class TestExtractSkillsForFit:
             skills = extract_skills_for_fit(vexor_parsed_fit, level=5)
 
             # Should include Drone Interfacing (bonus skill for drone fits)
-            assert 3442 in skills  # Drone Interfacing
+            assert mock_skill_registry.id("Drone Interfacing") in skills
 
-    def test_extract_core_skills_always_added(self, minimal_fit, mock_skill_requirements_data):
+    def test_extract_core_skills_always_added(
+        self, minimal_fit, mock_skill_requirements_data, mock_skill_registry
+    ):
         """Test that core skills are always added."""
         with patch("aria_esi.fitting.skills._load_skill_requirements") as mock_load:
             mock_load.return_value = {}
@@ -268,12 +283,12 @@ class TestExtractSkillsForFit:
 
             skills = extract_skills_for_fit(minimal_fit, level=5)
 
-            # Should include core skills
-            assert 3392 in skills  # Mechanics
-            assert 3393 in skills  # Hull Upgrades
-            assert 3449 in skills  # Navigation
+            # Should include core skills (resolved from SDE, not hardcoded)
+            assert mock_skill_registry.id("Mechanics") in skills
+            assert mock_skill_registry.id("Hull Upgrades") in skills
+            assert mock_skill_registry.id("Navigation") in skills
 
-    def test_extract_with_custom_level(self, minimal_fit):
+    def test_extract_with_custom_level(self, minimal_fit, mock_skill_registry):
         """Test extraction with custom skill level."""
         with patch("aria_esi.fitting.skills._load_skill_requirements") as mock_load:
             mock_load.return_value = {}
@@ -328,26 +343,61 @@ class TestExtractSkillsForFit:
 
 
 # =============================================================================
-# Skill Constants Tests
+# Registry None Fallback Tests
 # =============================================================================
 
 
-class TestSkillConstants:
-    """Tests for skill ID constants."""
+class TestRegistryNoneFallback:
+    """Tests for behavior when skill registry is unavailable."""
 
-    def test_fitting_skill_ids_are_integers(self):
-        """Test that FITTING_SKILL_IDS contains integers."""
-        for skill_id in FITTING_SKILL_IDS:
-            assert isinstance(skill_id, int)
+    def test_extract_skills_registry_none_skips_bonus(
+        self, minimal_fit, monkeypatch
+    ):
+        """When registry is None, bonus injection is skipped; core extraction still works."""
+        monkeypatch.setattr(
+            "aria_esi.fitting.skills.get_skill_registry", lambda: None
+        )
+        with patch("aria_esi.fitting.skills._load_skill_requirements") as mock_load:
+            mock_load.return_value = {}
 
-    def test_drone_skill_ids_are_integers(self):
-        """Test that DRONE_SKILL_IDS contains integers."""
-        for skill_id in DRONE_SKILL_IDS:
-            assert isinstance(skill_id, int)
+            import aria_esi.fitting.skills as skills_module
 
-    def test_bonus_skill_ids_dict_structure(self):
-        """Test that BONUS_SKILL_IDS is properly structured."""
-        assert isinstance(BONUS_SKILL_IDS, dict)
-        for skill_id, name in BONUS_SKILL_IDS.items():
-            assert isinstance(skill_id, int)
-            assert isinstance(name, str)
+            skills_module._skill_requirements = None
+
+            skills = extract_skills_for_fit(minimal_fit, level=5)
+
+            # No bonus skills should be injected — result should be empty
+            # since there are no EOS-based requirements either
+            assert skills == {}
+
+    def test_extract_skills_bonus_core_includes_power_grid_management(
+        self, minimal_fit, mock_skill_registry
+    ):
+        """Verify Power Grid Management is included in bonus core skills."""
+        with patch("aria_esi.fitting.skills._load_skill_requirements") as mock_load:
+            mock_load.return_value = {}
+
+            import aria_esi.fitting.skills as skills_module
+
+            skills_module._skill_requirements = None
+
+            skills = extract_skills_for_fit(minimal_fit, level=5)
+
+            assert mock_skill_registry.id("Power Grid Management") in skills
+
+    def test_extract_skills_bonus_core_excludes_repair_systems(
+        self, minimal_fit, mock_skill_registry
+    ):
+        """Verify Repair Systems is NOT in bonus core skills (bug fix from old swapped IDs)."""
+        with patch("aria_esi.fitting.skills._load_skill_requirements") as mock_load:
+            mock_load.return_value = {}
+
+            import aria_esi.fitting.skills as skills_module
+
+            skills_module._skill_requirements = None
+
+            skills = extract_skills_for_fit(minimal_fit, level=5)
+
+            # Repair Systems should NOT be in bonus core — it was only present
+            # in old code due to swapped Hull Upgrades / Repair Systems IDs
+            assert mock_skill_registry.id("Repair Systems") not in skills

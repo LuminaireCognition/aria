@@ -1057,6 +1057,16 @@ class SDEQueryService:
 
         return result
 
+    def get_all_ship_group_ids(self) -> set[int]:
+        """Return all group IDs in the Ship category (category_id=6)."""
+        self._check_cache_validity()
+        self.ensure_sde_seeded()
+        conn = self._db._get_connection()
+        rows = conn.execute(
+            "SELECT DISTINCT group_id FROM groups WHERE category_id = 6"
+        ).fetchall()
+        return {row[0] for row in rows}
+
     def get_all_meta_groups(self) -> tuple[MetaGroup, ...]:
         """Get all meta groups."""
         conn = self._db._get_connection()

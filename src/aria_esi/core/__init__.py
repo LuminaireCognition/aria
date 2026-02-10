@@ -31,6 +31,8 @@ from .constants import (
     STATION_NAMES,
     TRADE_HUB_REGIONS,
     TRADE_HUB_STATIONS,
+    get_ship_group_ids,
+    reset_ship_group_ids,
 )
 from .data_integrity import (
     IntegrityError,
@@ -197,6 +199,8 @@ __all__ = [
     "LOW_SEC_THRESHOLD",
     "CORP_SCOPES",
     "PLAYER_CORP_MIN_ID",
+    "get_ship_group_ids",
+    "reset_ship_group_ids",
     # Logging
     "get_logger",
     "set_log_level",
