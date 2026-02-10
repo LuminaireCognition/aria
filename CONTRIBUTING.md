@@ -1,6 +1,6 @@
 # Contributing to ARIA
 
-Thank you for your interest in contributing to ARIA! This project aims to create an immersive ship-board AI experience for all Eve Online players.
+Thank you for your interest in contributing to ARIA! This project aims to create an immersive tactical advisory AI experience for all Eve Online players.
 
 ## Licensing Notice
 

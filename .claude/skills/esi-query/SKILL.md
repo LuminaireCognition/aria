@@ -198,7 +198,7 @@ GalNet Sync: [query_timestamp in local format, e.g., "18:45 UTC"]
 ───────────────────────────────────────────────────────────────────
 Location: [system] ([security])
 Station:  [station or "In Space"]
-Vessel:   [ship_type] "[ship_name]"
+Pilot Vessel:   [ship_type] "[ship_name]"
 ───────────────────────────────────────────────────────────────────
 ⚠ Position data reflects GalNet query time.
   Your current location may differ.

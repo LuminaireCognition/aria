@@ -742,7 +742,7 @@ When help request suggests unfamiliarity, offer the quick start:
 ═══════════════════════════════════════════════════════════════════
 ARIA QUICK START
 ───────────────────────────────────────────────────────────────────
-Welcome aboard, Capsuleer. Here's how I can assist:
+Neural comm synchronized, Capsuleer. Here's how I can assist:
 
 1. BEFORE MISSIONS: "/mission-brief" for enemy intel
 2. FITTING HELP: "fit my [ship name]" for recommendations

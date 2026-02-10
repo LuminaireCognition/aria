@@ -1655,12 +1655,12 @@ show_intro() {
     clear
     print_box_top
     echo -e "${BOLD}ARIA INITIALIZATION SEQUENCE${NC}"
-    echo -e "${DIM}Ship-Board AI Configuration Wizard${NC}"
+    echo -e "${DIM}Tactical Advisor AI Configuration Wizard${NC}"
     print_box_div
     echo ""
     echo "  ___    ____  _________"
     echo " /   |  / __ \\/  _/   |   Adaptive Reasoning & Intelligence Array"
-    echo "/ /| | / /_/ // // /| |   Ship-Board Tactical Assistant"
+    echo "/ /| | / /_/ // // /| |   Tactical Advisory System"
     echo "/ ___ |/ _, _// // ___ |"
     echo "/_/  |_/_/ |_/___/_/  |_|   \"Your faction. Your rules. Your AI.\""
     echo ""
@@ -2072,7 +2072,7 @@ Options:
   --force       Skip confirmation prompts
 
 Description:
-  Interactive wizard to configure ARIA, the ship-board AI for Eve Online.
+  Interactive wizard to configure ARIA, the tactical advisor AI for Eve Online.
   Creates all necessary data files from templates based on your character
   information, faction choice, and playstyle preferences.
 
