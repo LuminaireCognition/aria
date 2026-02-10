@@ -68,7 +68,6 @@ _SHIP_GROUP_IDS_FALLBACK = {
     1534,  # Command Destroyer
     1538,  # Force Auxiliary
     1972,  # Flag Cruiser
-    2001,  # Mining Frigate (Venture!)
 }
 
 _ship_group_ids: set[int] | None = None

@@ -465,7 +465,7 @@ class TestBreakpointSkillsConstants:
         """Logistics breakpoint skills are defined."""
         breakpoint_skills = load_breakpoint_skills()
         assert "Remote Armor Repair Systems" in breakpoint_skills
-        assert "Remote Shield Emission" in breakpoint_skills
+        assert "Shield Emission Systems" in breakpoint_skills
         assert "Capacitor Management" in breakpoint_skills
 
     def test_exploration_breakpoints_present(self):

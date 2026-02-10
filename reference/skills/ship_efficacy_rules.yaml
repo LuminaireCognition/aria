@@ -273,7 +273,7 @@ ship_roles:
         per_level: 5
         category: tank
         multiplicative: true
-      - skill: Armor Resistance Phasing
+      - skill: Resistance Phasing
         effect: "Allows Reactive Armor Hardener"
         per_level: 0
         category: utility
@@ -536,7 +536,7 @@ ship_roles:
         level: 5
         effect: "Required for Large Remote Armor Repairer II"
         reason: "T2 large remote reps significantly outperform T1/meta for fleet logistics"
-      - skill: Remote Shield Emission
+      - skill: Shield Emission Systems
         level: 5
         effect: "Required for Large Shield Transporter II"
         reason: "T2 large shield transfers significantly outperform T1/meta for fleet logistics"
@@ -550,7 +550,7 @@ ship_roles:
         per_level: 5
         category: support
         multiplicative: true
-      - skill: Remote Shield Emission
+      - skill: Shield Emission Systems
         effect: "+5% remote shield boost amount per level"
         per_level: 5
         category: support
@@ -568,7 +568,7 @@ ship_roles:
     easy_80_plan:
       required_5:
         - Remote Armor Repair Systems  # For armor logi
-        - Remote Shield Emission  # For shield logi
+        - Shield Emission Systems  # For shield logi
         - Capacitor Management  # BREAKPOINT: Cap stability threshold
       cap_at_4:
         - Capacitor Systems Operation

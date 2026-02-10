@@ -175,7 +175,7 @@ Remote Armor Repair Systems:
   category: "logi"
   reason: "T2 large remote reps significantly outperform T1/meta for fleet logistics"
 
-Remote Shield Emission:
+Shield Emission Systems:
   breakpoint_level: 5
   effect: "Required for Large Shield Transporter II"
   impact: "high"
