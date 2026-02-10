@@ -7,7 +7,7 @@ All commands require authentication.
 
 import argparse
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from ..core import (
     REF_TYPE_CATEGORIES,
@@ -76,7 +76,7 @@ def cmd_wallet_journal(args: argparse.Namespace) -> dict:
     public_client = ESIClient()
 
     # Calculate date filter
-    cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+    cutoff_date = datetime.now(UTC) - timedelta(days=days)
     cutoff_str = cutoff_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
     # Fetch wallet journal

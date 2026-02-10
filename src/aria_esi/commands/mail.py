@@ -7,7 +7,7 @@ All commands require authentication.
 
 import argparse
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..core import (
     CredentialsError,
@@ -160,9 +160,7 @@ def cmd_mail(args: argparse.Namespace) -> dict:
     processed_mail.sort(
         key=lambda m: (
             m["is_read"],
-            -(
-                parse_datetime(m["timestamp"]) or datetime.min.replace(tzinfo=timezone.utc)
-            ).timestamp()
+            -(parse_datetime(m["timestamp"]) or datetime.min.replace(tzinfo=UTC)).timestamp()
             if m["timestamp"]
             else 0,
         )

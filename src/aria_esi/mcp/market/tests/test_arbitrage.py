@@ -507,7 +507,7 @@ class TestRouteTimeout:
         # Mock the route function to timeout
         with patch(
             "aria_esi.mcp.market.tools_arbitrage._get_route",
-            new=AsyncMock(side_effect=asyncio.TimeoutError()),
+            new=AsyncMock(side_effect=TimeoutError()),
         ):
             # Should not raise, just return None
             _ = await asyncio.wait_for(

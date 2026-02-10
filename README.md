@@ -41,7 +41,7 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 
 - **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** with an active [Anthropic API plan](https://console.anthropic.com/)
 - **[uv](https://docs.astral.sh/uv/)** (Python package manager)
-- **Python 3.10+**
+- **Python 3.11+**
 - **An EVE Online account** (any faction, Alpha or Omega)
 
 ---

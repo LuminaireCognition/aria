@@ -224,7 +224,7 @@ class NotificationWorker:
         if self._task:
             try:
                 await asyncio.wait_for(self._task, timeout=timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Worker '%s' stop timed out, cancelling", self.name)
                 self._task.cancel()
                 try:

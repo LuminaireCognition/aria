@@ -8,7 +8,7 @@ Prefetch capable: YES (timestamp available in RedisQ)
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from datetime import time as dt_time
 from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
@@ -61,11 +61,11 @@ class TimeSignal(BaseSignalProvider):
         # Get kill time
         if kill is None:
             # Use current time for prefetch
-            kill_time = datetime.now(timezone.utc)
+            kill_time = datetime.now(UTC)
         else:
             kill_time = kill.kill_time
             if kill_time.tzinfo is None:
-                kill_time = kill_time.replace(tzinfo=timezone.utc)
+                kill_time = kill_time.replace(tzinfo=UTC)
 
         # Convert to configured timezone
         tz_str = config.get("timezone", "UTC")

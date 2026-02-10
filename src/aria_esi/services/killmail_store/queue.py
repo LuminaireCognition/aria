@@ -133,7 +133,7 @@ class BoundedKillQueue:
         try:
             await asyncio.wait_for(self._not_empty.wait(), timeout=timeout)
             return True
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return False
 
     def get_metrics(self) -> IngestMetrics:

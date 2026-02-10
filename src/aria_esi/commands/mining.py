@@ -7,7 +7,7 @@ All commands require authentication.
 
 import argparse
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from ..core import (
     CredentialsError,
@@ -95,7 +95,7 @@ def cmd_mining(args: argparse.Namespace) -> dict:
     # Filter by date range
     cutoff_date = None
     if days_limit and days_limit < 30:
-        cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days_limit)).date()
+        cutoff_date = (datetime.now(UTC) - timedelta(days=days_limit)).date()
 
     # Collect IDs for resolution
     type_ids = set()
@@ -266,7 +266,7 @@ def cmd_mining_summary(args: argparse.Namespace) -> dict:
     # Filter by date range
     cutoff_date = None
     if days_limit and days_limit < 30:
-        cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days_limit)).date()
+        cutoff_date = (datetime.now(UTC) - timedelta(days=days_limit)).date()
 
     # Aggregate data
     ore_totals = defaultdict(int)

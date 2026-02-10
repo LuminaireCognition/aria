@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -484,10 +485,10 @@ def update_universe_graph_checksum(file_path: Path, manifest_path: Path | None =
         }
 
     # Update checksum and timestamp
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     manifest["sources"]["universe_graph"]["sha256"] = checksum
-    manifest["sources"]["universe_graph"]["last_verified"] = datetime.now(timezone.utc).isoformat()
+    manifest["sources"]["universe_graph"]["last_verified"] = datetime.now(UTC).isoformat()
 
     # Write back
     with open(path, "w", encoding="utf-8") as f:

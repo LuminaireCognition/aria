@@ -160,7 +160,7 @@ If you run only one setup command on day 1, run `./aria-init`.
 - **Runtime recommendation:** Docker quick start only when container OAuth + MCP gates pass; otherwise use native `uv` setup
 - **Linux VM:** always valid as a hardened deployment option
 - **Shell:** Bash-compatible shell (bootstrap script uses `#!/usr/bin/env bash`)
-- **Python:** 3.10+ (CI-tested on 3.10, 3.11, 3.12, 3.13)
+- **Python:** 3.11+ (CI-tested on 3.11, 3.12, 3.13)
 - **Claude Code:** Current stable release
 ```
 

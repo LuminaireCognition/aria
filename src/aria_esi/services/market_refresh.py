@@ -384,7 +384,7 @@ class MarketRefreshService:
                 client.get_aggregates(type_ids),
                 timeout=REFRESH_TIMEOUT_SECONDS,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             fuzzwork_error = f"Fuzzwork request timed out after {REFRESH_TIMEOUT_SECONDS}s"
             logger.warning(fuzzwork_error)
         except Exception as e:

@@ -7,7 +7,7 @@ Uses HTML comment markers for reliable section updates.
 
 import argparse
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Optional
 
 from ..core import (
@@ -101,7 +101,7 @@ def get_mission_access(standing: float) -> str:
 
 def format_sync_timestamp() -> str:
     """Format current timestamp for sync annotation."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return now.strftime("%Y-%m-%d %H:%M UTC")
 
 

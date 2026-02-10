@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from fnmatch import fnmatchcase
 
 import yaml
@@ -28,8 +28,8 @@ def _parse_date(value: str) -> datetime:
         value = value.replace("Z", "+00:00")
     dt = datetime.fromisoformat(value)
     if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc)
+        dt = dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
 
 
 def _path_match(path: str, pattern: str) -> bool:
@@ -68,7 +68,7 @@ def validate_high_waivers(
     codeowners_path: str,
     now_utc: datetime | None = None,
 ) -> WaiverValidationResult:
-    now = now_utc or datetime.now(timezone.utc)
+    now = now_utc or datetime.now(UTC)
     issues: list[ValidationIssue] = []
 
     try:

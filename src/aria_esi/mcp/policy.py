@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -416,7 +416,7 @@ class PolicyEngine:
     def _check_rate_limit(self, dispatcher: str, action: str) -> None:
         """Check and enforce rate limits."""
         full_action = f"{dispatcher}.{action}"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         minute_ago = now.replace(second=0, microsecond=0)
 
         # Get call history for this action
@@ -453,7 +453,7 @@ class PolicyEngine:
         from .context import get_trace_context
 
         log_entry: dict[str, Any] = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "dispatcher": dispatcher,
             "action": action,
             "result": result,

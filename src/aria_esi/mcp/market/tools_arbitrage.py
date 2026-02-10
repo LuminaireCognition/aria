@@ -405,7 +405,7 @@ async def _add_route_info(result, include_lowsec: bool):
                         }
                     )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.debug(
                     "Route calculation timed out for %s -> %s",
                     buy_system,
@@ -476,7 +476,7 @@ async def _add_detail_route_info(result, buy_config: TradeHubConfig, sell_config
                 warnings=list(result.warnings),
             )
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.debug("Route calculation timed out for detail")
     except Exception as e:
         logger.debug("Route calculation failed for detail: %s", e)

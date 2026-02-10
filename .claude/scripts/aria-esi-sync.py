@@ -28,7 +28,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 # ═══════════════════════════════════════════════════════════════════
@@ -189,11 +189,11 @@ def is_token_expired(creds: dict, buffer_minutes: int = 5) -> bool:
         return True
 
     try:
-        expiry = datetime.strptime(expiry_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        expiry = datetime.strptime(expiry_str, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
     except ValueError:
         return True
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     buffer = timedelta(minutes=buffer_minutes)
     return (expiry - now) < buffer
 
@@ -226,7 +226,7 @@ def refresh_token(creds: dict, creds_path: Path) -> bool:
         return False
 
     # Update credentials
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires_in = token_data.get("expires_in", 1199)
     expiry = now + timedelta(seconds=expires_in)
 
@@ -471,7 +471,7 @@ def update_ships_md(pilot_dir: Path, ships: list) -> bool:
             pass
 
     # Build new roster section
-    sync_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    sync_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
 
     roster_lines = [
         "<!-- ESI-SYNC:ROSTER:START -->",
@@ -532,7 +532,7 @@ def update_blueprints_md(pilot_dir: Path, bp_data: dict) -> bool:
     # Ensure industry directory exists
     (pilot_dir / "industry").mkdir(exist_ok=True)
 
-    sync_time = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    sync_time = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
 
     lines = [
         "# Blueprint Library",
@@ -606,7 +606,7 @@ def write_sync_manifest(pilot_dir: Path, manifest_data: dict) -> bool:
 def run_sync(quick: bool = False, ships_only: bool = False, quiet: bool = False) -> dict:
     """Run the ESI sync process."""
     result = {
-        "sync_timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "sync_timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "status": "success",
         "synced": [],
         "errors": [],
@@ -760,9 +760,9 @@ def check_status() -> dict:
 
         # Calculate age
         sync_time = datetime.strptime(manifest["sync_timestamp"], "%Y-%m-%dT%H:%M:%SZ").replace(
-            tzinfo=timezone.utc
+            tzinfo=UTC
         )
-        age = datetime.now(timezone.utc) - sync_time
+        age = datetime.now(UTC) - sync_time
         age_minutes = int(age.total_seconds() / 60)
 
         manifest["age_minutes"] = age_minutes

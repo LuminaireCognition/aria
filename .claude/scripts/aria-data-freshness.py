@@ -31,7 +31,7 @@ Exit codes:
 import json
 import re
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Optional
 
@@ -138,7 +138,7 @@ def parse_sync_marker(content: str, pattern: str) -> Optional[dict[str, Any]]:
             if synced_match:
                 try:
                     synced_at = datetime.strptime(synced_match.group(1), "%Y-%m-%d %H:%M").replace(
-                        tzinfo=timezone.utc
+                        tzinfo=UTC
                     )
                     return {
                         "synced_at": synced_at.isoformat(),
@@ -248,7 +248,7 @@ def check_freshness(root: Path, data_type: str, pilot_dir: Optional[str]) -> dic
         return result
 
     # Calculate age
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     age = now - synced_at
     age_hours = age.total_seconds() / 3600
 
@@ -283,7 +283,7 @@ def check_freshness(root: Path, data_type: str, pilot_dir: Optional[str]) -> dic
 def check_all_freshness(root: Path, pilot_dir: Optional[str]) -> dict[str, Any]:
     """Check freshness of all data types."""
     results: dict[str, Any] = {
-        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "checked_at": datetime.now(UTC).isoformat(),
         "pilot_directory": pilot_dir,
         "data_types": {},
         "summary": {

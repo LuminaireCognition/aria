@@ -5,6 +5,7 @@ Commands for skill-aware fit selection from the archetype library.
 """
 
 import argparse
+from datetime import UTC
 from typing import Any, Literal
 
 from ..core import format_isk, get_utc_timestamp
@@ -336,7 +337,7 @@ def cmd_fit_update_stats(args: argparse.Namespace) -> dict[str, Any]:
     Calculates DPS, EHP, tank type, resist profiles, and optionally ISK
     estimates, then writes them back to the archetype YAML files.
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from ..archetypes import list_archetypes, load_archetype
     from ..archetypes.loader import get_archetype_yaml_path, update_archetype_stats
@@ -465,7 +466,7 @@ def cmd_fit_update_stats(args: argparse.Namespace) -> dict[str, Any]:
         primary_damage = derive_primary_damage(dps_by_type)
 
         # Get current date for validated_date
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
 
         # Get resists from primary tank layer
         tank_dict = fit_stats.tank.to_dict()

@@ -67,8 +67,8 @@ run_prerequisite_checks() {
         py_major=$(echo "$py_version" | cut -d. -f1)
         py_minor=$(echo "$py_version" | cut -d. -f2)
 
-        if [ "$py_major" -lt 3 ] || { [ "$py_major" -eq 3 ] && [ "$py_minor" -lt 10 ]; }; then
-            BOOT_WARNINGS+=("Python $py_version detected, requires >=3.10")
+        if [ "$py_major" -lt 3 ] || { [ "$py_major" -eq 3 ] && [ "$py_minor" -lt 11 ]; }; then
+            BOOT_WARNINGS+=("Python $py_version detected, requires >=3.11")
         fi
     else
         BOOT_WARNINGS+=("Python3 not found in PATH")

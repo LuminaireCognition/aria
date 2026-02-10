@@ -14,7 +14,7 @@ Security: Path validation added per dev/reviews/PYTHON_REVIEW_2026-01.md P0 #2
 import hashlib
 import json
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -166,7 +166,7 @@ class PersonaCompiler:
             CompiledPersonaContext with all files wrapped
         """
         compiled = CompiledPersonaContext(
-            compiled_at=datetime.now(timezone.utc).isoformat(),
+            compiled_at=datetime.now(UTC).isoformat(),
             persona=persona_context.get("persona", ""),
             branch=persona_context.get("branch", ""),
             rp_level=str(persona_context.get("rp_level", "off")),

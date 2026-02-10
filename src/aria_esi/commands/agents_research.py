@@ -6,7 +6,7 @@ All commands require authentication.
 """
 
 import argparse
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from ..core import (
     CredentialsError,
@@ -72,7 +72,7 @@ def cmd_agents_research(args: argparse.Namespace) -> dict:
             "message": "No active research agents",
         }
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     # Collect IDs for resolution
     agent_ids = set()

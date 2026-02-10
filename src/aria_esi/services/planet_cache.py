@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import UTC
 from pathlib import Path
 from typing import Any, Optional
 
@@ -236,9 +237,9 @@ class PlanetCacheService:
 
 def _get_timestamp() -> str:
     """Get current UTC timestamp."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def get_planet_cache_service(cache_path: Optional[Path] = None) -> PlanetCacheService:

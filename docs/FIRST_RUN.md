@@ -6,7 +6,7 @@ Welcome, Capsuleer! This guide will help you configure ARIA for your character.
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) with an active [Anthropic API plan](https://console.anthropic.com/)
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
-- Python 3.10+
+- Python 3.11+
 - An EVE Online character (any faction)
 
 All commands below should be run from the repository root (`cd aria`).

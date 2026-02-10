@@ -17,6 +17,7 @@ import re
 import stat
 import subprocess
 import sys
+from datetime import UTC
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -570,7 +571,7 @@ def get_authenticated_client() -> tuple["ESIClient", Credentials]:
     Raises:
         CredentialsError: If no credentials found or token expired after refresh
     """
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from .client import ESIClient  # Local import to avoid circular dependency
 
@@ -583,8 +584,8 @@ def get_authenticated_client() -> tuple["ESIClient", Credentials]:
     if creds.token_expiry:
         try:
             expiry = datetime.strptime(creds.token_expiry, "%Y-%m-%dT%H:%M:%SZ")
-            expiry = expiry.replace(tzinfo=timezone.utc)
-            if expiry < datetime.now(timezone.utc):
+            expiry = expiry.replace(tzinfo=UTC)
+            if expiry < datetime.now(UTC):
                 raise CredentialsError(
                     "ESI access token expired and auto-refresh failed. "
                     "Re-authenticate with EVE SSO.",

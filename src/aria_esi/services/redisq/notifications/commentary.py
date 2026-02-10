@@ -543,7 +543,7 @@ class CommentaryGenerator:
             logger.debug("Generated commentary: %s", text[:100])
             return text
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self._metrics.record_timeout()
             logger.debug("Commentary generation timed out after %dms", timeout_ms)
             return None

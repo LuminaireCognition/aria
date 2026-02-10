@@ -25,7 +25,7 @@ Environment Variables:
 import json
 import logging
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from .config import get_settings
@@ -63,7 +63,7 @@ class AriaFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         # Get timestamp in ISO format
-        timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        timestamp = datetime.now(UTC).isoformat(timespec="seconds")
 
         if self.json_output:
             return self._format_json(record, timestamp)
