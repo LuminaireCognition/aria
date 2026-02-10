@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/LuminaireCognition/aria/actions/workflows/ci.yml/badge.svg)](https://github.com/LuminaireCognition/aria/actions/workflows/ci.yml)
 
-**Ship-Board AI Framework for EVE Online**
+**Tactical Advisor AI Framework for EVE Online**
 
 ARIA is a Claude Code extension that turns Claude into a tactical EVE Online assistant. It provides mission briefs, fitting advice, threat assessment, mining guidance, and exploration tips — all through natural language.
 
@@ -10,7 +10,7 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 ═══════════════════════════════════════════════════════════════════
     ___    ____  _________
    /   |  / __ \/  _/   |   Adaptive Reasoning & Intelligence Array
-  / /| | / /_/ // // /| |   Ship-Board Tactical Assistant
+  / /| | / /_/ // // /| |   Tactical Advisory System
  / ___ |/ _, _// // ___ |
 /_/  |_/_/ |_/___/_/  |_|   by Luminaire Cognition [LUCOS]
 ```
