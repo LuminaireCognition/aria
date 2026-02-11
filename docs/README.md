@@ -78,12 +78,6 @@ Setup paths:
 | [PROTOCOLS.md](PROTOCOLS.md) | Communication and data protocols |
 | [ROUTE_SCENARIOS.md](ROUTE_SCENARIOS.md) | Route planning examples |
 
-## Prompt Library
-
-| Document | Description |
-|----------|-------------|
-| [Review Prompts](../dev/prompts/README.md) | Standalone review prompts for AI-assisted code quality evaluation |
-
 ## Development
 
 | Document | Description |
@@ -96,6 +90,7 @@ Setup paths:
 | [COMMAND_SUGGESTIONS.md](COMMAND_SUGGESTIONS.md) | How ARIA suggests commands |
 | [SESSION_CONTEXT.md](SESSION_CONTEXT.md) | Session initialization internals |
 | [CONTEXT_POLICY.md](CONTEXT_POLICY.md) | Context management policies |
+| [Developer Prompt Library](../dev/prompts/README.md) | Manual review prompts for AI-assisted code quality evaluation (not runtime) |
 
 ## Security
 

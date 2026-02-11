@@ -20,8 +20,7 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 <a href="./docs/FIRST_RUN.md">First Run</a> |
 <a href="./docs/ESI.md">ESI Setup</a> |
 <a href="./docs/FAQ.md">FAQ</a> |
-<a href="./docs/README.md">Full Docs Index</a> |
-<a href="./dev/prompts/README.md">Prompt Library</a>
+<a href="./docs/README.md">Full Docs Index</a>
 </p>
 
 ### What ARIA Does
