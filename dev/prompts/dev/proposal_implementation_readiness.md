@@ -1,4 +1,14 @@
-Act as an implementation-readiness gate reviewer for a complex codebase.
+---
+category: dev
+description: Review template assessing whether a proposal is specific enough for an AI coding agent to implement unambiguously.
+when_to_use: Optional checklist when a proposal under dev/proposals/ needs implementation-readiness review.
+related_prompts:
+  - dev/premerge.md
+---
+
+> **Usage:** This is an optional review template. Use it manually when you want a structured readiness check before starting implementation.
+
+Act as a senior engineer reviewing implementation readiness for a complex codebase.
 
 Scope:
 - Proposal: `<PROPOSAL_PATH>`

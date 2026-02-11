@@ -1,13 +1,21 @@
-# Prompt for Codex CLI (gpt-5.2 xhigh)
+---
+category: architecture
+description: Review LLM integration patterns including prompting, tool use, MCP, and skill/command extension points.
+when_to_use: When reviewing LLM call sites, tool orchestration, prompt templates, or extension points.
+related_prompts:
+  - architecture/context_management.md
+  - architecture/python.md
+  - security/audit_ai.md
+---
 
-You are a senior staff/principal engineer performing a technology review of this repository. The project is a simple collection of **Python**, **MCP**, and **data** intended to facilitate investigations. Your review must have a sharp focus on **LLM-integrated application best practices**, with particular emphasis on **extending Claude Code with Claude Code Skills**.
+You are a senior staff/principal engineer performing a technology review of this repository. The project is a simple collection of **Python**, **MCP**, and **data** intended to facilitate investigations. Your review must have a sharp focus on **LLM-integrated application best practices**, including how the codebase exposes functionality through skills, commands, or tool extension points.
 
 ## Goals
 
 1. Assess how the application uses LLMs end-to-end (prompting, tool use, data access, reliability, security, cost, observability).
 2. Identify gaps and risks (technical, security, privacy, product, operational).
 3. Provide **actionable, repo-specific** recommendations and concrete changes.
-4. Provide a path to cleanly extend/structure this repo for **Claude Code Skills** (skill design, boundaries, testing, packaging, versioning).
+4. Evaluate how the repo structures its skill/command extension points (boundaries, contracts, testing, packaging).
 
 ## How to run the review
 
@@ -55,17 +63,17 @@ For each category, produce:
 * What is missing/risky
 * What to change (specific)
 
-### 3) Claude Code Skills extension plan (primary focus)
+### 3) Skill/command extension architecture
 
-Provide a practical plan to extend this repo with **Claude Code Skills**.
+Evaluate how the repo structures its extension points (skills, commands, tools).
 Include:
 
-* Recommended skill boundaries and skill taxonomy (what should be a skill vs core app)
-* Skill I/O contracts (schemas), example tool signatures, and naming conventions
-* How to package skills (folder layout), versioning strategy, and documentation format
-* Skill orchestration patterns (routing, tool gating, preconditions, authorization checks)
-* Testing strategy for skills (unit tests, golden tests, mocked MCP, regression)
-* Security model for skills (least privilege, file access, command execution restrictions)
+* Recommended boundaries and taxonomy (what should be a skill vs core app)
+* I/O contracts (schemas), example tool signatures, and naming conventions
+* Packaging structure (folder layout), versioning strategy, and documentation format
+* Orchestration patterns (routing, tool gating, preconditions, authorization checks)
+* Testing strategy (unit tests, golden tests, mocked MCP, regression)
+* Security model (least privilege, file access, command execution restrictions)
 * Example: draft 1–2 concrete skill specs derived from this repo (with schemas and example prompts)
 
 ### 4) Priority-ranked action list
@@ -92,7 +100,7 @@ Provide checklists that can be used as acceptance criteria:
 
 * LLM integration checklist
 * MCP/tooling checklist
-* Claude Code Skills checklist
+* Skill/command extension checklist
 
 ## Review rubric (use this explicitly)
 
@@ -104,12 +112,12 @@ Score each area 0–5 with a short justification:
 * Observability (logs/metrics/traces)
 * Data governance (PII, provenance)
 * Cost control (token/caching)
-* Skill-readiness (clean skill boundaries, schemas, tests)
+* Skill-readiness (clean extension boundaries, schemas, tests)
 
 ## Constraints
 
 * Be concrete. Avoid generic advice.
-* Every recommendation must reference the repo’s actual code layout and functions.
+* Every recommendation must reference the repo's actual code layout and functions.
 * Prefer small incremental refactors that reduce risk.
 * If information is missing (e.g., no tests, no logging), explicitly state that and propose minimal scaffolding.
 

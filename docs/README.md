@@ -90,6 +90,7 @@ Setup paths:
 | [COMMAND_SUGGESTIONS.md](COMMAND_SUGGESTIONS.md) | How ARIA suggests commands |
 | [SESSION_CONTEXT.md](SESSION_CONTEXT.md) | Session initialization internals |
 | [CONTEXT_POLICY.md](CONTEXT_POLICY.md) | Context management policies |
+| [Developer Prompt Library](../dev/prompts/README.md) | Manual review prompts for AI-assisted code quality evaluation (not runtime) |
 
 ## Security
 

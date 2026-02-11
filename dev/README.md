@@ -6,8 +6,16 @@ This directory contains development lifecycle artifacts for the ARIA project.
 
 ```
 dev/
-├── adr/                 # Architecture Decision Records
-│   └── 00X-*.md         # Numbered decisions with rationale
+├── prompts/             # Review prompt library (standalone toolkit)
+│   ├── architecture/    # System design, MCP, Python, LLM integration
+│   ├── security/        # AI audit, supply chain
+│   ├── testing/         # Test harness, coverage quality
+│   ├── cicd/            # Pipeline quality, release & rollback
+│   ├── docs/            # Onboarding & first-run UX
+│   ├── ux/              # Product interaction UX analysis
+│   ├── repo/            # GitHub first impression
+│   ├── dev/             # Pre-merge, post-merge, proposal readiness
+│   └── meta/            # Scoring rubric (shared reference)
 │
 ├── stp/                 # Skill Tracking Plans
 │   ├── active/          # Currently in progress
@@ -15,26 +23,29 @@ dev/
 │   └── proposed/        # Under consideration
 │
 ├── proposals/           # Feature proposals and RFCs
-│   └── *.md             # Proposal documents
+│   ├── *.md             # Active proposals
+│   └── archive/         # Implemented, superseded, or consolidated
 │
 ├── reviews/             # Code reviews and audits
-│   └── *.md             # Review documents
-│
 ├── planning/            # Task tracking and roadmaps
-│   ├── TODO.md          # Current tasks
-│   └── TODO_SECURITY.md # Security-specific tasks
-│
-├── archive/             # Historical documents
-├── decisions/           # Design decisions (pre-ADR)
+├── archive/             # Historical documents (pre-proposal era)
+├── decisions/           # Design decisions
 ├── design/              # Design documents
-└── plans/               # Implementation plans
+├── plans/               # Implementation plans
+├── playbooks/           # Operational playbooks
+├── scripts/             # Development scripts
+├── spikes/              # Technical spikes and experiments
+├── evidence/            # Supporting evidence for decisions
+└── mechanics/           # Game mechanics documentation
 ```
 
+## Review Prompt Library
+
+The `prompts/` directory contains standalone review prompts for evaluating code quality. Give any prompt to an AI coding agent with full codebase access to produce a structured, severity-ranked report.
+
+See [`prompts/README.md`](prompts/README.md) for the full catalog and usage guide.
+
 ## Workflow
-
-### Architecture Decision Records (ADRs)
-
-ADRs document significant architectural decisions. See `adr/README.md` for the template and process.
 
 ### Skill Tracking Plans (STPs)
 
@@ -50,8 +61,8 @@ Feature proposals go through this lifecycle:
 
 1. Draft proposal in `proposals/`
 2. Review and iterate
-3. Accept → Create ADR if architectural, or STP if implementation
-4. Archive completed proposals
+3. Accept → Create STP if implementation-focused
+4. Archive completed proposals in `proposals/archive/`
 
 ## Key Documents
 

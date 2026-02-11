@@ -1,6 +1,6 @@
 # Prompt Library Review Coverage Proposal
 
-**Status:** PROPOSED (2026-02-09)
+**Status:** SUPERSEDED (2026-02-10) — CI automation pipeline not adopted; standalone prompts retained in [`dev/prompts/`](../../prompts/README.md).
 **Owner:** DevEx / Quality Engineering
 **Scope:** `dev/prompts/` and prompt library governance
 
