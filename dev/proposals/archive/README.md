@@ -24,7 +24,6 @@ Proposals that have been implemented, superseded, or consolidated.
 | SKILL_TEST_HARNESS_PROPOSAL.md | Implemented | 2026-02-02 | All 3 layers: contract, structural, semantic evals |
 | EXPAND_SDE_INJEST.md | Implemented | 2026-02-02 | Meta types SDE import for T2/Faction variant lookups |
 | SKILL_AWARE_FIT_SELECTION.md | Implemented | 2026-02-02 | Stats caching CLI, omega/T2 validation, tier system |
-| PROMPT_LIBRARY_REVIEW_COVERAGE_PROPOSAL.md | Superseded | 2026-02-10 | Automation pipeline not adopted; standalone prompts retained in `dev/prompts/` |
 
 ## Archive Policy
 

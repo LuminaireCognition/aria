@@ -1,11 +1,13 @@
 ---
 category: dev
-description: Strict pre-merge review verifying proposal compliance, production standards, and merge readiness.
-when_to_use: When performing a final review before merging a feature branch to main.
+description: Pre-merge review template verifying proposal compliance, production standards, and merge readiness.
+when_to_use: Optional checklist for final review before merging a feature branch to main.
 related_prompts:
   - dev/postmerge_regression_audit.md
   - dev/proposal_implementation_readiness.md
 ---
+
+> **Usage:** This is an optional review template. Use it manually when you want a structured pre-merge checklist.
 
 Act as a strict senior engineer performing a pre-merge review for `main`.
 

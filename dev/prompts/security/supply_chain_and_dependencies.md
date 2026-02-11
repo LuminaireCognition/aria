@@ -26,7 +26,7 @@ Review this repository from the perspective of a **supply chain security enginee
 
 **Out-of-scope:**
 
-* Runtime observability and runbook quality (deferred to ops prompts)
+* Runtime observability and runbook quality (out of scope for this prompt)
 * Application-level security and prompt injection (see `security/audit_ai.md`)
 
 ## How to Run the Review

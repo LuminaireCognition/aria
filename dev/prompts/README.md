@@ -2,6 +2,18 @@
 
 Standalone review prompts for evaluating code quality across software lifecycle facets. Each prompt is designed to be given to an AI agent with full codebase access.
 
+## Starter Set
+
+New to the library? These 5 prompts cover the most common review scenarios:
+
+| Prompt | Use Case |
+|--------|----------|
+| [`system_design.md`](architecture/system_design.md) | "Is the module structure sound?" — run after structural refactors |
+| [`audit_ai.md`](security/audit_ai.md) | "Are there security gaps?" — run before any release |
+| [`test_harness.md`](testing/test_harness.md) | "Are the tests reliable?" — run when test patterns change |
+| [`premerge.md`](dev/premerge.md) | "Is this branch ready to merge?" — run before merging to main |
+| [`onboarding_first_run_ux.md`](docs/onboarding_first_run_ux.md) | "Can a new contributor get started?" — run after docs changes |
+
 ## How to Use
 
 1. Pick a prompt from the catalog below based on what you want to review.
@@ -19,7 +31,7 @@ For prompts marked with `<PROPOSAL_PATH>`, replace the placeholder with the path
 | [`system_design.md`](architecture/system_design.md) | Module boundaries, dependency direction, layering, interfaces | Structural changes to packages under `src/` |
 | [`mcp_architecture.md`](architecture/mcp_architecture.md) | MCP dispatcher contracts, tool schemas, transport handling | Changes to MCP server code or `.mcp.json` |
 | [`python.md`](architecture/python.md) | Python code quality, types, async, error handling, tooling | Major refactors or code quality sweeps |
-| [`llm_integration.md`](architecture/llm_integration.md) | LLM integration patterns, prompting, tool use, Skills extension | Changes to LLM call sites or tool orchestration |
+| [`llm_integration.md`](architecture/llm_integration.md) | LLM integration patterns, prompting, tool use, skill/command extension | Changes to LLM call sites or tool orchestration |
 | [`context_management.md`](architecture/context_management.md) | Context lifecycle, token budgeting, state management | Changes to context assembly or routing |
 | [`accretion_auditor.md`](architecture/accretion_auditor.md) | High-complexity/low-utility accretions, bloat reduction, simplification cuts | When the codebase feels bloated and you need a remove-or-simplify plan |
 
@@ -66,9 +78,9 @@ For prompts marked with `<PROPOSAL_PATH>`, replace the placeholder with the path
 
 | Prompt | Reviews | When to Use |
 |--------|---------|-------------|
-| [`premerge.md`](dev/premerge.md) | Proposal compliance, production standards, merge readiness | Final review before merging to `main`. Requires `<PROPOSAL_PATH>` |
+| [`premerge.md`](dev/premerge.md) | Proposal compliance, production standards, merge readiness | Optional checklist before merging to `main`. Requires `<PROPOSAL_PATH>` |
 | [`postmerge_regression_audit.md`](dev/postmerge_regression_audit.md) | Regression detection, merge artifacts, test suite health | After merging a feature branch |
-| [`proposal_implementation_readiness.md`](dev/proposal_implementation_readiness.md) | Proposal specificity, ambiguity detection, implementation blockers | Reviewing a proposal before implementation. Requires `<PROPOSAL_PATH>` |
+| [`proposal_implementation_readiness.md`](dev/proposal_implementation_readiness.md) | Proposal specificity, ambiguity detection, implementation blockers | Optional readiness check before implementation. Requires `<PROPOSAL_PATH>` |
 
 ## Reference
 
