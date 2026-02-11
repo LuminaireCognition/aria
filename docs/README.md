@@ -78,6 +78,12 @@ Setup paths:
 | [PROTOCOLS.md](PROTOCOLS.md) | Communication and data protocols |
 | [ROUTE_SCENARIOS.md](ROUTE_SCENARIOS.md) | Route planning examples |
 
+## Prompt Library
+
+| Document | Description |
+|----------|-------------|
+| [Review Prompts](../dev/prompts/README.md) | Standalone review prompts for AI-assisted code quality evaluation |
+
 ## Development
 
 | Document | Description |

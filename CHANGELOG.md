@@ -122,6 +122,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+#### Prompt Library (standalone toolkit)
+- Retained review prompts in `dev/prompts/` as a standalone manual toolkit for AI-assisted code review
+- Removed `src/aria_esi/prompt_review/` runtime automation (matcher, aggregator, orchestrator, waivers, CI workflow)
+- The prompt library is agent-agnostic: give any prompt to an AI coding agent with codebase access for a structured report
+- Added accretion auditor and UX analysis prompts
+
 #### Security Documentation Update
 - Updated `dev/reviews/SECURITY_000.md` with mitigation status for all findings
 - Added verification commands section for security audits
