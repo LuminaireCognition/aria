@@ -21,6 +21,7 @@ For prompts marked with `<PROPOSAL_PATH>`, replace the placeholder with the path
 | [`python.md`](architecture/python.md) | Python code quality, types, async, error handling, tooling | Major refactors or code quality sweeps |
 | [`llm_integration.md`](architecture/llm_integration.md) | LLM integration patterns, prompting, tool use, Skills extension | Changes to LLM call sites or tool orchestration |
 | [`context_management.md`](architecture/context_management.md) | Context lifecycle, token budgeting, state management | Changes to context assembly or routing |
+| [`accretion_auditor.md`](architecture/accretion_auditor.md) | High-complexity/low-utility accretions, bloat reduction, simplification cuts | When the codebase feels bloated and you need a remove-or-simplify plan |
 
 ### Security
 
@@ -48,6 +49,12 @@ For prompts marked with `<PROPOSAL_PATH>`, replace the placeholder with the path
 | Prompt | Reviews | When to Use |
 |--------|---------|-------------|
 | [`onboarding_first_run_ux.md`](docs/onboarding_first_run_ux.md) | Documentation quality, onboarding flow, first-run UX | README, setup instructions, or `docs/` changes |
+
+### UX
+
+| Prompt | Reviews | When to Use |
+|--------|---------|-------------|
+| [`ux_analysis.md`](ux/ux_analysis.md) | Product interaction UX, CLI flow quality, output clarity, and trust signals | User-facing command flow, output formatting, or error/interaction changes |
 
 ### Repo
 
@@ -88,3 +95,5 @@ Some prompts cover adjacent concerns. When reviewing a specific area, consider r
 | `pipeline_quality.md` | `release_and_rollback.md` | Pipeline reliability vs release safety |
 | `premerge.md` | `postmerge_regression_audit.md` | Pre-merge gates vs post-merge verification |
 | `onboarding_first_run_ux.md` | `github_first_impression.md` | Documentation depth vs repository presentation |
+| `ux_analysis.md` | `onboarding_first_run_ux.md` | Product interaction UX vs documentation UX |
+| `accretion_auditor.md` | `system_design.md` | Simplification/deletion priorities vs architecture boundaries |
