@@ -65,8 +65,8 @@ Prioritize issues that enable any of the following:
 
 ## Deliverables
 
-* **Top 5 Quick Wins** (1--2 days effort)
-* **Medium-term fixes** (1--2 weeks)
+* **Top 5 Quick Wins** (1-2 days effort)
+* **Medium-term fixes** (1-2 weeks)
 * **Long-term architectural controls** (sandboxing, least privilege, egress controls, provenance)
 * A **Prompt-injection resilience checklist** tailored to this repository
 

@@ -66,9 +66,9 @@ For prompts marked with `<PROPOSAL_PATH>`, replace the placeholder with the path
 
 | Prompt | Reviews | When to Use |
 |--------|---------|-------------|
-| [`premerge.md`](dev/premerge.md) | Proposal compliance, production standards, merge readiness | Final review before merging to `main` |
+| [`premerge.md`](dev/premerge.md) | Proposal compliance, production standards, merge readiness | Final review before merging to `main`. Requires `<PROPOSAL_PATH>` |
 | [`postmerge_regression_audit.md`](dev/postmerge_regression_audit.md) | Regression detection, merge artifacts, test suite health | After merging a feature branch |
-| [`proposal_implementation_readiness.md`](dev/proposal_implementation_readiness.md) | Proposal specificity, ambiguity detection, implementation blockers | Reviewing a proposal before implementation |
+| [`proposal_implementation_readiness.md`](dev/proposal_implementation_readiness.md) | Proposal specificity, ambiguity detection, implementation blockers | Reviewing a proposal before implementation. Requires `<PROPOSAL_PATH>` |
 
 ## Reference
 
