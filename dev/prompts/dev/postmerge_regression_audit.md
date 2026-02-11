@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["dev/premerge.md", "meta/review_orchestrator.md"] -->
+---
+category: dev
+description: Post-merge regression verification checking for merge artifacts, test suite health, and unintended side effects.
+when_to_use: After merging a feature branch to main, to verify no regressions were introduced.
+related_prompts:
+  - dev/premerge.md
+  - testing/test_harness.md
+---
 
 # Post-Merge Regression Verification
 
@@ -21,24 +25,6 @@ Act as a strict senior engineer performing a post-merge regression audit on `mai
 
 * Repository first-impression and documentation IA evaluation (see `docs/onboarding_first_run_ux.md`, `repo/github_first_impression.md`)
 * Pre-merge review concerns (see `dev/premerge.md`)
-
-## Adjacent Prompts
-
-* `dev/premerge.md` — pre-merge review; this prompt covers post-merge verification
-* `testing/test_harness.md` — test infrastructure; this prompt verifies tests pass post-merge
-
-## Applicability
-
-This is a **gate prompt**. It is applicable only when:
-
-* The event is a `push` to the default branch (post-merge)
-* The `postmerge_applicable` flag is set
-
-It is **not applicable** for:
-
-* Pull request events (pre-merge review is handled by `dev/premerge.md`)
-* Non-default branch pushes
-* Workflow dispatch without explicit post-merge context
 
 ## Review Goals
 
@@ -66,6 +52,14 @@ Produce:
 4. Build artifact verification
 5. Explicit "no regressions found" statement if clean
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["cicd/release_and_rollback.md", "security/supply_chain_and_dependencies.md"] -->
+---
+category: cicd
+description: Evaluate CI/CD pipeline reliability, job dependencies, secret handling, and failure diagnostics.
+when_to_use: When reviewing GitHub Actions workflows or CI configuration changes.
+related_prompts:
+  - cicd/release_and_rollback.md
+  - security/supply_chain_and_dependencies.md
+---
 
 # CI/CD Pipeline Reliability Review
 
@@ -23,11 +27,6 @@ Review this repository from the perspective of a **senior DevOps/platform engine
 
 * Deep architecture boundary correctness (see `architecture/system_design.md`)
 * Application-level security posture (see `security/audit_ai.md`)
-
-## Adjacent Prompts
-
-* `cicd/release_and_rollback.md` — release engineering; this prompt covers pipeline mechanics
-* `security/supply_chain_and_dependencies.md` — dependency security; this prompt covers CI-specific risks
 
 ## How to Run the Review
 
@@ -57,6 +56,14 @@ Produce:
 4. Artifact handling assessment
 5. Actionable recommendations ranked by priority
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

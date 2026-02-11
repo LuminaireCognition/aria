@@ -1,4 +1,11 @@
-# Prompt for Codex CLI (gpt-5.2 xhigh)
+---
+category: architecture
+description: Review context lifecycle management including token budgeting, state handling, and tool output routing.
+when_to_use: When reviewing how context is assembled, trimmed, or routed into LLM and MCP calls.
+related_prompts:
+  - architecture/llm_integration.md
+  - security/audit_ai.md
+---
 
 You are an expert software reviewer specializing in **LLM application context management** (prompt/state/memory/tool context). Perform a technology review of this repository (Python + MCP + data) with a sharp focus on how the application:
 
@@ -56,16 +63,16 @@ Deliver an **actionable** report that identifies concrete issues and improvement
 5. **State & memory safety**
 
    * Search for globals, singletons, module-level caches, or mutable default args that can cause cross-run contamination.
-   * Verify session separation (especially in CLI loops) and how “conversation history” is stored.
+   * Verify session separation (especially in CLI loops) and how "conversation history" is stored.
    * Check concurrency/async: thread safety, shared caches, file-based state.
 
 6. **Observability for context**
    Evaluate whether the app can answer:
 
-   * “What context did we send to the model?”
-   * “How many tokens by segment (system/user/tools/retrieval)?”
-   * “What was trimmed and why?”
-   * “Which tool outputs were included or summarized?”
+   * "What context did we send to the model?"
+   * "How many tokens by segment (system/user/tools/retrieval)?"
+   * "What was trimmed and why?"
+   * "Which tool outputs were included or summarized?"
 
 7. **Testing & evaluation**
 
@@ -133,7 +140,7 @@ Where applicable, propose patches in unified diff style for the most important 1
   * caching/state persistence
   * logging/tracing
 * Read the main entrypoints and follow the call chain into context assembly.
-* If there’s a configuration system, extract context-relevant settings.
+* If there's a configuration system, extract context-relevant settings.
 
 ## Special focus checklist
 

@@ -1,4 +1,11 @@
-# Prompt for Codex CLI: Python code quality review for an LLM-integrated application
+---
+category: architecture
+description: Python code quality review covering types, async, error handling, testing, and tooling.
+when_to_use: When reviewing Python code quality across the codebase or during major refactors.
+related_prompts:
+  - architecture/system_design.md
+  - architecture/llm_integration.md
+---
 
 You are a senior Python engineer with deep experience building and maintaining **LLM-integrated applications** (agent/tooling systems, MCP/tool servers, RAG pipelines, evaluation harnesses). Review this repository's **Python code** for correctness, clarity, maintainability, and modern best practices.
 

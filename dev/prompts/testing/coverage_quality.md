@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["testing/test_harness.md", "architecture/mcp_architecture.md"] -->
+---
+category: testing
+description: Evaluate test coverage adequacy, gap analysis, and coverage tooling enforcement.
+when_to_use: When changes touch tests/, pyproject.toml, or CI workflow files.
+related_prompts:
+  - testing/test_harness.md
+  - architecture/mcp_architecture.md
+---
 
 # Test Coverage Adequacy Review
 
@@ -22,19 +26,6 @@ Review this repository from the perspective of a **senior QA engineer** evaluati
 
 * Legal attribution and licensing text quality (see `security/supply_chain_and_dependencies.md`)
 * Test harness infrastructure (see `testing/test_harness.md`)
-
-## Adjacent Prompts
-
-* `testing/test_harness.md` — test infrastructure and harness; this prompt evaluates coverage adequacy
-* `architecture/mcp_architecture.md` — MCP contracts; this prompt checks if MCP paths are tested
-
-## Deep-Dive Triggers
-
-This prompt is selected for deep-dive when changes touch:
-
-* `tests/**`
-* `pyproject.toml`
-* `.github/workflows/**`
 
 ## How to Run the Review
 
@@ -64,6 +55,14 @@ Produce:
 4. Critical path coverage assessment
 5. Actionable recommendations ranked by priority
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

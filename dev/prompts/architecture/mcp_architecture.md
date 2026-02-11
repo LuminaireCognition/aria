@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["architecture/system_design.md", "testing/coverage_quality.md"] -->
+---
+category: architecture
+description: Evaluate MCP dispatcher contracts, tool schemas, transport handling, and server behavior.
+when_to_use: When changes touch MCP server code (src/aria_esi/mcp/**) or .mcp.json.
+related_prompts:
+  - architecture/system_design.md
+  - testing/coverage_quality.md
+---
 
 # MCP Server Contracts and Dispatcher Behavior Review
 
@@ -23,18 +27,6 @@ Review this repository from the perspective of a **senior engineer specializing 
 * CI policy design and pipeline reliability (see `cicd/pipeline_quality.md`)
 * Documentation information architecture quality (see `docs/onboarding_first_run_ux.md`)
 * Broader system modularity beyond MCP (see `architecture/system_design.md`)
-
-## Adjacent Prompts
-
-* `architecture/system_design.md` — broader system design; this prompt focuses on MCP-specific contracts
-* `testing/coverage_quality.md` — test coverage; this prompt evaluates MCP behavioral contracts
-
-## Deep-Dive Triggers
-
-This prompt is selected for deep-dive when changes touch:
-
-* `src/aria_esi/mcp/**`
-* `.mcp.json`
 
 ## How to Run the Review
 
@@ -64,6 +56,14 @@ Produce:
 4. Error propagation assessment
 5. Actionable recommendations ranked by priority
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

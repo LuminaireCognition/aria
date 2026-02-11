@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["security/supply_chain_and_dependencies.md", "testing/test_harness.md"] -->
+---
+category: security
+description: AI application security audit covering prompt injection, agent misuse, MCP trust boundaries, and Python service risks.
+when_to_use: When reviewing security posture of LLM integration, tool dispatch, or data handling code.
+related_prompts:
+  - security/supply_chain_and_dependencies.md
+  - testing/test_harness.md
+---
 
 # Codex security review prompt (LLM/MCP/Python)
 
@@ -61,11 +65,11 @@ Prioritize issues that enable any of the following:
 
 ## Deliverables
 
-* **Top 5 Quick Wins** (1–2 days effort)
-* **Medium-term fixes** (1–2 weeks)
+* **Top 5 Quick Wins** (1--2 days effort)
+* **Medium-term fixes** (1--2 weeks)
 * **Long-term architectural controls** (sandboxing, least privilege, egress controls, provenance)
 * A **Prompt-injection resilience checklist** tailored to this repository
 
 ## Constraints
 
-When recommending mitigations, prefer controls that preserve investigative flexibility. If recommending restrictive controls, propose safe defaults plus explicit “break glass” mechanisms.
+When recommending mitigations, prefer controls that preserve investigative flexibility. If recommending restrictive controls, propose safe defaults plus explicit "break glass" mechanisms.

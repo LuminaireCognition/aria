@@ -1,7 +1,10 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["dev/premerge.md", "meta/review_orchestrator.md"] -->
+---
+category: dev
+description: Gate review assessing whether a proposal is specific enough for an AI coding agent to implement unambiguously.
+when_to_use: When a proposal under dev/proposals/ needs implementation-readiness review.
+related_prompts:
+  - dev/premerge.md
+---
 
 Act as an implementation-readiness gate reviewer for a complex codebase.
 

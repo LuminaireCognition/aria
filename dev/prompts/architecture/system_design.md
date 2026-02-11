@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["architecture/mcp_architecture.md", "cicd/release_and_rollback.md"] -->
+---
+category: architecture
+description: Evaluate system boundaries, modularity, dependency direction, and separation of concerns.
+when_to_use: When reviewing structural changes to modules, packages, or interfaces under src/.
+related_prompts:
+  - architecture/mcp_architecture.md
+  - cicd/release_and_rollback.md
+---
 
 # System Design and Modularity Review
 
@@ -24,11 +28,6 @@ Review this repository from the perspective of a **senior systems architect** ev
 * Prompt-injection controls and AI security posture (see `security/audit_ai.md`)
 * MCP-specific dispatcher contracts (see `architecture/mcp_architecture.md`)
 * CI/CD pipeline design (see `cicd/pipeline_quality.md`)
-
-## Adjacent Prompts
-
-* `architecture/mcp_architecture.md` — MCP-specific architecture; this prompt covers broader system design
-* `cicd/release_and_rollback.md` — release engineering; this prompt covers in-code modularity
 
 ## How to Run the Review
 
@@ -58,6 +57,14 @@ Produce:
 4. Configuration management assessment
 5. Actionable recommendations ranked by priority
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

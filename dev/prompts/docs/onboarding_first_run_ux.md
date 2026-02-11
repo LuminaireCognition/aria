@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["repo/github_first_impression.md", "dev/premerge.md"] -->
+---
+category: docs
+description: Evaluate documentation quality, onboarding flow, and first-run user experience.
+when_to_use: When reviewing README, setup instructions, or docs/ directory changes.
+related_prompts:
+  - repo/github_first_impression.md
+  - dev/premerge.md
+---
 
 # Documentation and Onboarding UX Review
 
@@ -22,11 +26,6 @@ Review this repository from the perspective of a **developer experience engineer
 
 * CI failure containment internals (see `cicd/pipeline_quality.md`)
 * Code-path security posture (see `security/audit_ai.md`)
-
-## Adjacent Prompts
-
-* `repo/github_first_impression.md` — repository first impression; this prompt goes deeper on documentation
-* `dev/premerge.md` — pre-merge quality; this prompt covers documentation as a user-facing deliverable
 
 ## How to Run the Review
 
@@ -56,6 +55,14 @@ Produce:
 4. Error message quality assessment
 5. Actionable recommendations ranked by priority
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

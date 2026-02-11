@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["docs/onboarding_first_run_ux.md", "dev/premerge.md"] -->
+---
+category: repo
+description: Assess repository presentation, community health files, and contributor readiness from a first-time visitor perspective.
+when_to_use: When changes touch .github/, README.md, CONTRIBUTING.md, LICENSE, or ATTRIBUTION.md.
+related_prompts:
+  - docs/onboarding_first_run_ux.md
+  - dev/premerge.md
+---
 
 # GitHub Repository First Impression Review
 
@@ -24,21 +28,6 @@ Review this repository from the perspective of a **potential contributor or eval
 
 * Code-path security posture (see `security/audit_ai.md`)
 * Deep documentation IA (see `docs/onboarding_first_run_ux.md`)
-
-## Adjacent Prompts
-
-* `docs/onboarding_first_run_ux.md` — documentation depth; this prompt covers GitHub-facing presentation
-* `dev/premerge.md` — pre-merge quality; this prompt covers repository community readiness
-
-## Deep-Dive Triggers
-
-This prompt is selected for deep-dive when changes touch:
-
-* `.github/**`
-* `README.md`
-* `CONTRIBUTING.md`
-* `LICENSE`
-* `ATTRIBUTION.md`
 
 ## How to Run the Review
 
@@ -68,6 +57,14 @@ Produce:
 4. License and attribution findings
 5. Actionable recommendations ranked by priority
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

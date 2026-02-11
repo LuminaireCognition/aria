@@ -6,6 +6,8 @@ This directory contains prompts for high-level design analysis, refactoring stra
 
 | File | Purpose |
 |------|---------|
+| `system_design.md` | Review system boundaries, modularity, dependency direction, and separation of concerns |
+| `mcp_architecture.md` | Review MCP dispatcher contracts, tool schemas, and server behavior |
 | `llm_integration.md` | Review LLM integration patterns: prompting, tool use, MCP, Claude Code Skills extension |
 | `context_management.md` | Review context lifecycle: token budgeting, state management, tool output handling |
 | `python.md` | Python code quality review: types, async, error handling, testing, tooling |

@@ -1,32 +1,14 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["meta/review_orchestrator.md", "architecture/system_design.md", "architecture/mcp_architecture.md", "security/audit_ai.md", "security/supply_chain_and_dependencies.md", "testing/test_harness.md", "testing/coverage_quality.md", "cicd/pipeline_quality.md", "cicd/release_and_rollback.md", "docs/onboarding_first_run_ux.md", "repo/github_first_impression.md", "dev/premerge.md", "dev/postmerge_regression_audit.md"] -->
+---
+type: reference
+category: meta
+description: Shared severity and confidence scoring definitions used by all review prompts.
+when_to_use: Reference this rubric when calibrating severity and confidence levels across reviews.
+related_prompts: []
+---
 
 # Shared Severity and Confidence Scoring Rubric
 
-You are the scoring-rubric calibration reviewer. Your role is to define, verify, and calibrate the severity and confidence scales used by all v1 prompts, ensuring consistent grading across the prompt library.
-
-## Scope
-
-**In-scope (rubric calibration):**
-
-* Severity level definitions: Critical, High, Medium, Low, Info
-* Confidence level definitions: High, Medium, Low
-* Calibration anchors: concrete examples mapping to each severity/confidence pair
-* Cross-prompt grading consistency: verify that severity assignments across prompts follow the rubric
-* Rubric drift detection: flag cases where prompt findings deviate from the canonical definitions
-
-**Out-of-scope:**
-
-* Evidence collection from repository source files (that is individual facet prompts' responsibility)
-* Code quality, security, architecture, or other facet-specific technical findings
-* Prompt selection or trigger logic
-
-## Adjacent Prompts
-
-* Adjacent to all v1 prompts (consumed as shared reference for severity/confidence calibration)
-* `meta/review_orchestrator.md` — orchestrator audits coverage; this prompt audits grading consistency
+This document defines the canonical severity and confidence scales used by all review prompts, ensuring consistent grading across the prompt library.
 
 ## Severity Definitions
 
@@ -63,25 +45,3 @@ The finding is supported by indirect evidence or pattern matching. Manual verifi
 ### Low
 
 The finding is based on heuristic or structural inference. Further investigation is required to confirm.
-
-## Evaluation Criteria
-
-When executing this rubric as a review prompt:
-
-1. **Cross-prompt severity audit:** Compare findings from all executed prompts. Flag any finding where severity appears inconsistent with the definitions above (e.g., a style issue graded Critical, or a security breach graded Low).
-2. **Calibration anchor check:** For each severity level used in the current review run, verify at least one finding matches the canonical definition.
-3. **Confidence justification:** Verify that High-confidence findings cite specific file paths and evidence. Flag High-confidence findings with no evidence.
-
-## Output
-
-Emit findings in `prompt_results.schema.v1` with:
-
-* `prompt_id`: `meta.scoring_rubric`
-* `tier`: `foundation`
-* `selection_reason`: `foundation_trigger`
-
-## Deliverables
-
-1. Severity/confidence calibration assessment for the current review run.
-2. Specific findings where cross-prompt grading appears inconsistent.
-3. Recommendations for rubric refinements if patterns emerge.

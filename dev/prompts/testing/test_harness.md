@@ -1,13 +1,17 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["testing/coverage_quality.md", "dev/premerge.md"] -->
+---
+category: testing
+description: Assess test infrastructure including fixtures, mocking strategy, determinism controls, and coverage tooling.
+when_to_use: When reviewing test harness changes, fixture patterns, or test runner configuration.
+related_prompts:
+  - testing/coverage_quality.md
+  - dev/premerge.md
+---
 
 # Testing Prompt: Review & Improve the Testing Harness for ARIA
 
 ## Scope
 
-You are reviewing **the project’s testing harness** (not the business logic). The goal is to assess whether the test infrastructure reliably supports **unit, integration, contract, and golden** tests for an ARIA-style project (Python + MCP + ESI fixtures + static SDE data).
+You are reviewing **the project's testing harness** (not the business logic). The goal is to assess whether the test infrastructure reliably supports **unit, integration, contract, and golden** tests for an ARIA-style project (Python + MCP + ESI fixtures + static SDE data).
 
 **In-scope (harness):**
 
@@ -150,7 +154,7 @@ Targets:
 * **MCP action coverage:** 100% (every action has ≥1 test)
 * **ESI endpoint coverage:** all used endpoints at least happy path
 
-Deliver a short gap analysis: what’s currently measured vs what should be measured.
+Deliver a short gap analysis: what's currently measured vs what should be measured.
 
 ## Output Format Requirements (deliverables)
 
@@ -192,7 +196,7 @@ Your output must be a structured report with:
 * [ ] Coverage configuration recommendations aligned to targets
 * [ ] Determinism plan (time, randomness, ordering, tolerances)
 
-## Notes to Codex
+## Notes
 
 * Prefer minimal, incremental improvements.
 * Keep SDE and Pydantic validation real.

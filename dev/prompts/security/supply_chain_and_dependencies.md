@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["security/audit_ai.md", "cicd/pipeline_quality.md"] -->
+---
+category: security
+description: Evaluate dependency management, lockfile integrity, licensing compliance, and third-party supply chain risk.
+when_to_use: When changes touch pyproject.toml, uv.lock, or GitHub Actions workflow dependencies.
+related_prompts:
+  - security/audit_ai.md
+  - cicd/pipeline_quality.md
+---
 
 # Supply Chain and Dependency Security Review
 
@@ -24,19 +28,6 @@ Review this repository from the perspective of a **supply chain security enginee
 
 * Runtime observability and runbook quality (deferred to ops prompts)
 * Application-level security and prompt injection (see `security/audit_ai.md`)
-
-## Adjacent Prompts
-
-* `security/audit_ai.md` — application security; this prompt covers supply chain and dependencies
-* `cicd/pipeline_quality.md` — CI reliability; this prompt covers dependency-related CI risks
-
-## Deep-Dive Triggers
-
-This prompt is selected for deep-dive when changes touch:
-
-* `pyproject.toml`
-* `uv.lock`
-* `.github/workflows/**`
 
 ## How to Run the Review
 
@@ -66,6 +57,14 @@ Produce:
 4. Pinning and reproducibility assessment
 5. Actionable recommendations ranked by priority
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

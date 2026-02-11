@@ -1,7 +1,11 @@
-<!-- owner: @anthropic/aria -->
-<!-- last_reviewed: 2026-02-10T00:00:00Z -->
-<!-- depends_on: [] -->
-<!-- adjacent_prompts: ["cicd/pipeline_quality.md", "architecture/system_design.md"] -->
+---
+category: cicd
+description: Evaluate release processes, versioning strategy, rollback safety, and deployment artifact integrity.
+when_to_use: When reviewing release workflows, versioning changes, or migration scripts.
+related_prompts:
+  - cicd/pipeline_quality.md
+  - architecture/system_design.md
+---
 
 # Release Engineering and Rollback Safety Review
 
@@ -23,11 +27,6 @@ Review this repository from the perspective of a **senior release engineer** eva
 
 * Prompt-level rubric schema design (see `meta/scoring_rubric.md`)
 * CI pipeline mechanics (see `cicd/pipeline_quality.md`)
-
-## Adjacent Prompts
-
-* `cicd/pipeline_quality.md` — pipeline reliability; this prompt covers release processes
-* `architecture/system_design.md` — system modularity; this prompt covers release engineering
 
 ## How to Run the Review
 
@@ -57,6 +56,14 @@ Produce:
 4. Migration safety findings
 5. Actionable recommendations ranked by priority
 
-## Output
+## Output Format
 
-Emit findings in `prompt_results.schema.v1`.
+For each finding, provide:
+
+* **Severity:** Critical / High / Medium / Low / Info
+* **File:** `path/to/file.py:L10-L25`
+* **Finding:** What is wrong
+* **Impact:** Why it matters
+* **Fix:** Specific remediation
+
+Organize findings by severity (highest first). If no issues found, state "No findings" with residual risks.

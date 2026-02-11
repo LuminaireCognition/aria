@@ -1,4 +1,12 @@
-# Prompt for Codex CLI (gpt-5.2 xhigh)
+---
+category: architecture
+description: Review LLM integration patterns including prompting, tool use, MCP, and Claude Code Skills extension.
+when_to_use: When reviewing LLM call sites, tool orchestration, prompt templates, or planning Skills extension.
+related_prompts:
+  - architecture/context_management.md
+  - architecture/python.md
+  - security/audit_ai.md
+---
 
 You are a senior staff/principal engineer performing a technology review of this repository. The project is a simple collection of **Python**, **MCP**, and **data** intended to facilitate investigations. Your review must have a sharp focus on **LLM-integrated application best practices**, with particular emphasis on **extending Claude Code with Claude Code Skills**.
 
@@ -109,7 +117,7 @@ Score each area 0–5 with a short justification:
 ## Constraints
 
 * Be concrete. Avoid generic advice.
-* Every recommendation must reference the repo’s actual code layout and functions.
+* Every recommendation must reference the repo's actual code layout and functions.
 * Prefer small incremental refactors that reduce risk.
 * If information is missing (e.g., no tests, no logging), explicitly state that and propose minimal scaffolding.
 

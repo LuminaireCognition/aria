@@ -1,8 +1,15 @@
 # Testing Prompts
 
-This directory contains prompts for generating test cases, brainstorming edge cases, and ensuring robust coverage.
+This directory contains prompts for reviewing test infrastructure, coverage adequacy, and quality assurance practices.
+
+## Contents
+
+| File | Purpose |
+|------|---------|
+| `test_harness.md` | Review test infrastructure: fixtures, mocking, determinism, coverage tooling |
+| `coverage_quality.md` | Evaluate test coverage adequacy, gap analysis, and enforcement |
 
 ## Intended Use
-- Generating complex `pytest` fixtures
-- Simulation edge-case brainstorming (e.g., EVE Online mechanics quirks)
-- Validation of ESI data models
+- Reviewing test harness configuration and fixture patterns
+- Assessing coverage gaps and tooling enforcement
+- Validating ESI data models and edge case handling

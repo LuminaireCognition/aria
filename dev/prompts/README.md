@@ -1,72 +1,90 @@
-# Prompt Library v1
+# Review Prompt Library
 
-This directory contains the v1 prompt library for CI-driven code review. Each prompt targets a specific software lifecycle facet and is executed by the review pipeline based on file-change triggers.
+Standalone review prompts for evaluating code quality across software lifecycle facets. Each prompt is designed to be given to an AI agent with full codebase access.
 
-## Facet-to-Prompt Mapping
+## How to Use
 
-### Foundation Tier
+1. Pick a prompt from the catalog below based on what you want to review.
+2. Give the prompt file to an AI coding agent (Claude Code, Codex, etc.) with access to the repository.
+3. The agent will produce a structured report with findings ranked by severity.
 
-Foundation prompts run on every PR that touches core surfaces (`src/**`, `.github/workflows/**`, `pyproject.toml`, `dev/prompts/**`, `README.md`, `docs/**`, `SECURITY.md`).
+For prompts marked with `<PROPOSAL_PATH>`, replace the placeholder with the path to your proposal file.
 
-| Facet | Prompt File | Rule ID |
-|-------|-------------|---------|
-| Review orchestration | `meta/review_orchestrator.md` | `foundation.core_surfaces.v1` |
-| Scoring calibration | `meta/scoring_rubric.md` | `foundation.core_surfaces.v1` |
-| System design | `architecture/system_design.md` | `foundation.core_surfaces.v1` |
-| Security audit | `security/audit_ai.md` | `foundation.core_surfaces.v1` |
-| Test harness | `testing/test_harness.md` | `foundation.core_surfaces.v1` |
-| CI/CD pipeline | `cicd/pipeline_quality.md` | `foundation.core_surfaces.v1` |
-| Onboarding/docs | `docs/onboarding_first_run_ux.md` | `foundation.core_surfaces.v1` |
+## Prompt Catalog
 
-### Deep-Dive Tier
+### Architecture
 
-Deep-dive prompts activate when specific subsystem paths are modified.
+| Prompt | Reviews | When to Use |
+|--------|---------|-------------|
+| [`system_design.md`](architecture/system_design.md) | Module boundaries, dependency direction, layering, interfaces | Structural changes to packages under `src/` |
+| [`mcp_architecture.md`](architecture/mcp_architecture.md) | MCP dispatcher contracts, tool schemas, transport handling | Changes to MCP server code or `.mcp.json` |
+| [`python.md`](architecture/python.md) | Python code quality, types, async, error handling, tooling | Major refactors or code quality sweeps |
+| [`llm_integration.md`](architecture/llm_integration.md) | LLM integration patterns, prompting, tool use, Skills extension | Changes to LLM call sites or tool orchestration |
+| [`context_management.md`](architecture/context_management.md) | Context lifecycle, token budgeting, state management | Changes to context assembly or routing |
 
-| Facet | Prompt File | Rule ID | Triggers |
-|-------|-------------|---------|----------|
-| MCP architecture | `architecture/mcp_architecture.md` | `deep_dive.mcp_architecture.v1` | `src/aria_esi/mcp/**`, `.mcp.json` |
-| Supply chain security | `security/supply_chain_and_dependencies.md` | `deep_dive.supply_chain.v1` | `pyproject.toml`, `uv.lock`, `.github/workflows/**` |
-| Coverage quality | `testing/coverage_quality.md` | `deep_dive.coverage_quality.v1` | `tests/**`, `pyproject.toml`, `.github/workflows/**` |
-| Repo first impression | `repo/github_first_impression.md` | `deep_dive.github_first_impression.v1` | `.github/**`, `README.md`, `CONTRIBUTING.md`, `LICENSE`, `ATTRIBUTION.md` |
+### Security
 
-### Gate Tier
+| Prompt | Reviews | When to Use |
+|--------|---------|-------------|
+| [`audit_ai.md`](security/audit_ai.md) | Prompt injection, agent misuse, MCP trust boundaries, secrets | Security posture review of LLM/tool code |
+| [`supply_chain_and_dependencies.md`](security/supply_chain_and_dependencies.md) | Dependencies, lockfile integrity, licensing, supply chain risk | Changes to `pyproject.toml`, `uv.lock`, or Actions |
 
-Gate prompts enforce merge/deploy policies and are event-driven rather than file-driven.
+### Testing
 
-| Facet | Prompt File | Rule ID | Trigger Condition |
-|-------|-------------|---------|-------------------|
-| Pre-merge review | `dev/premerge.md` | `gate.premerge.v1` | `pull_request` event |
-| Post-merge audit | `dev/postmerge_regression_audit.md` | `gate.postmerge_regression_audit.v1` | `push` event with `postmerge_applicable=true` |
-| Proposal readiness | `dev/proposal_implementation_readiness.md` | `gate.proposal_implementation_readiness.v1` | PR with proposal files, or manual `workflow_dispatch` |
+| Prompt | Reviews | When to Use |
+|--------|---------|-------------|
+| [`test_harness.md`](testing/test_harness.md) | Test infrastructure, fixtures, mocking, determinism, coverage tooling | Changes to test harness or fixture patterns |
+| [`coverage_quality.md`](testing/coverage_quality.md) | Coverage adequacy, gap analysis, coverage enforcement | Changes to `tests/` or coverage configuration |
 
-### Deferred Prompts
+### CI/CD
 
-These prompts are defined in the config but not yet active. When their triggers match, the pipeline falls back to the global fallback set.
+| Prompt | Reviews | When to Use |
+|--------|---------|-------------|
+| [`pipeline_quality.md`](cicd/pipeline_quality.md) | Workflow reliability, job dependencies, secrets, failure modes | GitHub Actions workflow changes |
+| [`release_and_rollback.md`](cicd/release_and_rollback.md) | Release process, versioning, rollback safety, migrations | Release workflow or versioning changes |
 
-| Facet | Prompt File | Rule ID | Triggers |
-|-------|-------------|---------|----------|
-| Data flow boundaries | `architecture/data_flow_and_boundaries.md` | `deep_dive.data_flow_and_boundaries.v1` | `src/aria_esi/services/**`, `src/aria_esi/core/**`, `src/aria_esi/persona/**` |
-| Non-determinism/flakes | `testing/non_determinism_and_flakes.md` | `deep_dive.non_determinism_and_flakes.v1` | `tests/**`, `.github/workflows/**` |
+### Docs
 
-## Overlap and Boundary Matrix
+| Prompt | Reviews | When to Use |
+|--------|---------|-------------|
+| [`onboarding_first_run_ux.md`](docs/onboarding_first_run_ux.md) | Documentation quality, onboarding flow, first-run UX | README, setup instructions, or `docs/` changes |
 
-Some prompts share adjacent concerns. The `adjacent_prompts` metadata header in each file documents these relationships. Key overlaps:
+### Repo
 
-- **architecture/system_design.md** <-> **architecture/mcp_architecture.md**: System boundaries vs. MCP-specific contracts
-- **security/audit_ai.md** <-> **security/supply_chain_and_dependencies.md**: Application security vs. dependency risk
-- **testing/test_harness.md** <-> **testing/coverage_quality.md**: Test infrastructure vs. coverage adequacy
-- **cicd/pipeline_quality.md** <-> **cicd/release_and_rollback.md**: Pipeline reliability vs. release safety
-- **dev/premerge.md** <-> **dev/postmerge_regression_audit.md**: Pre-merge gates vs. post-merge verification
+| Prompt | Reviews | When to Use |
+|--------|---------|-------------|
+| [`github_first_impression.md`](repo/github_first_impression.md) | Repository presentation, community health files, contributor readiness | Changes to `.github/`, README, LICENSE, CONTRIBUTING |
 
-## Fallback Behavior
+### Dev Workflow
 
-When no deep-dive rule matches (or only deferred rules match), the pipeline selects a fallback prompt set:
+| Prompt | Reviews | When to Use |
+|--------|---------|-------------|
+| [`premerge.md`](dev/premerge.md) | Proposal compliance, production standards, merge readiness | Final review before merging to `main` |
+| [`postmerge_regression_audit.md`](dev/postmerge_regression_audit.md) | Regression detection, merge artifacts, test suite health | After merging a feature branch |
+| [`proposal_implementation_readiness.md`](dev/proposal_implementation_readiness.md) | Proposal specificity, ambiguity detection, implementation blockers | Reviewing a proposal before implementation |
 
-- `meta/review_orchestrator.md`
-- `security/audit_ai.md`
-- `testing/test_harness.md`
-- `dev/premerge.md` (pull_request only)
+## Reference
 
-## Configuration
+| File | Purpose |
+|------|---------|
+| [`meta/scoring_rubric.md`](meta/scoring_rubric.md) | Shared severity and confidence level definitions (not a runnable review) |
 
-Trigger rules are defined in `dev/policy/prompt_matcher_rules.yaml`. Metadata validation is enforced by the `metadata-check` CI job. All v1 prompts require `owner`, `last_reviewed`, `depends_on`, and `adjacent_prompts` metadata headers.
+## Planned Prompts
+
+These prompts are planned but not yet written:
+
+- `architecture/data_flow_and_boundaries.md` — Data flow across service boundaries, provenance, and integrity
+- `testing/non_determinism_and_flakes.md` — Test flakiness detection, non-determinism sources, and remediation
+
+## Related Prompts Matrix
+
+Some prompts cover adjacent concerns. When reviewing a specific area, consider running related prompts together:
+
+| If you run... | Also consider... | Why |
+|---------------|------------------|-----|
+| `system_design.md` | `mcp_architecture.md` | System boundaries vs MCP-specific contracts |
+| `audit_ai.md` | `supply_chain_and_dependencies.md` | Application security vs dependency risk |
+| `test_harness.md` | `coverage_quality.md` | Test infrastructure vs coverage adequacy |
+| `pipeline_quality.md` | `release_and_rollback.md` | Pipeline reliability vs release safety |
+| `premerge.md` | `postmerge_regression_audit.md` | Pre-merge gates vs post-merge verification |
+| `onboarding_first_run_ux.md` | `github_first_impression.md` | Documentation depth vs repository presentation |
