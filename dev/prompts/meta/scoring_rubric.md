@@ -18,7 +18,7 @@ An issue that, if shipped, would cause data loss, security breach, or service un
 
 ### High
 
-An issue that meaningfully degrades correctness, security posture, or reliability. A workaround may exist but the defect should not ship without an active waiver and follow-up issue.
+An issue that meaningfully degrades correctness, security posture, or reliability. A workaround may exist but the defect should not ship without explicit reviewer sign-off and a tracked follow-up issue.
 
 ### Medium
 

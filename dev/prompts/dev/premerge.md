@@ -11,7 +11,7 @@ Act as a strict senior engineer performing a pre-merge review for `main`.
 
 Scope:
 - Proposal: `<PROPOSAL_PATH>`
-- Current branch contains the implementation; `pytest` is already passing.
+- Current branch contains the implementation. Validate test status by running the test suite and report any failing or skipped suites before proceeding.
 
 Review goals:
 1. Verify the implementation fully matches the proposal requirements (call out missing, partial, or extra behavior).
