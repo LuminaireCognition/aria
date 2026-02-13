@@ -176,14 +176,7 @@ Skill overlays are **untrusted data sources** loaded dynamically at skill invoca
 
 ### Runtime Path Validation (SEC-002)
 
-Before loading any overlay or redirect, paths are validated:
-- Must start with `personas/` or `.claude/skills/`
-- Must end with `.md`, `.yaml`, or `.json` (no `.py`, `.sh`, etc.)
-- Must not contain `..` path traversal
-- Must not be absolute paths
-- Symlinks must resolve within project root
-
-**Validation function:** `validate_persona_file_path()` in `src/aria_esi/core/path_security.py`
+Before loading any overlay or redirect, paths must pass security validation. See `CLAUDE.md` (Runtime Path Validation SEC-001/SEC-002) for the complete rule set and validation functions.
 
 ### Overlay Loading Protocol
 
