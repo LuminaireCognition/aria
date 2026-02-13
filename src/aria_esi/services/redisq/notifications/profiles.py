@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Any
 from .config import CommentaryConfig, QuietHoursConfig, TriggerConfig
 
 if TYPE_CHECKING:
-    from ..interest import InterestCalculator
     from ..interest_v2 import InterestEngineV2
     from .throttle import ThrottleManager
 
@@ -144,7 +143,7 @@ class NotificationProfile:
     interest: dict[str, Any] = field(default_factory=dict)
 
     # Runtime state (not persisted to YAML)
-    _topology_filter: InterestCalculator | None = field(default=None, repr=False)
+    _topology_filter: Any = field(default=None, repr=False)  # Legacy, unused in v2
     _throttle: ThrottleManager | None = field(default=None, repr=False)
     _interest_engine_v2: InterestEngineV2 | None = field(default=None, repr=False)
     _init_error: str | None = field(default=None, repr=False)

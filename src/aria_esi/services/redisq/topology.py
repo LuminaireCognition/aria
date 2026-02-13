@@ -1,18 +1,8 @@
 """
 Operational Topology for Kill Pre-Filtering.
 
-This module provides system-level interest filtering for the RedisQ poller.
-
-Two modes are supported:
-1. Legacy mode: Simple operational_systems + hop expansion (InterestMap)
-2. Context-aware mode: Multi-layer interest calculation (InterestCalculator)
-
-Context-aware mode is preferred when configured. It provides:
-- Geographic: System proximity with classifications (home/hunting/transit)
-- Entity: Corp/alliance involvement (corp member loss = 1.0 always)
-- Route: Named travel corridors with ship filtering
-- Asset: Corp structures and offices
-- Pattern: Activity escalation (gatecamps, spikes)
+This module provides system-level interest filtering for the RedisQ poller
+using a simple operational_systems + hop expansion (InterestMap).
 
 Kills outside the topology are filtered BEFORE ESI fetch, saving API quota.
 """
@@ -29,7 +19,6 @@ from ...core.logging import get_logger
 
 if TYPE_CHECKING:
     from ...universe.graph import UniverseGraph
-    from .interest import InterestCalculator
     from .models import QueuedKill
 
 logger = get_logger(__name__)
@@ -397,18 +386,10 @@ class TopologyFilter:
     Pre-filter for the poller that checks kills against the operational topology.
 
     This filter runs BEFORE ESI fetch to save API quota.
-
-    Supports two modes:
-    1. Context-aware mode (InterestCalculator): Multi-layer interest scoring
-    2. Legacy mode (InterestMap): Simple hop-based expansion
-
-    Context-aware mode takes priority when configured.
+    Uses InterestMap for simple hop-based expansion filtering.
     """
 
-    # Context-aware calculator (preferred when configured)
-    calculator: InterestCalculator | None = None
-
-    # Legacy interest map (fallback)
+    # Interest map for system lookup
     interest_map: InterestMap | None = None
 
     # Metrics
@@ -418,15 +399,11 @@ class TopologyFilter:
     @property
     def is_active(self) -> bool:
         """Check if topology filtering is active."""
-        if self.calculator is not None:
-            return True
         return self.interest_map is not None and self.interest_map.total_systems > 0
 
     @property
     def mode(self) -> str:
         """Get current filtering mode."""
-        if self.calculator is not None:
-            return "context_aware"
         if self.interest_map is not None:
             return "legacy"
         return "disabled"
@@ -450,20 +427,7 @@ class TopologyFilter:
             self._passed += 1
             return True
 
-        # Use calculator if available (context-aware mode)
-        if self.calculator is not None:
-            if self.calculator.should_fetch(queued_kill.solar_system_id):
-                self._passed += 1
-                return True
-            self._filtered += 1
-            logger.debug(
-                "Context-aware filter: kill %d in system %d filtered (below threshold)",
-                queued_kill.kill_id,
-                queued_kill.solar_system_id,
-            )
-            return False
-
-        # Fallback to legacy interest map
+        # Check interest map
         if self.interest_map and self.interest_map.is_interesting(queued_kill.solar_system_id):
             self._passed += 1
             return True
@@ -495,43 +459,9 @@ class TopologyFilter:
     def from_config(cls) -> TopologyFilter:
         """
         Create TopologyFilter from config.
-
-        Tries context_topology first, falls back to legacy topology.
         """
-        from .interest import ContextAwareTopologyConfig
         from .notifications.config import TopologyConfig
 
-        # Try context-aware topology first
-        context_config = ContextAwareTopologyConfig.load()
-
-        if context_config.enabled:
-            validation_errors = context_config.validate()
-            if validation_errors:
-                logger.warning(
-                    "Context topology config has errors: %s. Falling back to legacy.",
-                    validation_errors,
-                )
-            else:
-                try:
-                    calculator = context_config.build_calculator()
-                    total_systems = sum(
-                        layer.total_systems
-                        for layer in calculator.layers
-                        if hasattr(layer, "total_systems")
-                    )
-                    logger.info(
-                        "Context-aware topology active: %d layers, ~%d systems tracked",
-                        len(calculator.layers),
-                        total_systems,
-                    )
-                    return cls(calculator=calculator)
-                except Exception as e:
-                    logger.warning(
-                        "Failed to build context-aware calculator: %s. Falling back to legacy.",
-                        e,
-                    )
-
-        # Fall back to legacy topology
         config = TopologyConfig.load()
 
         if not config.enabled:
@@ -557,7 +487,7 @@ class TopologyFilter:
             # Still use the cached topology, but warn
 
         logger.info(
-            "Legacy topology filter active: %d systems tracked (%d operational, %d hop-1, %d hop-2)",
+            "Topology filter active: %d systems tracked (%d operational, %d hop-1, %d hop-2)",
             interest_map.total_systems,
             len(interest_map.get_systems_by_hop(0)),
             len(interest_map.get_systems_by_hop(1)),

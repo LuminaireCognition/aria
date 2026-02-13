@@ -60,10 +60,10 @@ Templates are in `reference/notification-templates/` (read-only, tracked in git)
 
 ## Profile Schema
 
-A profile YAML file has this structure:
+A profile YAML file uses the v2 interest engine format:
 
 ```yaml
-schema_version: 1
+schema_version: 2
 
 name: "profile-name"           # Unique identifier (matches filename)
 display_name: "Human Name"     # Display name for UI/logs
@@ -72,20 +72,41 @@ enabled: true                  # false to disable without deleting
 
 webhook_url: "https://discord.com/api/webhooks/..."
 
-# Which systems to monitor
-topology:
-  geographic:
-    systems:
-      - name: "Jita"
-        classification: "hunting"   # hunting, transit, home, avoidance
-      - name: "Perimeter"
-        classification: "transit"
+# Interest Engine v2 Configuration
+interest:
+  engine: v2
+  preset: trade-hub            # Preset: trade-hub, political, hunter, etc.
 
-# What events trigger notifications
-triggers:
-  watchlist_activity: true      # Entity watchlist matches
-  gatecamp_detected: true       # Gatecamp pattern detection
-  high_value_threshold: 500000000  # ISK value (500M = hauler-class)
+  # Optional weight customization
+  customize:
+    location: "+30%"           # Boost location signal
+
+  # Signal configuration
+  signals:
+    location:
+      geographic:
+        systems:
+          - name: "Jita"
+            classification: "hunting"   # hunting, transit, home, avoidance
+          - name: "Perimeter"
+            classification: "transit"
+
+    value:
+      min: 500000000           # ISK value threshold (500M = hauler-class)
+
+  # Rules for always-notify / always-ignore
+  rules:
+    always_notify:
+      - watchlist_match        # Entity watchlist matches
+      - gatecamp_detected      # Gatecamp pattern detection
+    always_ignore:
+      - pod_only               # Skip empty pod kills
+
+  # Interest score thresholds
+  thresholds:
+    notify: 0.55               # Minimum to send notification
+    priority: 0.85             # Minimum for priority notification
+    digest: 0.35               # Minimum for digest batching
 
 # Rate limiting (minutes between notifications for same system/trigger)
 throttle_minutes: 5
@@ -114,91 +135,62 @@ commentary:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schema_version` | int | Yes | Current version: `1`. Version `2` adds polling, rate limiting, and delivery configuration. |
+| `schema_version` | int | Yes | Current version: `2` |
 | `name` | string | Yes | Unique identifier (alphanumeric, hyphens, underscores) |
 | `display_name` | string | No | Human-readable name (auto-generated from name if omitted) |
 | `description` | string | No | Purpose description |
 | `enabled` | bool | No | Default `true` |
 | `webhook_url` | string | Yes | Discord webhook URL |
-| `topology` | object | No | Systems to monitor (see below) |
-| `triggers` | object | No | Event types to notify on |
+| `interest` | object | Yes | Interest engine v2 configuration (see below) |
 | `throttle_minutes` | int | No | Default `5`, max `60` |
 | `quiet_hours` | object | No | Time-based suppression |
 | `commentary` | object | No | LLM commentary settings |
-| `polling` | object | No | Worker polling behavior (v2) |
-| `rate_limit_strategy` | object | No | Discord rate limit handling (v2) |
-| `delivery` | object | No | Message delivery retry (v2) |
+| `polling` | object | No | Worker polling behavior |
+| `rate_limit_strategy` | object | No | Discord rate limit handling |
+| `delivery` | object | No | Message delivery retry |
 
-### Topology Configuration
+### Interest Engine v2 Configuration
 
-The `topology.geographic.systems` array defines which systems to monitor:
+The `interest` section controls which kills generate notifications using weighted signal scoring:
 
 ```yaml
-topology:
-  geographic:
-    systems:
-      # Simple format (just system name)
-      - "Jita"
+interest:
+  engine: v2                   # Required
+  preset: trade-hub            # Optional preset for default weights
 
-      # Detailed format (with classification)
-      - name: "Perimeter"
-        classification: "transit"
+  signals:
+    location:
+      geographic:
+        systems:
+          - name: "Jita"
+            classification: "hunting"
+
+    value:
+      min: 500000000           # ISK threshold
+
+  rules:
+    always_notify:
+      - watchlist_match
+      - gatecamp_detected
 ```
 
 #### System Classifications
 
 | Classification | Weight | Use Case |
 |----------------|--------|----------|
-| `home` | 1.0 | Base of operations, always notify |
+| `home` | 1.0 | Base of operations, always monitor |
 | `hunting` | 1.0 | Active engagement areas |
 | `transit` | 0.8 | Travel corridors |
 | `avoidance` | 0.5 | Known dangerous systems (lower priority) |
 
-### Trigger Configuration
+#### Rules
 
-| Trigger | Default | Description |
-|---------|---------|-------------|
-| `watchlist_activity` | `true` | Notify when watched entities are involved |
-| `gatecamp_detected` | `true` | Notify on gatecamp pattern detection |
-| `high_value_threshold` | `1000000000` | ISK value threshold (0 = disabled) |
-| `war_activity` | `false` | Notify on war target engagements |
-| `npc_faction_kill` | (object) | Notify when NPC factions are involved |
+| Rule Type | Description |
+|-----------|-------------|
+| `always_notify` | Always send notification when these conditions match |
+| `always_ignore` | Never notify when these conditions match |
 
-#### NPC Faction Kill Trigger
-
-The `npc_faction_kill` trigger notifies when NPC faction corporations (Serpentis, Angel Cartel, etc.) are involved in kills. Designed for RP immersion where faction-aligned pilots want "corporate intelligence briefings" about their faction's operations.
-
-```yaml
-triggers:
-  npc_faction_kill:
-    enabled: true
-    factions:
-      - serpentis        # Serpentis Corporation, Serpentis Inquest
-      - angel_cartel     # Archangels, Guardian Angels, etc.
-    as_attacker: true    # Notify when faction NPCs kill someone
-    as_victim: false     # Notify when someone kills faction NPCs
-    ignore_topology: true  # Ignore profile topology filter (cluster-wide)
-```
-
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `enabled` | bool | `false` | Enable/disable NPC faction kill notifications |
-| `factions` | list | `[]` | Faction keys to monitor (see table below) |
-| `as_attacker` | bool | `true` | Notify when NPC is the attacker |
-| `as_victim` | bool | `false` | Notify when NPC is the victim |
-| `ignore_topology` | bool | `true` | Skip topology filter for NPC kills |
-
-**Available Factions:**
-
-| Faction Key | Display Name | Notable Corps |
-|-------------|--------------|---------------|
-| `serpentis` | Serpentis | Serpentis Corporation, Serpentis Inquest |
-| `angel_cartel` | Angel Cartel | Archangels, Guardian Angels, Dominations |
-| `guristas` | Guristas Pirates | Guristas, Commando Guri |
-| `blood_raiders` | Blood Raider Covenant | Blood Raiders |
-| `sansha` | Sansha's Nation | True Creations, True Power |
-
-**Volume Control:** NPC kills are frequent. Recommended `throttle_minutes: 15` or higher to avoid notification spam.
+Common rule values: `watchlist_match`, `gatecamp_detected`, `corp_member_victim`, `war_target_activity`, `pod_only`, `npc_only`.
 
 ### Quiet Hours
 
@@ -450,35 +442,47 @@ To avoid duplicates, ensure profiles have non-overlapping topology configuration
 ### Minimal Profile
 
 ```yaml
-schema_version: 1
+schema_version: 2
 name: "simple"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"
+
+interest:
+  engine: v2
+  preset: trade-hub
 ```
 
-Uses defaults: all triggers enabled, 5 minute throttle, no topology filter.
+Uses preset defaults with 5 minute throttle.
 
 ### Home System Monitoring
 
 ```yaml
-schema_version: 1
+schema_version: 2
 name: "home-ops"
 display_name: "Home Operations"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"
 
-topology:
-  geographic:
-    systems:
-      - name: "Sortet"
-        classification: "home"
-      - name: "Augnais"
-        classification: "transit"
-      - name: "Mies"
-        classification: "transit"
+interest:
+  engine: v2
+  preset: trade-hub
 
-triggers:
-  watchlist_activity: true
-  gatecamp_detected: true
-  high_value_threshold: 100000000  # 100M
+  signals:
+    location:
+      geographic:
+        systems:
+          - name: "Sortet"
+            classification: "home"
+          - name: "Augnais"
+            classification: "transit"
+          - name: "Mies"
+            classification: "transit"
+
+    value:
+      min: 100000000  # 100M
+
+  rules:
+    always_notify:
+      - watchlist_match
+      - gatecamp_detected
 
 throttle_minutes: 3
 
@@ -492,44 +496,54 @@ quiet_hours:
 ### High-Value Only
 
 ```yaml
-schema_version: 1
+schema_version: 2
 name: "expensive-losses"
 display_name: "Expensive Losses"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"
 
-triggers:
-  watchlist_activity: false
-  gatecamp_detected: false
-  high_value_threshold: 5000000000  # 5B+
+interest:
+  engine: v2
+  preset: trade-hub
+
+  signals:
+    value:
+      min: 5000000000  # 5B+
 
 throttle_minutes: 1
 ```
 
-No topology filter, only value-based notifications.
+No location filter, only value-based notifications.
 
-### NPC Faction Operations (Serpentis)
+### Political / Faction Operations (Serpentis)
 
-For faction-aligned pilots who want notifications about their faction's NPC activity:
+For faction-aligned pilots who want notifications about their faction's activity:
 
 ```yaml
-schema_version: 1
+schema_version: 2
 name: "serpentis-ops"
 display_name: "Serpentis Corporate Intelligence"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"
 
-triggers:
-  watchlist_activity: false
-  gatecamp_detected: false
-  high_value_threshold: 0  # Disabled
+interest:
+  engine: v2
+  preset: political
 
-  npc_faction_kill:
-    enabled: true
-    factions:
-      - serpentis
-      - angel_cartel  # Guardian Angels protect Serpentis per lore
-    as_attacker: true
-    as_victim: false
-    ignore_topology: true  # Cluster-wide monitoring
+  customize:
+    politics: "+20%"
+
+  signals:
+    politics:
+      groups:
+        serpentis:
+          corporations: [1000135]  # Serpentis Corporation
+
+      role_filter:
+        attacker: true
+        victim: false
+
+  rules:
+    always_notify:
+      - gatecamp_detected
 
 throttle_minutes: 15  # Higher throttle for NPC activity volume
 
@@ -539,8 +553,6 @@ commentary:
   persona: paria-s
   warrant_threshold: 0.3
 ```
-
-See `userdata/notifications/serpentis-operations.yaml.example` for a complete example.
 
 ---
 

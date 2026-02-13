@@ -6,7 +6,7 @@
 #
 # Use: uv run aria-esi notifications create newbie-watch --template starter-systems --webhook <url>
 
-schema_version: 1
+schema_version: 2
 
 name: "starter-systems"
 display_name: "Starter System Watch"
@@ -14,53 +14,62 @@ description: "New player hubs and career agent systems"
 enabled: true
 webhook_url: ""  # User must fill in
 
-topology:
-  geographic:
-    systems:
-      # Gallente starter systems
-      - name: "Clellinon"
-        classification: "hunting"
-      - name: "Couster"
-        classification: "hunting"
-      - name: "Trossere"
-        classification: "hunting"
-      - name: "Duripant"
-        classification: "transit"
+# Interest Engine v2 Configuration
+interest:
+  engine: v2
+  preset: trade-hub
 
-      # Caldari starter systems
-      - name: "Akiainavas"
-        classification: "hunting"
-      - name: "Jouvulen"
-        classification: "hunting"
-      - name: "Todaki"
-        classification: "hunting"
-      - name: "Kisogo"
-        classification: "transit"
+  signals:
+    location:
+      geographic:
+        systems:
+          # Gallente starter systems
+          - name: "Clellinon"
+            classification: "hunting"
+          - name: "Couster"
+            classification: "hunting"
+          - name: "Trossere"
+            classification: "hunting"
+          - name: "Duripant"
+            classification: "transit"
 
-      # Amarr starter systems
-      - name: "Deepari"
-        classification: "hunting"
-      - name: "Pasha"
-        classification: "hunting"
-      - name: "Chaven"
-        classification: "hunting"
-      - name: "Conoban"
-        classification: "transit"
+          # Caldari starter systems
+          - name: "Akiainavas"
+            classification: "hunting"
+          - name: "Jouvulen"
+            classification: "hunting"
+          - name: "Todaki"
+            classification: "hunting"
+          - name: "Kisogo"
+            classification: "transit"
 
-      # Minmatar starter systems
-      - name: "Ammold"
-        classification: "hunting"
-      - name: "Malukker"
-        classification: "hunting"
-      - name: "Hadaugago"
-        classification: "hunting"
-      - name: "Embod"
-        classification: "transit"
+          # Amarr starter systems
+          - name: "Deepari"
+            classification: "hunting"
+          - name: "Pasha"
+            classification: "hunting"
+          - name: "Chaven"
+            classification: "hunting"
+          - name: "Conoban"
+            classification: "transit"
 
-triggers:
-  watchlist_activity: true
-  gatecamp_detected: true
-  high_value_threshold: 10000000  # 10M+ (notable for starter areas)
+          # Minmatar starter systems
+          - name: "Ammold"
+            classification: "hunting"
+          - name: "Malukker"
+            classification: "hunting"
+          - name: "Hadaugago"
+            classification: "hunting"
+          - name: "Embod"
+            classification: "transit"
+
+    value:
+      min: 10000000  # 10M+ ISK (notable for starter areas)
+
+  rules:
+    always_notify:
+      - watchlist_match
+      - gatecamp_detected
 
 throttle_minutes: 5
 

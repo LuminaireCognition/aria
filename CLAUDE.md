@@ -288,11 +288,9 @@ When modifying `userdata/config.json`, certain changes require cache rebuilds:
 | Config Section | Change Type | Required Action |
 |----------------|-------------|-----------------|
 | `context_topology.geographic.systems` | Add/remove home systems | `uv run aria-esi topology-build` |
-| `context_topology.routes` | Add/modify routes | `uv run aria-esi topology-build` |
-| `context_topology.archetype` | Change archetype | `uv run aria-esi topology-build` |
 | `persona_context` fields | Faction/rp_level | `uv run aria-esi persona-context` |
 
-**CRITICAL:** After editing topology configuration, always suggest running `topology-build` before any other topology commands (`topology-show`, `topology-explain`, etc.).
+**CRITICAL:** After editing topology configuration, always suggest running `topology-build` before any other topology commands (`topology-show`, etc.).
 
 ## Notification Profiles
 

@@ -767,7 +767,8 @@ def cmd_topology_build(args: argparse.Namespace) -> dict:
     """
     Build or rebuild the operational topology.
     """
-    from ..services.redisq.interest.config import ContextAwareTopologyConfig
+    import json
+
     from ..services.redisq.topology import build_topology
 
     # Get systems from args or config
@@ -777,20 +778,25 @@ def cmd_topology_build(args: argparse.Namespace) -> dict:
     if args.systems:
         systems = args.systems
     else:
-        context_config = ContextAwareTopologyConfig.load()
-        if context_config.has_geographic:
-            # Extract system names from geographic.systems
-            systems = [
-                s.get("name") for s in context_config.geographic.get("systems", []) if s.get("name")
-            ]
-            # Convert home_weights to legacy format if present
-            home_weights = context_config.geographic.get("home_weights", {})
-            if home_weights:
-                weights = {
-                    "operational": home_weights.get(0, home_weights.get("0", 1.0)),
-                    "hop_1": home_weights.get(1, home_weights.get("1", 1.0)),
-                    "hop_2": home_weights.get(2, home_weights.get("2", 0.7)),
-                }
+        # Read operational systems from config.json
+        from pathlib import Path
+
+        config_path = Path("userdata/config.json")
+        if config_path.exists():
+            with open(config_path) as f:
+                config_data = json.load(f)
+            context_topology = config_data.get("redisq", {}).get("context_topology", {})
+            geographic = context_topology.get("geographic", {})
+            if geographic.get("systems"):
+                systems = [s.get("name") for s in geographic["systems"] if s.get("name")]
+                # Convert home_weights to legacy format if present
+                home_weights = geographic.get("home_weights", {})
+                if home_weights:
+                    weights = {
+                        "operational": home_weights.get(0, home_weights.get("0", 1.0)),
+                        "hop_1": home_weights.get(1, home_weights.get("1", 1.0)),
+                        "hop_2": home_weights.get(2, home_weights.get("2", 0.7)),
+                    }
 
     if not systems:
         return {
@@ -949,141 +955,6 @@ def cmd_topology_show(args: argparse.Namespace) -> dict:
         "hop_1_count": len(hop_1),
         "hop_2_count": len(hop_2),
         "special_systems": special,
-        "query_timestamp": get_utc_timestamp(),
-    }
-
-
-def cmd_topology_explain(args: argparse.Namespace) -> dict:
-    """
-    Explain interest calculation for a specific system.
-
-    Shows breakdown of how each layer contributes to the final interest score.
-    """
-    from ..services.redisq.interest import ContextAwareTopologyConfig
-    from ..universe import load_universe_graph
-
-    system_name = args.system
-    graph = load_universe_graph()
-
-    # Resolve system name to ID
-    idx = graph.resolve_name(system_name)
-    if idx is None:
-        return {
-            "status": "error",
-            "error": f"Unknown system: {system_name}",
-            "query_timestamp": get_utc_timestamp(),
-        }
-
-    system_id = graph.get_system_id(idx)
-    system_sec = float(graph.security[idx])
-
-    print("\n" + "=" * 64)
-    print(f"INTEREST CALCULATION: {system_name}")
-    print(f"System ID: {system_id} | Security: {system_sec:.2f}")
-    print("=" * 64)
-
-    ctx_config = ContextAwareTopologyConfig.load()
-    if not ctx_config.enabled:
-        return {
-            "status": "error",
-            "error": "Context-aware topology is not enabled. Configure redisq.context_topology in userdata/config.json.",
-            "query_timestamp": get_utc_timestamp(),
-        }
-
-    print("\nMode: Context-Aware Topology")
-    print("-" * 64)
-    try:
-        calculator = ctx_config.build_calculator(graph=graph)
-    except Exception as e:
-        return {
-            "status": "error",
-            "error": f"Failed to build context-aware topology calculator: {e}",
-            "query_timestamp": get_utc_timestamp(),
-        }
-
-    # Calculate interest
-    score = calculator.calculate_system_interest(system_id)
-
-    print(f"\nFinal Interest: {score.interest:.3f} (tier: {score.tier})")
-    print(f"Base Interest:  {score.base_interest:.3f}")
-    print(f"Dominant Layer: {score.dominant_layer}")
-
-    if score.escalation and score.escalation.multiplier != 1.0:
-        print(f"Escalation:     {score.escalation.multiplier}x ({score.escalation.reason})")
-
-    print("\nLayer Breakdown:")
-    for layer_name, layer_score in sorted(
-        score.layer_scores.items(),
-        key=lambda x: x[1].score,
-        reverse=True,
-    ):
-        marker = "→" if layer_name == score.dominant_layer else " "
-        reason = f" ({layer_score.reason})" if layer_score.reason else ""
-        print(f"  {marker} {layer_name}: {layer_score.score:.3f}{reason}")
-
-    print("=" * 64)
-
-    return {
-        "status": "ok",
-        "mode": "context_aware",
-        "system": {
-            "name": system_name,
-            "id": system_id,
-            "security": system_sec,
-        },
-        "score": score.to_dict(),
-        "query_timestamp": get_utc_timestamp(),
-    }
-
-
-def cmd_topology_presets(args: argparse.Namespace) -> dict:
-    """
-    List available archetype presets for context-aware topology.
-    """
-    from ..services.redisq.interest import ARCHETYPE_PRESETS, list_presets
-
-    print("\n" + "=" * 64)
-    print("CONTEXT-AWARE TOPOLOGY ARCHETYPES")
-    print("=" * 64)
-
-    for name, description in list_presets():
-        preset = ARCHETYPE_PRESETS[name]
-
-        print(f"\n{name.upper()}")
-        print(f"  {description}")
-        print()
-
-        # Show key thresholds
-        fetch = preset.get("fetch_threshold", 0.0)
-        log = preset.get("log_threshold", 0.3)
-        digest = preset.get("digest_threshold", 0.6)
-        priority = preset.get("priority_threshold", 0.8)
-
-        print(f"  Thresholds: fetch={fetch}, log={log}, digest={digest}, priority={priority}")
-
-        # Show enabled patterns
-        patterns = preset.get("patterns", {})
-        pattern_flags = []
-        if patterns.get("gatecamp_detection"):
-            pattern_flags.append("gatecamp")
-        if patterns.get("spike_detection"):
-            pattern_flags.append("spike")
-        if pattern_flags:
-            print(f"  Pattern Detection: {', '.join(pattern_flags)}")
-
-        # Show key entity weights
-        entity = preset.get("entity", {})
-        corp_vic = entity.get("corp_member_victim", 1.0)
-        war = entity.get("war_target", 0.95)
-        print(f"  Corp Loss Interest: {corp_vic}, War Target: {war}")
-
-    print("\n" + "=" * 64)
-    print('Usage: Add "archetype": "<name>" to context_topology config')
-    print("=" * 64)
-
-    return {
-        "status": "ok",
-        "presets": [{"name": name, "description": desc} for name, desc in list_presets()],
         "query_timestamp": get_utc_timestamp(),
     }
 
@@ -1396,21 +1267,3 @@ def register_parsers(subparsers) -> None:
         help="Show current operational topology",
     )
     topo_show_parser.set_defaults(func=cmd_topology_show)
-
-    # topology-explain
-    topo_explain_parser = subparsers.add_parser(
-        "topology-explain",
-        help="Explain interest calculation for a system",
-    )
-    topo_explain_parser.add_argument(
-        "system",
-        help="System name to explain",
-    )
-    topo_explain_parser.set_defaults(func=cmd_topology_explain)
-
-    # topology-presets
-    topo_presets_parser = subparsers.add_parser(
-        "topology-presets",
-        help="List available archetype presets",
-    )
-    topo_presets_parser.set_defaults(func=cmd_topology_presets)

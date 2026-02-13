@@ -156,12 +156,3 @@ class TestTopologyCommands:
         from aria_esi.commands.redisq import cmd_topology_show
         assert callable(cmd_topology_show)
 
-    def test_cmd_topology_explain_exists(self):
-        """cmd_topology_explain function exists."""
-        from aria_esi.commands.redisq import cmd_topology_explain
-        assert callable(cmd_topology_explain)
-
-    def test_cmd_topology_presets_exists(self):
-        """cmd_topology_presets function exists."""
-        from aria_esi.commands.redisq import cmd_topology_presets
-        assert callable(cmd_topology_presets)

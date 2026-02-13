@@ -14,13 +14,14 @@ uv run aria-esi notifications create <profile-name> --template <template-name> -
 | `gank-pipes` | Known high-sec ganking corridors | 12 | Gank avoidance, freighter safety |
 | `fw-frontlines` | Faction warfare contested zones | 16 | FW PvP intel, warzone activity |
 | `starter-systems` | New player hubs and career agents | 16 | Helping newbies, griefing detection |
+| `serpentis-space` | Serpentis Corporation territory | 11 | Nullsec intel, with commentary |
 
 ## Template Schema
 
-Templates use the same YAML format as user profiles:
+Templates use the v2 interest engine YAML format:
 
 ```yaml
-schema_version: 1
+schema_version: 2
 
 name: "template-name"
 display_name: "Human Readable Name"
@@ -28,16 +29,24 @@ description: "What this template monitors"
 enabled: true
 webhook_url: ""  # Set when creating profile
 
-topology:
-  geographic:
-    systems:
-      - name: "System Name"
-        classification: "hunting"  # or "transit", "home", "avoidance"
+interest:
+  engine: v2
+  preset: trade-hub  # or political, etc.
 
-triggers:
-  watchlist_activity: true
-  gatecamp_detected: true
-  high_value_threshold: 500000000  # ISK threshold
+  signals:
+    location:
+      geographic:
+        systems:
+          - name: "System Name"
+            classification: "hunting"  # or "transit", "home", "avoidance"
+
+    value:
+      min: 500000000  # ISK threshold
+
+  rules:
+    always_notify:
+      - watchlist_match
+      - gatecamp_detected
 
 throttle_minutes: 5
 
@@ -76,7 +85,7 @@ quiet_hours:
 To create a new template:
 
 1. Create a YAML file in this directory
-2. Follow the schema above
+2. Follow the v2 schema above
 3. Leave `webhook_url` empty (users set this when creating profiles)
 4. Include a helpful `description`
 

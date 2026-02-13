@@ -8,7 +8,6 @@ triggers, and throttling.
 
 import argparse
 import asyncio
-from pathlib import Path
 from typing import Any
 
 from ..core import get_utc_timestamp
@@ -531,25 +530,15 @@ def cmd_notifications_explain(args: argparse.Namespace) -> dict[str, Any]:
     _kill_id = args.kill_id  # Reserved for kill store integration
     _verbose = getattr(args, "verbose", False)  # Reserved for verbose output
 
-    # Load profile
+    # Load profile (validates existence)
     try:
-        profile = ProfileLoader.load_profile(profile_name)
+        ProfileLoader.load_profile(profile_name)
     except FileNotFoundError:
         return {
             "query_timestamp": query_ts,
             "status": "error",
             "error": "not_found",
             "message": f"Profile not found: {profile_name}",
-        }
-
-    # Check if profile uses v2
-    if not profile.uses_interest_v2:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "not_v2",
-            "message": f"Profile '{profile_name}' does not use interest engine v2",
-            "hint": "Add 'interest.engine: v2' to the profile or use migrate-v2",
         }
 
     # For now, simulate with system_id only (full kill fetch TBD)
@@ -591,16 +580,6 @@ def cmd_notifications_simulate(args: argparse.Namespace) -> dict[str, Any]:
             "message": f"Profile not found: {profile_name}",
         }
 
-    # Check if profile uses v2
-    if not profile.uses_interest_v2:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "not_v2",
-            "message": f"Profile '{profile_name}' does not use interest engine v2",
-            "hint": "Add 'interest.engine: v2' to the profile or use migrate-v2",
-        }
-
     # Build engine
     from ..services.redisq.interest_v2 import InterestConfigV2
 
@@ -617,127 +596,6 @@ def cmd_notifications_simulate(args: argparse.Namespace) -> dict[str, Any]:
         "profile": profile_name,
         "config_tier": config.tier.value,
         "preset": config.preset,
-    }
-
-
-def cmd_notifications_migrate_v2(args: argparse.Namespace) -> dict[str, Any]:
-    """
-    Migrate a profile from v1 triggers to v2 interest engine.
-
-    Creates a new interest configuration based on the profile's
-    existing topology and trigger configuration.
-
-    Args:
-        args: Parsed arguments with profile name and strategy
-
-    Returns:
-        Result dict with migration result
-    """
-    query_ts = get_utc_timestamp()
-    profile_name = args.profile
-    strategy_name = getattr(args, "strategy", "hybrid")
-    dry_run = getattr(args, "dry_run", False)
-    preset = getattr(args, "preset", None)
-
-    # Load profile
-    try:
-        profile = ProfileLoader.load_profile(profile_name)
-    except FileNotFoundError:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "not_found",
-            "message": f"Profile not found: {profile_name}",
-        }
-
-    # Check if already v2
-    if profile.uses_interest_v2:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "already_v2",
-            "message": f"Profile '{profile_name}' already uses interest engine v2",
-        }
-
-    # Import migration tools
-    from ..services.redisq.interest_v2.cli.migrate import (
-        MigrationStrategy,
-        format_migration_diff,
-        migrate_profile,
-        validate_migration,
-    )
-
-    # Parse strategy
-    try:
-        strategy = MigrationStrategy(strategy_name)
-    except ValueError:
-        valid = [s.value for s in MigrationStrategy]
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "invalid_strategy",
-            "message": f"Unknown strategy: {strategy_name}",
-            "valid_strategies": valid,
-        }
-
-    # Get full profile data
-    profile_data = profile.to_dict()
-
-    # Run migration
-    result = migrate_profile(profile_data, strategy=strategy, preset=preset)
-
-    # Validate result
-    validation_errors = validate_migration(result)
-    if validation_errors:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "validation_failed",
-            "message": "Migration produced invalid configuration",
-            "validation_errors": validation_errors,
-            "interest": result.interest_config,
-        }
-
-    # Dry run - just show what would change
-    if dry_run:
-        diff = format_migration_diff(profile_data, result)
-        return {
-            "query_timestamp": query_ts,
-            "status": "dry_run",
-            "message": f"Migration preview for '{profile_name}'",
-            "diff": diff,
-            "interest": result.interest_config,
-            "changes": result.changes,
-            "warnings": result.warnings,
-        }
-
-    # Apply migration
-    profile_data["interest"] = result.interest_config
-
-    # Write updated profile
-    try:
-        import yaml
-
-        profile_path = Path(f"userdata/notifications/{profile_name}.yaml")
-        with open(profile_path, "w") as f:
-            yaml.dump(profile_data, f, default_flow_style=False, sort_keys=False)
-    except Exception as e:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "write_failed",
-            "message": f"Failed to write profile: {e}",
-            "interest": result.interest_config,
-        }
-
-    return {
-        "query_timestamp": query_ts,
-        "status": "ok",
-        "message": f"Profile '{profile_name}' migrated to v2",
-        "strategy": strategy.value,
-        "interest": result.interest_config,
-        "changes": result.changes,
-        "warnings": result.warnings,
     }
 
 
@@ -766,16 +624,6 @@ def cmd_notifications_tune(args: argparse.Namespace) -> dict[str, Any]:
             "status": "error",
             "error": "not_found",
             "message": f"Profile not found: {profile_name}",
-        }
-
-    # Check if profile uses v2
-    if not profile.uses_interest_v2:
-        return {
-            "query_timestamp": query_ts,
-            "status": "error",
-            "error": "not_v2",
-            "message": f"Profile '{profile_name}' does not use interest engine v2",
-            "hint": "Use migrate-v2 to convert this profile first",
         }
 
     # Import tuning tools
@@ -959,35 +807,6 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
         help="Hours of history to simulate (default: 24)",
     )
     simulate_parser.set_defaults(func=cmd_notifications_simulate)
-
-    # notifications migrate-v2 <profile> [--strategy STR] [--preset NAME] [--dry-run]
-    migrate_v2_parser = notifications_subparsers.add_parser(
-        "migrate-v2",
-        help="Migrate profile from v1 to v2 interest engine",
-        description="Convert v1 topology and trigger configuration to v2 "
-        "weighted interest scoring. Choose a strategy based on how you "
-        "want to preserve existing behavior.",
-    )
-    migrate_v2_parser.add_argument("profile", help="Profile to migrate")
-    migrate_v2_parser.add_argument(
-        "--strategy",
-        choices=["preserve-triggers", "weighted-only", "hybrid"],
-        default="hybrid",
-        help="Migration strategy: "
-        "preserve-triggers (keep exact v1 behavior), "
-        "weighted-only (pure weighted scoring), "
-        "hybrid (weighted + critical triggers) [default]",
-    )
-    migrate_v2_parser.add_argument(
-        "--preset",
-        help="Override auto-detected preset (trade-hub, political, etc.)",
-    )
-    migrate_v2_parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show migration diff without applying",
-    )
-    migrate_v2_parser.set_defaults(func=cmd_notifications_migrate_v2)
 
     # notifications tune <profile>
     tune_parser = notifications_subparsers.add_parser(
