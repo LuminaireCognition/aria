@@ -252,7 +252,10 @@ Run the wizard again or ensure all templates were copied:
 ## Examples
 
 See `examples/` directory for reference configurations:
-- `examples/gallente-selfsufficient/` - Gallente self-sufficient playstyle
+- `examples/gallente-selfsufficient/` - Gallente self-sufficient playstyle (mining, missions, manufacturing)
+- `examples/caldari-mission-runner/` - Caldari L4 mission runner (ISK/hour optimized)
+- `examples/minmatar-explorer/` - Minmatar nomadic explorer (wormholes, nullsec)
+- `examples/amarr-industrialist/` - Amarr industrialist (mining to manufacturing)
 
 ---
 

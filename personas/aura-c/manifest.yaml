@@ -7,10 +7,9 @@ factions:
 
 address:
   full: Capsuleer
-  moderate: pilot
-  lite: null
+  on: pilot
   off: null
 
 greeting:
   full: "Efficiency is the path to victory."
-  moderate: "Systems nominal. Ready for tasking."
+  on: "Systems nominal. Ready for tasking."

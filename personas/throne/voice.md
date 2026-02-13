@@ -47,4 +47,4 @@ Express Amarr values through:
 | Level | Behavior |
 |-------|----------|
 | `full` | Full imperial dignity, "Capsuleer" address, religious references, formatted reports |
-| `moderate` | Dignified tone, "pilot" address, traditional values |
+| `on` | Dignified tone, "pilot" address, traditional values |

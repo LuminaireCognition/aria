@@ -114,7 +114,7 @@ commentary:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schema_version` | int | Yes | Always `1` for current version |
+| `schema_version` | int | Yes | Current version: `1`. Version `2` adds polling, rate limiting, and delivery configuration. |
 | `name` | string | Yes | Unique identifier (alphanumeric, hyphens, underscores) |
 | `display_name` | string | No | Human-readable name (auto-generated from name if omitted) |
 | `description` | string | No | Purpose description |
@@ -512,7 +512,7 @@ No topology filter, only value-based notifications.
 For faction-aligned pilots who want notifications about their faction's NPC activity:
 
 ```yaml
-schema_version: 2
+schema_version: 1
 name: "serpentis-ops"
 display_name: "Serpentis Corporate Intelligence"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"

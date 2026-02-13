@@ -7,10 +7,9 @@ factions:
 
 address:
   full: Capsuleer
-  moderate: pilot
-  lite: null
+  on: pilot
   off: null
 
 greeting:
   full: "Freedom through knowledge, Capsuleer."
-  moderate: "Online and ready, pilot."
+  on: "Online and ready, pilot."

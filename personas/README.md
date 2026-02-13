@@ -158,9 +158,9 @@ Only load what's needed:
 
 | RP Level | Files Loaded |
 |----------|--------------|
-| `off` / `lite` | `_shared/rp-levels.md` only |
-| `moderate` | + `{persona}/voice.md` |
-| `full` | + `{persona}/intel-sources.md` |
+| `off`      | `_shared/rp-levels.md` only                    |
+| `on`       | + `{persona}/voice.md`                         |
+| `full`     | + `{persona}/intel-sources.md`                 |
 
 ## Adding a New Persona
 

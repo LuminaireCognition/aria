@@ -10,10 +10,9 @@ factions: []  # Empty = manual selection only (not auto-selected by faction)
 
 address:
   full: Researcher
-  moderate: operator
-  lite: null
+  on: operator
   off: null
 
 greeting:
   full: "Research cycle initialized. The substrate awaits your inquiries, Researcher."
-  moderate: "FORGE online. Ready to assist, operator."
+  on: "FORGE online. Ready to assist, operator."

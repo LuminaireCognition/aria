@@ -254,7 +254,7 @@ The decorator logs:
 
 Enable JSON logging with `ARIA_LOG_JSON=1` for structured log aggregation.
 
-### Context Budget Tracking
+### Context Budget Tracking [Not Yet Implemented]
 
 The decorator automatically tracks cumulative output size across tool calls:
 

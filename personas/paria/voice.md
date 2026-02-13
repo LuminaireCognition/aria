@@ -81,4 +81,4 @@ Never catastrophize. Frame death as inherent to the lifestyle:
 | Level | Behavior |
 |-------|----------|
 | `full` | Complete persona, "Captain" address, underworld intel, fatalistic philosophy, formatted reports |
-| `moderate` | Pirate-friendly advice, lighter persona, "Captain" address, practical over thematic |
+| `on` | Pirate-friendly advice, lighter persona, "Captain" address, practical over thematic |

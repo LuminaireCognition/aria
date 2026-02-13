@@ -19,8 +19,8 @@ Last Updated: YC128.01.13
 | What damage to deal/tank? | [mechanics/npc_damage_types.md](mechanics/npc_damage_types.md) |
 | Drone damage types | [mechanics/drones.md](mechanics/drones.md) |
 | Hacking help | [mechanics/hacking_guide.md](mechanics/hacking_guide.md) |
-| Mission intel | [missions/INDEX.md](missions/INDEX.md) |
-| Ship fitting | [ships/fittings/README.md](ships/fittings/README.md) |
+| Mission intel | [pve-intel/INDEX.md](pve-intel/INDEX.md) |
+| Ship fitting | [fittings/MODULE_NAMES.md](fittings/MODULE_NAMES.md) |
 
 ---
 
@@ -46,12 +46,8 @@ Personal operational files are stored in `userdata/pilots/{active_pilot}/`:
 | [mechanics/npc_damage_types.md](mechanics/npc_damage_types.md) | Faction damage tables, EWAR types, tank priorities |
 | [mechanics/drones.md](mechanics/drones.md) | **Drone damage types**, faction recommendations, bandwidth |
 | [mechanics/drones.json](mechanics/drones.json) | Machine-readable drone data (Python/JSON) |
-| [missions/INDEX.md](missions/INDEX.md) | Mission intel index by faction/level |
-| [missions/gone_berserk_l2.md](missions/gone_berserk_l2.md) | Gone Berserk L2 (EoM) |
-| [missions/gone_berserk_l3.md](missions/gone_berserk_l3.md) | Gone Berserk L3 (EoM) |
-| [missions/drone_infestation_l2.md](missions/drone_infestation_l2.md) | Drone Infestation L2 |
-| [missions/the_blockade_serpentis_l2.md](missions/the_blockade_serpentis_l2.md) | The Blockade L2 (Serpentis) |
-| [missions/silence_the_informant_l2.md](missions/silence_the_informant_l2.md) | Silence the Informant L2 |
+| [pve-intel/INDEX.md](pve-intel/INDEX.md) | Mission & PvE intel index by faction/level |
+| [pve-intel/cache/](pve-intel/cache/) | Cached mission briefings (auto-populated by `/mission-brief`) |
 
 ### Exploration
 
@@ -75,12 +71,7 @@ Personal operational files are stored in `userdata/pilots/{active_pilot}/`:
 | File | Contents |
 |------|----------|
 | [ships/gallente_progression.md](ships/gallente_progression.md) | Combat, mining, exploration ship trees |
-| [ships/fittings/README.md](ships/fittings/README.md) | Fitting index, substitution guide |
-| [ships/fittings/venture_mining.md](ships/fittings/venture_mining.md) | Venture highsec mining fit |
-| [ships/fittings/venture_gas.md](ships/fittings/venture_gas.md) | Venture gas harvesting fit |
-| [ships/fittings/vexor_l2_general.md](ships/fittings/vexor_l2_general.md) | Vexor omni-tank mission fit |
-| [ships/fittings/vexor_serpentis.md](ships/fittings/vexor_serpentis.md) | Vexor anti-Serpentis fit |
-| [ships/fittings/imicus_exploration.md](ships/fittings/imicus_exploration.md) | Imicus exploration fit |
+| [fittings/MODULE_NAMES.md](fittings/MODULE_NAMES.md) | Module naming reference |
 
 ### Skills & Training
 
@@ -108,7 +99,7 @@ Background intelligence on New Eden.
 |------|---------|
 | [.cache-manifest.json](.cache-manifest.json) | Cache freshness tracking (24h TTL) |
 | [mechanics/esi_api_urls.md](mechanics/esi_api_urls.md) | **ESI documentation URLs** - working URLs, 404 avoidance |
-| [missions/README.md](missions/README.md) | Mission data format specification |
+| [pve-intel/README.md](pve-intel/README.md) | PvE intel format specification |
 
 ### Cache Policy
 
@@ -136,19 +127,20 @@ reference/
 │   ├── gas_harvesting.md
 │   └── esi_api_urls.md         ← ESI documentation URLs
 │
-├── missions/                   [Mission Intel]
+├── pve-intel/                  [Mission & PvE Intel]
 │   ├── INDEX.md
-│   └── *.md                    ← Per-mission briefings
+│   ├── README.md
+│   └── cache/                  ← Cached mission briefings (auto-populated)
+│
+├── fittings/                   [Fittings Reference]
+│   └── MODULE_NAMES.md         ← Module naming reference
 │
 ├── industry/                   [Manufacturing & Research]
 │   ├── npc_blueprint_sources.md
 │   └── manufacturing.md
 │
-├── ships/                      [Vessels & Fittings]
-│   ├── *_progression.md        ← Faction ship trees
-│   └── fittings/
-│       ├── README.md
-│       └── *.md                ← Ship fittings in EFT format
+├── ships/                      [Vessels]
+│   └── *_progression.md        ← Faction ship trees
 │
 ├── skills/                     [Training]
 │   └── training_optimization.md
@@ -182,7 +174,7 @@ Quick access via slash commands:
 | `/mining-advisory` | Mining guidance | ore_database, reprocessing |
 | `/exploration` | Site analysis | exploration_sites, hacking_guide |
 | `/threat-assessment` | Security analysis | npc_damage_types, factions |
-| `/fitting` | Ship fitting help | ships/fittings/* |
+| `/fitting` | Ship fitting help | fittings/*, EOS engine |
 | `/journal` | Log operations | mission_log, exploration_catalog |
 
 Natural language works too: "prepare for mission", "is this system safe", "what should I mine"
@@ -191,8 +183,8 @@ Natural language works too: "prepare for mission", "is this system safe", "what 
 
 ## Maintenance Notes
 
-- **Adding missions:** Create file in `missions/`, update `missions/INDEX.md`
-- **Adding fittings:** Create file in `ships/fittings/`, update `fittings/README.md`
+- **Adding missions:** Use `/mission-brief` to auto-cache intel in `pve-intel/cache/`
+- **Adding fittings:** Add files to `fittings/` directory
 - **Data sources:** EVE University Wiki, in-game databases
 - **Update frequency:** As needed; lore data is stable, mechanics may change with patches
 
