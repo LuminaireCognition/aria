@@ -539,16 +539,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     fitting.register_parsers(subparsers)
 
-    # Phase 21: Archetype commands
-    from .commands import archetypes
-
-    archetypes.register_parsers(subparsers)
-
-    # Phase 22: Fit selection commands
-    from .commands import fit
-
-    fit.register_parsers(subparsers)
-
     # Phase 23: RedisQ real-time intel commands
     from .commands import redisq
 

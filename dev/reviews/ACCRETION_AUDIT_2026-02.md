@@ -9,16 +9,16 @@
 
 ## Executive Summary
 
-ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Python project with 49 registered skills, 366 markdown files, and 4,000+ JSON/YAML data files. Several subsystems have accreted significant complexity with diminishing returns.
+ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Python project with 48 registered skills, 366 markdown files, and 4,000+ JSON/YAML data files. Several subsystems have accreted significant complexity with diminishing returns.
 
-**Completed:**
+**Completed (Phase 1 + Phase 2 partial):**
 - Interest Engine v1 deleted (PR #27, merged 2026-02-12). -8,080 lines, 40 files.
 - Documentation consolidation: path security dedup, data trust cross-refs, CLAUDE.md Data Freshness slimmed, advisory protocols moved to skill files. -28 lines net across 8 files.
+- Standings/standings-plan merge (2026-02-12). 49 → 48 registered skills, -283 lines net.
 - Killmail/killmails merge dropped after investigation (complementary, not redundant).
+- Archetype Python framework deprecated (2026-02-12). -10,800 lines: 8 source modules, 2 command files, 10 test files. YAML reference data retained.
 
-**Next priority:** Archetype framework deprecation (Phase 2, ~4,500 LOC).
-
-- Standings/standings-plan merge completed (2026-02-12). 48 registered skills (was 49).
+**Next priority:** Interest Engine v2 simplification (Rank 4) or notification subsystem simplification (Rank 6).
 
 ---
 
@@ -42,27 +42,21 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 
 ---
 
-### Rank 2: Archetype Selection Framework
+### ~~Rank 2: Archetype Selection Framework~~ COMPLETED
 
-**Accretion Score: 14** `(C=4, U=2, R=5)`
+**Status:** ✅ Deprecated (2026-02-12, branch `cleanup/phase1-quick-wins`)
 
-**Area:** `src/aria_esi/archetypes/` + `reference/archetypes/`
+**What was removed:**
+- `src/aria_esi/archetypes/` — 8 Python modules (4,457 LOC): loader, models, validator, selection, tank_selection, pricing, tuning, __init__
+- `src/aria_esi/commands/archetypes.py` (606 LOC) — 5 CLI subcommands (list, show, generate, validate, recommend)
+- `src/aria_esi/commands/fit.py` (784 LOC) — 5 CLI subcommands, all archetype-dependent
+- `tests/archetypes/` (10 files, ~4,844 LOC, 296 tests)
+- `tests/commands/test_fit.py` (114 LOC, 6 tests)
+- Phase 21 and Phase 22 registrations in `__main__.py`
 
-**Evidence:**
-- `src/aria_esi/archetypes/` — 8 Python modules, **4,457 LOC** (revised from original 1,500 estimate):
-  - `loader.py` (810), `models.py` (873), `validator.py` (710), `selection.py` (664), `tank_selection.py` (446), `pricing.py` (430), `tuning.py` (421), `__init__.py` (103)
-- `reference/archetypes/` — 78 YAML files defining ship fits across hulls/activities/tiers
-- `reference/archetypes/_shared/` — 5 shared YAML files (damage profiles, tank archetypes, skill tiers, module tiers, faction tuning)
-- The MCP `fitting(action="calculate_stats")` tool already validates fits via EOS engine
-- The 437-line `.claude/skills/fitting/SKILL.md` already contains inline fitting philosophy, tank coherence rules, and drone selection protocol
+**Actual gain:** ~10,800 lines removed. YAML reference data in `reference/archetypes/` retained for direct reading by fitting skill.
 
-**Why low leverage:** The archetype system builds a Python framework (selection algorithms, tank selection logic, pricing integration, tuning parameters) to choose from pre-defined YAML fits. But the fitting skill's actual workflow is: user describes need -> LLM builds EFT -> `fitting(action="calculate_stats")` validates -> iterate. The archetype YAML files are reference data that could be read directly without a framework mediating access. The selection/tuning/validation framework adds ~4,500 LOC of indirection that the LLM doesn't need.
-
-**Action:** Deprecate the Python framework (`src/aria_esi/archetypes/`). Retain `reference/archetypes/` YAML files as static reference data the fitting skill reads directly.
-
-**Expected gain:** Remove ~4,500 LOC of framework code + associated tests. Simplify fitting recommendations from "framework-selected archetype" to "LLM reads reference YAML + validates via EOS."
-
-**Guardrail:** `commands/fit.py` has **7 import lines from 5 archetype submodules** (`select_fits`, `MissionContext`, `list_archetypes`, `load_archetype`, `estimate_fit_price`, `get_archetype_yaml_path`, `update_archetype_stats`, `Stats`, `ArchetypeValidator`, `validate_all_archetypes`). These must be inlined or removed before the framework can be deleted. No standalone entry points in `pyproject.toml`. Keep YAML data files intact.
+**Remaining:** `reference/archetypes/` (78 YAML files) stays as static reference data read directly by the fitting skill via Glob + EOS validation.
 
 ---
 
@@ -129,22 +123,22 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 
 ---
 
-### Rank 5: Skill Surface Sprawl (49 Skills)
+### Rank 5: Skill Surface Sprawl (48 Skills)
 
 **Accretion Score: 9** `(C=4, U=3, R=3)`
 
-**Area:** `.claude/skills/` — 49 registered skills
+**Area:** `.claude/skills/` — 48 registered skills
 
 **Evidence — Overlapping skill clusters:**
 
 | Cluster | Skills | Overlap |
 |---------|--------|---------|
-| Fitting | `fitting`, `fit-check`, `fit-budget`, `fittings` | 4 skills for "help me with ship fitting" |
+| ~~Fitting~~ | `fitting`, `fit-check`, `fit-budget`, `fittings` | Pipeline (generative→validative→transformative), not redundant (dropped) |
 | Navigation | `route`, `gatecamp`, `threat-assessment`, `orient` | 4 skills for "is it safe to go there?" |
 | ~~Killmails~~ | `killmail`, `killmails` | ~~Singular vs plural~~ Complementary: public analysis vs personal history (dropped) |
 | ~~Standings~~ | ~~`standings`, `standings-plan`~~ | ~~View vs plan~~ Merged into single `standings` (done) |
-| Mining | `mining`, `mining-advisory` | Ledger vs guidance, could be one |
-| Skills | `skillplan`, `skillqueue` | Plan vs queue, could be one |
+| Mining | `mining`, `mining-advisory` | Ledger (historical) vs guidance (prescriptive), low-impact merge |
+| ~~Skills~~ | `skillplan`, `skillqueue` | Orthogonal: training planner vs queue monitor, different ESI scopes (dropped) |
 
 **Evidence — Persona-exclusive skills (5 paria-only):**
 - `escape-route`, `hunting-grounds`, `mark-assessment`, `ransom-calc`, `sec-status`
@@ -152,16 +146,16 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 - Each requires the exclusive-skill routing mechanism in `_index.json`
 - No evidence of other personas being implemented
 
-**Why low leverage:** 49 skills creates trigger disambiguation overhead — the LLM must pattern-match user intent to one of 49 options. Clusters like fitting (4 skills) could be a single skill with subcommands. Persona-exclusive skills add 5 entries to the index that are unreachable for non-paria users, plus the `persona_exclusive` routing logic in skill loading.
+**Why low leverage:** 48 skills creates trigger disambiguation overhead. Persona-exclusive skills add 5 entries to the index that are unreachable for non-paria users, plus the `persona_exclusive` routing logic in skill loading.
 
-**Action:** Merge clusters:
-- `fitting` + `fit-check` + `fit-budget` → single `fitting` with modes
+**Action (revised after investigation):** Most proposed merges were dropped after finding clusters are complementary, not redundant:
+- ~~`fitting` + `fit-check` + `fit-budget` → single `fitting`~~ (dropped — pipeline: generate → validate → adapt)
 - ~~`killmail` + `killmails` → single `killmails`~~ (dropped — complementary, not redundant)
-- ~~`standings` + `standings-plan` → single `standings`~~ (done — merged into unified `standings` skill)
-- `mining` + `mining-advisory` → single `mining`
-- `skillplan` + `skillqueue` → single `skills`
+- ~~`standings` + `standings-plan` → single `standings`~~ (done — genuinely redundant, merged)
+- `mining` + `mining-advisory` → single `mining` (low-impact, only remaining candidate)
+- ~~`skillplan` + `skillqueue` → single `skills`~~ (dropped — orthogonal: plan vs monitor, different ESI scopes)
 
-**Expected gain:** Reduce from 49 to ~44 skills (revised — killmails dropped, standings merged → 48 now). Simpler trigger disambiguation. ~4 fewer SKILL.md files to maintain.
+**Expected gain (revised):** Only 1 merge remains viable (mining, -1 skill). Original estimate of 49→~44 was based on untested assumptions. Actual: 49→48 (standings done), 48→47 possible (mining). Rank 5 is largely resolved — the skill surface issue is overestimated.
 
 **Guardrail:** Ensure merged SKILL.md files include all trigger patterns from both originals. Update `_index.json` accordingly. Merge, don't delete, to preserve functionality.
 
@@ -242,9 +236,9 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 
 ### Phase 2: Simplify Frameworks (2 weeks)
 - Collapse interest v2 from 38 files to ~10 (inline signals, remove feature flags, delete provider registry)
-- Deprecate archetype Python framework, retain YAML reference data
+- ✅ ~~Deprecate archetype Python framework, retain YAML reference data~~ (2026-02-12, -10,800 lines)
 - Simplify notification subsystem from 23 files to ~10 (inline commentary, merge supervisor/worker/queue)
-- Merge fitting skill cluster (fitting + fit-check + fit-budget → single skill with modes)
+- ~~Merge fitting skill cluster~~ (dropped — pipeline, not redundant)
 
 ### Phase 3: Integrate Operations (1 week)
 - Migrate helper scripts into `aria-esi` CLI subcommands
@@ -261,8 +255,8 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 |------|---------|--------|
 | Interest engines | 38 files (v2 only, v1 deleted) | ~10 files (simplified v2) |
 | Notifications | 23 files | ~10 files |
-| Archetypes Python | 8 modules | 0 (YAML data only) |
-| Skills | 49 | ~40 (merged clusters) |
+| Archetypes Python | ~~8 modules~~ 0 ✅ | 0 (YAML data only) |
+| Skills | 48 | ~47 (most clusters complementary) |
 | Documentation | 25+ docs with overlaps | ~18 docs, no duplication |
 | Helper scripts | 10+ standalone | 0 (integrated into CLI) |
 | Total Python LOC | ~124K (post-v1 deletion) | ~105K (est. 15% further reduction) |
@@ -271,7 +265,7 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 - ✅ ~~One interest engine, not two~~ (completed)
 - Notification pipeline: poller → scorer → formatter → webhook (linear, not microservice)
 - Fitting recommendations: LLM reads YAML reference + validates via EOS (no framework)
-- One skill per user intent domain (not 4 fitting skills)
+- One skill per user intent domain (fitting cluster kept — pipeline, not redundant)
 - One canonical doc per topic (not 3-4 restating the same rules)
 
 ---
@@ -290,7 +284,7 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 **Regression risks:**
 - ~~Interest v1 deletion~~ ✅ Completed without regression. CI required one test fix (`test_poller.py` topology filter mock).
 - Skill merges: trigger pattern coverage must be preserved. Test that natural language triggers still route correctly.
-- Archetype framework removal: `commands/fit.py` **does** import heavily from archetypes (7 imports from 5 submodules). These must be inlined or the CLI commands refactored before deletion.
+- ~~Archetype framework removal~~ ✅ Completed. Both command files and all imports deleted cleanly — no inlining needed since both consumers were fully archetype-dependent.
 
 ---
 
@@ -304,4 +298,4 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 
 3. ~~**Merge standings/standings-plan**~~ ✅ Completed (2026-02-12). Merged into unified `standings` skill. standings-plan SKILL.md deleted, triggers redirected in _index.json, review doc updated.
 
-4. **Deprecate Archetype Python Framework** — 8 modules, **~4,500 LOC** (revised from 1,500). The YAML data stays; the selection/tuning/validation framework goes. Only 2 external consumers (`commands/fit.py` with 7 lazy imports from 5 submodules, `commands/archetypes.py`). Well-isolated — no core/service layer dependencies.
+4. ~~**Deprecate Archetype Python Framework**~~ ✅ Completed (2026-02-12). Actual: -10,800 lines (8 source modules, 2 command files, 10 test files, 2 CLI phase registrations). YAML reference data retained.
