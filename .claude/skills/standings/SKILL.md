@@ -1,6 +1,6 @@
 ---
 name: standings
-description: Standings tracker for agent access, faction requirements, and standing repair strategies.
+description: Standings tracker and progression planner for agent access, faction requirements, and standing repair strategies.
 model: haiku
 category: identity
 triggers:
@@ -11,6 +11,12 @@ triggers:
   - "how to fix standings"
   - "agent access"
   - "faction standing"
+  - "how to get L4 agents"
+  - "path to 5.0 standing"
+  - "how long to reach L4"
+  - "standings grind"
+  - "standing requirements for L[N]"
+  - "fastest way to raise standings"
 requires_pilot: true
 esi_scopes:
   - esi-characters.read_standings.v1
@@ -18,13 +24,14 @@ esi_scopes:
 data_sources:
   - reference/mechanics/standings_thresholds.json
   - reference/mechanics/epic_arcs.json
+external_sources: []
 ---
 
-# ARIA Standings Tracker Module
+# ARIA Standings Module
 
 ## Purpose
 
-Track faction and corporation standings, determine agent access levels, and provide standing repair strategies. Integrates with ESI for live standings data and uses reference data for threshold calculations.
+Track faction and corporation standings, determine agent access levels, plan progression to target standings, and provide standing repair strategies. Integrates with ESI for live standings data and uses reference data for threshold calculations.
 
 ## Trigger Phrases
 
@@ -35,6 +42,12 @@ Track faction and corporation standings, determine agent access levels, and prov
 - "how to fix standings"
 - "agent access"
 - "faction standing"
+- "how to get L4 agents"
+- "path to 5.0 standing"
+- "how long to reach L4"
+- "standings grind"
+- "standing requirements for L[N]"
+- "fastest way to raise standings"
 
 ## Command Syntax
 
@@ -54,29 +67,26 @@ Track faction and corporation standings, determine agent access levels, and prov
 
 **CRITICAL:** Always query ESI for current standings before answering eligibility questions. Profile data may be stale.
 
+## MCP Tools
+
+| Tool | Purpose |
+|------|---------|
+| `sde(action="agent_search")` | Find agents for standings grinding |
+| `sde(action="corporation_info")` | Get corp faction relationships |
+| `skills(action="training_time")` | Calculate Social skill training |
+
 ## ESI Availability Check (CRITICAL)
 
-**BEFORE making any ESI queries**, check the session hook output for ESI status:
+**Every standings query must pass this checklist before calling ESI:**
 
-```json
-"esi": {"status": "UNAVAILABLE"}
-```
-
-### If ESI is UNAVAILABLE:
-
-1. **DO NOT** run `uv run aria-esi` commands - they will timeout
-2. **USE** profile standings tables:
-   - `userdata/pilots/{active_pilot}/profile.md` contains:
-     - Empire Factions table with faction standings
-     - Mission Corporations table with corp standings + access levels
-   - Data may include sync timestamp and staleness warning
-3. **ANSWER IMMEDIATELY** using cached standings
-4. **NOTE** in response: "Based on cached standings (ESI unavailable) - data from [sync date if shown]"
-5. **For eligibility checks:** Use profile standings but note they may be stale
-
-### If ESI is AVAILABLE:
-
-Proceed with live `uv run aria-esi standings` queries.
+1. **Read session hook output** for `"esi": {"status": "..."}`.
+2. **If UNAVAILABLE — do NOT call ESI.** Commands will timeout.
+   - Use profile standings tables in `userdata/pilots/{active_pilot}/profile.md` (Empire Factions + Mission Corporations).
+   - Answer immediately from cached data.
+   - Note in response: "Based on cached standings (ESI unavailable) — data from [sync date if shown]."
+   - For eligibility checks: use cached standings but flag they may be stale.
+   - Assume Connections IV-V if skill data is unavailable (common for mission runners).
+3. **If AVAILABLE — proceed with live ESI queries** (`uv run aria-esi standings`).
 
 ### Profile Standings Format
 
@@ -152,6 +162,44 @@ Use `sde(action="agent_search", corporation="CreoDron", level=4, division="Secur
 to find locations.
 ```
 
+### Research Agent Query
+
+When asked about R&D / research agents (e.g., "How do I get L4 research agents for CreoDron?"):
+
+1. **Verify corporation faction** via `sde(action="corporation_info", corporation_name="CreoDron")`.
+   Never guess which faction a corporation belongs to from training data — always verify.
+2. Query standings (ESI or profile cache) and calculate effective standing with Connections bonus.
+3. Look up R&D agents via `sde(action="agent_search", corporation="CreoDron", level=4, division="R&D", limit=100)`.
+   **Note:** The SDE canonical division name is `"R&D"`, not `"Research"`. Both are accepted by the search tool.
+4. Route to nearest agents via `universe(action="route", ...)`.
+
+**Example Response:**
+
+```
+## Research Agent Access: CreoDron
+
+**Corporation Faction:** Gallente Federation (verified via SDE)
+
+**Current Standing:**
+- Raw: 3.8
+- Connections V: +20% → Effective: 5.04
+
+**L4 R&D Agent Requirement:** 5.0 effective standing
+**Result:** You meet the threshold.
+
+### Available L4 R&D Agents
+
+| Agent | System | Sec | Region | Jumps |
+|-------|--------|-----|--------|------:|
+| Fajaf Ansen | Stacmon | 0.60 | Placid | 4 |
+| Ogmar Nedar | Alentene | 0.63 | Verge Vendor | 7 |
+| Tanelan Vansen | Oursulaert | 0.94 | Essence | 12 |
+
+**Skill reminder:** Train Research Project Management to increase max concurrent R&D agents.
+```
+
+**Faction verification warning:** If the user asks about a corporation whose faction you are unsure of, always call `sde(action="corporation_info")` first. Recommending the wrong epic arc based on a wrong faction guess is a critical error.
+
 ### Standing Plan Query
 
 When asked how to reach a standing (e.g., "/standings plan Caldari 5.0"):
@@ -163,31 +211,44 @@ When asked how to reach a standing (e.g., "/standings plan Caldari 5.0"):
 **Example Response:**
 
 ```
-## Standing Plan: Caldari State → 5.0
+═══════════════════════════════════════════════════════════════════════════════
+STANDINGS PLAN: Caldari State → 5.0
+───────────────────────────────────────────────────────────────────────────────
 
-**Current:** 2.1 raw, 3.68 effective (Connections V)
-**Target:** 5.0 effective
-**Gap:** 1.32 effective (need 3.0 raw)
+CURRENT STATUS:
+  Caldari State:       2.1 raw → 3.68 effective
+  Connections:         V (+20% bonus)
+  Gap:                 +1.32 effective (need 3.0 raw)
 
-### Recommended Path
+AGENT ACCESS:
+  L1 Agents: ✓ Available
+  L2 Agents: ✓ Available
+  L3 Agents: ✓ Available
+  L4 Agents: ✗ Locked (need 5.0, you have 3.68)
 
-1. **Storyline Missions** (primary method)
-   - Run L2/L3 Security missions for Caldari Navy
-   - Every 16 missions triggers a storyline
-   - Storyline gives faction + corp standing
+───────────────────────────────────────────────────────────────────────────────
+PROGRESSION PATH:
 
-2. **Epic Arc** (every 90 days)
-   - Run "Blood-Stained Stars" (no requirement)
-   - Choose Caldari at the end
-   - +10% of remaining = ~0.8 raw gain
+PHASE 1: Run L3 Security missions for Caldari Navy
+  - Every 16 missions triggers a storyline
+  - Storyline gives faction + corp standing
+  - ~40-60 missions needed
+  - Est. time: 12-18 hours
 
-3. **Data Center Tags** (one-time)
-   - Turn in pirate tags at data centers
-   - Quick boost, requires ISK for tags
+ACCELERATORS:
+  - Epic Arc (every 90 days): Blood-Stained Stars → choose Caldari
+    +10% of remaining = ~0.8 raw gain. No derived losses.
+  - Data Center Tags (one-time): turn in pirate tags for quick boost
+  - Distribution Missions: faster than security, same standing gains
 
-**Estimated Time:** 2-3 weeks of casual missioning
+TOTAL ESTIMATED TIME: 2-3 weeks of casual missioning
 
-*Train Connections V if not already - it's the best passive standing boost.*
+───────────────────────────────────────────────────────────────────────────────
+SKILL RECOMMENDATIONS:
+
+  Train Connections V if not already - it's the best passive standing boost.
+  Train Social IV-V for +20-25% standing gains from missions.
+═══════════════════════════════════════════════════════════════════════════════
 ```
 
 ### Standing Repair Query
@@ -248,6 +309,127 @@ if raw_standing < 0:
 
 **Always show both raw and effective standings in output.**
 
+### Required Raw for L4 by Connections Level
+
+| Connections | Raw Needed for 5.0 Effective |
+|-------------|------------------------------|
+| 0 | 5.00 |
+| I | 4.87 |
+| II | 4.74 |
+| III | 4.60 |
+| IV | 4.44 |
+| V | 4.17 |
+
+**Key insight:** Connections V means you need 4.17 raw instead of 5.0 raw - saves significant grinding time.
+
+## Standing Thresholds
+
+| Level | Requirement |
+|-------|-------------|
+| L1 | None |
+| L2 | 1.0 effective |
+| L3 | 3.0 effective |
+| L4 | 5.0 effective |
+| L5 | 7.0 effective |
+
+## Standing Gain Estimates
+
+| Source | Corp Gain | Faction Gain | Frequency |
+|--------|-----------|--------------|-----------|
+| Regular mission | +0.01-0.05 | None | Every mission |
+| Storyline mission | +0.1-0.3 | +0.1-0.3 | Every 16 missions |
+| Epic arc (complete) | None | +0.5-1.5 | Every 90 days |
+| Data center tags | +0.1-0.5 | +0.1-0.5 | One-time |
+| COSMOS missions | +0.5-1.0 | +0.5-1.0 | One-time (forever) |
+
+## Time Estimates (Neutral → L4)
+
+| Mission Level | Time per Mission | Missions per Storyline |
+|---------------|------------------|----------------------|
+| L1 | 5-10 min | 16 |
+| L2 | 10-15 min | 16 |
+| L3 | 15-25 min | 16 |
+| L4 | 20-40 min | 16 |
+
+**Phase 1:** Neutral → L2 (1.0): ~10-15 missions, 2-3 hours
+**Phase 2:** L2 → L3 (3.0): ~40-50 missions, 6-8 hours
+**Phase 3:** L3 → L4 (5.0): ~40-60 missions, 12-18 hours
+
+## Accelerator Strategies
+
+### 1. Connections Skill (Passive)
+
+Train Connections to V for maximum effective standing boost.
+- Reduces raw standing needed by ~0.83 for L4 access
+- Training time: ~5 days from 0
+
+**Recommend this first if not trained.**
+
+### 2. Social Skill (Active)
+
+Increases standing gains from missions.
+- Social IV: +20% to gains
+- Social V: +25% to gains
+- Fewer missions needed to reach target
+
+### 3. Epic Arcs (Every 90 Days)
+
+**Blood-Stained Stars (SOE):**
+- No standing requirement to start
+- Choose faction at end
+- +10% of remaining faction standing
+- No derived losses to enemies
+
+**Faction Epic Arcs:**
+- Require ~3.0 standing to start
+- Larger rewards (~+10% of remaining)
+- 90-day cooldown each
+
+### 4. Data Center Tags (One-Time)
+
+Turn in pirate tags at data centers:
+- Quick one-time boost
+- Costs ISK (tags from market)
+- Cannot repeat
+
+### 5. Storyline Mission Priority
+
+**Critical:** Every 16 missions triggers a storyline.
+- Storylines give FACTION standing (not just corp)
+- Count is per faction, not per agent
+- Don't skip storylines!
+
+### 6. Distribution Missions (Fast Standings)
+
+Courier missions:
+- Faster than security missions
+- Same standing gains
+- Low risk
+- Good while training combat skills
+
+## Special Cases
+
+### Cross-Faction Implications
+
+Warn about derived standing losses:
+- Running Gallente missions damages Caldari standing
+- Running Caldari missions damages Gallente standing
+- Amarr/Minmatar are similarly opposed
+- Epic arcs avoid these losses!
+
+```
+⚠️ WARNING: [Faction] missions will damage your [Enemy Faction] standing.
+Current [Enemy]: [X]
+Consider using epic arcs instead if you want both factions positive.
+```
+
+### L5 Agents (Special Case)
+
+L5 agents require 7.0 effective standing and are in lowsec only.
+- Much harder to reach
+- PvP risk during missions
+- Higher rewards but time-intensive standing grind
+
 ## Integration with Other Skills
 
 | Context | Action |
@@ -256,6 +438,7 @@ if raw_standing < 0:
 | Route to agent | Use `universe(action="route", ...)` |
 | Mission preparation | Suggest `/mission-brief` |
 | LP conversion | Suggest `/lp-store` |
+| Need ISK for tags | Suggest `/isk-compare` |
 
 **CRITICAL - Agent Search Limits:**
 
@@ -264,7 +447,7 @@ When searching for agents, **always use `limit=100`** to avoid silent truncation
 sde(action="agent_search", corporation="CreoDron", level=4, division="Security", limit=100)
 ```
 
-The default limit is 20 results. Without specifying `limit=100`, queries may return incomplete data (e.g., only L1-L2 agents when L3-L4 also exist).
+The default limit is 20 results. Without specifying `limit=100`, queries may return incomplete data.
 
 For comprehensive regional queries, run separate searches by level:
 ```python
@@ -282,6 +465,8 @@ uv run aria-esi standings
 uv run aria-esi skills
 ```
 
+**Parallel queries:** The standings and skills ESI calls are independent of each other — run both in parallel when you need both datasets.
+
 **Response format from CLI:**
 ```json
 {
@@ -291,6 +476,15 @@ uv run aria-esi skills
   ]
 }
 ```
+
+## Error Handling
+
+| Scenario | Response |
+|----------|----------|
+| No standing data | "Cannot fetch standings. Ensure ESI is connected." |
+| Unknown corp/faction | "Entity not found. Try the full name (e.g., 'Federation Navy')." |
+| Already at target | "Good news! You already meet the requirement for [target]." |
+| Negative standing repair | Prioritize epic arc strategy |
 
 ## DO NOT
 

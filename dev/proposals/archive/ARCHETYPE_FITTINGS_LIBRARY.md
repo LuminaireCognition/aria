@@ -1,5 +1,7 @@
 # Archetype Fittings Library Proposal
 
+**Status:** Python framework DEPRECATED (2026-02-12). 8 source modules, 2 command files, 10 test files deleted (~10,800 LOC). YAML reference data in `reference/archetypes/` retained for direct reading by the fitting skill via Glob + EOS validation.
+
 ## Executive Summary
 
 This proposal establishes a hierarchical library of archetype ship fittings organized by hull, activity, and skill tier. Each archetype serves as a tunable reference fit that can be adapted for specific damage profiles, skill levels, and operational constraints. The system includes hull-specific rules (e.g., drone boats may have intentionally empty high slots) and damage tuning instructions.

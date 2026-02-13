@@ -2,24 +2,7 @@
 
 The Archetype Fittings Library provides hierarchical, skill-tiered ship fittings organized by hull, activity, and skill level. Each archetype serves as a tunable reference fit that can be adapted for specific damage profiles, skill levels, and operational constraints.
 
-## Quick Start
-
-```bash
-# List all available archetypes
-uv run aria-esi archetype list
-
-# List archetypes for a specific hull
-uv run aria-esi archetype list vexor
-
-# Show archetype details
-uv run aria-esi archetype show vexor/pve/missions/l2/meta
-
-# Generate faction-tuned fit
-uv run aria-esi archetype generate vexor/pve/missions/l2/meta --faction serpentis
-
-# Validate all archetypes
-uv run aria-esi archetype validate --all
-```
+> **Note:** The Python CLI commands (`aria-esi archetype list/show/generate/validate`) were deprecated in February 2026. The YAML data files below are now read directly by the `/fitting` skill via Glob + EOS validation.
 
 ## Directory Structure
 
@@ -72,13 +55,7 @@ Examples:
 
 ## Faction Tuning
 
-Archetypes can be tuned for specific factions using the `--faction` flag:
-
-```bash
-uv run aria-esi archetype generate vexor/pve/missions/l2/meta --faction serpentis
-```
-
-Supported factions:
+Archetypes define faction-specific damage and resistance tuning. Supported factions:
 - `serpentis` - Kinetic/Thermal damage, weak to Thermal
 - `guristas` - Kinetic/Thermal damage, weak to Kinetic
 - `blood_raiders` - EM/Thermal damage, weak to EM
@@ -121,19 +98,6 @@ skill_comparison:
 ```
 
 The variant with higher total skill points is recommended.
-
-### Specifying Tank Type
-
-```bash
-# Auto-select based on skills
-uv run aria-esi archetype recommend vexor/pve/missions/l3
-
-# Explicitly request shield variant
-uv run aria-esi archetype show vexor/pve/missions/l3/shield/t2_buffer
-
-# List all variants
-uv run aria-esi archetype list vexor
-```
 
 ## Community Fits & Attribution
 
@@ -231,24 +195,11 @@ notes:
 
 ## Validation
 
-Validate archetypes to ensure correctness:
-
-```bash
-# Validate specific archetype
-uv run aria-esi archetype validate vexor/pve/missions/l2/meta
-
-# Validate all archetypes
-uv run aria-esi archetype validate --all
-
-# Include EOS fit validation
-uv run aria-esi archetype validate --all --eos
-```
-
-Validation checks:
+Archetype YAML files are validated by the fitting skill via EOS at read time. Validation checks:
 - Schema compliance (required fields, valid values)
 - Alpha restrictions (no T2 modules for non-omega fits)
 - Hull/manifest consistency
-- EOS fitting validity (optional, with `--eos`)
+- EOS fitting validity
 
 ## Available Archetypes
 
@@ -285,7 +236,6 @@ L3 Missions (with tank variants):
 3. Create activity directory: `pve/missions/{level}/`
 4. Create `_design.md` with slot philosophy
 5. Create tier variants: `t1.yaml`, `meta.yaml`, `t2.yaml`, `t2_optimal.yaml`
-6. Run validation: `uv run aria-esi archetype validate --all`
 
 ### Adding Tank Variants
 

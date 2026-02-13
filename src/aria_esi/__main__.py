@@ -42,7 +42,7 @@ def cmd_help(args: argparse.Namespace) -> dict:
 ARIA ESI Interface (Python)
 ───────────────────────────────────────────────────────────────────
 
-Status: Phase 13 Complete - All commands ready
+Status: All commands ready
 
 Navigation Commands:
   route <from> <to> [flags]  Calculate route between systems
@@ -171,15 +171,6 @@ Fitting Commands:
                              --force (re-download), --check (status only)
   eos-status                 Show EOS fitting data status
 
-Archetype Commands:
-  archetype list [hull]      List available archetypes
-  archetype show <path>      Show archetype details
-                             --eft (EFT format only)
-  archetype generate <path>  Generate faction-tuned fit
-                             --faction <name>
-  archetype validate [path]  Validate archetype(s)
-                             --all, --eos, --hull <name>
-
 Notification Commands:
   notifications list         List all notification profiles
   notifications show <name>  Show profile details
@@ -251,11 +242,6 @@ Examples:
   aria-esi validate-sites --verbose
   aria-esi eos-seed
   aria-esi eos-status
-  aria-esi archetype list
-  aria-esi archetype list vexor
-  aria-esi archetype show vexor/pve/missions/l2/meta
-  aria-esi archetype generate vexor/pve/missions/l2/meta --faction serpentis
-  aria-esi archetype validate --all --eos
   aria-esi notifications list
   aria-esi notifications templates
   aria-esi notifications create my-intel --template market-hubs --webhook <url>
@@ -538,16 +524,6 @@ def build_parser() -> argparse.ArgumentParser:
     from .commands import fitting
 
     fitting.register_parsers(subparsers)
-
-    # Phase 21: Archetype commands
-    from .commands import archetypes
-
-    archetypes.register_parsers(subparsers)
-
-    # Phase 22: Fit selection commands
-    from .commands import fit
-
-    fit.register_parsers(subparsers)
 
     # Phase 23: RedisQ real-time intel commands
     from .commands import redisq

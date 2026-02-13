@@ -124,7 +124,7 @@ def register_sde_dispatcher(server: FastMCP, universe: UniverseGraph) -> None:
                 corporation: Corporation name
                 corporation_id: Corporation ID (alternative)
                 level: Agent level (1-5)
-                division: Division name (Security, Distribution, Mining, Research)
+                division: Division name (Security, Distribution, Mining, R&D). Also accepts "Research" as alias for R&D.
                 system: Filter to specific system
                 highsec_only: Only return highsec agents
                 limit: Max results (default 20, max 100)

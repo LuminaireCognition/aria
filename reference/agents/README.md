@@ -37,7 +37,7 @@ The `sde_agent_search` tool returns agent records with these fields:
 | `agent_name` | Agent's name |
 | `level` | Agent level (1-5) |
 | `division_id` | Division type ID |
-| `division_name` | Division name (Security, Distribution, Mining, Research, etc.) |
+| `division_name` | Division name (Security, Distribution, Mining, R&D, etc.) |
 | `corporation_id` | NPC corporation ID |
 | `corporation_name` | NPC corporation name |
 | `station_id` | Station ID where agent is located |
@@ -55,7 +55,7 @@ The `sde_agent_search` tool returns agent records with these fields:
 | `security` | Combat missions (kill NPCs) | Security Connections |
 | `distribution` | Hauling/courier missions | Distribution Connections |
 | `mining` | Mining missions | Mining Connections |
-| `research` | R&D agents for datacores | Research Project Management |
+| `R&D` | Research agents for datacores | Research Project Management |
 | `epic_arc` | Epic arc starting agents | N/A |
 | `event` | Event mission agents | N/A |
 | `storyline` | Triggered after 16 missions | N/A |
@@ -75,7 +75,7 @@ sde_agent_search(corporation="Sisters of EVE", level=2, division="Security")
 sde_agent_search(corporation="Caldari Navy", level=4, highsec_only=True)
 
 # All R&D agents for CreoDron
-sde_agent_search(corporation="CreoDron", division="Research")
+sde_agent_search(corporation="CreoDron", division="R&D")
 ```
 
 ### Pirate & Independent Factions (Reference)

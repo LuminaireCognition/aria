@@ -14,6 +14,8 @@ Training data knowledge about EVE Online is **not a trusted source**. It may be 
 
 When making claims about EVE Online mechanics, verify from these sources in order of preference:
 
+> **Note:** This hierarchy is ordered by query usefulness for verification (SDE first — most useful for checking game mechanics). See `DATA_AUTHORITY.md` for the caching-focused hierarchy (ESI first — most authoritative live source).
+
 | Priority | Source | Tool/Method | Use For |
 |----------|--------|-------------|---------|
 | 1 | **SDE** | `sde(action="item_info")`, `sde(action="blueprint_info")`, `sde(action="skill_requirements")` | Item stats, skill effects, blueprint data |

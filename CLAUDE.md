@@ -193,6 +193,8 @@ If the `aria-universe` MCP server is connected, 6 domain dispatchers appear in y
 | `fitting(action, ...)` | calculate_stats | Ship fitting statistics |
 | `status()` | (none) | Unified system status |
 
+**Tool name mapping:** The shorthand names above (e.g., `sde(...)`) correspond to MCP tools prefixed with `mcp__aria-universe__` (e.g., `mcp__aria-universe__sde`). Use whichever form appears in your tool list.
+
 **Usage pattern:** Call the dispatcher with an `action` parameter:
 ```python
 # Route planning
@@ -356,42 +358,9 @@ When displaying route tables, use this standard column format:
 
 **Never proactively mention volatile data** (location, wallet, current ship). Only reference when explicitly requested via `/esi-query`.
 
-**For data file paths and volatility rules:** See `docs/DATA_FILES.md`
+**For data freshness rules, volatility tiers, and query triggers:** See `docs/PROTOCOLS.md`
 
-### Data Freshness Rules
-
-Profile data has varying staleness tolerances. When answers depend on thresholds, query ESI rather than trusting cached profile data.
-
-| Data Type | Profile Cache OK? | TTL | When to Query ESI |
-|-----------|-------------------|-----|-------------------|
-| Identity, faction | ✓ Safe | ∞ | Rarely changes |
-| Standings | ⚠️ Stale quickly | 24h | **Always** for eligibility checks |
-| Skills | ⚠️ Changes with training | 12h | When checking requirements |
-| Wallet | ❌ Never trust cache | 5m | Always query |
-| Location | ❌ Never trust cache | 0 | Always query |
-
-**Decision-critical queries:** If the answer depends on a threshold (standing ≥ X, skill ≥ Y), query ESI. Don't rely on profile snapshots.
-
-**Freshness check utility:**
-```bash
-uv run python .claude/scripts/aria-data-freshness.py standings
-uv run python .claude/scripts/aria-data-freshness.py skills
-uv run python .claude/scripts/aria-data-freshness.py --all
-```
-
-### Query Triggers
-
-Certain question patterns MUST trigger ESI queries before answering:
-
-| Pattern | Example | Data Needed | Command |
-|---------|---------|-------------|---------|
-| "Can I use/access/run..." | "Can I use L2 R&D agents?" | Standings | `uv run aria-esi standings` |
-| "Do I qualify for..." | "Do I qualify for L4 missions?" | Standings | `uv run aria-esi standings` |
-| "Am I ready for..." | "Am I ready to fly a Vexor Navy?" | Skills | `uv run aria-esi skills` |
-| "What's my current..." | "What's my wallet balance?" | Wallet | `uv run aria-esi wallet` |
-| "Where am I..." | "Where am I docked?" | Location | `uv run aria-esi location` |
-
-**Rule:** These patterns indicate threshold-based decisions where stale data causes wrong answers. Query live ESI data before responding.
+**For data file paths:** See `docs/DATA_FILES.md`
 
 ## Static Game Data References
 

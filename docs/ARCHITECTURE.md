@@ -29,7 +29,7 @@ graph TB
         ESI[EVE ESI API<br/>Live game data]
         Fuzzwork[Fuzzwork<br/>Market prices]
         Wiki[EVE Uni Wiki<br/>Mission intel]
-        Reference[Reference Data<br/>Mechanics, archetypes]
+        Reference[Reference Data<br/>Mechanics, archetype YAMLs]
     end
 
     subgraph Personas["Persona System"]
@@ -94,7 +94,7 @@ The Model Context Protocol server provides structured data access:
 | **EVE ESI** | Live API | Character data, market orders, system activity |
 | **Fuzzwork** | Aggregated | Market prices across regions |
 | **EVE Uni Wiki** | Reference | Mission walkthroughs, cached locally |
-| **Reference Data** | Static | Game mechanics, damage profiles, archetypes |
+| **Reference Data** | Static | Game mechanics, damage profiles, archetype YAMLs |
 
 ### Persona System
 
