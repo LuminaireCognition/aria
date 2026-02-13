@@ -17,6 +17,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from aria_esi.mcp.sde.tools_agents import (
+    DIVISION_ALIASES,
     AgentInfo,
     AgentSearchResult,
     DivisionListResult,
@@ -373,6 +374,42 @@ class TestDivisionNameResolution:
         result = _resolve_division_name(conn, "InvalidDivision")
 
         assert result is None
+
+    def test_research_alias_resolves_to_rnd(self):
+        """Test that 'Research' is aliased to 'r&d' before DB lookup."""
+        conn = MagicMock()
+
+        # The alias should transform "research" → "r&d" before hitting the DB.
+        # Make the exact match succeed so we can inspect the query param.
+        exact_cursor = MagicMock()
+        exact_cursor.fetchone.return_value = (18,)
+        conn.execute.return_value = exact_cursor
+
+        result = _resolve_division_name(conn, "Research")
+
+        assert result == 18
+        # Verify the lowered+aliased name was sent to the DB
+        call_args = conn.execute.call_args
+        assert call_args[0][1][0] == "r&d"
+
+    def test_rnd_direct_still_works(self):
+        """Test that passing 'R&D' directly still resolves."""
+        conn = MagicMock()
+
+        exact_cursor = MagicMock()
+        exact_cursor.fetchone.return_value = (18,)
+        conn.execute.return_value = exact_cursor
+
+        result = _resolve_division_name(conn, "R&D")
+
+        assert result == 18
+        call_args = conn.execute.call_args
+        assert call_args[0][1][0] == "r&d"
+
+    def test_division_aliases_mapping(self):
+        """Test that DIVISION_ALIASES contains the expected mappings."""
+        assert "research" in DIVISION_ALIASES
+        assert DIVISION_ALIASES["research"] == "r&d"
 
 
 # =============================================================================

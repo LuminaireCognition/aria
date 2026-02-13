@@ -50,7 +50,7 @@ sde(action="agent_divisions")
 **Available filters:**
 - `corporation`: Corporation name (fuzzy matched)
 - `level`: Agent level (1-5)
-- `division`: Division name (Security, Distribution, Mining, Research)
+- `division`: Division name (Security, Distribution, Mining, R&D). Also accepts "Research".
 - `system`: Solar system name
 - `highsec_only`: Only return agents in highsec (>=0.45)
 
@@ -64,7 +64,7 @@ Example: "Find nearest L2 SOE security agent to Sortet"
 
 **2. Find R&D agents for [Corporation]**
 ```
-sde(action="agent_search", corporation, division="Research") → Include level for standing check
+sde(action="agent_search", corporation, division="R&D") → Include level for standing check
 → Cross-reference with pilot standings via ESI if available
 ```
 Example: "Which SOE agents can I use for research point generation?"

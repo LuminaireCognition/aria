@@ -18,6 +18,12 @@ if TYPE_CHECKING:
 
 logger = get_logger("aria_sde.tools_agents")
 
+# The SDE stores the division as "R&D" (division_id 18), but users and docs
+# commonly refer to it as "Research".  Map common aliases to canonical names.
+DIVISION_ALIASES: dict[str, str] = {
+    "research": "r&d",
+}
+
 
 # =============================================================================
 # Models
@@ -98,7 +104,7 @@ async def _agent_search_impl(
         corporation: Corporation name (fuzzy matched, e.g., "Sisters of EVE")
         corporation_id: Corporation ID (alternative to name)
         level: Agent level (1-5)
-        division: Division name (Security, Distribution, Mining, Research)
+        division: Division name (Security, Distribution, Mining, R&D). Also accepts "Research" as alias for R&D.
         system: Filter to specific solar system
         highsec_only: If True, only return agents in highsec (>=0.45)
         limit: Maximum results (default 20, max 100)
@@ -162,7 +168,7 @@ async def _agent_search_impl(
             return AgentSearchResult(
                 success=False,
                 error_code="division_not_found",
-                message=f"No division matching '{division}'. Use 'Security', 'Distribution', 'Mining', or 'Research'.",
+                message=f"No division matching '{division}'. Use 'Security', 'Distribution', 'Mining', or 'R&D' (also accepts 'Research').",
             ).model_dump()
         conditions.append("a.division_id = ?")
         params.append(div_id)
@@ -321,7 +327,7 @@ def register_agent_tools(server: FastMCP) -> None:
             corporation: Corporation name (fuzzy matched, e.g., "Sisters of EVE")
             corporation_id: Corporation ID (alternative to name)
             level: Agent level (1-5)
-            division: Division name (Security, Distribution, Mining, Research)
+            division: Division name (Security, Distribution, Mining, R&D). Also accepts "Research" as alias for R&D.
             system: Filter to specific solar system
             highsec_only: If True, only return agents in highsec (>=0.45)
             limit: Maximum results (default 20, max 100)
@@ -347,7 +353,7 @@ def register_agent_tools(server: FastMCP) -> None:
         - Security: Combat missions
         - Distribution: Courier/hauling missions
         - Mining: Mining missions
-        - Research: R&D agents for datacores
+        - R&D: Research agents for datacores (also accepts "Research")
 
         Returns:
             DivisionListResult with all divisions
@@ -393,8 +399,9 @@ def _resolve_corporation_name(conn, name: str) -> int | None:
 
 
 def _resolve_division_name(conn, name: str) -> int | None:
-    """Resolve division name to ID."""
+    """Resolve division name to ID.  Also resolves common aliases (e.g. 'Research' → 'R&D')."""
     name_lower = name.lower().strip()
+    name_lower = DIVISION_ALIASES.get(name_lower, name_lower)
 
     # Try exact match
     cursor = conn.execute(
