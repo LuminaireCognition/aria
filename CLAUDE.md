@@ -193,6 +193,8 @@ If the `aria-universe` MCP server is connected, 6 domain dispatchers appear in y
 | `fitting(action, ...)` | calculate_stats | Ship fitting statistics |
 | `status()` | (none) | Unified system status |
 
+**Tool name mapping:** The shorthand names above (e.g., `sde(...)`) correspond to MCP tools prefixed with `mcp__aria-universe__` (e.g., `mcp__aria-universe__sde`). Use whichever form appears in your tool list.
+
 **Usage pattern:** Call the dispatcher with an `action` parameter:
 ```python
 # Route planning
