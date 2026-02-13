@@ -77,28 +77,16 @@ Track faction and corporation standings, determine agent access levels, plan pro
 
 ## ESI Availability Check (CRITICAL)
 
-**BEFORE making any ESI queries**, check the session hook output for ESI status:
+**Every standings query must pass this checklist before calling ESI:**
 
-```json
-"esi": {"status": "UNAVAILABLE"}
-```
-
-### If ESI is UNAVAILABLE:
-
-1. **DO NOT** run `uv run aria-esi` commands - they will timeout
-2. **USE** profile standings tables:
-   - `userdata/pilots/{active_pilot}/profile.md` contains:
-     - Empire Factions table with faction standings
-     - Mission Corporations table with corp standings + access levels
-   - Data may include sync timestamp and staleness warning
-3. **ANSWER IMMEDIATELY** using cached standings
-4. **NOTE** in response: "Based on cached standings (ESI unavailable) - data from [sync date if shown]"
-5. **For eligibility checks:** Use profile standings but note they may be stale
-6. **Assume** Connections IV-V for effective standing calculations if skill data unavailable (common for mission runners)
-
-### If ESI is AVAILABLE:
-
-Proceed with live `uv run aria-esi standings` queries.
+1. **Read session hook output** for `"esi": {"status": "..."}`.
+2. **If UNAVAILABLE — do NOT call ESI.** Commands will timeout.
+   - Use profile standings tables in `userdata/pilots/{active_pilot}/profile.md` (Empire Factions + Mission Corporations).
+   - Answer immediately from cached data.
+   - Note in response: "Based on cached standings (ESI unavailable) — data from [sync date if shown]."
+   - For eligibility checks: use cached standings but flag they may be stale.
+   - Assume Connections IV-V if skill data is unavailable (common for mission runners).
+3. **If AVAILABLE — proceed with live ESI queries** (`uv run aria-esi standings`).
 
 ### Profile Standings Format
 
@@ -173,6 +161,44 @@ When asked about agent access (e.g., "can I use L4 agents with CreoDron"):
 Use `sde(action="agent_search", corporation="CreoDron", level=4, division="Security")`
 to find locations.
 ```
+
+### Research Agent Query
+
+When asked about R&D / research agents (e.g., "How do I get L4 research agents for CreoDron?"):
+
+1. **Verify corporation faction** via `sde(action="corporation_info", corporation_name="CreoDron")`.
+   Never guess which faction a corporation belongs to from training data — always verify.
+2. Query standings (ESI or profile cache) and calculate effective standing with Connections bonus.
+3. Look up R&D agents via `sde(action="agent_search", corporation="CreoDron", level=4, division="R&D", limit=100)`.
+   **Note:** The SDE canonical division name is `"R&D"`, not `"Research"`. Both are accepted by the search tool.
+4. Route to nearest agents via `universe(action="route", ...)`.
+
+**Example Response:**
+
+```
+## Research Agent Access: CreoDron
+
+**Corporation Faction:** Gallente Federation (verified via SDE)
+
+**Current Standing:**
+- Raw: 3.8
+- Connections V: +20% → Effective: 5.04
+
+**L4 R&D Agent Requirement:** 5.0 effective standing
+**Result:** You meet the threshold.
+
+### Available L4 R&D Agents
+
+| Agent | System | Sec | Region | Jumps |
+|-------|--------|-----|--------|------:|
+| Fajaf Ansen | Stacmon | 0.60 | Placid | 4 |
+| Ogmar Nedar | Alentene | 0.63 | Verge Vendor | 7 |
+| Tanelan Vansen | Oursulaert | 0.94 | Essence | 12 |
+
+**Skill reminder:** Train Research Project Management to increase max concurrent R&D agents.
+```
+
+**Faction verification warning:** If the user asks about a corporation whose faction you are unsure of, always call `sde(action="corporation_info")` first. Recommending the wrong epic arc based on a wrong faction guess is a critical error.
 
 ### Standing Plan Query
 
@@ -438,6 +464,8 @@ uv run aria-esi standings
 # Get skills (for Connections/Diplomacy)
 uv run aria-esi skills
 ```
+
+**Parallel queries:** The standings and skills ESI calls are independent of each other — run both in parallel when you need both datasets.
 
 **Response format from CLI:**
 ```json
