@@ -1,4 +1,4 @@
-# ARIA Data Protocols & Advisory Guidelines
+# ARIA Data Protocols
 
 > **Note:** This document is referenced by CLAUDE.md. These protocols are critical for data safety and recommendation accuracy.
 
@@ -67,74 +67,40 @@ Instead of volatile point-in-time data, use stable abstractions:
 
 ---
 
-## Industry Advisory Protocol
+## Data Freshness Rules
 
-**CRITICAL:** Before making ANY recommendations about:
-- BPO purchases
-- Manufacturing priorities
-- Invention paths
-- Industry investments
+Profile data has varying staleness tolerances. When answers depend on thresholds, query ESI rather than trusting cached profile data.
 
-**ARIA MUST:**
-1. Read the active pilot's blueprint library to check owned BPOs
-2. If file is stale or missing data, run `/esi-query blueprints` to refresh
-3. Never recommend acquiring BPOs the capsuleer already owns
-4. Base recommendations on actual inventory, not generic starter advice
+| Data Type | Profile Cache OK? | TTL | When to Query ESI |
+|-----------|-------------------|-----|-------------------|
+| Identity, faction | ✓ Safe | ∞ | Rarely changes |
+| Standings | ⚠️ Stale quickly | 24h | **Always** for eligibility checks |
+| Skills | ⚠️ Changes with training | 12h | When checking requirements |
+| Wallet | ❌ Never trust cache | 5m | Always query |
+| Location | ❌ Never trust cache | 0 | Always query |
 
-**Blueprint Library Path:** `userdata/pilots/{active_pilot}/industry/blueprints.md`
+**Decision-critical queries:** If the answer depends on a threshold (standing ≥ X, skill ≥ Y), query ESI. Don't rely on profile snapshots.
 
----
-
-## Economic Advisory Protocol
-
-**CRITICAL:** Before making ANY recommendations about:
-- ISK generation methods
-- Activity suggestions (exploration, ratting, etc.)
-- Income optimization
-- Resource acquisition paths
-
-**ARIA MUST:**
-1. Read the active pilot's profile and check the **Operational Constraints** section
-2. For EACH recommendation, validate against active constraints:
-   - If `market_trading: false` → Activity must generate value WITHOUT market sales
-   - If `contracts: false` → Activity must not require contract mechanics
-   - If `fleet_required: false` → Activity must be solo-viable
-   - If `security_preference` is set → Activity must match security tolerance
-3. **Explicitly state** in response which constraints were validated
-4. Never recommend activities that require disabled transaction types
-
-**Validation Template:**
-```
-Constraints Validated: [list active constraints checked]
-Recommendation compatible: [YES/NO for each constraint]
+**Freshness check utility:**
+```bash
+uv run python .claude/scripts/aria-data-freshness.py standings
+uv run python .claude/scripts/aria-data-freshness.py skills
+uv run python .claude/scripts/aria-data-freshness.py --all
 ```
 
----
+### Query Triggers
 
-## Fitting Advisory Protocol
+Certain question patterns MUST trigger ESI queries before answering:
 
-**CRITICAL:** Before recommending ANY ship fitting or specific modules:
+| Pattern | Example | Data Needed | Command |
+|---------|---------|-------------|---------|
+| "Can I use/access/run..." | "Can I use L2 R&D agents?" | Standings | `uv run aria-esi standings` |
+| "Do I qualify for..." | "Do I qualify for L4 missions?" | Standings | `uv run aria-esi standings` |
+| "Am I ready for..." | "Am I ready to fly a Vexor Navy?" | Skills | `uv run aria-esi skills` |
+| "What's my current..." | "What's my wallet balance?" | Wallet | `uv run aria-esi wallet` |
+| "Where am I..." | "Where am I docked?" | Location | `uv run aria-esi location` |
 
-**ARIA MUST:**
-1. Read the active pilot's ship status file (`userdata/pilots/{active_pilot}/ships.md`)
-2. Check existing fittings for module tier indicators:
-   - T1 modules end in "I" (e.g., "Hammerhead I", "Armor Repairer I")
-   - T2 modules end in "II" (e.g., "Hammerhead II", "Armor Repairer II")
-   - Meta modules have names (e.g., "Malkuth", "Arbalest", "Compact")
-3. Check profile.md for explicit `module_tier` field if present
-4. **Default to T1/Meta modules** when tier is uncertain
-
-**Module Tier Rules:**
-- If pilot's existing fits show only T1 → Recommend T1/Meta only
-- If pilot's existing fits show T2 → T2 recommendations are acceptable
-- If `module_tier: t1` in profile → T1/Meta only
-- If `module_tier: t2` in profile → T2 acceptable
-- If uncertain → **Default to T1/Meta** (never assume T2 access)
-
-**Self-Sufficiency Consideration:**
-For pilots with `market_trading: false`, T2 modules may be unobtainable regardless of skills. Recommend T1/Meta unless T2 is confirmed available in their hangar or fits.
-
-**Validation failure = recommending gear the pilot cannot use or obtain.**
+**Rule:** These patterns indicate threshold-based decisions where stale data causes wrong answers. Query live ESI data before responding.
 
 ---
 

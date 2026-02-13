@@ -1,6 +1,7 @@
 # Accretion Audit Report
 
 **Date:** 2026-02-10
+**Updated:** 2026-02-12
 **Scope:** Full repository analysis per `dev/prompts/architecture/accretion_auditor.md`
 **Method:** Complexity Cost (C) x Removal Feasibility (R) - Utility Yield (U)
 
@@ -8,34 +9,31 @@
 
 ## Executive Summary
 
-ARIA has grown from a focused EVE Online tactical assistant into a 108K+ LOC Python project with 49 registered skills, 366 markdown files, and 4,000+ JSON/YAML data files. Several subsystems have accreted significant complexity with diminishing returns. The single highest-impact finding is the **coexistence of two complete interest-scoring engines** (v1 and v2) in the notification pipeline, totaling 50 Python files for the same conceptual job.
+ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Python project with 49 registered skills, 366 markdown files, and 4,000+ JSON/YAML data files. Several subsystems have accreted significant complexity with diminishing returns.
 
-The top 3 cuts alone would remove ~15K lines of code and 50+ files while preserving all user-facing functionality.
+**Completed:** Interest Engine v1 deleted (PR #27, merged 2026-02-12). Removed 12 source files, 8 test files, ~8,080 lines. Eliminated runtime v1/v2 branching in profile_evaluator. Simplified topology config and notification templates.
+
+**Next priority:** Documentation consolidation (zero code risk) or archetype framework deprecation (higher LOC impact but requires import surgery in `commands/fit.py`).
 
 ---
 
 ## 1. Top Removal Candidates
 
-### Rank 1: Interest Engine v1/v2 Coexistence
+### ~~Rank 1: Interest Engine v1/v2 Coexistence~~ COMPLETED
 
-**Accretion Score: 15** `(C=5, U=2, R=4)`
+**Status:** ✅ Deleted in PR #27 (merged 2026-02-12, branch `cleanup/delete-interest-v1`)
 
-**Area:** `src/aria_esi/services/redisq/interest/` + `src/aria_esi/services/redisq/interest_v2/`
+**What was removed:**
+- `src/aria_esi/services/redisq/interest/` — 12 source files (~3,100 LOC)
+- `tests/services/redisq/interest/` — 8 test files (~3,400 LOC)
+- v1 fallback logic in `profile_evaluator.py` (~200 lines)
+- v1-related CLI subcommands in `notifications.py` and `redisq.py` (~370 lines)
+- `topology.py` calculator code path (~80 lines)
+- `context_topology.routes` and `archetype` config fields from CLAUDE.md
 
-**Evidence:**
-- `interest/` — 12 Python files, ~3,100 LOC (multi-layer max-of-scores approach)
-- `interest_v2/` — 38 Python files, ~9,700 LOC (RMS-weighted signal blending)
-- `interest_v2/cli/migrate.py` — migration tool from v1 configs exists but coexistence persists
-- `notifications/profile_evaluator.py` — runtime router that dispatches to v1 OR v2 based on `profile.uses_interest_v2`
-- Tests: ~3,400 LOC for v1, ~13,000 LOC for v2 — **16,400 lines of test code for duplicated logic**
+**Actual gain:** 40 files changed, -8,080 lines net. Runtime v1/v2 branching eliminated. Notification templates updated to v2-only format. Topology filter test updated to use `interest_map` path (CI fix in follow-up commit).
 
-**Why low leverage:** Two complete implementations of "should this kill generate a notification?" living side by side. The v2 engine alone has 7 subpackages (`signals/`, `rules/`, `providers/`, `scaling/`, `presets/`, `delivery/`, `cli/`) with feature flags (`rule_dsl`, `custom_signals`, `custom_scaling`, `delivery_slack`). This is framework-grade complexity for a single-user notification filter.
-
-**Action:** Complete migration to v2, delete v1. Or: collapse both into a single simplified scorer if v2's full feature surface is unused.
-
-**Expected gain:** Remove ~12 files + ~3,100 LOC of source, ~3,400 LOC of tests. Eliminate runtime branching in profile_evaluator. Simplify notification profile schema (no more dual-mode topology/interest config).
-
-**Guardrail:** Migrate any active v1 notification profiles to v2 config format using `interest_v2/cli/migrate.py` before deletion. Run notification integration tests to verify parity.
+**Remaining:** Interest Engine v2 internal over-engineering (Rank 4) is a separate cleanup — 38 files, ~9,700 LOC still in `interest_v2/`.
 
 ---
 
@@ -46,19 +44,20 @@ The top 3 cuts alone would remove ~15K lines of code and 50+ files while preserv
 **Area:** `src/aria_esi/archetypes/` + `reference/archetypes/`
 
 **Evidence:**
-- `src/aria_esi/archetypes/` — 8 Python modules: `loader.py`, `models.py`, `selection.py`, `tank_selection.py`, `tuning.py`, `pricing.py`, `validator.py`
+- `src/aria_esi/archetypes/` — 8 Python modules, **4,457 LOC** (revised from original 1,500 estimate):
+  - `loader.py` (810), `models.py` (873), `validator.py` (710), `selection.py` (664), `tank_selection.py` (446), `pricing.py` (430), `tuning.py` (421), `__init__.py` (103)
 - `reference/archetypes/` — 78 YAML files defining ship fits across hulls/activities/tiers
 - `reference/archetypes/_shared/` — 5 shared YAML files (damage profiles, tank archetypes, skill tiers, module tiers, faction tuning)
 - The MCP `fitting(action="calculate_stats")` tool already validates fits via EOS engine
 - The 437-line `.claude/skills/fitting/SKILL.md` already contains inline fitting philosophy, tank coherence rules, and drone selection protocol
 
-**Why low leverage:** The archetype system builds a Python framework (selection algorithms, tank selection logic, pricing integration, tuning parameters) to choose from pre-defined YAML fits. But the fitting skill's actual workflow is: user describes need -> LLM builds EFT -> `fitting(action="calculate_stats")` validates -> iterate. The archetype YAML files are reference data that could be read directly without a framework mediating access. The selection/tuning/validation framework adds ~1,500 LOC of indirection that the LLM doesn't need.
+**Why low leverage:** The archetype system builds a Python framework (selection algorithms, tank selection logic, pricing integration, tuning parameters) to choose from pre-defined YAML fits. But the fitting skill's actual workflow is: user describes need -> LLM builds EFT -> `fitting(action="calculate_stats")` validates -> iterate. The archetype YAML files are reference data that could be read directly without a framework mediating access. The selection/tuning/validation framework adds ~4,500 LOC of indirection that the LLM doesn't need.
 
-**Action:** Deprecate the Python framework (`src/aria_esi/archetypes/`). Retain `reference/archetypes/` YAML files as static reference data the fitting skill reads directly. Remove `selection.py`, `tank_selection.py`, `tuning.py`, `validator.py`.
+**Action:** Deprecate the Python framework (`src/aria_esi/archetypes/`). Retain `reference/archetypes/` YAML files as static reference data the fitting skill reads directly.
 
-**Expected gain:** Remove ~1,500 LOC of framework code. Eliminate archetype-related test surface. Simplify fitting recommendations from "framework-selected archetype" to "LLM reads reference YAML + validates via EOS."
+**Expected gain:** Remove ~4,500 LOC of framework code + associated tests. Simplify fitting recommendations from "framework-selected archetype" to "LLM reads reference YAML + validates via EOS."
 
-**Guardrail:** Verify that no CLI command depends on archetype Python modules before removal. Check `pyproject.toml` entry points and `commands/fit.py` imports. Keep YAML data files intact.
+**Guardrail:** `commands/fit.py` has **7 import lines from 5 archetype submodules** (`select_fits`, `MissionContext`, `list_archetypes`, `load_archetype`, `estimate_fit_price`, `get_archetype_yaml_path`, `update_archetype_stats`, `Stats`, `ArchetypeValidator`, `validate_all_archetypes`). These must be inlined or removed before the framework can be deleted. No standalone entry points in `pyproject.toml`. Keep YAML data files intact.
 
 ---
 
@@ -88,11 +87,11 @@ The top 3 cuts alone would remove ~15K lines of code and 50+ files while preserv
 **Why low leverage:** The same information is restated across 3-4 files per topic. A developer or the LLM must read all variants to be sure they have the complete picture. The cognitive overhead scales with number of restated sources, not with conceptual complexity. The actual rules are simple; the documentation makes them appear complex.
 
 **Action:** Consolidate each topic to one authoritative source:
-- Merge DATA_VERIFICATION + DATA_AUTHORITY + PROTOCOLS volatility section into single `docs/DATA_TRUST.md`
+- ✅ Deduplicate data trust docs (cross-refs, trust hierarchy notes, advisory protocols moved to skills, Data Freshness moved to PROTOCOLS.md)
 - Consolidate persona loading into `docs/PERSONA_LOADING.md`, remove content from CLAUDE.md (replace with one-line reference)
-- Delete path security from `personas/_shared/skill-loading.md` (keep in CLAUDE.md + code)
+- ✅ Delete path security from `personas/_shared/skill-loading.md` (keep in CLAUDE.md + code)
 
-**Expected gain:** Remove ~800 lines of duplicated documentation. Reduce CLAUDE.md by ~150 lines. Eliminate "which doc is canonical?" confusion.
+**Expected gain (revised):** Investigation found ~110 lines of actual duplication (14%), not ~800. Targeted dedup removed ~90 lines. Persona loading consolidation remains for a future pass.
 
 **Guardrail:** Grep for cross-references to deleted files and update them. No code changes needed.
 
@@ -137,7 +136,7 @@ The top 3 cuts alone would remove ~15K lines of code and 50+ files while preserv
 |---------|--------|---------|
 | Fitting | `fitting`, `fit-check`, `fit-budget`, `fittings` | 4 skills for "help me with ship fitting" |
 | Navigation | `route`, `gatecamp`, `threat-assessment`, `orient` | 4 skills for "is it safe to go there?" |
-| Killmails | `killmail`, `killmails` | Singular vs plural, same domain |
+| ~~Killmails~~ | `killmail`, `killmails` | ~~Singular vs plural~~ Complementary: public analysis vs personal history (dropped) |
 | Standings | `standings`, `standings-plan` | View vs plan, could be one |
 | Mining | `mining`, `mining-advisory` | Ledger vs guidance, could be one |
 | Skills | `skillplan`, `skillqueue` | Plan vs queue, could be one |
@@ -211,23 +210,30 @@ The top 3 cuts alone would remove ~15K lines of code and 50+ files while preserv
 
 ## 2. Quick Wins (<=2 days each)
 
-| # | Action | Files Affected | LOC Removed | Effort |
-|---|--------|----------------|-------------|--------|
-| 1 | Delete `interest/` v1 (after migrating active profiles) | 12 .py + ~10 test files | ~6,500 | 1 day |
-| 2 | Merge DATA_VERIFICATION + DATA_AUTHORITY + PROTOCOLS into DATA_TRUST.md | 3 docs consolidated → 1 | ~800 | 0.5 day |
-| 3 | Merge `killmail` + `killmails` skills | 2 SKILL.md → 1, update _index.json | ~100 | 0.5 day |
-| 4 | Delete path security duplication from `personas/_shared/skill-loading.md` | 1 file edited | ~50 | 0.25 day |
-| 5 | Delete `count_persona_tokens.py` and `aria-credential-watch.py` | 2 scripts | ~200 | 0.25 day |
+| # | Action | Files Affected | LOC Removed | Effort | Status |
+|---|--------|----------------|-------------|--------|--------|
+| 1 | ~~Delete `interest/` v1~~ | ~~12 .py + ~10 test files~~ | ~~~6,500~~ | ~~1 day~~ | ✅ PR #27 |
+| 2 | Consolidate data trust docs + slim CLAUDE.md Data Freshness | 9 files edited | ~60 | 0.5 day | ✅ Done |
+| 3 | ~~Merge `killmail` + `killmails` skills~~ | ~~2 SKILL.md → 1~~ | ~~100~~ | ~~0.5 day~~ | Dropped |
+| 4 | Deduplicate path security rules from skill-loading.md | 1 file edited | ~8 | 0.25 day | ✅ Done |
+| 5 | ~~Delete `count_persona_tokens.py` and `aria-credential-watch.py`~~ | ~~2 scripts~~ | ~~~200~~ | ~~0.25 day~~ | ⚠️ Blocked |
+
+**Note on Quick Win #2 (completed):** Investigation found the 3 data trust docs have clearer domain separation than originally assessed. Rather than merging 3→1, we deduplicated gap-handling protocol in DATA_AUTHORITY, added trust hierarchy ordering notes to both DATA_VERIFICATION and DATA_AUTHORITY, moved Data Freshness tables from CLAUDE.md into PROTOCOLS.md, and moved advisory protocols from PROTOCOLS.md into their respective skill SKILL.md files. Net: ~60 lines removed from docs, ~30 lines removed from CLAUDE.md.
+
+**Note on Quick Win #3 (dropped):** Investigation found `killmail` and `killmails` are complementary, not redundant. `killmail` is public kill analysis (any kill, no auth, zKillboard, sonnet model, has persona overlay). `killmails` is personal loss history (ESI auth required, haiku model, no overlay). Different auth requirements, data models, and use cases.
+
+**Note on Quick Win #5 (blocked):** Both scripts are in active use. `aria-credential-watch.py` is used by the first-run-setup skill for background OAuth detection. `count_persona_tokens.py` outputs to `docs/proposals/token_analysis.json`. Neither is dead code — removal requires migrating their logic into the CLI first (Phase 3).
 
 ---
 
 ## 3. Consolidation Plan
 
 ### Phase 1: Delete Dead Weight (1 week)
-- Complete interest v1 → v2 migration, delete `interest/`
-- Merge overlapping documentation (data trust, persona loading, path security)
-- Merge trivially-overlapping skills (killmail/killmails, standings/standings-plan)
-- Delete dev-only helper scripts
+- ✅ ~~Complete interest v1 → v2 migration, delete `interest/`~~ (PR #27)
+- ✅ Consolidate data trust documentation (dedup + cross-references, advisory protocols moved to skills)
+- ✅ Deduplicate path security rules from skill-loading.md
+- Merge trivially-overlapping skills (standings/standings-plan) — killmail/killmails dropped (complementary, not redundant)
+- ~~Delete dev-only helper scripts~~ (blocked — scripts are in active use, defer to Phase 3)
 
 ### Phase 2: Simplify Frameworks (2 weeks)
 - Collapse interest v2 from 38 files to ~10 (inline signals, remove feature flags, delete provider registry)
@@ -248,16 +254,16 @@ The top 3 cuts alone would remove ~15K lines of code and 50+ files while preserv
 
 | Area | Current | Target |
 |------|---------|--------|
-| Interest engines | 50 files (v1+v2) | ~10 files (simplified v2) |
+| Interest engines | 38 files (v2 only, v1 deleted) | ~10 files (simplified v2) |
 | Notifications | 23 files | ~10 files |
 | Archetypes Python | 8 modules | 0 (YAML data only) |
 | Skills | 49 | ~40 (merged clusters) |
 | Documentation | 25+ docs with overlaps | ~18 docs, no duplication |
 | Helper scripts | 10+ standalone | 0 (integrated into CLI) |
-| Total Python LOC | ~108K | ~90K (est. 17% reduction) |
+| Total Python LOC | ~124K (post-v1 deletion) | ~105K (est. 15% further reduction) |
 
 **Architectural principles post-cleanup:**
-- One interest engine, not two
+- ✅ ~~One interest engine, not two~~ (completed)
 - Notification pipeline: poller → scorer → formatter → webhook (linear, not microservice)
 - Fitting recommendations: LLM reads YAML reference + validates via EOS (no framework)
 - One skill per user intent domain (not 4 fitting skills)
@@ -277,18 +283,18 @@ The top 3 cuts alone would remove ~15K lines of code and 50+ files while preserv
 - Boot hook scripts in `.claude/hooks/aria-boot.d/` (these are NOT the helper scripts being removed)
 
 **Regression risks:**
-- Interest v1 deletion: any notification profile still using v1 config format will break. Run `interest_v2/cli/migrate.py` first.
+- ~~Interest v1 deletion~~ ✅ Completed without regression. CI required one test fix (`test_poller.py` topology filter mock).
 - Skill merges: trigger pattern coverage must be preserved. Test that natural language triggers still route correctly.
-- Archetype framework removal: verify `commands/fit.py` doesn't call archetype selection at runtime. If it does, inline the lookup.
+- Archetype framework removal: `commands/fit.py` **does** import heavily from archetypes (7 imports from 5 submodules). These must be inlined or the CLI commands refactored before deletion.
 
 ---
 
 ## Priority Cut List
 
-**Execute these 3 cuts first for maximum leverage:**
+**Next 2 cuts for maximum leverage:**
 
-1. **Delete Interest v1** — 12 source files + 10 test files, ~6,500 LOC. Eliminates the largest single instance of duplicated logic. Prerequisite: run migration tool on any active v1 profiles.
+1. ~~**Delete Interest v1**~~ ✅ Completed (PR #27, 2026-02-12). Actual: -8,080 lines, 40 files.
 
-2. **Consolidate Data Trust Documentation** — 3 docs → 1, ~800 lines of duplication removed. Zero code risk. Immediately reduces cognitive load for anyone reading the system prompt or docs.
+2. **Consolidate Data Trust Documentation** — Merge overlapping trust hierarchy content across DATA_VERIFICATION, DATA_AUTHORITY, and PROTOCOLS. Revised estimate: ~300 lines removable (not 800 — docs have clearer separation than originally assessed). Zero code risk.
 
-3. **Deprecate Archetype Python Framework** — 8 modules, ~1,500 LOC. The YAML data stays; the selection/tuning/validation framework goes. The fitting skill already works by having the LLM read reference data and validate via EOS — the framework is an unused intermediary.
+3. **Deprecate Archetype Python Framework** — 8 modules, **~4,500 LOC** (revised from 1,500). The YAML data stays; the selection/tuning/validation framework goes. Requires refactoring `commands/fit.py` which has 7 import lines from 5 archetype submodules. Higher impact than originally estimated but also higher effort due to import dependencies.

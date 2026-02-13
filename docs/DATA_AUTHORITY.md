@@ -29,6 +29,8 @@ Data that passes authority checks can be trusted when read from cache later. Dat
 
 When populating local cache, data must come from these sources in order of preference:
 
+> **Note:** This hierarchy is ordered by cache authority (ESI first — most authoritative live source). See `DATA_VERIFICATION.md` for the verification-focused hierarchy (SDE first — most useful for checking game mechanics).
+
 | Priority | Source | Authority Level | Use For |
 |----------|--------|-----------------|---------|
 | 1 | **ESI** | Authoritative | Alliance IDs, sovereignty, market, pilot data |
@@ -216,11 +218,7 @@ Data that has been validated and cached can be presented directly without re-val
 
 ### Filling Gaps
 
-If authoritative source lacks data:
-1. **Do not fill with training data**
-2. **Acknowledge the gap** explicitly
-3. **Suggest in-game verification** or blessed external source
-4. See `DATA_VERIFICATION.md` for gap-handling protocol
+When authoritative sources lack data, do not fill with training data. See `DATA_VERIFICATION.md` (When Tools Don't Have the Data) for the gap-handling protocol.
 
 ## Summary
 

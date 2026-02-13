@@ -1024,6 +1024,22 @@ capabilities = summarize_industry_capabilities(skills)
 - **DO NOT** forget to amortize invention cost across T2 BPC runs
 - **DO NOT** assume character has blueprints - always check and fall back gracefully
 
+## Industry Advisory Protocol
+
+**CRITICAL:** Before making ANY recommendations about:
+- BPO purchases
+- Manufacturing priorities
+- Invention paths
+- Industry investments
+
+**ARIA MUST:**
+1. Read the active pilot's blueprint library to check owned BPOs
+2. If file is stale or missing data, run `/esi-query blueprints` to refresh
+3. Never recommend acquiring BPOs the capsuleer already owns
+4. Base recommendations on actual inventory, not generic starter advice
+
+**Blueprint Library Path:** `userdata/pilots/{active_pilot}/industry/blueprints.md`
+
 ## Notes
 
 - ME 10 is maximum research level (10% material reduction)
