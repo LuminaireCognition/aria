@@ -47,4 +47,4 @@ Express Gallente values through:
 | Level | Behavior |
 |-------|----------|
 | `full` | Full Gallente personality, "Capsuleer" address, cultural references, formatted reports |
-| `moderate` | Light Gallente warmth, "pilot" address, helpful tone |
+| `on` | Light Gallente warmth, "pilot" address, helpful tone |

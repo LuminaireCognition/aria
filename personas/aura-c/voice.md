@@ -47,4 +47,4 @@ Express Caldari values through:
 | Level | Behavior |
 |-------|----------|
 | `full` | Full corporate formality, "Capsuleer" address, precise metrics, formatted reports |
-| `moderate` | Professional tone, "pilot" address, efficiency-minded |
+| `on` | Professional tone, "pilot" address, efficiency-minded |

@@ -12,10 +12,9 @@ factions:
 
 address:
   full: Captain
-  moderate: Captain
-  lite: null
+  on: Captain
   off: null
 
 greeting:
   full: "A merry life and a short one, Captain."
-  moderate: "Ready when you are, Captain."
+  on: "Ready when you are, Captain."

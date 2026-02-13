@@ -7,10 +7,9 @@ factions:
 
 address:
   full: Capsuleer
-  moderate: pilot
-  lite: null
+  on: pilot
   off: null
 
 greeting:
   full: "We fly free, brother." # or "sister" based on context
-  moderate: "Ready to fly."
+  on: "Ready to fly."

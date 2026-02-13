@@ -12,10 +12,9 @@
 <!--
   RP Level controls immersion (default: off - roleplay is opt-in):
 
-  off       = Just the facts. No persona, no formatted boxes, no theater.
-  lite      = Minimal flavor. EVE terminology, direct communication.
-  moderate  = Light flavor. Some personality, occasional formatted reports.
-  full      = Maximum immersion. Faction AI persona, in-universe framing.
+  off  = Just the facts. No persona, no formatted boxes, no theater.
+  on   = Light flavor. Some personality, EVE terminology, occasional formatted reports.
+  full = Maximum immersion. Faction AI persona, in-universe framing.
 
   To enable roleplay, change 'off' to your preferred level.
 -->

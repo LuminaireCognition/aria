@@ -7,10 +7,9 @@ factions:
 
 address:
   full: Capsuleer
-  moderate: pilot
-  lite: null
+  on: pilot
   off: null
 
 greeting:
   full: "By God's light, we prevail."
-  moderate: "The Empire guides our path."
+  on: "The Empire guides our path."
