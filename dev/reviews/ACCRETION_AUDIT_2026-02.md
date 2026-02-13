@@ -11,9 +11,14 @@
 
 ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Python project with 49 registered skills, 366 markdown files, and 4,000+ JSON/YAML data files. Several subsystems have accreted significant complexity with diminishing returns.
 
-**Completed:** Interest Engine v1 deleted (PR #27, merged 2026-02-12). Removed 12 source files, 8 test files, ~8,080 lines. Eliminated runtime v1/v2 branching in profile_evaluator. Simplified topology config and notification templates.
+**Completed:**
+- Interest Engine v1 deleted (PR #27, merged 2026-02-12). -8,080 lines, 40 files.
+- Documentation consolidation: path security dedup, data trust cross-refs, CLAUDE.md Data Freshness slimmed, advisory protocols moved to skill files. -28 lines net across 8 files.
+- Killmail/killmails merge dropped after investigation (complementary, not redundant).
 
-**Next priority:** Documentation consolidation (zero code risk) or archetype framework deprecation (higher LOC impact but requires import surgery in `commands/fit.py`).
+**Next priority:** Archetype framework deprecation (Phase 2, ~4,500 LOC).
+
+- Standings/standings-plan merge completed (2026-02-12). 48 registered skills (was 49).
 
 ---
 
@@ -137,7 +142,7 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 | Fitting | `fitting`, `fit-check`, `fit-budget`, `fittings` | 4 skills for "help me with ship fitting" |
 | Navigation | `route`, `gatecamp`, `threat-assessment`, `orient` | 4 skills for "is it safe to go there?" |
 | ~~Killmails~~ | `killmail`, `killmails` | ~~Singular vs plural~~ Complementary: public analysis vs personal history (dropped) |
-| Standings | `standings`, `standings-plan` | View vs plan, could be one |
+| ~~Standings~~ | ~~`standings`, `standings-plan`~~ | ~~View vs plan~~ Merged into single `standings` (done) |
 | Mining | `mining`, `mining-advisory` | Ledger vs guidance, could be one |
 | Skills | `skillplan`, `skillqueue` | Plan vs queue, could be one |
 
@@ -151,12 +156,12 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 
 **Action:** Merge clusters:
 - `fitting` + `fit-check` + `fit-budget` → single `fitting` with modes
-- `killmail` + `killmails` → single `killmails`
-- `standings` + `standings-plan` → single `standings`
+- ~~`killmail` + `killmails` → single `killmails`~~ (dropped — complementary, not redundant)
+- ~~`standings` + `standings-plan` → single `standings`~~ (done — merged into unified `standings` skill)
 - `mining` + `mining-advisory` → single `mining`
 - `skillplan` + `skillqueue` → single `skills`
 
-**Expected gain:** Reduce from 49 to ~40 skills. Simpler trigger disambiguation. ~8 fewer SKILL.md files to maintain. Eliminate skill-cluster confusion.
+**Expected gain:** Reduce from 49 to ~44 skills (revised — killmails dropped, standings merged → 48 now). Simpler trigger disambiguation. ~4 fewer SKILL.md files to maintain.
 
 **Guardrail:** Ensure merged SKILL.md files include all trigger patterns from both originals. Update `_index.json` accordingly. Merge, don't delete, to preserve functionality.
 
@@ -232,7 +237,7 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 - ✅ ~~Complete interest v1 → v2 migration, delete `interest/`~~ (PR #27)
 - ✅ Consolidate data trust documentation (dedup + cross-references, advisory protocols moved to skills)
 - ✅ Deduplicate path security rules from skill-loading.md
-- Merge trivially-overlapping skills (standings/standings-plan) — killmail/killmails dropped (complementary, not redundant)
+- ✅ Merge trivially-overlapping skills (standings/standings-plan merged) — killmail/killmails dropped (complementary, not redundant)
 - ~~Delete dev-only helper scripts~~ (blocked — scripts are in active use, defer to Phase 3)
 
 ### Phase 2: Simplify Frameworks (2 weeks)
@@ -295,6 +300,8 @@ ARIA has grown from a focused EVE Online tactical assistant into a ~124K LOC Pyt
 
 1. ~~**Delete Interest v1**~~ ✅ Completed (PR #27, 2026-02-12). Actual: -8,080 lines, 40 files.
 
-2. **Consolidate Data Trust Documentation** — Merge overlapping trust hierarchy content across DATA_VERIFICATION, DATA_AUTHORITY, and PROTOCOLS. Revised estimate: ~300 lines removable (not 800 — docs have clearer separation than originally assessed). Zero code risk.
+2. ~~**Consolidate Data Trust Documentation**~~ ✅ Completed. Targeted dedup (-28 lines net): cross-refs in DATA_AUTHORITY/DATA_VERIFICATION, Data Freshness moved to PROTOCOLS.md, advisory protocols moved to skill files, path security dedup in skill-loading.md.
 
-3. **Deprecate Archetype Python Framework** — 8 modules, **~4,500 LOC** (revised from 1,500). The YAML data stays; the selection/tuning/validation framework goes. Requires refactoring `commands/fit.py` which has 7 import lines from 5 archetype submodules. Higher impact than originally estimated but also higher effort due to import dependencies.
+3. ~~**Merge standings/standings-plan**~~ ✅ Completed (2026-02-12). Merged into unified `standings` skill. standings-plan SKILL.md deleted, triggers redirected in _index.json, review doc updated.
+
+4. **Deprecate Archetype Python Framework** — 8 modules, **~4,500 LOC** (revised from 1,500). The YAML data stays; the selection/tuning/validation framework goes. Only 2 external consumers (`commands/fit.py` with 7 lazy imports from 5 submodules, `commands/archetypes.py`). Well-isolated — no core/service layer dependencies.

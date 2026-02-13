@@ -160,9 +160,9 @@ Consider setting up PI for passive income (8-15M/day).
 
 ---
 
-### 5. `/standings-plan` - Standings Progression Planner
+### 5. `/standings-plan` - Standings Progression Planner *(merged into `/standings`)*
 
-**Location:** `.claude/skills/standings-plan/SKILL.md`
+**Location:** `.claude/skills/standings/SKILL.md` *(originally `.claude/skills/standings-plan/SKILL.md`, merged Feb 2026)*
 
 **Problem solved:** Standings are deeply confusing. Players don't understand they need 5.0 standing for L4 agents or how long it takes to get there.
 
@@ -208,7 +208,7 @@ ACCELERATORS:
 | `.claude/skills/ship-next/SKILL.md` | Ship progression advisor |
 | `.claude/skills/fit-budget/SKILL.md` | Budget fit generator |
 | `.claude/skills/isk-compare/SKILL.md` | ISK/hour comparison |
-| `.claude/skills/standings-plan/SKILL.md` | Standings progression planner |
+| `.claude/skills/standings/SKILL.md` | Standings tracker + progression planner (merged) |
 | `reference/activities/isk_estimates.yaml` | ISK/hour reference data |
 
 ### Skill Index Update
@@ -226,7 +226,7 @@ Regenerated `.claude/skills/_index.json`:
 | `/ship-next` | "what ship should I fly next", "ship progression", "upgrade from [ship]" |
 | `/fit-budget` | "budget version of this fit", "make this fit cheaper", "T1 version" |
 | `/isk-compare` | "best way to make ISK", "ISK per hour", "what should I do for money" |
-| `/standings-plan` | "how to get L4 agents", "path to 5.0 standing", "standings grind" |
+| `/standings` (was `/standings-plan`) | "how to get L4 agents", "path to 5.0 standing", "standings grind" |
 
 ---
 
@@ -242,7 +242,7 @@ Each skill suggests related skills at the end:
 | `/ship-next` | `/fit-check`, `/skillplan`, `/fitting` |
 | `/fit-budget` | `/fit-check`, `/skillplan`, `/isk-compare` |
 | `/isk-compare` | `/standings`, `/exploration`, `/mining-advisory`, `/pi`, `/ship-next` |
-| `/standings-plan` | `/standings`, `/agent-search`, `/isk-compare`, `/mission-brief` |
+| `/standings` (was `/standings-plan`) | `/agent-search`, `/isk-compare`, `/mission-brief` |
 
 ### MCP Dependencies
 
@@ -336,5 +336,5 @@ The features are designed to:
 - Provide clear progression paths (ship-next)
 - Make expensive fits accessible (fit-budget)
 - Guide efficient ISK earning (isk-compare)
-- Demystify standings (standings-plan)
+- Demystify standings (standings, formerly standings-plan)
 - **Respond quickly** even when ESI is unavailable (fallback behavior)

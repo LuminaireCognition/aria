@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_by": "aria-skill-index.py",
-  "skill_count": 49,
+  "skill_count": 48,
   "skills": [
     {
       "name": "abyssal",
@@ -1051,7 +1051,7 @@
     },
     {
       "name": "standings",
-      "description": "Standings tracker for agent access, faction requirements, and standing repair strategies.",
+      "description": "Standings tracker and progression planner for agent access, faction requirements, and standing repair strategies.",
       "model": "haiku",
       "category": "identity",
       "triggers": [
@@ -1061,28 +1061,7 @@
         "standing requirements",
         "how to fix standings",
         "agent access",
-        "faction standing"
-      ],
-      "requires_pilot": true,
-      "esi_scopes": [
-        "esi-characters.read_standings.v1",
-        "esi-skills.read_skills.v1"
-      ],
-      "data_sources": [
-        "reference/mechanics/standings_thresholds.json",
-        "reference/mechanics/epic_arcs.json"
-      ],
-      "path": ".claude/skills/standings/SKILL.md",
-      "directory": "standings",
-      "external_sources": []
-    },
-    {
-      "name": "standings-plan",
-      "description": "Plan your path to target standings for mission agent access. Shows current standings, requirements, and the fastest strategies to reach your goal.",
-      "model": "haiku",
-      "category": "identity",
-      "triggers": [
-        "/standings-plan",
+        "faction standing",
         "how to get L4 agents",
         "path to 5.0 standing",
         "how long to reach L4",
@@ -1100,8 +1079,8 @@
         "reference/mechanics/epic_arcs.json"
       ],
       "external_sources": [],
-      "path": ".claude/skills/standings-plan/SKILL.md",
-      "directory": "standings-plan"
+      "path": ".claude/skills/standings/SKILL.md",
+      "directory": "standings"
     },
     {
       "name": "threat-assessment",
@@ -1189,8 +1168,7 @@
       "corp",
       "pilot",
       "sec-status",
-      "standings",
-      "standings-plan"
+      "standings"
     ],
     "industry": [
       "agents-research",
@@ -1516,13 +1494,12 @@
     "how to fix standings": "standings",
     "agent access": "standings",
     "faction standing": "standings",
-    "/standings-plan": "standings-plan",
-    "how to get l4 agents": "standings-plan",
-    "path to 5.0 standing": "standings-plan",
-    "how long to reach l4": "standings-plan",
-    "standings grind": "standings-plan",
-    "standing requirements for l[n]": "standings-plan",
-    "fastest way to raise standings": "standings-plan",
+    "how to get l4 agents": "standings",
+    "path to 5.0 standing": "standings",
+    "how long to reach l4": "standings",
+    "standings grind": "standings",
+    "standing requirements for l[n]": "standings",
+    "fastest way to raise standings": "standings",
     "/threat-assessment": "threat-assessment",
     "threat assessment": "threat-assessment",
     "is [system] safe": "threat-assessment",
