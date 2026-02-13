@@ -1,5 +1,7 @@
 # Standings Tracker & Optimizer Proposal
 
+**Status:** ✅ COMPLETE. `/standings` skill implemented and enhanced (2026-02-12). Standalone `/standings-plan` merged back into `/standings` with expanded progression planning, research agent workflow, time estimates, and accelerator strategies.
+
 ## Executive Summary
 
 Add a `/standings` skill that tracks faction and corporation standings with progression planning. This answers "How many missions until I can use L4 agents?" and "What's my standing with X?"

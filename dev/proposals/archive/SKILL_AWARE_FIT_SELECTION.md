@@ -1,7 +1,8 @@
 # Skill-Aware Fit Selection Proposal
 
-**Status:** ✅ COMPLETE (2026-02-02)
+**Status:** ✅ COMPLETE (2026-02-02), then DEPRECATED (2026-02-12)
 **Completed:** Archetype structure, MCP fitting actions (check_requirements, extract_requirements), module/skill tier definitions, stats caching CLI, omega/T2 consistency validation
+**Note:** The archetype Python framework referenced below was deprecated in the Phase 1 cleanup. MCP fitting actions (check_requirements, extract_requirements) remain. YAML reference data retained.
 
 ---
 
