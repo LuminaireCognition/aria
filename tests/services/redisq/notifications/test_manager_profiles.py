@@ -17,6 +17,7 @@ from aria_esi.services.redisq.notifications.manager import (
     get_notification_manager,
     reset_notification_manager,
 )
+from aria_esi.services.redisq.notifications.profile_evaluator import ProfileEvaluator
 
 
 def write_profile_yaml(path: Path, name: str, data: dict) -> Path:
@@ -184,7 +185,7 @@ class TestNotificationManagerProfileProcessKill:
 
     @pytest.mark.asyncio
     async def test_process_kill_matches_profile(self, temp_profiles_dir, mock_discord_client):
-        """Kill matching profile triggers is queued."""
+        """Kill matching profile interest engine is queued."""
         write_profile_yaml(
             temp_profiles_dir,
             "high-value",
@@ -192,15 +193,22 @@ class TestNotificationManagerProfileProcessKill:
                 "name": "high-value",
                 "enabled": True,
                 "webhook_url": "https://discord.com/api/webhooks/123/abc",
-                "triggers": {
-                    "watchlist_activity": False,
-                    "gatecamp_detected": False,
-                    "high_value_threshold": 500_000_000,
+                "interest": {
+                    "engine": "v2",
+                    "preset": "lowsec-pvp",
                 },
             },
         )
 
-        manager = NotificationManager()
+        mock_engine = MagicMock()
+        mock_result = MagicMock()
+        mock_result.should_notify = True
+        mock_result.interest = 0.8
+        mock_result.tier.value = "elevated"
+        mock_engine.calculate_interest.return_value = mock_result
+
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=mock_engine):
+            manager = NotificationManager()
         kill = make_mock_kill(total_value=1_000_000_000)
 
         result = await manager.process_kill(kill)
@@ -244,7 +252,10 @@ class TestNotificationManagerProfileProcessKill:
                 "name": "profile-a",
                 "enabled": True,
                 "webhook_url": "https://discord.com/api/webhooks/111/aaa",
-                "triggers": {"high_value_threshold": 500_000_000},
+                "interest": {
+                    "engine": "v2",
+                    "preset": "lowsec-pvp",
+                },
             },
         )
         write_profile_yaml(
@@ -254,11 +265,22 @@ class TestNotificationManagerProfileProcessKill:
                 "name": "profile-b",
                 "enabled": True,
                 "webhook_url": "https://discord.com/api/webhooks/222/bbb",
-                "triggers": {"high_value_threshold": 100_000_000},
+                "interest": {
+                    "engine": "v2",
+                    "preset": "lowsec-pvp",
+                },
             },
         )
 
-        manager = NotificationManager()
+        mock_engine = MagicMock()
+        mock_result = MagicMock()
+        mock_result.should_notify = True
+        mock_result.interest = 0.8
+        mock_result.tier.value = "elevated"
+        mock_engine.calculate_interest.return_value = mock_result
+
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=mock_engine):
+            manager = NotificationManager()
         kill = make_mock_kill(total_value=1_000_000_000)
 
         result = await manager.process_kill(kill)

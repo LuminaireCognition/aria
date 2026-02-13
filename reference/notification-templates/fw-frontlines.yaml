@@ -6,7 +6,7 @@
 #
 # Use: uv run aria-esi notifications create fw-intel --template fw-frontlines --webhook <url>
 
-schema_version: 1
+schema_version: 2
 
 name: "fw-frontlines"
 display_name: "Faction Warfare Intel"
@@ -14,51 +14,64 @@ description: "Activity in faction warfare contested zones"
 enabled: true
 webhook_url: ""  # User must fill in
 
-topology:
-  geographic:
-    systems:
-      # Caldari-Gallente Warzone - Black Rise
-      - name: "Tama"
-        classification: "hunting"
-      - name: "Kedama"
-        classification: "hunting"
-      - name: "Nennamaila"
-        classification: "hunting"
-      - name: "Akidagi"
-        classification: "transit"
-      - name: "Pynekastoh"
-        classification: "transit"
+# Interest Engine v2 Configuration
+interest:
+  engine: v2
+  preset: political
 
-      # Caldari-Gallente Warzone - Placid
-      - name: "Heydieles"
-        classification: "hunting"
-      - name: "Old Man Star"
-        classification: "hunting"
-      - name: "Vlillirier"
-        classification: "hunting"
+  # Boost politics signal for FW activity tracking
+  customize:
+    politics: "+30%"
 
-      # Amarr-Minmatar Warzone - The Bleak Lands
-      - name: "Amamake"
-        classification: "hunting"
-      - name: "Auga"
-        classification: "hunting"
-      - name: "Kourmonen"
-        classification: "hunting"
-      - name: "Huola"
-        classification: "hunting"
+  signals:
+    location:
+      geographic:
+        systems:
+          # Caldari-Gallente Warzone - Black Rise
+          - name: "Tama"
+            classification: "hunting"
+          - name: "Kedama"
+            classification: "hunting"
+          - name: "Nennamaila"
+            classification: "hunting"
+          - name: "Akidagi"
+            classification: "transit"
+          - name: "Pynekastoh"
+            classification: "transit"
 
-      # Amarr-Minmatar Warzone - Metropolis
-      - name: "Dal"
-        classification: "hunting"
-      - name: "Lulm"
-        classification: "transit"
-      - name: "Siseide"
-        classification: "hunting"
+          # Caldari-Gallente Warzone - Placid
+          - name: "Heydieles"
+            classification: "hunting"
+          - name: "Old Man Star"
+            classification: "hunting"
+          - name: "Vlillirier"
+            classification: "hunting"
 
-triggers:
-  watchlist_activity: true
-  gatecamp_detected: true
-  high_value_threshold: 50000000  # 50M+ (FW pilots often fly cheaper ships)
+          # Amarr-Minmatar Warzone - The Bleak Lands
+          - name: "Amamake"
+            classification: "hunting"
+          - name: "Auga"
+            classification: "hunting"
+          - name: "Kourmonen"
+            classification: "hunting"
+          - name: "Huola"
+            classification: "hunting"
+
+          # Amarr-Minmatar Warzone - Metropolis
+          - name: "Dal"
+            classification: "hunting"
+          - name: "Lulm"
+            classification: "transit"
+          - name: "Siseide"
+            classification: "hunting"
+
+    value:
+      min: 50000000  # 50M+ ISK (FW pilots often fly cheaper ships)
+
+  rules:
+    always_notify:
+      - watchlist_match
+      - gatecamp_detected
 
 throttle_minutes: 2
 

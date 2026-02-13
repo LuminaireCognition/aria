@@ -35,28 +35,30 @@ The poller runs in the background and streams killmails to a local SQLite cache.
 
 The poller filters killmails to avoid processing the entire galaxy. You have two options:
 
-#### Option A: Context-Aware Topology (Recommended)
+#### Option A: Operational Topology (Recommended)
 
-Context-aware topology provides multi-layer filtering based on geography, entity relationships, routes, and assets. See [CONTEXT_AWARE_TOPOLOGY.md](CONTEXT_AWARE_TOPOLOGY.md) for full documentation.
+Operational topology provides BFS-based geographic filtering from your configured systems. See [CONTEXT_AWARE_TOPOLOGY.md](CONTEXT_AWARE_TOPOLOGY.md) for full documentation.
 
 ```json
 {
   "redisq": {
     "context_topology": {
-      "enabled": true,
-      "archetype": "hunter",
       "geographic": {
-        "systems": [{"name": "Tama", "classification": "home"}]
-      },
-      "entity": {
-        "corp_id": 98000001
+        "systems": [
+          {"name": "Tama", "classification": "home"},
+          {"name": "Kedama", "classification": "hunting"}
+        ]
       }
     }
   }
 }
 ```
 
-**Key benefit:** Corp member losses are always notified regardless of location.
+After configuring, build the topology cache:
+
+```bash
+uv run aria-esi topology-build
+```
 
 #### Option B: Legacy Region-Based Filtering
 
@@ -186,18 +188,26 @@ display_name: My Intel Feed
 enabled: true
 webhook_url: "https://discord.com/api/webhooks/YOUR_ID/YOUR_TOKEN"
 
-topology:
-  geographic:
-    systems:
-      - name: "Jita"
-        classification: "hunting"
-      - name: "Perimeter"
-        classification: "transit"
+interest:
+  engine: v2
+  preset: trade-hub
 
-triggers:
-  watchlist_activity: true
-  gatecamp_detected: true
-  high_value_threshold: 500000000  # 500M ISK
+  signals:
+    location:
+      geographic:
+        systems:
+          - name: "Jita"
+            classification: "hunting"
+          - name: "Perimeter"
+            classification: "transit"
+
+    value:
+      min: 500000000  # 500M ISK
+
+  rules:
+    always_notify:
+      - watchlist_match
+      - gatecamp_detected
 
 throttle_minutes: 5
 
@@ -278,8 +288,6 @@ Topology configuration lives in `config.json`:
 {
   "redisq": {
     "context_topology": {
-      "enabled": true,
-      "archetype": "hunter",
       "geographic": {
         "systems": [{"name": "Tama", "classification": "home"}]
       }

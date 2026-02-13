@@ -13,16 +13,14 @@ from typing import TYPE_CHECKING, Any
 from ....core.logging import get_logger
 from .quiet_hours import QuietHoursChecker
 from .throttle import ThrottleManager
-from .triggers import TriggerResult, TriggerType, evaluate_triggers
+from .triggers import TriggerResult, TriggerType
 
 if TYPE_CHECKING:
     from ..entity_filter import EntityMatchResult
-    from ..interest import InterestCalculator
     from ..interest_v2 import InterestEngineV2, InterestResultV2
     from ..models import ProcessedKill
     from ..threat_cache import GatecampStatus
     from ..war_context import KillWarContext
-    from .npc_factions import NPCFactionMapper
     from .profiles import NotificationProfile
 
 logger = get_logger(__name__)
@@ -88,7 +86,6 @@ class ProfileEvaluator:
         """
         self.profiles = profiles
         self._initialized = False
-        self._npc_faction_mapper: NPCFactionMapper | None = None
 
         # Warn about profile count
         if len(profiles) > MAX_PROFILES_SOFT:
@@ -113,14 +110,6 @@ class ProfileEvaluator:
         for profile in self.profiles:
             self._init_profile_state(profile)
 
-        # Initialize NPC faction mapper if any profile uses npc_faction_kill trigger
-        needs_npc_mapper = any(p.triggers.npc_faction_kill.enabled for p in self.profiles)
-        if needs_npc_mapper:
-            from .npc_factions import get_npc_faction_mapper
-
-            self._npc_faction_mapper = get_npc_faction_mapper()
-            logger.debug("Initialized NPC faction mapper for profile evaluator")
-
         self._initialized = True
         logger.info("Initialized runtime state for %d profiles", len(self.profiles))
 
@@ -129,13 +118,13 @@ class ProfileEvaluator:
         Initialize runtime state for a single profile.
 
         Sets up:
-        - TopologyFilter / InterestCalculator (v1) or InterestEngineV2 (v2)
+        - InterestEngineV2
         - ThrottleManager
         - QuietHoursChecker
         """
         profile._init_error = None
 
-        # Initialize interest engine based on version
+        # Initialize v2 interest engine
         if profile.uses_interest_v2:
             try:
                 engine = self._build_v2_engine(profile)
@@ -155,42 +144,9 @@ class ProfileEvaluator:
                 profile._interest_engine_v2 = None
                 profile._topology_filter = None
                 profile._init_error = str(e)
-        elif profile.has_topology:
-            # v1 engine
-            try:
-                calculator = self._build_calculator(profile.topology)
-                profile._topology_filter = calculator
-                logger.debug(
-                    "Built topology filter for profile '%s'",
-                    profile.name,
-                )
-            except Exception as e:
-                logger.warning(
-                    "Failed to build topology for profile '%s': %s",
-                    profile.name,
-                    e,
-                )
-                profile._topology_filter = None
-                profile._init_error = str(e)
 
         # Initialize throttle manager
         profile._throttle = ThrottleManager(throttle_minutes=profile.throttle_minutes)
-
-    def _build_calculator(self, topology: dict[str, Any]) -> InterestCalculator:
-        """
-        Build an InterestCalculator from topology config.
-
-        Args:
-            topology: Topology configuration dict
-
-        Returns:
-            InterestCalculator instance
-        """
-        from ..interest import ContextAwareTopologyConfig
-
-        config = ContextAwareTopologyConfig.from_dict(topology)
-        config.enabled = True  # Force enabled for profile topology
-        return config.build_calculator()
 
     def _build_v2_engine(self, profile: NotificationProfile) -> InterestEngineV2:
         """
@@ -294,9 +250,7 @@ class ProfileEvaluator:
         war_context: KillWarContext | None = None,
     ) -> dict[str, Any] | None:
         """
-        Evaluate a kill against a single profile.
-
-        Routes to v1 or v2 evaluation based on profile configuration.
+        Evaluate a kill against a single profile using v2 interest engine.
 
         Args:
             profile: Profile to evaluate against
@@ -311,18 +265,7 @@ class ProfileEvaluator:
         if profile._init_error:
             return {"filtered_by": "interest_engine_init_failed"}
 
-        # Check for v2 engine
-        if profile.uses_interest_v2:
-            return self._evaluate_profile_v2(
-                profile=profile,
-                kill=kill,
-                entity_match=entity_match,
-                gatecamp_status=gatecamp_status,
-                war_context=war_context,
-            )
-
-        # v1 evaluation path
-        return self._evaluate_profile_v1(
+        return self._evaluate_profile_v2(
             profile=profile,
             kill=kill,
             entity_match=entity_match,
@@ -435,149 +378,6 @@ class ProfileEvaluator:
             )
             return None
 
-    def _evaluate_profile_v1(
-        self,
-        profile: NotificationProfile,
-        kill: ProcessedKill,
-        entity_match: EntityMatchResult | None,
-        gatecamp_status: GatecampStatus | None,
-        war_context: KillWarContext | None = None,
-    ) -> dict[str, Any] | None:
-        """
-        Evaluate a kill using v1 topology + triggers.
-
-        This is the legacy evaluation path for profiles without v2 interest config.
-        """
-        try:
-            # Determine if we should skip topology for NPC faction kills
-            # If npc_faction_kill is enabled with ignore_topology=True, we evaluate
-            # the NPC trigger first to see if it would match before applying topology
-            skip_topology_for_npc = (
-                profile.triggers.npc_faction_kill.enabled
-                and profile.triggers.npc_faction_kill.ignore_topology
-            )
-
-            # Check topology filter (unless we're potentially bypassing for NPC faction)
-            topology_passed = True
-            if profile._topology_filter is not None:
-                if not profile._topology_filter.should_fetch(kill.solar_system_id):
-                    if not skip_topology_for_npc:
-                        # Topology check failed and we're not bypassing
-                        logger.debug(
-                            "Profile '%s': kill %d filtered by topology",
-                            profile.name,
-                            kill.kill_id,
-                        )
-                        return {"filtered_by": "topology"}
-                    else:
-                        # Mark that topology didn't pass - we'll check NPC trigger
-                        topology_passed = False
-
-            # Evaluate triggers
-            trigger_result = self._evaluate_triggers_for_profile(
-                profile=profile,
-                kill=kill,
-                entity_match=entity_match,
-                gatecamp_status=gatecamp_status,
-                war_context=war_context,
-            )
-
-            # If topology didn't pass, only allow NPC_FACTION_KILL trigger
-            if not topology_passed:
-                from .triggers import TriggerType
-
-                if not trigger_result.is_npc_faction_kill:
-                    # Not an NPC faction kill, enforce topology filtering
-                    logger.debug(
-                        "Profile '%s': kill %d filtered by topology (not NPC faction)",
-                        profile.name,
-                        kill.kill_id,
-                    )
-                    return {"filtered_by": "topology"}
-
-                # Filter out non-NPC triggers since they didn't pass topology
-                if trigger_result.trigger_types:
-                    trigger_result.trigger_types = [
-                        t for t in trigger_result.trigger_types if t == TriggerType.NPC_FACTION_KILL
-                    ]
-                    if not trigger_result.trigger_types:
-                        trigger_result.should_notify = False
-
-            if not trigger_result.should_notify:
-                return {"filtered_by": "triggers"}
-
-            primary_trigger = trigger_result.primary_trigger
-            if not primary_trigger:
-                return {"filtered_by": "triggers"}
-
-            # Check throttle
-            if profile._throttle is not None:
-                if not profile._throttle.should_send(kill.solar_system_id, primary_trigger):
-                    logger.debug(
-                        "Profile '%s': kill %d throttled",
-                        profile.name,
-                        kill.kill_id,
-                    )
-                    return {"filtered_by": "throttle"}
-
-            # Check quiet hours
-            if profile.quiet_hours.enabled:
-                checker = QuietHoursChecker(config=profile.quiet_hours)
-                if checker.is_quiet_time():
-                    logger.debug(
-                        "Profile '%s': kill %d filtered by quiet hours",
-                        profile.name,
-                        kill.kill_id,
-                    )
-                    return {"filtered_by": "quiet_hours"}
-
-            # Profile matched!
-            logger.debug(
-                "Profile '%s': kill %d matched (triggers: %s)",
-                profile.name,
-                kill.kill_id,
-                [t.value for t in trigger_result.trigger_types]
-                if trigger_result.trigger_types
-                else [],
-            )
-
-            # Record throttle
-            if profile._throttle is not None:
-                profile._throttle.record_sent(kill.solar_system_id, primary_trigger)
-
-            return {"trigger_result": trigger_result}
-
-        except Exception as e:
-            logger.error(
-                "Error evaluating profile '%s' for kill %d: %s",
-                profile.name,
-                kill.kill_id,
-                e,
-            )
-            return None
-
-    def _evaluate_triggers_for_profile(
-        self,
-        profile: NotificationProfile,
-        kill: ProcessedKill,
-        entity_match: EntityMatchResult | None,
-        gatecamp_status: GatecampStatus | None,
-        war_context: KillWarContext | None = None,
-    ) -> TriggerResult:
-        """
-        Evaluate triggers for a profile.
-
-        Passes profile triggers directly to evaluate_triggers.
-        """
-        return evaluate_triggers(
-            kill=kill,
-            entity_match=entity_match,
-            gatecamp_status=gatecamp_status,
-            triggers=profile.triggers,
-            war_context=war_context,
-            npc_faction_mapper=self._npc_faction_mapper,
-        )
-
     def cleanup_throttles(self) -> int:
         """
         Clean up expired throttle entries across all profiles.
@@ -611,8 +411,6 @@ class ProfileEvaluator:
             "profiles": [
                 {
                     "name": p.name,
-                    "has_topology": p._topology_filter is not None,
-                    "uses_interest_v2": p.uses_interest_v2,
                     "init_error": p._init_error,
                     "throttle_minutes": p.throttle_minutes,
                     "quiet_hours_enabled": p.quiet_hours.enabled,

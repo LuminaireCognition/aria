@@ -822,8 +822,9 @@ class TestOnKillProcessed:
         """Test _on_kill_processed filters by topology."""
         mock_topology = MagicMock()
         mock_topology.is_active = True
-        mock_topology.calculator = MagicMock()
-        mock_topology.calculator.should_fetch.return_value = False
+        mock_topology.calculator = None
+        mock_topology.interest_map = MagicMock()
+        mock_topology.interest_map.is_interesting.return_value = False
 
         kill = ProcessedKill(
             kill_id=1,

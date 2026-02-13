@@ -526,18 +526,7 @@ class RedisQPoller:
         # Apply topology filter post-fetch (pre-fetch filter may not have system ID)
         # This is the authoritative filter - pre-fetch is just an optimization
         if self._topology_filter and self._topology_filter.is_active:
-            if self._topology_filter.calculator is not None:
-                # Context-aware mode: check interest score
-                if not self._topology_filter.calculator.should_fetch(kill.solar_system_id):
-                    self._kills_filtered += 1
-                    logger.debug(
-                        "Kill %d filtered by topology (system=%d, interest below threshold)",
-                        kill.kill_id,
-                        kill.solar_system_id,
-                    )
-                    return
-            elif self._topology_filter.interest_map is not None:
-                # Legacy mode: check if system is in interest map
+            if self._topology_filter.interest_map is not None:
                 if not self._topology_filter.interest_map.is_interesting(kill.solar_system_id):
                     self._kills_filtered += 1
                     logger.debug(
