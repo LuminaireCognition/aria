@@ -34,9 +34,9 @@ def test_resolve_returns_id_and_directory(tmp_path: Path) -> None:
         encoding="utf-8",
     )
 
-    char_id, directory = data_freshness.resolve_active_pilot(tmp_path)
+    char_id, pilot_dir = data_freshness.resolve_active_pilot(tmp_path)
     assert char_id == "12345"
-    assert directory == "12345_test_pilot"
+    assert pilot_dir == tmp_path / "userdata" / "pilots" / "12345_test_pilot"
 
 
 def test_missing_config_returns_none(tmp_path: Path) -> None:

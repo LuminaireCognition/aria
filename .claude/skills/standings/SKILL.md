@@ -65,7 +65,7 @@ Track faction and corporation standings, determine agent access levels, plan pro
 - **Reference:** `reference/mechanics/standings_thresholds.json` for thresholds
 - **Reference:** `reference/mechanics/epic_arcs.json` for epic arc data
 
-**CRITICAL:** Always query ESI for current standings before answering eligibility questions. Profile data may be stale.
+**CRITICAL:** Always ensure fresh standings data before answering eligibility questions. Use the freshness gate below.
 
 ## MCP Tools
 
@@ -75,18 +75,23 @@ Track faction and corporation standings, determine agent access levels, plan pro
 | `sde(action="corporation_info")` | Get corp faction relationships |
 | `skills(action="training_time")` | Calculate Social skill training |
 
-## ESI Availability Check (CRITICAL)
+## Freshness Gate (before eligibility checks)
 
-**Every standings query must pass this checklist before calling ESI:**
+**Every standings query that involves eligibility ("Can I use L3 agents?", "Do I qualify?") must run this first:**
 
-1. **Read session hook output** for `"esi": {"status": "..."}`.
-2. **If UNAVAILABLE — do NOT call ESI.** Commands will timeout.
-   - Use profile standings tables in `userdata/pilots/{active_pilot}/profile.md` (Empire Factions + Mission Corporations).
-   - Answer immediately from cached data.
-   - Note in response: "Based on cached standings (ESI unavailable) — data from [sync date if shown]."
-   - For eligibility checks: use cached standings but flag they may be stale.
-   - Assume Connections IV-V if skill data is unavailable (common for mission runners).
-3. **If AVAILABLE — proceed with live ESI queries** (`uv run aria-esi standings`).
+```bash
+uv run aria-esi ensure-fresh standings
+```
+
+This single call checks cache age, syncs from ESI if stale and available, and returns a result you can branch on:
+
+| `fresh` | `esi_available` | Action |
+|---------|-----------------|--------|
+| `true`  | —               | Use data confidently |
+| `false` | `false`         | Use cached data + **strong staleness warning**. Refuse definitive eligibility claims if `age_hours > 168` (7 days). |
+| `false` | `true` (sync failed) | Warn about sync failure and use cached data |
+
+**For non-eligibility queries** (general overview, progression planning): use profile data directly without the freshness gate. Staleness is less critical for advisory responses.
 
 ### Profile Standings Format
 
@@ -488,7 +493,7 @@ uv run aria-esi skills
 
 ## DO NOT
 
-- **DO NOT** trust cached profile standings for eligibility checks - always query ESI
+- **DO NOT** make definitive eligibility claims on stale data (age > 7 days) — use the freshness gate
 - **DO NOT** recommend killing friendly faction NPCs
 - **DO NOT** suggest COSMOS missions without warning they're one-time only
 - **DO NOT** forget to factor in Connections/Diplomacy skills

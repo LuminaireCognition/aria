@@ -7,7 +7,7 @@ Uses HTML comment markers for reliable section updates.
 
 import argparse
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Optional
 
 from ..core import (
@@ -105,20 +105,48 @@ def format_sync_timestamp() -> str:
     return now.strftime("%Y-%m-%d %H:%M UTC")
 
 
+def make_start_marker(section_key: str, ttl_hours: float = 24) -> str:
+    """
+    Generate an enhanced start marker with freshness metadata.
+
+    Returns a marker like:
+    <!-- ESI-SYNC:STANDINGS-EMPIRE:START ttl_hours=24 synced_at=2026-01-25T04:59:00Z stale_after=2026-01-26T04:59:00Z -->
+    """
+    marker_name = MARKERS[section_key][0]
+    # Extract the marker tag from <!-- TAG -->
+    tag = marker_name.replace("<!--", "").replace("-->", "").strip()
+
+    now = datetime.now(UTC)
+    synced_at = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    stale_after = (now + timedelta(hours=ttl_hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    return f"<!-- {tag} ttl_hours={ttl_hours} synced_at={synced_at} stale_after={stale_after} -->"
+
+
 def update_section(content: str, section: str, new_content: str) -> tuple[str, bool]:
     """
     Update a section in the profile content between markers.
+
+    Matches both legacy markers (<!-- ESI-SYNC:SECTION:START -->)
+    and enhanced markers with attributes (<!-- ESI-SYNC:SECTION:START ttl_hours=... -->).
 
     Returns (updated_content, was_updated).
     If markers don't exist, returns original content unchanged.
     """
     start_marker, end_marker = MARKERS[section]
 
-    # Pattern to match existing marker section
-    pattern = re.compile(re.escape(start_marker) + r".*?" + re.escape(end_marker), re.DOTALL)
+    # Extract the tag name for flexible matching (e.g., "ESI-SYNC:STANDINGS-EMPIRE:START")
+    tag = start_marker.replace("<!--", "").replace("-->", "").strip()
 
-    # New section with markers
-    new_section = f"{start_marker}\n{new_content}\n{end_marker}"
+    # Pattern matches both legacy (no attrs) and enhanced (with attrs) start markers
+    pattern = re.compile(
+        r"<!--\s*" + re.escape(tag) + r"(?:\s[^>]*)?\s*-->" + r".*?" + re.escape(end_marker),
+        re.DOTALL,
+    )
+
+    # Generate enhanced start marker for replacement
+    new_start = make_start_marker(section)
+    new_section = f"{new_start}\n{new_content}\n{end_marker}"
 
     if pattern.search(content):
         # Replace existing section
@@ -136,9 +164,10 @@ def add_markers_to_section(content: str, section_header: str, section_key: str) 
     Looks for the section header and wraps the table that follows it.
     """
     start_marker, end_marker = MARKERS[section_key]
+    tag = start_marker.replace("<!--", "").replace("-->", "").strip()
 
-    # Skip if markers already exist
-    if start_marker in content:
+    # Skip if markers already exist (legacy or enhanced)
+    if start_marker in content or re.search(r"<!--\s*" + re.escape(tag) + r"[\s>]", content):
         return content
 
     # Find the section header

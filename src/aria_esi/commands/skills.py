@@ -57,6 +57,8 @@ def is_skills_cache_stale(pilot_dir: Path | None = None, ttl_hours: int = 12) ->
     """
     Check if skill cache is older than TTL.
 
+    Delegates to the core freshness library.
+
     Args:
         pilot_dir: Pilot directory path. If None, resolves from config.
         ttl_hours: Cache TTL in hours (default 12).
@@ -64,28 +66,13 @@ def is_skills_cache_stale(pilot_dir: Path | None = None, ttl_hours: int = 12) ->
     Returns:
         True if cache is stale or missing, False if fresh.
     """
-    if pilot_dir is None:
-        pilot_dir = get_pilot_directory()
-    if not pilot_dir:
-        return True
+    from ..core.freshness import check_freshness
 
-    cache_path = pilot_dir / "skills.json"
-    if not cache_path.exists():
-        return True
-
-    try:
-        data = json.loads(cache_path.read_text())
-        meta = data.get("_meta", {})
-        synced_at = meta.get("synced_at")
-        if not synced_at:
-            return True
-
-        # Parse ISO timestamp
-        sync_time = datetime.fromisoformat(synced_at.replace("Z", "+00:00"))
-        age_hours = (datetime.now(UTC) - sync_time).total_seconds() / 3600
-        return age_hours > ttl_hours
-    except (json.JSONDecodeError, KeyError, ValueError):
-        return True
+    result = check_freshness("skills", pilot_dir)
+    # Respect caller's ttl_hours if different from registry default
+    if ttl_hours != 12 and result.age_hours is not None:
+        return result.age_hours > ttl_hours
+    return not result.fresh
 
 
 def get_skills_cache_info(pilot_dir: Path | None = None) -> dict | None:
