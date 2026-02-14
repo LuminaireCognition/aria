@@ -4,7 +4,12 @@ Pending improvements and future expansion.
 
 **Content Status:** Tiers 1-4 complete. Core mechanics, missions (L1-L4), exploration, mining, industry, wormholes, abyssal, FW, incursions all documented.
 
-**Recent Completions (2026-02-02):**
+**Recent Completions (2026-02-13):**
+- ✅ Freshness-gated auto-sync library (`ensure_fresh()` API, `ensure-fresh` CLI, boot integration)
+- ✅ Skills updated with freshness gates: standings, skillplan, fit-check, ship-next, agents-research
+- ✅ Enhanced sync markers with TTL/staleness metadata in profile.md
+
+**Previous Completions (2026-02-02):**
 - ✅ `/pi` skill complete with all 4 phases (chains, math, market, location-aware)
 - ✅ `/assets` skill complete with smart insights and snapshot persistence
 - ✅ Skill test harness with 3-layer validation (contract, structural, semantic)
@@ -58,4 +63,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Quick ideas:
 
 ---
 
-*Last updated: 2026-02-02*
+*Last updated: 2026-02-13*

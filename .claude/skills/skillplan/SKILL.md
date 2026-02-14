@@ -68,11 +68,23 @@ This skill requires the following MCP tools from the `aria-universe` server:
 
 **CRITICAL:** Training time estimates are **wrong** if `current_skills` is not passed to `easy_80_plan`. Without it, all times calculate from level 0 — massively overstating training needed.
 
-### Step 0: Fetch Pilot Skills (Before Anything Else)
+### Step 0: Ensure Fresh Skills (Before Anything Else)
 
-#### When ESI is AVAILABLE:
+**CRITICAL:** Training time estimates are **wrong** without `current_skills`. Always attempt to load fresh skills first.
 
-Fetch the pilot's trained skills and build the `current_skills` dict:
+#### Freshness Gate
+
+```bash
+uv run aria-esi ensure-fresh skills
+```
+
+| `fresh` | `esi_available` | Action |
+|---------|-----------------|--------|
+| `true`  | —               | Load skills from cache (now fresh), pass to `easy_80_plan` |
+| `false` | `false`         | Load stale cache if exists + **strong warning**: "⚠️ ESI offline — training times may be inaccurate if skills have changed since last sync." If no cache exists, warn: "⚠️ No cached skills — all training times are from-scratch estimates." |
+| `false` | `true` (sync failed) | Use cached skills if `age_hours < 72`, warn if older |
+
+#### After Freshness Gate: Load Skills
 
 ```bash
 uv run aria-esi skills
@@ -94,12 +106,6 @@ Then pass to every `easy_80_plan` call:
 ```python
 skills(action="easy_80_plan", item="Vexor Navy Issue", current_skills=current_skills)
 ```
-
-#### When ESI is UNAVAILABLE:
-
-1. **DO NOT** run `uv run aria-esi skills` — it will fail
-2. **Proceed without `current_skills`** — the plan will still generate
-3. **WARN the user clearly:** "⚠️ ESI is offline — training times shown are from-scratch estimates and will be significantly higher than your actual remaining training time."
 
 ### Golden Path — Minimal MCP Call Sequence
 

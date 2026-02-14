@@ -20,30 +20,34 @@ esi_scopes:
 
 Query the capsuleer's active research agent partnerships to display accumulated research points (RP) and daily generation rates. Research agents provide passive RP accumulation for datacores used in invention.
 
-## CRITICAL: Standings Freshness Check
+## CRITICAL: Standings Freshness Gate
 
-**Before answering R&D agent eligibility questions**, this skill MUST query live standings data.
+**Before answering R&D agent eligibility questions**, this skill MUST ensure fresh standings data.
 
-### When to Query Live Standings
+### When Freshness Gate is Required
 
 | Question Type | Example | Action Required |
 |---------------|---------|-----------------|
-| Agent eligibility | "Can I use L2 R&D agents?" | **Query ESI standings first** |
-| Corp access | "Do I have standing for CreoDron?" | **Query ESI standings first** |
-| Agent recommendations | "Which R&D corps can I work with?" | **Query ESI standings first** |
+| Agent eligibility | "Can I use L2 R&D agents?" | **Freshness gate required** |
+| Corp access | "Do I have standing for CreoDron?" | **Freshness gate required** |
+| Agent recommendations | "Which R&D corps can I work with?" | **Freshness gate required** |
 | Current partnerships | "Show my research agents" | Profile data OK (no threshold) |
 
-### Mandatory Query Sequence
+### Freshness Gate
 
-For eligibility questions:
+For eligibility questions, run this **before** any standings query:
 
 ```bash
-# 1. Check freshness (optional diagnostic)
-uv run python .claude/scripts/aria-data-freshness.py standings
-
-# 2. ALWAYS query live standings for eligibility decisions
-uv run aria-esi standings
+uv run aria-esi ensure-fresh standings
 ```
+
+This single call checks cache age, syncs from ESI if stale, and returns a result to branch on:
+
+| `fresh` | `esi_available` | Action |
+|---------|-----------------|--------|
+| `true`  | —               | Use data confidently |
+| `false` | `false`         | Use cached data + **strong staleness warning**. Refuse definitive eligibility claims if `age_hours > 168` (7 days). |
+| `false` | `true` (sync failed) | Warn about sync failure and use cached data |
 
 **Do NOT use profile.md standings for eligibility checks.** Profile data is a snapshot that may be days old. R&D agent access depends on current corporation standings which change with gameplay.
 

@@ -16,9 +16,29 @@ import json
 import sqlite3
 from pathlib import Path
 from typing import NamedTuple
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
+
+from aria_esi.core.freshness import SyncResult
+
+
+@pytest.fixture(autouse=True)
+def _mock_ensure_fresh_for_fitting():
+    """Mock ensure_fresh so fetch_pilot_skills falls through to ESI in tests."""
+    stale_result = SyncResult(
+        section="skills",
+        fresh=False,
+        synced_at=None,
+        age_hours=None,
+        ttl_hours=24.0,
+        refreshed=False,
+        esi_available=True,
+        error=None,
+        source="missing",
+    )
+    with patch("aria_esi.core.freshness.ensure_fresh", return_value=stale_result):
+        yield
 
 from aria_esi.models.fitting import (
     CapacitorStats,

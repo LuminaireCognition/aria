@@ -475,6 +475,12 @@ run_esi_sync() {
             # Run in background with nohup to survive shell exit
             (nohup uv run --quiet python "$PROJECT_DIR/scripts/aria-esi-sync.py" --quick --quiet >/dev/null 2>&1 &)
         fi
+
+        # Non-blocking standings refresh (background)
+        # Ensures most sessions start with fresh standings data
+        if [ -f "$creds_file" ]; then
+            (nohup uv run --quiet aria-esi ensure-fresh standings >/dev/null 2>&1 &)
+        fi
     fi
 }
 

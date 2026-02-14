@@ -59,31 +59,31 @@ New and intermediate pilots who:
 - Current skills: `uv run aria-esi skills`
 - Wallet balance: `uv run aria-esi wallet`
 
-## ESI Availability Check (CRITICAL)
+## Skills Freshness Gate (CRITICAL)
 
-**BEFORE making any ESI queries**, check the session hook output for ESI status:
+**Before checking pilot skills**, ensure fresh cached data:
 
-```json
-"esi": {"status": "UNAVAILABLE"}
+```bash
+uv run aria-esi ensure-fresh skills
 ```
 
-### If ESI is UNAVAILABLE:
+| `fresh` | `esi_available` | Action |
+|---------|-----------------|--------|
+| `true`  | —               | Proceed with full skill check using cached skills |
+| `false` | `false`         | Skip skill check, show cost-only analysis. Note: "Skill check unavailable (ESI offline) - showing cost analysis only" |
+| `false` | `true` (sync failed) | Use cached skills if `age_hours < 72`, warn about staleness |
 
-1. **DO NOT** run `uv run aria-esi` commands - they will timeout
-2. **USE** profile data for context:
-   - `module_tier` from profile tells you T1/T2 capability
-   - Skip wallet comparison (just show cost breakdown)
-3. **STILL VALIDATE** the fit via MCP tools (fitting, sde, market work without ESI)
-4. **ANSWER IMMEDIATELY** with partial analysis
-5. **NOTE** in response: "Skill check unavailable (ESI offline) - showing cost analysis only"
+### Wallet Handling
 
-### If ESI is AVAILABLE:
-
-Proceed with full skill + wallet validation.
+Wallet is volatile and not in the freshness registry. Query it separately with a manual try/catch:
+```bash
+uv run aria-esi wallet
+```
+If wallet query fails, skip wallet comparison and show cost breakdown only.
 
 ### Degraded Mode Output
 
-When ESI unavailable, still provide value:
+When skills are unavailable, still provide value:
 - Cost breakdown (market tools work)
 - Fit validation via EOS (fitting tools work)
 - Module list and slot assignments

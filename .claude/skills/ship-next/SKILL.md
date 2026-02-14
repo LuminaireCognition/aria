@@ -65,26 +65,27 @@ This skill provides personalized ship recommendations based on:
 - Skills: `uv run aria-esi skills`
 - Wallet: `uv run aria-esi wallet`
 
-## ESI Availability Check (CRITICAL)
+## Skills Freshness Gate (CRITICAL)
 
-**BEFORE making any ESI queries**, check the session hook output for ESI status:
+**Before gathering pilot context**, ensure fresh cached skill data:
 
-```json
-"esi": {"status": "UNAVAILABLE"}
+```bash
+uv run aria-esi ensure-fresh skills
 ```
 
-### If ESI is UNAVAILABLE:
+| `fresh` | `esi_available` | Action |
+|---------|-----------------|--------|
+| `true`  | —               | Full context gathering with fresh skills |
+| `false` | `false`         | Use profile data only. Note: "Based on profile data (ESI unavailable)" |
+| `false` | `true` (sync failed) | Use cached skills if `age_hours < 72`, warn about staleness |
 
-1. **DO NOT** run `uv run aria-esi` commands - they will timeout
-2. **USE** profile data instead:
-   - `userdata/pilots/{active_pilot}/profile.md` contains cached standings, goals, module tier
-   - `userdata/pilots/{active_pilot}/operations.md` contains current ships
-3. **ANSWER IMMEDIATELY** from cached data
-4. **NOTE** in response: "Based on profile data (ESI unavailable)"
+### Wallet Handling
 
-### If ESI is AVAILABLE:
-
-Proceed with live queries for most accurate data.
+Wallet is volatile and not in the freshness registry. Query it separately with a manual try/catch:
+```bash
+uv run aria-esi wallet
+```
+If wallet query fails, skip budget-based filtering and recommend based on skills/profile only.
 
 **Rationale:** A fast answer from slightly stale profile data is infinitely better than a 5-minute timeout. Players will rage-quit before waiting for failed ESI calls.
 
@@ -92,9 +93,9 @@ Proceed with live queries for most accurate data.
 
 ### Step 1: Gather Pilot Context
 
-Query current state:
-1. **Current skills** from ESI
-2. **Wallet balance** from ESI
+Query current state (skills freshness gate must have passed first):
+1. **Current skills** from cache (freshened by freshness gate above)
+2. **Wallet balance** from ESI (manual try/catch)
 3. **Profile** for faction preference, activity focus
 4. **Operations** for current ships owned
 

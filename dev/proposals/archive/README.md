@@ -25,6 +25,7 @@ Proposals that have been implemented, superseded, or consolidated.
 | EXPAND_SDE_INJEST.md | Implemented | 2026-02-02 | Meta types SDE import for T2/Faction variant lookups |
 | SKILL_AWARE_FIT_SELECTION.md | Implemented | 2026-02-02 | Stats caching CLI, omega/T2 validation, tier system |
 | PROMPT_LIBRARY_REVIEW_COVERAGE_PROPOSAL.md | Superseded | 2026-02-10 | CI automation not adopted; standalone prompts retained in `dev/prompts/` |
+| FRESHNESS_GATED_AUTO_SYNC_LIBRARY.md | Implemented | 2026-02-13 | All 4 phases: core library, enhanced markers, consolidation, skill integration |
 
 ## Archive Policy
 

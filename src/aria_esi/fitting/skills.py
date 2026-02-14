@@ -141,16 +141,37 @@ def fetch_pilot_skills(
         get_authenticated_client,
     )
 
-    # 1. Try cache first
+    # 1. Try cache first (freshness-gated)
     if use_cache:
-        from aria_esi.commands.skills import is_skills_cache_stale, load_cached_skills
+        from aria_esi.commands.skills import load_cached_skills
+        from aria_esi.core.freshness import ensure_fresh
 
-        cached = load_cached_skills()
-        if cached and not is_skills_cache_stale(ttl_hours=cache_ttl_hours):
-            logger.info("Using cached skills (%d skills)", len(cached))
-            return SkillFetchResult(cached, source="cache")
-        elif cached:
-            logger.debug("Cache exists but is stale, falling through to ESI")
+        result = ensure_fresh("skills")
+
+        if result.fresh:
+            cached = load_cached_skills()
+            if cached:
+                logger.info("Using fresh cached skills (%d skills)", len(cached))
+                return SkillFetchResult(cached, source="cache")
+
+        elif not result.esi_available:
+            cached = load_cached_skills()
+            if cached:
+                logger.warning(
+                    "ESI unavailable, using stale cache (age: %.1fh)",
+                    result.age_hours or 0.0,
+                )
+                return SkillFetchResult(cached, source="stale_cache")
+
+        elif result.error:
+            cached = load_cached_skills()
+            if cached and result.age_hours and result.age_hours < 72:
+                logger.warning(
+                    "Sync failed (%s), using stale cache (age: %.1fh)",
+                    result.error,
+                    result.age_hours,
+                )
+                return SkillFetchResult(cached, source="stale_cache")
 
     # 2. Fall through to ESI fetch
     try:
