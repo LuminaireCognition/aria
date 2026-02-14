@@ -61,7 +61,7 @@ class TestRouteToolIntegration:
         """Route tool returns valid response for shortest mode."""
         # Get the tool function from the server
         from aria_esi.mcp.tools import get_universe
-        from aria_esi.mcp.tools_route import _calculate_route
+        from aria_esi.mcp.dispatchers.universe import _calculate_route
 
         universe = get_universe()
 
@@ -82,7 +82,7 @@ class TestRouteToolIntegration:
     async def test_route_result_structure(self, integration_server, sample_graph):
         """Route result has correct structure."""
         from aria_esi.mcp.tools import get_universe
-        from aria_esi.mcp.tools_route import _build_route_result, _calculate_route
+        from aria_esi.mcp.dispatchers.universe import _build_route_result, _calculate_route
 
         universe = get_universe()
 
@@ -145,7 +145,7 @@ class TestBordersToolIntegration:
     def test_border_search_from_jita(self, integration_server):
         """Border search finds nearby border systems."""
         from aria_esi.mcp.tools import get_universe
-        from aria_esi.mcp.tools_borders import _find_border_systems
+        from aria_esi.mcp.dispatchers.universe import _find_border_systems
 
         universe = get_universe()
 
@@ -166,7 +166,7 @@ class TestSearchToolIntegration:
     def test_search_lowsec(self, integration_server):
         """Search finds low-sec systems correctly."""
         from aria_esi.mcp.tools import get_universe
-        from aria_esi.mcp.tools_search import _search_systems
+        from aria_esi.mcp.dispatchers.universe import _search_systems
 
         universe = get_universe()
 

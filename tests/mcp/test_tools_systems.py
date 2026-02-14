@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_systems import register_systems_tools
+from aria_esi.mcp.dispatchers.universe import register_systems_tools
 from aria_esi.mcp.utils import build_system_info
 from aria_esi.universe import UniverseGraph
 
@@ -213,7 +213,7 @@ class TestUniverseSystemsIntegration:
 
     def _capture_tool(self, registered_universe: UniverseGraph):
         """Helper to capture the registered tool function."""
-        from aria_esi.mcp.tools_systems import register_systems_tools
+        from aria_esi.mcp.dispatchers.universe import register_systems_tools
 
         captured_tool = None
 
@@ -377,7 +377,7 @@ class TestSystemsPerformance:
         mock_server = MagicMock()
         mock_server.tool = mock_tool
 
-        from aria_esi.mcp.tools_systems import register_systems_tools
+        from aria_esi.mcp.dispatchers.universe import register_systems_tools
 
         register_systems_tools(mock_server, registered_universe)
 
@@ -407,7 +407,7 @@ class TestSystemsPerformance:
         mock_server = MagicMock()
         mock_server.tool = mock_tool
 
-        from aria_esi.mcp.tools_systems import register_systems_tools
+        from aria_esi.mcp.dispatchers.universe import register_systems_tools
 
         register_systems_tools(mock_server, registered_universe)
 

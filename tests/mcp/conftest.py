@@ -242,7 +242,7 @@ def capture_tool_function(universe: UniverseGraph, register_func: callable) -> c
         The captured async tool function
 
     Example:
-        from aria_esi.mcp.tools_route import register_route_tools
+        from aria_esi.mcp.dispatchers.universe import register_route_tools
         tool = capture_tool_function(universe, register_route_tools)
         result = await tool(origin="Jita", destination="Amarr")
     """

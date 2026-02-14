@@ -15,13 +15,13 @@ import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_route import (
+from aria_esi.mcp.dispatchers.universe import (
     _build_route_result,
     _calculate_route,
     _compute_safe_weights,
-    _compute_security_summary,
     _compute_unsafe_weights,
-    _generate_warnings,
+    _route_compute_security_summary as _compute_security_summary,
+    _route_generate_warnings as _generate_warnings,
     register_route_tools,
 )
 from aria_esi.mcp.utils import build_system_info
@@ -388,7 +388,7 @@ class TestUniverseRouteIntegration:
 
     def _capture_tool(self, registered_universe: UniverseGraph):
         """Helper to capture the registered tool function."""
-        from aria_esi.mcp.tools_route import register_route_tools
+        from aria_esi.mcp.dispatchers.universe import register_route_tools
 
         captured_tool = None
 
@@ -557,7 +557,7 @@ class TestAvoidSystemsIntegration:
 
     def _capture_tool(self, registered_universe: UniverseGraph):
         """Helper to capture the registered tool function."""
-        from aria_esi.mcp.tools_route import register_route_tools
+        from aria_esi.mcp.dispatchers.universe import register_route_tools
 
         captured_tool = None
 

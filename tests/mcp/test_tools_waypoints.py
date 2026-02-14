@@ -13,10 +13,10 @@ import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_waypoints import (
+from aria_esi.mcp.dispatchers.universe import (
+    _do_optimize_waypoints as _optimize_waypoints,
     _find_best_start,
     _nearest_neighbor_tsp,
-    _optimize_waypoints,
     register_waypoints_tools,
 )
 from aria_esi.mcp.utils import DistanceMatrix

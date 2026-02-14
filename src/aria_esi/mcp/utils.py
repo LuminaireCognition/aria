@@ -283,8 +283,7 @@ def build_system_info(universe: UniverseGraph, idx: int) -> SystemInfo:
     """
     Build complete SystemInfo for a vertex.
 
-    This function is shared across tools_route.py and tools_systems.py
-    to avoid duplication.
+    Build complete SystemInfo for a vertex index.
 
     Args:
         universe: UniverseGraph for system lookups

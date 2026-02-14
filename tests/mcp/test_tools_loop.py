@@ -15,7 +15,7 @@ import pytest
 
 from aria_esi.mcp.errors import InsufficientBordersError, InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_loop import (
+from aria_esi.mcp.dispatchers.universe import (
     _build_loop_result,
     _expand_tour_matrix,
     _find_borders_with_distance,
@@ -347,7 +347,7 @@ class TestUniverseLoopIntegration:
 
     def _capture_tool(self, registered_universe: UniverseGraph):
         """Helper to capture the registered tool function."""
-        from aria_esi.mcp.tools_loop import register_loop_tools
+        from aria_esi.mcp.dispatchers.universe import register_loop_tools
 
         captured_tool = None
 
@@ -539,7 +539,7 @@ class TestLoopPerformance:
         mock_server = MagicMock()
         mock_server.tool = mock_tool
 
-        from aria_esi.mcp.tools_loop import register_loop_tools
+        from aria_esi.mcp.dispatchers.universe import register_loop_tools
 
         register_loop_tools(mock_server, registered_universe)
 
@@ -785,7 +785,7 @@ class TestOptimizeModeIntegration:
 
     def _capture_tool(self, registered_universe: UniverseGraph):
         """Helper to capture the registered tool function."""
-        from aria_esi.mcp.tools_loop import register_loop_tools
+        from aria_esi.mcp.dispatchers.universe import register_loop_tools
 
         captured_tool = None
 
