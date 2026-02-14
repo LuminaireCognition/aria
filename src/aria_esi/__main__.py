@@ -13,7 +13,7 @@ import sys
 from .core import get_utc_timestamp
 
 
-def output_json(data: dict, indent: int = 2) -> None:
+def output_json(data: dict | list, indent: int = 2) -> None:
     """Print JSON output to stdout."""
     print(json.dumps(data, indent=indent))
 
@@ -545,6 +545,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sovereignty.register_parsers(subparsers)
 
+    # Phase 27: Freshness commands
+    from .commands import freshness
+
+    freshness.register_parsers(subparsers)
+
     return parser
 
 
@@ -570,7 +575,14 @@ def main() -> int:
     try:
         result = args.func(args)
 
-        # Output result if it's a dict (JSON response)
+        # Handle (payload, exit_code) tuple returns
+        if isinstance(result, tuple) and len(result) == 2:
+            payload, exit_code = result
+            if isinstance(payload, (dict, list)) and payload:
+                output_json(payload)
+            return exit_code
+
+        # Legacy: dict returns
         if isinstance(result, dict) and result:
             output_json(result)
 
