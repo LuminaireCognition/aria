@@ -15,7 +15,7 @@ import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError, RouteNotFoundError
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_analyze import (
+from aria_esi.mcp.dispatchers.universe import (
     _analyze_route,
     _compute_security_summary,
     _find_chokepoints,
@@ -381,7 +381,7 @@ class TestUniverseAnalyzeIntegration:
 
     def _capture_tool(self, registered_universe: UniverseGraph):
         """Helper to capture the registered tool function."""
-        from aria_esi.mcp.tools_analyze import register_analyze_tools
+        from aria_esi.mcp.dispatchers.universe import register_analyze_tools
 
         captured_tool = None
 
@@ -525,7 +525,7 @@ class TestAnalyzePerformance:
         mock_server = MagicMock()
         mock_server.tool = mock_tool
 
-        from aria_esi.mcp.tools_analyze import register_analyze_tools
+        from aria_esi.mcp.dispatchers.universe import register_analyze_tools
 
         register_analyze_tools(mock_server, registered_universe)
 

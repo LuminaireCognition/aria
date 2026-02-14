@@ -15,7 +15,7 @@ import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_search import (
+from aria_esi.mcp.dispatchers.universe import (
     _bfs_within_range,
     _build_search_result,
     _resolve_region,
@@ -504,7 +504,7 @@ class TestUniverseSearchIntegration:
 
     def _capture_tool(self, registered_universe: UniverseGraph):
         """Helper to capture the registered tool function."""
-        from aria_esi.mcp.tools_search import register_search_tools
+        from aria_esi.mcp.dispatchers.universe import register_search_tools
 
         captured_tool = None
 
@@ -742,7 +742,7 @@ class TestSearchPerformance:
         mock_server = MagicMock()
         mock_server.tool = mock_tool
 
-        from aria_esi.mcp.tools_search import register_search_tools
+        from aria_esi.mcp.dispatchers.universe import register_search_tools
 
         register_search_tools(mock_server, registered_universe)
 

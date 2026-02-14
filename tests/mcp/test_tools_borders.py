@@ -15,7 +15,7 @@ import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_borders import (
+from aria_esi.mcp.dispatchers.universe import (
     _build_border_system,
     _find_border_systems,
     register_borders_tools,
@@ -255,7 +255,7 @@ class TestUniverseBordersIntegration:
 
     def _capture_tool(self, registered_universe: UniverseGraph):
         """Helper to capture the registered tool function."""
-        from aria_esi.mcp.tools_borders import register_borders_tools
+        from aria_esi.mcp.dispatchers.universe import register_borders_tools
 
         captured_tool = None
 
@@ -416,7 +416,7 @@ class TestBordersPerformance:
         mock_server = MagicMock()
         mock_server.tool = mock_tool
 
-        from aria_esi.mcp.tools_borders import register_borders_tools
+        from aria_esi.mcp.dispatchers.universe import register_borders_tools
 
         register_borders_tools(mock_server, registered_universe)
 

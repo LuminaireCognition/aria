@@ -21,12 +21,61 @@ Consolidates 14 universe navigation tools into a single dispatcher:
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Literal
+from collections import deque
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Literal
 
+from ...services.navigation import (
+    VALID_MODES,
+)
+
+# Re-exports for test compatibility
+from ...services.navigation import compute_safe_weights as _compute_safe_weights  # noqa: F401
+from ...services.navigation import (
+    compute_security_summary as _svc_compute_security_summary,
+)
+from ...services.navigation import compute_unsafe_weights as _compute_unsafe_weights  # noqa: F401
+from ...services.navigation import (
+    generate_warnings as _svc_generate_warnings,
+)
+from ..activity import classify_activity, get_activity_cache, get_faction_id, get_faction_name
 from ..context import log_context, summarize_route, wrap_output, wrap_output_multi
 from ..context_policy import UNIVERSE
-from ..errors import InvalidParameterError
+from ..errors import (
+    InsufficientBordersError,
+    InvalidParameterError,
+    RouteNotFoundError,
+    SystemNotFoundError,
+)
+from ..models import (
+    VALID_OPTIMIZE_MODES,
+    VALID_SECURITY_FILTERS,
+    ActivityResult,
+    BorderSystem,
+    CacheLayerStatus,
+    CacheStatusResult,
+    ChokepointType,
+    DangerZone,
+    FWFrontlinesResult,
+    FWSystem,
+    GatecampRisk,
+    GatecampRiskResult,
+    HotspotsResult,
+    HotspotSystem,
+    LoopResult,
+    OptimizedWaypointResult,
+    RiskLevel,
+    RouteAnalysis,
+    RouteResult,
+    SecuritySummary,
+    SystemActivity,
+    SystemInfo,
+    SystemSearchResult,
+    WaypointInfo,
+)
 from ..policy import check_capability
+from ..tools import ResolvedSystem, collect_corrections, get_universe, resolve_system_name
+from ..utils import DistanceMatrix, build_system_info
 from ..validation import add_validation_warnings, validate_action_params
 
 logger = logging.getLogger(__name__)
@@ -36,6 +85,7 @@ if TYPE_CHECKING:
 
     from aria_esi.universe.graph import UniverseGraph
 
+    from ..activity import ActivityData
     from ..models import BorderType, EscapeRoute, ThreatLevel
 
 
@@ -401,15 +451,11 @@ async def _route(
     mode: str,
     avoid_systems: list[str] | None,
 ) -> dict:
-    """Route action - delegate to tools_route."""
+    """Route action."""
     if not origin:
         raise InvalidParameterError("origin", origin, "Required for action='route'")
     if not destination:
         raise InvalidParameterError("destination", destination, "Required for action='route'")
-
-    from ..models import RouteResult
-    from ..tools import collect_corrections, get_universe, resolve_system_name
-    from ..tools_route import VALID_MODES, _build_route_result, _calculate_route
 
     universe = get_universe()
 
@@ -468,13 +514,9 @@ async def _route(
 
 
 async def _systems(systems: list[str] | None) -> dict:
-    """Systems action - delegate to tools_systems."""
+    """Systems action."""
     if not systems:
         raise InvalidParameterError("systems", systems, "Required for action='systems'")
-
-    from ..models import SystemInfo
-    from ..tools import ResolvedSystem, get_universe, resolve_system_name
-    from ..utils import build_system_info
 
     universe = get_universe()
     results: list[SystemInfo | None] = []
@@ -506,20 +548,21 @@ async def _borders(
     limit: int,
     max_jumps: int | None,
 ) -> dict:
-    """Borders action - delegate to tools_borders."""
+    """Borders action."""
     if not origin:
         raise InvalidParameterError("origin", origin, "Required for action='borders'")
 
-    from ..tools import collect_corrections, get_universe, resolve_system_name
-    from ..tools_borders import MAX_JUMPS, MAX_LIMIT, _find_border_systems
-
-    effective_limit = min(limit, MAX_LIMIT) if limit else 10
-    effective_max_jumps = min(max_jumps or 15, MAX_JUMPS)
+    effective_limit = min(limit, UNIVERSE.BORDERS_MAX_LIMIT) if limit else 10
+    effective_max_jumps = min(max_jumps or 15, UNIVERSE.BORDERS_MAX_JUMPS)
 
     if effective_limit < 1:
-        raise InvalidParameterError("limit", limit, f"Must be between 1 and {MAX_LIMIT}")
+        raise InvalidParameterError(
+            "limit", limit, f"Must be between 1 and {UNIVERSE.BORDERS_MAX_LIMIT}"
+        )
     if effective_max_jumps < 1:
-        raise InvalidParameterError("max_jumps", max_jumps, f"Must be between 1 and {MAX_JUMPS}")
+        raise InvalidParameterError(
+            "max_jumps", max_jumps, f"Must be between 1 and {UNIVERSE.BORDERS_MAX_JUMPS}"
+        )
 
     universe = get_universe()
     origin_resolved = resolve_system_name(origin)
@@ -551,28 +594,23 @@ async def _search(
     is_border: bool | None,
     limit: int,
 ) -> dict:
-    """Search action - delegate to tools_search."""
-    from ..tools import collect_corrections, get_universe, resolve_system_name
-    from ..tools_search import (
-        MAX_JUMPS,
-        MAX_LIMIT,
-        _resolve_region,
-        _search_systems,
-        _summarize_filters,
-    )
-
+    """Search action."""
     universe = get_universe()
 
-    if limit < 1 or limit > MAX_LIMIT:
-        raise InvalidParameterError("limit", limit, f"Must be between 1 and {MAX_LIMIT}")
+    if limit < 1 or limit > UNIVERSE.SEARCH_MAX_LIMIT:
+        raise InvalidParameterError(
+            "limit", limit, f"Must be between 1 and {UNIVERSE.SEARCH_MAX_LIMIT}"
+        )
 
     if max_jumps is not None and origin is None:
         raise InvalidParameterError(
             "origin", None, "origin is required when max_jumps is specified"
         )
 
-    if max_jumps is not None and (max_jumps < 1 or max_jumps > MAX_JUMPS):
-        raise InvalidParameterError("max_jumps", max_jumps, f"Must be between 1 and {MAX_JUMPS}")
+    if max_jumps is not None and (max_jumps < 1 or max_jumps > UNIVERSE.SEARCH_MAX_JUMPS):
+        raise InvalidParameterError(
+            "max_jumps", max_jumps, f"Must be between 1 and {UNIVERSE.SEARCH_MAX_JUMPS}"
+        )
 
     origin_idx: int | None = None
     origin_canonical: str | None = None
@@ -640,40 +678,34 @@ async def _loop(
     security_filter: str,
     avoid_systems: list[str] | None,
 ) -> dict:
-    """Loop action - delegate to tools_loop."""
+    """Loop action."""
     if not origin:
         raise InvalidParameterError("origin", origin, "Required for action='loop'")
 
-    from ..models import VALID_OPTIMIZE_MODES, VALID_SECURITY_FILTERS
-    from ..tools import collect_corrections, get_universe, resolve_system_name
-    from ..tools_loop import (
-        MAX_BORDERS_CAP,
-        MAX_BORDERS_LIMIT,
-        MAX_TARGET_JUMPS,
-        MIN_BORDERS_LIMIT,
-        MIN_TARGET_JUMPS,
-        _plan_loop,
-    )
-
     universe = get_universe()
 
-    if target_jumps < MIN_TARGET_JUMPS or target_jumps > MAX_TARGET_JUMPS:
+    if (
+        target_jumps < UNIVERSE.LOOP_MIN_TARGET_JUMPS
+        or target_jumps > UNIVERSE.LOOP_MAX_TARGET_JUMPS
+    ):
         raise InvalidParameterError(
             "target_jumps",
             target_jumps,
-            f"Must be between {MIN_TARGET_JUMPS} and {MAX_TARGET_JUMPS}",
+            f"Must be between {UNIVERSE.LOOP_MIN_TARGET_JUMPS} and {UNIVERSE.LOOP_MAX_TARGET_JUMPS}",
         )
-    if min_borders < MIN_BORDERS_LIMIT or min_borders > MAX_BORDERS_LIMIT:
+    if min_borders < UNIVERSE.LOOP_MIN_BORDERS or min_borders > UNIVERSE.LOOP_MAX_BORDERS:
         raise InvalidParameterError(
             "min_borders",
             min_borders,
-            f"Must be between {MIN_BORDERS_LIMIT} and {MAX_BORDERS_LIMIT}",
+            f"Must be between {UNIVERSE.LOOP_MIN_BORDERS} and {UNIVERSE.LOOP_MAX_BORDERS}",
         )
-    if max_borders is not None and (max_borders < min_borders or max_borders > MAX_BORDERS_CAP):
+    if max_borders is not None and (
+        max_borders < min_borders or max_borders > UNIVERSE.LOOP_MAX_BORDERS_CAP
+    ):
         raise InvalidParameterError(
             "max_borders",
             max_borders,
-            f"Must be between {min_borders} and {MAX_BORDERS_CAP}",
+            f"Must be between {min_borders} and {UNIVERSE.LOOP_MAX_BORDERS_CAP}",
         )
     if optimize not in VALID_OPTIMIZE_MODES:
         raise InvalidParameterError(
@@ -718,14 +750,11 @@ async def _loop(
 
 
 async def _analyze(systems: list[str] | None) -> dict:
-    """Analyze action - delegate to tools_analyze."""
+    """Analyze action."""
     if not systems or len(systems) < 2:
         raise InvalidParameterError(
             "systems", systems, "At least 2 systems required for action='analyze'"
         )
-
-    from ..tools import get_universe
-    from ..tools_analyze import _analyze_route, _validate_connectivity
 
     universe = get_universe()
 
@@ -752,28 +781,23 @@ async def _nearest(
     limit: int,
     max_jumps: int | None,
 ) -> dict:
-    """Nearest action - delegate to tools_nearest."""
+    """Nearest action."""
     if not origin:
         raise InvalidParameterError("origin", origin, "Required for action='nearest'")
 
-    from ..tools import collect_corrections, get_universe, resolve_system_name
-    from ..tools_nearest import (
-        MAX_JUMPS,
-        MAX_LIMIT,
-        _build_predicate,
-        _find_nearest,
-        _summarize_predicates,
-    )
-
     universe = get_universe()
 
-    effective_limit = min(limit, MAX_LIMIT) if limit else 5
-    effective_max_jumps = min(max_jumps or 30, MAX_JUMPS)
+    effective_limit = min(limit, UNIVERSE.NEAREST_MAX_LIMIT) if limit else 5
+    effective_max_jumps = min(max_jumps or 30, UNIVERSE.NEAREST_MAX_JUMPS)
 
     if effective_limit < 1:
-        raise InvalidParameterError("limit", limit, f"Must be between 1 and {MAX_LIMIT}")
+        raise InvalidParameterError(
+            "limit", limit, f"Must be between 1 and {UNIVERSE.NEAREST_MAX_LIMIT}"
+        )
     if effective_max_jumps < 1:
-        raise InvalidParameterError("max_jumps", max_jumps, f"Must be between 1 and {MAX_JUMPS}")
+        raise InvalidParameterError(
+            "max_jumps", max_jumps, f"Must be between 1 and {UNIVERSE.NEAREST_MAX_JUMPS}"
+        )
     if security_min is not None and (security_min < -1.0 or security_min > 1.0):
         raise InvalidParameterError("security_min", security_min, "Must be between -1.0 and 1.0")
     if security_max is not None and (security_max < -1.0 or security_max > 1.0):
@@ -842,17 +866,7 @@ async def _optimize_waypoints(
     security_filter: str,
     avoid_systems: list[str] | None,
 ) -> dict:
-    """Optimize waypoints action - delegate to tools_waypoints."""
-    from ..models import VALID_SECURITY_FILTERS
-    from ..tools import collect_corrections, get_universe, resolve_system_name
-    from ..tools_waypoints import (
-        MAX_WAYPOINTS,
-        MIN_WAYPOINTS,
-    )
-    from ..tools_waypoints import (
-        _optimize_waypoints as do_optimize,
-    )
-
+    """Optimize waypoints action."""
     if not waypoints:
         raise InvalidParameterError(
             "waypoints", waypoints, "Required for action='optimize_waypoints'"
@@ -860,17 +874,17 @@ async def _optimize_waypoints(
 
     universe = get_universe()
 
-    if len(waypoints) < MIN_WAYPOINTS:
+    if len(waypoints) < UNIVERSE.WAYPOINTS_MIN_COUNT:
         raise InvalidParameterError(
             "waypoints",
             len(waypoints),
-            f"At least {MIN_WAYPOINTS} waypoints required for optimization",
+            f"At least {UNIVERSE.WAYPOINTS_MIN_COUNT} waypoints required for optimization",
         )
-    if len(waypoints) > MAX_WAYPOINTS:
+    if len(waypoints) > UNIVERSE.WAYPOINTS_MAX_COUNT:
         raise InvalidParameterError(
             "waypoints",
             len(waypoints),
-            f"Maximum {MAX_WAYPOINTS} waypoints allowed",
+            f"Maximum {UNIVERSE.WAYPOINTS_MAX_COUNT} waypoints allowed",
         )
     if security_filter not in VALID_SECURITY_FILTERS:
         raise InvalidParameterError(
@@ -898,11 +912,11 @@ async def _optimize_waypoints(
         else:
             unresolved.append(name)
 
-    if len(waypoint_indices) < MIN_WAYPOINTS:
+    if len(waypoint_indices) < UNIVERSE.WAYPOINTS_MIN_COUNT:
         raise InvalidParameterError(
             "waypoints",
             waypoint_indices,
-            f"Only {len(waypoint_indices)} valid waypoints after resolution, need at least {MIN_WAYPOINTS}",
+            f"Only {len(waypoint_indices)} valid waypoints after resolution, need at least {UNIVERSE.WAYPOINTS_MIN_COUNT}",
         )
 
     avoid_indices: set[int] = set()
@@ -915,7 +929,7 @@ async def _optimize_waypoints(
             else:
                 unresolved_avoids.append(name)
 
-    result = do_optimize(
+    result = _do_optimize_waypoints(
         universe=universe,
         waypoint_indices=waypoint_indices,
         origin_idx=origin_idx,
@@ -932,15 +946,11 @@ async def _optimize_waypoints(
 
 
 async def _activity(systems: list[str] | None, include_realtime: bool = False) -> dict:
-    """Activity action - delegate to tools_activity with optional realtime data."""
+    """Activity action with optional realtime data."""
     if not systems:
         raise InvalidParameterError(
             "systems", systems, "At least one system required for action='activity'"
         )
-
-    from ..activity import classify_activity, get_activity_cache
-    from ..models import ActivityResult, SystemActivity
-    from ..tools import get_universe
 
     universe = get_universe()
     cache = get_activity_cache()
@@ -1031,13 +1041,9 @@ async def _hotspots(
     security_max: float | None,
     limit: int,
 ) -> dict:
-    """Hotspots action - delegate to tools_activity."""
+    """Hotspots action."""
     if not origin:
         raise InvalidParameterError("origin", origin, "Required for action='hotspots'")
-
-    from ..activity import classify_activity, get_activity_cache
-    from ..models import HotspotsResult, HotspotSystem
-    from ..tools import collect_corrections, get_universe, resolve_system_name
 
     universe = get_universe()
     cache = get_activity_cache()
@@ -1138,13 +1144,7 @@ async def _gatecamp_risk(
     destination: str | None,
     mode: str,
 ) -> dict:
-    """Gatecamp risk action - delegate to tools_activity with real-time enhancement."""
-    from ..activity import get_activity_cache
-    from ..errors import RouteNotFoundError, SystemNotFoundError
-    from ..models import ChokepointType, GatecampRisk, GatecampRiskResult, RiskLevel
-    from ..tools import collect_corrections, get_universe, resolve_system_name
-    from ..tools_route import _calculate_route
-
+    """Gatecamp risk action with real-time enhancement."""
     universe = get_universe()
     cache = get_activity_cache()
 
@@ -1326,11 +1326,7 @@ async def _gatecamp_risk(
 
 
 async def _fw_frontlines(faction: str | None) -> dict:
-    """FW frontlines action - delegate to tools_activity."""
-    from ..activity import get_activity_cache, get_faction_id, get_faction_name
-    from ..models import FWFrontlinesResult, FWSystem
-    from ..tools import get_universe
-
+    """FW frontlines action."""
     universe = get_universe()
     cache = get_activity_cache()
 
@@ -1438,16 +1434,12 @@ async def _local_area(
     if not origin:
         raise InvalidParameterError("origin", origin, "Required for action='local_area'")
 
-    from collections import deque
-
-    from ..activity import classify_activity, get_activity_cache
     from ..models import (
         LocalAreaResult,
         LocalSystemActivity,
         SecurityBorder,
         ThreatSummary,
     )
-    from ..tools import collect_corrections, get_universe, resolve_system_name
 
     universe = get_universe()
     cache = get_activity_cache()
@@ -1792,3 +1784,1834 @@ async def _territory_analysis(
     )
 
     return result
+
+
+# =============================================================================
+# Route Implementation Functions (from tools_route.py)
+# =============================================================================
+
+
+def _calculate_route(
+    universe: UniverseGraph,
+    origin_idx: int,
+    dest_idx: int,
+    mode: str,
+    avoid_systems: set[int] | None = None,
+) -> list[int]:
+    """
+    Calculate route using NavigationService.
+
+    Args:
+        universe: UniverseGraph for pathfinding
+        origin_idx: Starting vertex index
+        dest_idx: Destination vertex index
+        mode: Routing mode (shortest, safe, unsafe)
+        avoid_systems: Set of vertex indices to avoid
+
+    Returns:
+        List of vertex indices from origin to destination
+    """
+    from ...services.navigation import NavigationService
+
+    service = NavigationService(universe)
+    return service.calculate_route(origin_idx, dest_idx, mode, avoid_systems)  # type: ignore[arg-type]
+
+
+def _build_route_result(
+    universe: UniverseGraph,
+    path: list[int],
+    origin: str,
+    destination: str,
+    mode: str,
+    corrections: dict[str, str] | None = None,
+) -> RouteResult:
+    """Build complete RouteResult from path."""
+    systems = [build_system_info(universe, idx) for idx in path]
+    summary = _svc_compute_security_summary(universe, path)
+    warnings = _svc_generate_warnings(universe, path, mode)
+
+    return RouteResult(
+        origin=origin,
+        destination=destination,
+        mode=mode,  # type: ignore[arg-type]
+        jumps=len(path) - 1,
+        systems=systems,
+        security_summary=SecuritySummary(
+            total_jumps=summary.total_jumps,
+            highsec_jumps=summary.highsec_jumps,
+            lowsec_jumps=summary.lowsec_jumps,
+            nullsec_jumps=summary.nullsec_jumps,
+            lowest_security=summary.lowest_security,
+            lowest_security_system=summary.lowest_security_system,
+        ),
+        warnings=warnings,
+        corrections=corrections or {},
+    )
+
+
+# Re-export for test compatibility
+def _route_compute_security_summary(
+    universe: UniverseGraph,
+    path: list[int],
+) -> SecuritySummary:
+    """Compute security breakdown for route (wrapper for tests)."""
+    summary = _svc_compute_security_summary(universe, path)
+    return SecuritySummary(
+        total_jumps=summary.total_jumps,
+        highsec_jumps=summary.highsec_jumps,
+        lowsec_jumps=summary.lowsec_jumps,
+        nullsec_jumps=summary.nullsec_jumps,
+        lowest_security=summary.lowest_security,
+        lowest_security_system=summary.lowest_security_system,
+    )
+
+
+def _route_generate_warnings(
+    universe: UniverseGraph,
+    path: list[int],
+    mode: str,
+) -> list[str]:
+    """Generate route warnings (wrapper for tests)."""
+    return _svc_generate_warnings(universe, path, mode)
+
+
+# =============================================================================
+# Borders Implementation Functions (from tools_borders.py)
+# =============================================================================
+
+
+def _find_border_systems(
+    universe: UniverseGraph,
+    origin_idx: int,
+    limit: int,
+    max_jumps: int,
+) -> list[BorderSystem]:
+    """
+    Find border systems using BFS with distance tracking.
+
+    Only traverses high-sec systems for mining/PI relevance.
+    """
+    g = universe.graph
+    border_results: list[tuple[int, int]] = []
+
+    visited: dict[int, int] = {origin_idx: 0}
+    queue: deque[tuple[int, int]] = deque([(origin_idx, 0)])
+    gather_limit = limit * 3
+
+    while queue:
+        vertex, dist = queue.popleft()
+        if dist > max_jumps:
+            continue
+
+        if vertex in universe.border_systems:
+            border_results.append((vertex, dist))
+            if len(border_results) >= gather_limit:
+                break
+
+        for neighbor in g.neighbors(vertex):
+            if neighbor not in visited:
+                if universe.security[neighbor] >= 0.45:
+                    visited[neighbor] = dist + 1
+                    queue.append((neighbor, dist + 1))
+
+    border_results.sort(key=lambda x: x[1])
+    border_results = border_results[:limit]
+
+    return [_build_border_system(universe, idx, dist) for idx, dist in border_results]
+
+
+def _build_border_system(
+    universe: UniverseGraph,
+    idx: int,
+    jumps_from_origin: int,
+) -> BorderSystem:
+    """Build BorderSystem object for a vertex."""
+    adjacent_lowsec = [
+        universe.idx_to_name[n]
+        for n in universe.graph.neighbors(idx)
+        if universe.security[n] < 0.45
+    ]
+
+    return BorderSystem(
+        name=universe.idx_to_name[idx],
+        system_id=int(universe.system_ids[idx]),
+        security=float(universe.security[idx]),
+        jumps_from_origin=jumps_from_origin,
+        adjacent_lowsec=adjacent_lowsec,
+        region=universe.get_region_name(idx),
+    )
+
+
+# =============================================================================
+# Search Implementation Functions (from tools_search.py)
+# =============================================================================
+
+
+def _resolve_region(universe: UniverseGraph, region_name: str) -> int | None:
+    """Resolve region name to ID (case-insensitive, O(1))."""
+    return universe.resolve_region(region_name)
+
+
+def _search_systems(
+    universe: UniverseGraph,
+    origin_idx: int | None,
+    max_jumps: int | None,
+    security_min: float | None,
+    security_max: float | None,
+    region_id: int | None,
+    is_border: bool | None,
+    limit: int,
+) -> list[SystemSearchResult]:
+    """Execute system search with filters."""
+    results: list[SystemSearchResult] = []
+    distances: dict[int, int] = {}
+
+    if origin_idx is not None and max_jumps is not None:
+        candidates, distances = _bfs_within_range(universe, origin_idx, max_jumps)
+    elif region_id is not None:
+        candidates = set(universe.region_systems.get(region_id, []))
+    elif is_border is True:
+        candidates = set(universe.border_systems)
+    else:
+        candidates = set(range(universe.system_count))
+
+    for idx in candidates:
+        if len(results) >= limit:
+            break
+
+        sec = universe.security[idx]
+        if security_min is not None and sec < security_min:
+            continue
+        if security_max is not None and sec > security_max:
+            continue
+
+        if region_id is not None and origin_idx is not None:
+            if int(universe.region_ids[idx]) != region_id:
+                continue
+
+        if is_border is True and idx not in universe.border_systems:
+            continue
+        if is_border is False and idx in universe.border_systems:
+            continue
+
+        results.append(_build_search_result(universe, idx, distances.get(idx)))
+
+    return results
+
+
+def _bfs_within_range(
+    universe: UniverseGraph,
+    origin_idx: int,
+    max_jumps: int,
+) -> tuple[set[int], dict[int, int]]:
+    """BFS to find all systems within max_jumps."""
+    g = universe.graph
+    visited: dict[int, int] = {origin_idx: 0}
+    queue: deque[tuple[int, int]] = deque([(origin_idx, 0)])
+
+    while queue:
+        vertex, dist = queue.popleft()
+        if dist >= max_jumps:
+            continue
+
+        for neighbor in g.neighbors(vertex):
+            if neighbor not in visited:
+                visited[neighbor] = dist + 1
+                queue.append((neighbor, dist + 1))
+
+    return set(visited.keys()), visited
+
+
+def _build_search_result(
+    universe: UniverseGraph,
+    idx: int,
+    jumps_from_origin: int | None,
+) -> SystemSearchResult:
+    """Build search result for a vertex."""
+    return SystemSearchResult(
+        name=universe.idx_to_name[idx],
+        system_id=int(universe.system_ids[idx]),
+        security=float(universe.security[idx]),
+        security_class=universe.security_class(idx),
+        region=universe.get_region_name(idx),
+        jumps_from_origin=jumps_from_origin,
+    )
+
+
+def _summarize_filters(
+    origin: str | None,
+    max_jumps: int | None,
+    security_min: float | None,
+    security_max: float | None,
+    region: str | None,
+    is_border: bool | None,
+) -> dict[str, Any]:
+    """Summarize applied filters for response."""
+    filters: dict[str, Any] = {}
+    if origin:
+        filters["origin"] = origin
+    if max_jumps is not None:
+        filters["max_jumps"] = max_jumps
+    if security_min is not None:
+        filters["security_min"] = security_min
+    if security_max is not None:
+        filters["security_max"] = security_max
+    if region:
+        filters["region"] = region
+    if is_border is not None:
+        filters["is_border"] = is_border
+    return filters
+
+
+# =============================================================================
+# Loop Implementation Functions (from tools_loop.py)
+# =============================================================================
+
+# Search radius calculation constant
+SEARCH_RADIUS_DIVISOR = UNIVERSE.LOOP_SEARCH_RADIUS_DIVISOR
+
+
+def _plan_loop(
+    universe: UniverseGraph,
+    origin_idx: int,
+    target_jumps: int,
+    min_borders: int,
+    max_borders: int | None,
+    optimize: str = "density",
+    security_filter: str = "highsec",
+    avoid_systems: set[int] | None = None,
+    unresolved_avoids: list[str] | None = None,
+    corrections: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Plan circular route through border systems."""
+    from ...services.loop_planning import LoopPlanningService
+    from ...services.loop_planning.errors import (
+        InsufficientBordersError as ServiceInsufficientBordersError,
+    )
+
+    service = LoopPlanningService(universe)
+    try:
+        summary = service.plan_loop(
+            origin_idx=origin_idx,
+            target_jumps=target_jumps,
+            min_borders=min_borders,
+            max_borders=max_borders,
+            optimize=optimize,  # type: ignore[arg-type]
+            security_filter=security_filter,  # type: ignore[arg-type]
+            avoid_systems=avoid_systems,
+            search_radius_divisor=SEARCH_RADIUS_DIVISOR,
+            max_borders_cap=UNIVERSE.LOOP_MAX_BORDERS_CAP,
+        )
+    except ServiceInsufficientBordersError as e:
+        raise InsufficientBordersError(
+            found=e.found,
+            required=e.required,
+            search_radius=e.search_radius,
+            suggestion=e.suggestion,
+        ) from e
+
+    return _build_loop_result(
+        universe,
+        origin_idx,
+        summary.full_route,
+        summary.borders_visited,
+        unresolved_avoids,
+        corrections,
+    )
+
+
+# Backwards-compatible aliases for tests
+def _find_borders_with_distance(
+    universe: UniverseGraph,
+    origin_idx: int,
+    limit: int,
+    max_jumps: int,
+    security_filter: str = "highsec",
+    avoid_systems: set[int] | None = None,
+) -> list[tuple[int, int]]:
+    """Backwards-compatible alias. See services.loop_planning.find_borders_with_distance."""
+    from ...services.loop_planning import find_borders_with_distance
+
+    return find_borders_with_distance(
+        universe,
+        origin_idx,
+        limit,
+        max_jumps,
+        security_filter,  # type: ignore[arg-type]
+        avoid_systems,
+    )
+
+
+def _select_diverse_borders_matrix(
+    candidates: list[tuple[int, int]],
+    matrix: DistanceMatrix,
+) -> list[tuple[int, int]]:
+    """Backwards-compatible alias. See services.loop_planning.select_borders_coverage."""
+    from ...services.loop_planning import select_borders_coverage
+
+    return select_borders_coverage(candidates, matrix)
+
+
+def _nearest_neighbor_tsp_matrix(
+    start: int,
+    waypoints: list[int],
+    matrix: DistanceMatrix,
+) -> list[int]:
+    """Backwards-compatible alias. See services.loop_planning.nearest_neighbor_tsp."""
+    from ...services.loop_planning import nearest_neighbor_tsp
+
+    return nearest_neighbor_tsp(start, waypoints, matrix)
+
+
+def _expand_tour_matrix(tour: list[int], matrix: DistanceMatrix) -> list[int]:
+    """Backwards-compatible alias. See services.loop_planning.expand_tour."""
+    from ...services.loop_planning import expand_tour
+
+    return expand_tour(tour, matrix)
+
+
+def _build_loop_result(
+    universe: UniverseGraph,
+    origin_idx: int,
+    full_route: list[int],
+    borders_visited: list[tuple[int, int]],
+    unresolved_avoids: list[str] | None = None,
+    corrections: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Build LoopResult from computed route."""
+    systems = [build_system_info(universe, idx) for idx in full_route]
+
+    border_systems = [
+        BorderSystem(
+            name=universe.idx_to_name[idx],
+            system_id=int(universe.system_ids[idx]),
+            security=float(universe.security[idx]),
+            jumps_from_origin=dist,
+            adjacent_lowsec=universe.get_adjacent_lowsec(idx),
+            region=universe.get_region_name(idx),
+        )
+        for idx, dist in borders_visited
+    ]
+
+    unique_count = len(set(full_route))
+    total_jumps = len(full_route) - 1 if full_route else 0
+    backtrack = total_jumps - (unique_count - 1) if unique_count > 0 else 0
+    efficiency = unique_count / len(full_route) if full_route else 0.0
+
+    warnings: list[str] = []
+    if unresolved_avoids:
+        warnings.append(f"Unknown systems in avoid_systems: {', '.join(unresolved_avoids)}")
+
+    return LoopResult(
+        systems=systems,
+        total_jumps=total_jumps,
+        unique_systems=unique_count,
+        border_systems_visited=border_systems,
+        backtrack_jumps=max(0, backtrack),
+        efficiency=min(1.0, efficiency),
+        warnings=warnings,
+        corrections=corrections or {},
+    ).model_dump()
+
+
+# =============================================================================
+# Analyze Implementation Functions (from tools_analyze.py)
+# =============================================================================
+
+
+def _validate_connectivity(
+    universe: UniverseGraph,
+    indices: list[int],
+    names: list[str],
+) -> None:
+    """Validate that consecutive systems are connected by stargate."""
+    g = universe.graph
+    for i in range(len(indices) - 1):
+        src = indices[i]
+        dst = indices[i + 1]
+        if dst not in g.neighbors(src):
+            raise RouteNotFoundError(
+                names[i],
+                names[i + 1],
+                reason="Systems not connected by stargate",
+            )
+
+
+def _analyze_route(
+    universe: UniverseGraph,
+    indices: list[int],
+) -> RouteAnalysis:
+    """Build complete route analysis."""
+    systems = [build_system_info(universe, idx) for idx in indices]
+    security_summary = _compute_security_summary(universe, indices)
+    chokepoints = _find_chokepoints(universe, indices)
+    danger_zones = _find_danger_zones(universe, indices)
+
+    return RouteAnalysis(
+        systems=systems,
+        security_summary=security_summary,
+        chokepoints=chokepoints,
+        danger_zones=danger_zones,
+    )
+
+
+def _compute_security_summary(
+    universe: UniverseGraph,
+    indices: list[int],
+) -> SecuritySummary:
+    """Compute security breakdown for route (analyze version)."""
+    highsec = 0
+    lowsec = 0
+    nullsec = 0
+    lowest_sec = 1.0
+    lowest_system = ""
+
+    for idx in indices:
+        sec = float(universe.security[idx])
+        sec_class = universe.security_class(idx)
+
+        if sec_class == "HIGH":
+            highsec += 1
+        elif sec_class == "LOW":
+            lowsec += 1
+        else:
+            nullsec += 1
+
+        if sec < lowest_sec:
+            lowest_sec = sec
+            lowest_system = universe.idx_to_name[idx]
+
+    return SecuritySummary(
+        total_jumps=len(indices) - 1,
+        highsec_jumps=highsec,
+        lowsec_jumps=lowsec,
+        nullsec_jumps=nullsec,
+        lowest_security=lowest_sec,
+        lowest_security_system=lowest_system,
+    )
+
+
+def _find_chokepoints(
+    universe: UniverseGraph,
+    indices: list[int],
+) -> list[SystemInfo]:
+    """Find chokepoints: points where route transitions security class."""
+    chokepoints: list[SystemInfo] = []
+
+    for i in range(1, len(indices)):
+        prev_idx = indices[i - 1]
+        curr_idx = indices[i]
+
+        prev_class = universe.security_class(prev_idx)
+        curr_class = universe.security_class(curr_idx)
+
+        if prev_class == "HIGH" and curr_class in ("LOW", "NULL"):
+            chokepoints.append(build_system_info(universe, curr_idx))
+        elif prev_class in ("LOW", "NULL") and curr_class == "HIGH":
+            chokepoints.append(build_system_info(universe, prev_idx))
+
+    return chokepoints
+
+
+def _find_danger_zones(
+    universe: UniverseGraph,
+    indices: list[int],
+) -> list[DangerZone]:
+    """Find danger zones: consecutive segments in low/null-sec."""
+    danger_zones: list[DangerZone] = []
+    in_danger = False
+    zone_start: int | None = None
+    zone_min_sec = 1.0
+
+    for i, idx in enumerate(indices):
+        sec = float(universe.security[idx])
+        is_dangerous = sec < 0.45
+
+        if is_dangerous and not in_danger:
+            in_danger = True
+            zone_start = i
+            zone_min_sec = sec
+        elif is_dangerous and in_danger:
+            zone_min_sec = min(zone_min_sec, sec)
+        elif not is_dangerous and in_danger:
+            in_danger = False
+            if zone_start is not None:
+                danger_zones.append(
+                    DangerZone(
+                        start_system=universe.idx_to_name[indices[zone_start]],
+                        end_system=universe.idx_to_name[indices[i - 1]],
+                        jump_count=i - zone_start,
+                        min_security=zone_min_sec,
+                    )
+                )
+            zone_start = None
+
+    if in_danger and zone_start is not None:
+        danger_zones.append(
+            DangerZone(
+                start_system=universe.idx_to_name[indices[zone_start]],
+                end_system=universe.idx_to_name[indices[-1]],
+                jump_count=len(indices) - zone_start,
+                min_security=zone_min_sec,
+            )
+        )
+
+    return danger_zones
+
+
+# =============================================================================
+# Nearest Implementation Functions (from tools_nearest.py)
+# =============================================================================
+
+
+def _build_predicate(
+    universe: UniverseGraph,
+    is_border: bool | None,
+    min_adjacent_lowsec: int | None,
+    security_min: float | None,
+    security_max: float | None,
+    region_id: int | None,
+    max_kills: int | None = None,
+    min_npc_kills: int | None = None,
+    activity_level: str | None = None,
+    activity_data: dict[int, ActivityData] | None = None,
+) -> Callable[[int], bool]:
+    """Build a predicate function from filter parameters."""
+
+    def predicate(idx: int) -> bool:
+        if is_border is True and idx not in universe.border_systems:
+            return False
+        if is_border is False and idx in universe.border_systems:
+            return False
+
+        if min_adjacent_lowsec is not None:
+            lowsec_neighbors = sum(
+                1 for n in universe.graph.neighbors(idx) if universe.security[n] < 0.45
+            )
+            if lowsec_neighbors < min_adjacent_lowsec:
+                return False
+
+        sec = universe.security[idx]
+        if security_min is not None and sec < security_min:
+            return False
+        if security_max is not None and sec > security_max:
+            return False
+
+        if region_id is not None and int(universe.region_ids[idx]) != region_id:
+            return False
+
+        if max_kills is not None or min_npc_kills is not None or activity_level is not None:
+            system_id = int(universe.system_ids[idx])
+            activity = activity_data.get(system_id) if activity_data else None
+
+            pvp_kills = 0
+            npc_kills = 0
+            if activity:
+                pvp_kills = activity.ship_kills + activity.pod_kills
+                npc_kills = activity.npc_kills
+
+            if max_kills is not None and pvp_kills > max_kills:
+                return False
+            if min_npc_kills is not None and npc_kills < min_npc_kills:
+                return False
+            if activity_level is not None:
+                current_level = classify_activity(pvp_kills, "kills")
+                if current_level != activity_level:
+                    return False
+
+        return True
+
+    return predicate
+
+
+def _find_nearest(
+    universe: UniverseGraph,
+    origin_idx: int,
+    predicate: Callable[[int], bool],
+    limit: int,
+    max_jumps: int,
+) -> list[SystemSearchResult]:
+    """Find nearest systems matching predicate using BFS."""
+    g = universe.graph
+    results: list[SystemSearchResult] = []
+
+    visited: set[int] = {origin_idx}
+    queue: deque[tuple[int, int]] = deque([(origin_idx, 0)])
+
+    while queue and len(results) < limit:
+        vertex, dist = queue.popleft()
+
+        if dist > max_jumps:
+            continue
+
+        if dist > 0 and predicate(vertex):
+            results.append(_build_nearest_result(universe, vertex, dist))
+            if len(results) >= limit:
+                break
+
+        for neighbor in g.neighbors(vertex):
+            if neighbor not in visited:
+                visited.add(neighbor)
+                queue.append((neighbor, dist + 1))
+
+    return results
+
+
+def _build_nearest_result(
+    universe: UniverseGraph,
+    idx: int,
+    jumps_from_origin: int,
+) -> SystemSearchResult:
+    """Build search result for a nearest-match vertex."""
+    return SystemSearchResult(
+        name=universe.idx_to_name[idx],
+        system_id=int(universe.system_ids[idx]),
+        security=float(universe.security[idx]),
+        security_class=universe.security_class(idx),
+        region=universe.get_region_name(idx),
+        jumps_from_origin=jumps_from_origin,
+    )
+
+
+def _summarize_predicates(
+    is_border: bool | None,
+    min_adjacent_lowsec: int | None,
+    security_min: float | None,
+    security_max: float | None,
+    region: str | None,
+    max_kills: int | None = None,
+    min_npc_kills: int | None = None,
+    activity_level: str | None = None,
+) -> dict[str, bool | int | float | str]:
+    """Summarize applied predicates for response."""
+    predicates: dict[str, bool | int | float | str] = {}
+    if is_border is not None:
+        predicates["is_border"] = is_border
+    if min_adjacent_lowsec is not None:
+        predicates["min_adjacent_lowsec"] = min_adjacent_lowsec
+    if security_min is not None:
+        predicates["security_min"] = security_min
+    if security_max is not None:
+        predicates["security_max"] = security_max
+    if region is not None:
+        predicates["region"] = region
+    if max_kills is not None:
+        predicates["max_kills"] = max_kills
+    if min_npc_kills is not None:
+        predicates["min_npc_kills"] = min_npc_kills
+    if activity_level is not None:
+        predicates["activity_level"] = activity_level
+    return predicates
+
+
+# =============================================================================
+# Waypoints Implementation Functions (from tools_waypoints.py)
+# =============================================================================
+
+
+def _do_optimize_waypoints(
+    universe: UniverseGraph,
+    waypoint_indices: list[int],
+    origin_idx: int | None,
+    origin_name: str | None,
+    return_to_origin: bool,
+    security_filter: str = "any",
+    avoid_systems: set[int] | None = None,
+    unresolved_waypoints: list[str] | None = None,
+    unresolved_avoids: list[str] | None = None,
+    corrections: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Optimize waypoint visit order using TSP approximation."""
+    if origin_idx is not None and origin_idx not in waypoint_indices:
+        all_vertices = [origin_idx] + waypoint_indices
+    else:
+        all_vertices = waypoint_indices
+        if origin_idx is not None:
+            all_vertices = [origin_idx] + [v for v in waypoint_indices if v != origin_idx]
+
+    matrix = DistanceMatrix.compute(
+        universe,
+        all_vertices,
+        security_filter=security_filter,  # type: ignore[arg-type]
+        avoid_systems=avoid_systems,
+    )
+
+    if origin_idx is not None:
+        start_idx = origin_idx
+    else:
+        start_idx = _find_best_start(waypoint_indices, matrix)
+
+    if origin_idx is not None and origin_idx not in waypoint_indices:
+        to_visit = waypoint_indices
+    else:
+        to_visit = [v for v in waypoint_indices if v != start_idx]
+
+    tour = _nearest_neighbor_tsp(start_idx, to_visit, matrix)
+
+    full_route: list[int] = []
+    for i in range(len(tour) - 1):
+        src = tour[i]
+        dst = tour[i + 1]
+        segment = matrix.path(src, dst)
+        if segment:
+            full_route.extend(segment[:-1])
+
+    if tour:
+        full_route.append(tour[-1])
+
+    is_loop = False
+    if return_to_origin and origin_idx is not None:
+        return_segment = matrix.path(tour[-1], origin_idx)
+        if return_segment and len(return_segment) > 1:
+            full_route.extend(return_segment[1:])
+        is_loop = True
+
+    return _build_optimization_result(
+        universe=universe,
+        tour=tour,
+        full_route=full_route,
+        origin_idx=origin_idx,
+        origin_name=origin_name,
+        is_loop=is_loop,
+        unresolved_waypoints=unresolved_waypoints,
+        unresolved_avoids=unresolved_avoids,
+        corrections=corrections,
+    )
+
+
+def _find_best_start(waypoints: list[int], matrix: DistanceMatrix) -> int:
+    """Find the best starting waypoint for TSP."""
+    best_start = waypoints[0]
+    best_total = float("inf")
+
+    for wp in waypoints:
+        total = sum(matrix.distance(wp, other) for other in waypoints if other != wp)
+        if total < best_total:
+            best_total = total
+            best_start = wp
+
+    return best_start
+
+
+def _nearest_neighbor_tsp(
+    start: int,
+    waypoints: list[int],
+    matrix: DistanceMatrix,
+) -> list[int]:
+    """Nearest-neighbor TSP heuristic."""
+    tour = [start]
+    unvisited = set(waypoints)
+
+    current = start
+    while unvisited:
+        nearest = min(
+            unvisited,
+            key=lambda w: matrix.distance(current, w),
+        )
+        tour.append(nearest)
+        unvisited.remove(nearest)
+        current = nearest
+
+    return tour
+
+
+def _build_optimization_result(
+    universe: UniverseGraph,
+    tour: list[int],
+    full_route: list[int],
+    origin_idx: int | None,
+    origin_name: str | None,
+    is_loop: bool,
+    unresolved_waypoints: list[str] | None = None,
+    unresolved_avoids: list[str] | None = None,
+    corrections: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Build OptimizedWaypointResult from computed tour."""
+    waypoints = [
+        WaypointInfo(
+            name=universe.idx_to_name[idx],
+            system_id=int(universe.system_ids[idx]),
+            security=float(universe.security[idx]),
+            security_class=universe.security_class(idx),
+            region=universe.get_region_name(idx),
+            visit_order=i,
+        )
+        for i, idx in enumerate(tour)
+    ]
+
+    route_systems = [build_system_info(universe, idx) for idx in full_route]
+    total_jumps = len(full_route) - 1 if full_route else 0
+
+    warnings: list[str] = []
+    if unresolved_waypoints:
+        warnings.append(f"Unknown waypoints: {', '.join(unresolved_waypoints)}")
+    if unresolved_avoids:
+        warnings.append(f"Unknown systems in avoid_systems: {', '.join(unresolved_avoids)}")
+
+    return OptimizedWaypointResult(
+        origin=origin_name,
+        waypoints=waypoints,
+        total_jumps=total_jumps,
+        route_systems=route_systems,
+        is_loop=is_loop,
+        unresolved_waypoints=unresolved_waypoints or [],
+        warnings=warnings,
+        corrections=corrections or {},
+    ).model_dump()
+
+
+# =============================================================================
+# Register Functions (for test compatibility)
+# =============================================================================
+
+
+def register_route_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register route tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_route(
+        origin: str,
+        destination: str,
+        mode: str = "shortest",
+        avoid_systems: list[str] | None = None,
+    ) -> dict:
+        """Calculate optimal route between two systems."""
+        universe_graph = get_universe()
+
+        if mode not in VALID_MODES:
+            raise InvalidParameterError(
+                "mode", mode, f"Must be one of: {', '.join(sorted(VALID_MODES))}"
+            )
+
+        origin_resolved = resolve_system_name(origin)
+        dest_resolved = resolve_system_name(destination)
+        corrections = collect_corrections(origin_resolved, dest_resolved)
+
+        avoid_indices: set[int] | None = None
+        unresolved_avoids: list[str] = []
+        if avoid_systems:
+            avoid_indices = set()
+            for name in avoid_systems:
+                idx = universe_graph.resolve_name(name)
+                if idx is not None:
+                    avoid_indices.add(idx)
+                else:
+                    unresolved_avoids.append(name)
+
+        path = _calculate_route(
+            universe, origin_resolved.idx, dest_resolved.idx, mode, avoid_indices
+        )
+
+        if not path:
+            raise RouteNotFoundError(origin_resolved.canonical_name, dest_resolved.canonical_name)
+
+        result = _build_route_result(
+            universe,
+            path,
+            origin_resolved.canonical_name,
+            dest_resolved.canonical_name,
+            mode,
+            corrections,
+        )
+
+        if unresolved_avoids:
+            result = RouteResult(
+                **{
+                    **result.model_dump(),
+                    "warnings": result.warnings
+                    + [f"Unknown systems in avoid_systems: {', '.join(unresolved_avoids)}"],
+                }
+            )
+
+        return result.model_dump()
+
+
+def register_systems_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register system lookup tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_systems(systems: list[str]) -> dict:
+        """Get detailed information for one or more systems."""
+        universe_graph = get_universe()
+        results: list[SystemInfo | None] = []
+        corrections: dict[str, str] = {}
+
+        for name in systems:
+            try:
+                resolved: ResolvedSystem = resolve_system_name(name)
+                results.append(build_system_info(universe_graph, resolved.idx))
+                if resolved.was_corrected and resolved.corrected_from:
+                    corrections[resolved.corrected_from] = resolved.canonical_name
+            except Exception:
+                results.append(None)
+
+        return {
+            "systems": [s.model_dump() if s else None for s in results],
+            "found": sum(1 for s in results if s is not None),
+            "not_found": sum(1 for s in results if s is None),
+            "corrections": corrections,
+        }
+
+
+def register_borders_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register border discovery tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_borders(
+        origin: str,
+        limit: int = 10,
+        max_jumps: int = 15,
+    ) -> dict:
+        """Find high-sec systems that border low-sec space."""
+        if limit < 1 or limit > UNIVERSE.BORDERS_MAX_LIMIT:
+            raise InvalidParameterError(
+                "limit", limit, f"Must be between 1 and {UNIVERSE.BORDERS_MAX_LIMIT}"
+            )
+        if max_jumps < 1 or max_jumps > UNIVERSE.BORDERS_MAX_JUMPS:
+            raise InvalidParameterError(
+                "max_jumps", max_jumps, f"Must be between 1 and {UNIVERSE.BORDERS_MAX_JUMPS}"
+            )
+
+        universe_graph = get_universe()
+        origin_resolved = resolve_system_name(origin)
+        corrections = collect_corrections(origin_resolved)
+
+        borders = _find_border_systems(universe_graph, origin_resolved.idx, limit, max_jumps)
+
+        return {
+            "origin": origin_resolved.canonical_name,
+            "borders": [b.model_dump() for b in borders],
+            "total_found": len(borders),
+            "search_radius": max_jumps,
+            "corrections": corrections,
+        }
+
+
+def register_search_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register system search tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_search(
+        origin: str | None = None,
+        max_jumps: int | None = None,
+        security_min: float | None = None,
+        security_max: float | None = None,
+        region: str | None = None,
+        is_border: bool | None = None,
+        limit: int = 20,
+    ) -> dict:
+        """Search for systems matching criteria."""
+        universe_graph = get_universe()
+
+        if limit < 1 or limit > UNIVERSE.SEARCH_MAX_LIMIT:
+            raise InvalidParameterError(
+                "limit", limit, f"Must be between 1 and {UNIVERSE.SEARCH_MAX_LIMIT}"
+            )
+        if max_jumps is not None and origin is None:
+            raise InvalidParameterError(
+                "origin", None, "origin is required when max_jumps is specified"
+            )
+        if max_jumps is not None and (max_jumps < 1 or max_jumps > UNIVERSE.SEARCH_MAX_JUMPS):
+            raise InvalidParameterError(
+                "max_jumps", max_jumps, f"Must be between 1 and {UNIVERSE.SEARCH_MAX_JUMPS}"
+            )
+        if security_min is not None and (security_min < -1.0 or security_min > 1.0):
+            raise InvalidParameterError(
+                "security_min", security_min, "Must be between -1.0 and 1.0"
+            )
+        if security_max is not None and (security_max < -1.0 or security_max > 1.0):
+            raise InvalidParameterError(
+                "security_max", security_max, "Must be between -1.0 and 1.0"
+            )
+
+        origin_idx: int | None = None
+        origin_canonical: str | None = None
+        corrections: dict[str, str] = {}
+        if origin:
+            origin_resolved = resolve_system_name(origin)
+            origin_idx = origin_resolved.idx
+            origin_canonical = origin_resolved.canonical_name
+            corrections = collect_corrections(origin_resolved)
+
+        region_id = None
+        region_not_found = False
+        if region:
+            region_id = _resolve_region(universe_graph, region)
+            if region_id is None:
+                region_not_found = True
+
+        if region_not_found:
+            return {
+                "systems": [],
+                "total_found": 0,
+                "filters_applied": _summarize_filters(
+                    origin_canonical or origin,
+                    max_jumps,
+                    security_min,
+                    security_max,
+                    region,
+                    is_border,
+                ),
+                "warning": f"Unknown region: '{region}'",
+                "corrections": corrections,
+            }
+
+        results = _search_systems(
+            universe=universe_graph,
+            origin_idx=origin_idx,
+            max_jumps=max_jumps,
+            security_min=security_min,
+            security_max=security_max,
+            region_id=region_id,
+            is_border=is_border,
+            limit=limit,
+        )
+
+        return {
+            "systems": [r.model_dump() for r in results],
+            "total_found": len(results),
+            "filters_applied": _summarize_filters(
+                origin_canonical or origin, max_jumps, security_min, security_max, region, is_border
+            ),
+            "corrections": corrections,
+        }
+
+
+def register_loop_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register loop planning tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_loop(
+        origin: str,
+        target_jumps: int = 20,
+        min_borders: int = 4,
+        max_borders: int | None = None,
+        optimize: str = "density",
+        security_filter: str = "highsec",
+        avoid_systems: list[str] | None = None,
+    ) -> dict:
+        """Plan a circular route visiting multiple border systems."""
+        universe_graph = get_universe()
+
+        if (
+            target_jumps < UNIVERSE.LOOP_MIN_TARGET_JUMPS
+            or target_jumps > UNIVERSE.LOOP_MAX_TARGET_JUMPS
+        ):
+            raise InvalidParameterError(
+                "target_jumps",
+                target_jumps,
+                f"Must be between {UNIVERSE.LOOP_MIN_TARGET_JUMPS} and {UNIVERSE.LOOP_MAX_TARGET_JUMPS}",
+            )
+        if min_borders < UNIVERSE.LOOP_MIN_BORDERS or min_borders > UNIVERSE.LOOP_MAX_BORDERS:
+            raise InvalidParameterError(
+                "min_borders",
+                min_borders,
+                f"Must be between {UNIVERSE.LOOP_MIN_BORDERS} and {UNIVERSE.LOOP_MAX_BORDERS}",
+            )
+        if max_borders is not None and (
+            max_borders < min_borders or max_borders > UNIVERSE.LOOP_MAX_BORDERS_CAP
+        ):
+            raise InvalidParameterError(
+                "max_borders",
+                max_borders,
+                f"Must be between {min_borders} and {UNIVERSE.LOOP_MAX_BORDERS_CAP}",
+            )
+        if optimize not in VALID_OPTIMIZE_MODES:
+            raise InvalidParameterError(
+                "optimize",
+                optimize,
+                f"Must be one of: {', '.join(sorted(VALID_OPTIMIZE_MODES))}",
+            )
+        if security_filter not in VALID_SECURITY_FILTERS:
+            raise InvalidParameterError(
+                "security_filter",
+                security_filter,
+                f"Must be one of: {', '.join(sorted(VALID_SECURITY_FILTERS))}",
+            )
+
+        origin_resolved = resolve_system_name(origin)
+        corrections = collect_corrections(origin_resolved)
+
+        avoid_indices: set[int] = set()
+        unresolved_avoids: list[str] = []
+        if avoid_systems:
+            for name in avoid_systems:
+                idx = universe_graph.resolve_name(name)
+                if idx is not None:
+                    avoid_indices.add(idx)
+                else:
+                    unresolved_avoids.append(name)
+
+        result = _plan_loop(
+            universe=universe_graph,
+            origin_idx=origin_resolved.idx,
+            target_jumps=target_jumps,
+            min_borders=min_borders,
+            max_borders=max_borders,
+            optimize=optimize,
+            security_filter=security_filter,
+            avoid_systems=avoid_indices,
+            unresolved_avoids=unresolved_avoids,
+            corrections=corrections,
+        )
+
+        return result
+
+
+def register_analyze_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register route analysis tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_analyze(systems: list[str]) -> dict:
+        """Analyze security profile of a route or system list."""
+        universe_graph = get_universe()
+
+        if len(systems) < 2:
+            raise InvalidParameterError(
+                "systems",
+                systems,
+                "At least 2 systems required for analysis",
+            )
+
+        indices: list[int] = []
+        for name in systems:
+            idx = universe_graph.resolve_name(name)
+            if idx is None:
+                raise InvalidParameterError(
+                    "systems",
+                    name,
+                    f"Unknown system: {name}",
+                )
+            indices.append(idx)
+
+        _validate_connectivity(universe_graph, indices, systems)
+        result = _analyze_route(universe_graph, indices)
+
+        return result.model_dump()
+
+
+def register_nearest_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register nearest system tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_nearest(
+        origin: str,
+        is_border: bool | None = None,
+        min_adjacent_lowsec: int | None = None,
+        security_min: float | None = None,
+        security_max: float | None = None,
+        region: str | None = None,
+        max_kills: int | None = None,
+        min_npc_kills: int | None = None,
+        activity_level: str | None = None,
+        limit: int = 5,
+        max_jumps: int = 30,
+    ) -> dict:
+        """Find nearest systems matching predicate criteria."""
+        if limit < 1 or limit > UNIVERSE.NEAREST_MAX_LIMIT:
+            raise InvalidParameterError(
+                "limit", limit, f"Must be between 1 and {UNIVERSE.NEAREST_MAX_LIMIT}"
+            )
+        if max_jumps < 1 or max_jumps > UNIVERSE.NEAREST_MAX_JUMPS:
+            raise InvalidParameterError(
+                "max_jumps", max_jumps, f"Must be between 1 and {UNIVERSE.NEAREST_MAX_JUMPS}"
+            )
+        if security_min is not None and (security_min < -1.0 or security_min > 1.0):
+            raise InvalidParameterError(
+                "security_min", security_min, "Must be between -1.0 and 1.0"
+            )
+        if security_max is not None and (security_max < -1.0 or security_max > 1.0):
+            raise InvalidParameterError(
+                "security_max", security_max, "Must be between -1.0 and 1.0"
+            )
+        if min_adjacent_lowsec is not None and min_adjacent_lowsec < 1:
+            raise InvalidParameterError(
+                "min_adjacent_lowsec", min_adjacent_lowsec, "Must be at least 1"
+            )
+        if max_kills is not None and max_kills < 0:
+            raise InvalidParameterError("max_kills", max_kills, "Must be >= 0")
+        if min_npc_kills is not None and min_npc_kills < 0:
+            raise InvalidParameterError("min_npc_kills", min_npc_kills, "Must be >= 0")
+        valid_activity_levels = {"none", "low", "medium", "high", "extreme"}
+        if activity_level is not None and activity_level not in valid_activity_levels:
+            raise InvalidParameterError(
+                "activity_level",
+                activity_level,
+                f"Must be one of: {', '.join(sorted(valid_activity_levels))}",
+            )
+
+        needs_activity = (
+            max_kills is not None or min_npc_kills is not None or activity_level is not None
+        )
+        activity_data = None
+        cache_age = None
+
+        if needs_activity:
+            cache = get_activity_cache()
+            activity_data = await cache.get_all_activity()
+            cache_age = cache.get_kills_cache_age()
+
+        universe_graph = get_universe()
+        origin_resolved = resolve_system_name(origin)
+        corrections = collect_corrections(origin_resolved)
+
+        region_id = None
+        if region:
+            region_id = universe_graph.resolve_region(region)
+            if region_id is None:
+                return {
+                    "origin": origin_resolved.canonical_name,
+                    "systems": [],
+                    "total_found": 0,
+                    "search_radius": max_jumps,
+                    "predicates": _summarize_predicates(
+                        is_border, min_adjacent_lowsec, security_min, security_max, region
+                    ),
+                    "warning": f"Unknown region: '{region}'",
+                    "corrections": corrections,
+                }
+
+        predicate = _build_predicate(
+            universe=universe_graph,
+            is_border=is_border,
+            min_adjacent_lowsec=min_adjacent_lowsec,
+            security_min=security_min,
+            security_max=security_max,
+            region_id=region_id,
+            max_kills=max_kills,
+            min_npc_kills=min_npc_kills,
+            activity_level=activity_level,
+            activity_data=activity_data,
+        )
+
+        results = _find_nearest(
+            universe=universe_graph,
+            origin_idx=origin_resolved.idx,
+            predicate=predicate,
+            limit=limit,
+            max_jumps=max_jumps,
+        )
+
+        response = {
+            "origin": origin_resolved.canonical_name,
+            "systems": [r.model_dump() for r in results],
+            "total_found": len(results),
+            "search_radius": max_jumps,
+            "predicates": _summarize_predicates(
+                is_border=is_border,
+                min_adjacent_lowsec=min_adjacent_lowsec,
+                security_min=security_min,
+                security_max=security_max,
+                region=region,
+                max_kills=max_kills,
+                min_npc_kills=min_npc_kills,
+                activity_level=activity_level,
+            ),
+            "corrections": corrections,
+        }
+
+        if cache_age is not None:
+            response["activity_cache_age_seconds"] = cache_age
+
+        return response
+
+
+def register_waypoints_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register waypoint optimization tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_optimize_waypoints(
+        waypoints: list[str],
+        origin: str | None = None,
+        return_to_origin: bool = True,
+        security_filter: str = "any",
+        avoid_systems: list[str] | None = None,
+    ) -> dict:
+        """Optimize visit order for multiple waypoints."""
+        universe_graph = get_universe()
+
+        if len(waypoints) < UNIVERSE.WAYPOINTS_MIN_COUNT:
+            raise InvalidParameterError(
+                "waypoints",
+                len(waypoints),
+                f"At least {UNIVERSE.WAYPOINTS_MIN_COUNT} waypoints required for optimization",
+            )
+        if len(waypoints) > UNIVERSE.WAYPOINTS_MAX_COUNT:
+            raise InvalidParameterError(
+                "waypoints",
+                len(waypoints),
+                f"Maximum {UNIVERSE.WAYPOINTS_MAX_COUNT} waypoints allowed",
+            )
+        if security_filter not in VALID_SECURITY_FILTERS:
+            raise InvalidParameterError(
+                "security_filter",
+                security_filter,
+                f"Must be one of: {', '.join(sorted(VALID_SECURITY_FILTERS))}",
+            )
+
+        origin_idx: int | None = None
+        origin_name: str | None = None
+        corrections: dict[str, str] = {}
+        if origin:
+            origin_resolved = resolve_system_name(origin)
+            origin_idx = origin_resolved.idx
+            origin_name = origin_resolved.canonical_name
+            corrections = collect_corrections(origin_resolved)
+
+        waypoint_indices: list[int] = []
+        unresolved: list[str] = []
+        for name in waypoints:
+            idx = universe_graph.resolve_name(name)
+            if idx is not None:
+                if idx not in waypoint_indices:
+                    waypoint_indices.append(idx)
+            else:
+                unresolved.append(name)
+
+        if len(waypoint_indices) < UNIVERSE.WAYPOINTS_MIN_COUNT:
+            raise InvalidParameterError(
+                "waypoints",
+                waypoint_indices,
+                f"Only {len(waypoint_indices)} valid waypoints after resolution, "
+                f"need at least {UNIVERSE.WAYPOINTS_MIN_COUNT}",
+            )
+
+        avoid_indices: set[int] = set()
+        unresolved_avoids: list[str] = []
+        if avoid_systems:
+            for name in avoid_systems:
+                idx = universe_graph.resolve_name(name)
+                if idx is not None:
+                    avoid_indices.add(idx)
+                else:
+                    unresolved_avoids.append(name)
+
+        result = _do_optimize_waypoints(
+            universe=universe_graph,
+            waypoint_indices=waypoint_indices,
+            origin_idx=origin_idx,
+            origin_name=origin_name,
+            return_to_origin=return_to_origin,
+            security_filter=security_filter,
+            avoid_systems=avoid_indices,
+            unresolved_waypoints=unresolved,
+            unresolved_avoids=unresolved_avoids,
+            corrections=corrections,
+        )
+
+        return result
+
+
+def register_activity_tools(server: FastMCP, universe: UniverseGraph) -> None:
+    """Register activity overlay tools with MCP server (for test compatibility)."""
+
+    @server.tool()
+    async def universe_activity(systems: list[str]) -> dict:
+        """Get recent activity data for specified systems."""
+        universe_graph = get_universe()
+        cache = get_activity_cache()
+
+        if not systems:
+            raise InvalidParameterError("systems", systems, "At least one system required")
+
+        result_systems: list[SystemActivity] = []
+        warnings: list[str] = []
+
+        for name in systems:
+            idx = universe_graph.resolve_name(name)
+            if idx is None:
+                warnings.append(f"Unknown system: {name}")
+                continue
+
+            system_id = int(universe_graph.system_ids[idx])
+            activity = await cache.get_activity(system_id)
+
+            total_kills = activity.ship_kills + activity.pod_kills
+            activity_level = classify_activity(total_kills, "kills")
+
+            result_systems.append(
+                SystemActivity(
+                    name=universe_graph.idx_to_name[idx],
+                    system_id=system_id,
+                    security=float(universe_graph.security[idx]),
+                    security_class=universe_graph.security_class(idx),
+                    ship_kills=activity.ship_kills,
+                    pod_kills=activity.pod_kills,
+                    npc_kills=activity.npc_kills,
+                    ship_jumps=activity.ship_jumps,
+                    activity_level=activity_level,
+                )
+            )
+
+        result = ActivityResult(
+            systems=result_systems,
+            cache_age_seconds=cache.get_kills_cache_age(),
+            data_period="last_hour",
+            warnings=warnings,
+        )
+
+        return result.model_dump()
+
+    @server.tool()
+    async def universe_hotspots(
+        origin: str,
+        max_jumps: int = 15,
+        activity_type: str = "kills",
+        min_security: float | None = None,
+        max_security: float | None = None,
+        limit: int = 10,
+    ) -> dict:
+        """Find high-activity systems near origin."""
+        universe_graph = get_universe()
+        cache = get_activity_cache()
+
+        if activity_type not in ("kills", "jumps", "ratting"):
+            raise InvalidParameterError(
+                "activity_type",
+                activity_type,
+                "Must be one of: kills, jumps, ratting",
+            )
+
+        if max_jumps < 1 or max_jumps > 30:
+            raise InvalidParameterError(
+                "max_jumps",
+                max_jumps,
+                "Must be between 1 and 30",
+            )
+
+        if limit < 1 or limit > 50:
+            raise InvalidParameterError("limit", limit, "Must be between 1 and 50")
+
+        origin_resolved = resolve_system_name(origin)
+        corrections = collect_corrections(origin_resolved)
+
+        g = universe_graph.graph
+        visited = {origin_resolved.idx: 0}
+        frontier = [origin_resolved.idx]
+        systems_in_range: list[tuple[int, int]] = []
+
+        for distance in range(1, max_jumps + 1):
+            next_frontier = []
+            for current in frontier:
+                for neighbor in g.neighbors(current):
+                    if neighbor not in visited:
+                        visited[neighbor] = distance
+                        next_frontier.append(neighbor)
+                        systems_in_range.append((neighbor, distance))
+            frontier = next_frontier
+            if not frontier:
+                break
+
+        hotspots: list[HotspotSystem] = []
+        systems_scanned = 0
+
+        for idx, distance in systems_in_range:
+            sec = float(universe_graph.security[idx])
+
+            if min_security is not None and sec < min_security:
+                continue
+            if max_security is not None and sec > max_security:
+                continue
+
+            systems_scanned += 1
+            system_id = int(universe_graph.system_ids[idx])
+            activity = await cache.get_activity(system_id)
+
+            if activity_type == "kills":
+                activity_value = activity.ship_kills + activity.pod_kills
+            elif activity_type == "jumps":
+                activity_value = activity.ship_jumps
+            else:
+                activity_value = activity.npc_kills
+
+            if activity_value == 0:
+                continue
+
+            activity_level = classify_activity(activity_value, activity_type)
+
+            hotspots.append(
+                HotspotSystem(
+                    name=universe_graph.idx_to_name[idx],
+                    system_id=system_id,
+                    security=sec,
+                    security_class=universe_graph.security_class(idx),
+                    region=universe_graph.get_region_name(idx),
+                    jumps_from_origin=distance,
+                    activity_value=activity_value,
+                    activity_level=activity_level,
+                )
+            )
+
+        hotspots.sort(key=lambda h: h.activity_value, reverse=True)
+        hotspots = hotspots[:limit]
+
+        result = HotspotsResult(
+            origin=origin_resolved.canonical_name,
+            activity_type=activity_type,
+            hotspots=hotspots,
+            search_radius=max_jumps,
+            systems_scanned=systems_scanned,
+            cache_age_seconds=cache.get_kills_cache_age(),
+            corrections=corrections,
+        )
+
+        return result.model_dump()
+
+    @server.tool()
+    async def universe_gatecamp_risk(
+        route: list[str] | None = None,
+        origin: str | None = None,
+        destination: str | None = None,
+        mode: str = "safe",
+    ) -> dict:
+        """Analyze gatecamp risk along a route."""
+        universe_graph = get_universe()
+        cache = get_activity_cache()
+
+        corrections: dict[str, str] = {}
+        if route:
+            indices: list[int] = []
+            for name in route:
+                idx = universe_graph.resolve_name(name)
+                if idx is None:
+                    raise SystemNotFoundError(name, [])
+                indices.append(idx)
+        elif origin and destination:
+            origin_resolved = resolve_system_name(origin)
+            dest_resolved = resolve_system_name(destination)
+            corrections = collect_corrections(origin_resolved, dest_resolved)
+
+            indices = _calculate_route(universe_graph, origin_resolved.idx, dest_resolved.idx, mode)
+            if not indices:
+                raise RouteNotFoundError(
+                    origin_resolved.canonical_name, dest_resolved.canonical_name
+                )
+        else:
+            raise InvalidParameterError(
+                "route",
+                None,
+                "Must provide either 'route' or both 'origin' and 'destination'",
+            )
+
+        if len(indices) < 2:
+            raise InvalidParameterError("route", route, "Route must have at least 2 systems")
+
+        chokepoints: list[GatecampRisk] = []
+        high_risk_systems: list[str] = []
+
+        for i in range(1, len(indices)):
+            prev_idx = indices[i - 1]
+            curr_idx = indices[i]
+
+            prev_class = universe_graph.security_class(prev_idx)
+            curr_class = universe_graph.security_class(curr_idx)
+
+            chokepoint_type: ChokepointType | None = None
+
+            if prev_class == "HIGH" and curr_class in ("LOW", "NULL"):
+                chokepoint_type = "lowsec_entry"
+                chokepoint_idx = curr_idx
+            elif prev_class in ("LOW", "NULL") and curr_class == "HIGH":
+                chokepoint_type = "lowsec_exit"
+                chokepoint_idx = prev_idx
+            else:
+                if curr_class in ("LOW", "NULL"):
+                    neighbors = list(universe_graph.graph.neighbors(curr_idx))
+                    if len(neighbors) <= 2:
+                        chokepoint_type = "pipe"
+                        chokepoint_idx = curr_idx
+                    elif len(neighbors) >= 4:
+                        chokepoint_type = "hub"
+                        chokepoint_idx = curr_idx
+
+            if chokepoint_type:
+                system_id = int(universe_graph.system_ids[chokepoint_idx])
+                activity = await cache.get_activity(system_id)
+                ship_kills = activity.ship_kills
+                pod_kills = activity.pod_kills
+                total_kills = ship_kills + pod_kills
+
+                risk_level: RiskLevel
+                if total_kills >= 20:
+                    risk_level = "extreme"
+                    warning = "Active gatecamp highly likely"
+                elif total_kills >= 10:
+                    risk_level = "high"
+                    warning = "Active gatecamp likely"
+                elif total_kills >= 5:
+                    risk_level = "medium"
+                    warning = "Some PvP activity detected"
+                else:
+                    risk_level = "low"
+                    warning = None
+
+                system_name = universe_graph.idx_to_name[chokepoint_idx]
+
+                chokepoints.append(
+                    GatecampRisk(
+                        system=system_name,
+                        system_id=system_id,
+                        security=float(universe_graph.security[chokepoint_idx]),
+                        chokepoint_type=chokepoint_type,
+                        recent_kills=ship_kills,
+                        recent_pods=pod_kills,
+                        risk_level=risk_level,
+                        warning=warning,
+                    )
+                )
+
+                if risk_level in ("high", "extreme"):
+                    high_risk_systems.append(system_name)
+
+        overall_risk: RiskLevel
+        if any(c.risk_level == "extreme" for c in chokepoints):
+            overall_risk = "extreme"
+        elif any(c.risk_level == "high" for c in chokepoints):
+            overall_risk = "high"
+        elif any(c.risk_level == "medium" for c in chokepoints):
+            overall_risk = "medium"
+        else:
+            overall_risk = "low"
+
+        if overall_risk == "extreme":
+            recommendation = (
+                f"Route has {len(high_risk_systems)} extreme-risk chokepoints. "
+                "Consider alternate route, scouting, or waiting for activity to die down."
+            )
+        elif overall_risk == "high":
+            recommendation = (
+                f"Route has {len(high_risk_systems)} high-risk chokepoints. "
+                "Scout ahead or use alternate route. Pass high_risk_systems to universe_route avoid_systems."
+            )
+        elif overall_risk == "medium":
+            recommendation = "Moderate risk. Stay alert at chokepoints and consider using a scout."
+        else:
+            recommendation = "Route appears relatively safe. Standard travel precautions apply."
+
+        origin_name = universe_graph.idx_to_name[indices[0]]
+        dest_name = universe_graph.idx_to_name[indices[-1]]
+
+        result = GatecampRiskResult(
+            origin=origin_name,
+            destination=dest_name,
+            total_jumps=len(indices) - 1,
+            overall_risk=overall_risk,
+            chokepoints=chokepoints,
+            high_risk_systems=high_risk_systems,
+            recommendation=recommendation,
+            cache_age_seconds=cache.get_kills_cache_age(),
+            corrections=corrections,
+        )
+
+        return result.model_dump()
+
+    @server.tool()
+    async def fw_frontlines(faction: str | None = None) -> dict:
+        """Get current Faction Warfare frontline systems."""
+        universe_graph = get_universe()
+        cache = get_activity_cache()
+
+        fw_data = await cache.get_all_fw()
+
+        filter_faction_id: int | None = None
+        if faction:
+            filter_faction_id = get_faction_id(faction)
+            if filter_faction_id is None:
+                raise InvalidParameterError(
+                    "faction",
+                    faction,
+                    "Must be one of: caldari, gallente, amarr, minmatar",
+                )
+
+        contested: list[FWSystem] = []
+        vulnerable: list[FWSystem] = []
+        stable: list[FWSystem] = []
+
+        for system_id, fw_system in fw_data.items():
+            if filter_faction_id:
+                if (
+                    fw_system.owner_faction_id != filter_faction_id
+                    and fw_system.occupier_faction_id != filter_faction_id
+                ):
+                    continue
+
+            idx = universe_graph.id_to_idx.get(system_id)
+            if idx is None:
+                continue
+
+            if fw_system.victory_points_threshold > 0:
+                contested_pct = fw_system.victory_points / fw_system.victory_points_threshold * 100
+            else:
+                contested_pct = 0.0
+
+            activity = await cache.get_activity(system_id)
+            recent_kills = activity.ship_kills + activity.pod_kills
+
+            fw_result = FWSystem(
+                name=universe_graph.idx_to_name[idx],
+                system_id=system_id,
+                security=float(universe_graph.security[idx]),
+                region=universe_graph.get_region_name(idx),
+                owner_faction=get_faction_name(fw_system.owner_faction_id),
+                occupier_faction=get_faction_name(fw_system.occupier_faction_id),
+                contested=fw_system.contested,
+                contested_percentage=min(contested_pct, 100.0),
+                victory_points=fw_system.victory_points,
+                victory_points_threshold=fw_system.victory_points_threshold,
+                recent_kills=recent_kills if recent_kills > 0 else None,
+            )
+
+            if fw_system.contested == "vulnerable":
+                vulnerable.append(fw_result)
+            elif fw_system.contested == "contested":
+                contested.append(fw_result)
+            else:
+                stable.append(fw_result)
+
+        contested.sort(key=lambda s: s.contested_percentage, reverse=True)
+        vulnerable.sort(key=lambda s: s.contested_percentage, reverse=True)
+
+        result = FWFrontlinesResult(
+            faction_filter=faction,
+            contested=contested,
+            vulnerable=vulnerable,
+            stable=stable,
+            summary={
+                "total_systems": len(contested) + len(vulnerable) + len(stable),
+                "contested_count": len(contested),
+                "vulnerable_count": len(vulnerable),
+                "stable_count": len(stable),
+            },
+            cache_age_seconds=cache.get_kills_cache_age(),
+        )
+
+        return result.model_dump()
+
+    @server.tool()
+    async def activity_cache_status() -> dict:
+        """Return diagnostic information about the activity cache."""
+        cache = get_activity_cache()
+        status = cache.get_cache_status()
+
+        result = CacheStatusResult(
+            kills=CacheLayerStatus(
+                cached_systems=status["kills"]["cached_systems"],
+                age_seconds=status["kills"]["age_seconds"],
+                ttl_seconds=status["kills"]["ttl_seconds"],
+                stale=status["kills"]["stale"],
+            ),
+            jumps=CacheLayerStatus(
+                cached_systems=status["jumps"]["cached_systems"],
+                age_seconds=status["jumps"]["age_seconds"],
+                ttl_seconds=status["jumps"]["ttl_seconds"],
+                stale=status["jumps"]["stale"],
+            ),
+            fw=CacheLayerStatus(
+                cached_systems=status["fw"]["cached_systems"],
+                age_seconds=status["fw"]["age_seconds"],
+                ttl_seconds=status["fw"]["ttl_seconds"],
+                stale=status["fw"]["stale"],
+            ),
+        )
+
+        return result.model_dump()

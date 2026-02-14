@@ -14,9 +14,9 @@ import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_nearest import (
+from aria_esi.mcp.dispatchers.universe import (
+    _build_nearest_result as _build_result,
     _build_predicate,
-    _build_result,
     _find_nearest,
     _summarize_predicates,
     register_nearest_tools,

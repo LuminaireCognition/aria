@@ -16,9 +16,7 @@ from aria_esi.mcp.errors import (
     RouteNotFoundError,
 )
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.tools_loop import register_loop_tools
-from aria_esi.mcp.tools_route import register_route_tools
-from aria_esi.mcp.tools_search import register_search_tools
+from aria_esi.mcp.dispatchers.universe import register_loop_tools, register_route_tools, register_search_tools
 from aria_esi.universe import UniverseGraph
 
 from .conftest import capture_tool_function
@@ -86,7 +84,7 @@ class TestMinimalUniverse:
         mock_server = MagicMock()
         register_tools(mock_server, minimal_universe)
 
-        from aria_esi.mcp.tools_systems import register_systems_tools
+        from aria_esi.mcp.dispatchers.universe import register_systems_tools
 
         tool = capture_tool_function(minimal_universe, register_systems_tools)
         result = asyncio.run(tool(systems=["Solo"]))
@@ -193,7 +191,7 @@ class TestEmptyInputs:
         mock_server = MagicMock()
         register_tools(mock_server, standard_universe)
 
-        from aria_esi.mcp.tools_systems import register_systems_tools
+        from aria_esi.mcp.dispatchers.universe import register_systems_tools
 
         tool = capture_tool_function(standard_universe, register_systems_tools)
         result = asyncio.run(tool(systems=[]))

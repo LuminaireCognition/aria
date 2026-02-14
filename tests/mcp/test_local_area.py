@@ -347,7 +347,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 # Too high (>30)
                 with pytest.raises(InvalidParameterError) as exc:
                     await _local_area(
@@ -378,7 +378,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=5,
@@ -403,7 +403,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=5,
@@ -425,7 +425,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=5,
@@ -447,7 +447,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=5,
@@ -468,7 +468,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Maurasi",  # Border system
                     max_jumps=5,
@@ -489,7 +489,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=5,
@@ -511,7 +511,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Sivala",
                     max_jumps=5,
@@ -531,7 +531,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Ala",
                     max_jumps=5,
@@ -557,7 +557,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=3,
@@ -576,7 +576,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=3,
@@ -595,7 +595,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=5,
@@ -625,7 +625,7 @@ class TestLocalAreaDispatcher:
         from aria_esi.mcp.dispatchers.universe import _local_area
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 result = await _local_area(
                     origin="Jita",
                     max_jumps=5,
@@ -663,7 +663,7 @@ class TestLocalAreaDispatcher:
         }
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
                 with patch(
                     "aria_esi.services.redisq.threat_cache.get_threat_cache",
                     return_value=mock_threat_cache,
@@ -825,7 +825,7 @@ class TestNearestActivityPredicates:
     @pytest.fixture
     def nearest_tool(self, standard_universe, mock_activity_cache_for_nearest):
         """Create nearest tool with mocked dependencies."""
-        from aria_esi.mcp.tools_nearest import register_nearest_tools
+        from aria_esi.mcp.dispatchers.universe import register_nearest_tools
 
         mock_server = MagicMock()
         captured_func = None
@@ -846,7 +846,7 @@ class TestNearestActivityPredicates:
 
         async def patched_nearest(**kwargs):
             with patch("aria_esi.mcp.tools._universe", standard_universe):
-                with patch("aria_esi.mcp.tools_nearest.get_activity_cache", return_value=mock_activity_cache_for_nearest):
+                with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache_for_nearest):
                     return await original_func(**kwargs)
 
         return patched_nearest
@@ -881,7 +881,7 @@ class TestNearestActivityPredicates:
     @pytest.mark.asyncio
     async def test_find_quiet_systems_with_max_kills(self, standard_universe, mock_activity_cache_for_nearest):
         """Find quiet systems with max_kills=0."""
-        from aria_esi.mcp.tools_nearest import register_nearest_tools
+        from aria_esi.mcp.dispatchers.universe import register_nearest_tools
 
         mock_server = MagicMock()
         captured_func = None
@@ -899,7 +899,7 @@ class TestNearestActivityPredicates:
             register_nearest_tools(mock_server, standard_universe)
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.tools_nearest.get_activity_cache", return_value=mock_activity_cache_for_nearest):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache_for_nearest):
                 result = await captured_func(
                     origin="Jita",
                     max_kills=0,
@@ -915,7 +915,7 @@ class TestNearestActivityPredicates:
     @pytest.mark.asyncio
     async def test_find_ratting_systems_with_min_npc_kills(self, standard_universe, mock_activity_cache_for_nearest):
         """Find ratting systems with min_npc_kills threshold."""
-        from aria_esi.mcp.tools_nearest import register_nearest_tools
+        from aria_esi.mcp.dispatchers.universe import register_nearest_tools
 
         mock_server = MagicMock()
         captured_func = None
@@ -933,7 +933,7 @@ class TestNearestActivityPredicates:
             register_nearest_tools(mock_server, standard_universe)
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.tools_nearest.get_activity_cache", return_value=mock_activity_cache_for_nearest):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache_for_nearest):
                 result = await captured_func(
                     origin="Jita",
                     min_npc_kills=100,
@@ -948,7 +948,7 @@ class TestNearestActivityPredicates:
     @pytest.mark.asyncio
     async def test_predicates_include_cache_age(self, standard_universe, mock_activity_cache_for_nearest):
         """Activity predicates include cache age in result."""
-        from aria_esi.mcp.tools_nearest import register_nearest_tools
+        from aria_esi.mcp.dispatchers.universe import register_nearest_tools
 
         mock_server = MagicMock()
         captured_func = None
@@ -966,7 +966,7 @@ class TestNearestActivityPredicates:
             register_nearest_tools(mock_server, standard_universe)
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.tools_nearest.get_activity_cache", return_value=mock_activity_cache_for_nearest):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache_for_nearest):
                 result = await captured_func(
                     origin="Jita",
                     max_kills=10,
@@ -979,7 +979,7 @@ class TestNearestActivityPredicates:
     @pytest.mark.asyncio
     async def test_combined_activity_and_security_predicates(self, standard_universe, mock_activity_cache_for_nearest):
         """Activity predicates work with security filters."""
-        from aria_esi.mcp.tools_nearest import register_nearest_tools
+        from aria_esi.mcp.dispatchers.universe import register_nearest_tools
 
         mock_server = MagicMock()
         captured_func = None
@@ -997,7 +997,7 @@ class TestNearestActivityPredicates:
             register_nearest_tools(mock_server, standard_universe)
 
         with patch("aria_esi.mcp.tools._universe", standard_universe):
-            with patch("aria_esi.mcp.tools_nearest.get_activity_cache", return_value=mock_activity_cache_for_nearest):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache_for_nearest):
                 result = await captured_func(
                     origin="Jita",
                     max_kills=20,  # Higher threshold to include Sivala

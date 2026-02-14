@@ -886,7 +886,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
 
     # Calculate route
     try:
-        from ..mcp.tools_route import _calculate_route
+        from ..mcp.dispatchers.universe import _calculate_route
 
         indices = _calculate_route(universe, origin_idx, dest_idx, mode)
         if not indices:
