@@ -308,11 +308,6 @@ class TestIsEsiAvailable:
         mock_client = MagicMock()
         mock_creds = MagicMock()
         with patch(
-            "aria_esi.core.freshness.is_esi_available.__module__",  # won't work
-            new="aria_esi.core.freshness",
-        ):
-            pass
-        with patch(
             "aria_esi.core.auth.get_authenticated_client",
             return_value=(mock_client, mock_creds),
         ):
