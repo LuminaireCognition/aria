@@ -220,6 +220,72 @@ L3 Missions (with tank variants):
 - Shield variants:
   - `vexor/pve/missions/l3/shield/t2_buffer` *(community: iBeast)*
 
+### Destroyers
+
+**Coercer** (Amarr laser destroyer)
+
+L1 Missions:
+- `coercer/pve/missions/l1/air` *(AIR career fit)*
+- `coercer/pve/missions/l1/meta` *(community: iBeast)*
+
+FW PvP:
+- `coercer/pvp/fw/t2`
+- `coercer/pvp/fw/t2_kite` *(community: iBeast)*
+
+Epic Arc:
+- `coercer/pve/epic-arc/t1`
+
+**Dragoon** (Amarr drone/neut destroyer)
+
+L1 Missions:
+- `dragoon/pve/missions/l1/meta` *(community: iBeast)*
+
+FW PvP:
+- `dragoon/pvp/fw/t2` *(community: iBeast)*
+
+### Cruisers
+
+**Omen** (Amarr laser cruiser)
+
+L2 Missions:
+- `omen/pve/missions/l2/t1`
+- `omen/pve/missions/l2/meta`
+- `omen/pve/missions/l2/meta_shield` *(community: iBeast)*
+
+FW PvP:
+- `omen/pvp/fw/t2`
+- `omen/pvp/fw/t2_brawl` *(community: iBeast)*
+
+Abyssal:
+- `omen/pve/abyssal/t1`
+
+**Maller** (Amarr armor tank cruiser)
+
+L2 Missions:
+- `maller/pve/missions/l2/meta` *(community: iBeast)*
+
+FW PvP:
+- `maller/pvp/fw/meta` *(community: iBeast)*
+
+Exploration:
+- `maller/exploration/t1` *(community: Limal)*
+
+**Arbitrator** (Amarr drone/EWAR cruiser)
+
+L2 Missions:
+- `arbitrator/pve/missions/l2/meta` *(community: iBeast)*
+
+FW PvP:
+- `arbitrator/pvp/fw/t2` *(community: iBeast)*
+
+### Haulers
+
+**Sigil** (Amarr T1 industrial)
+
+Hauling:
+- `sigil/hauling/cargo/t1`
+- `sigil/hauling/cargo/t2`
+
 ### Battlecruisers
 
 **Drake** (Caldari passive shield tank)

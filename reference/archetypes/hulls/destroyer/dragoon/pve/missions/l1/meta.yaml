@@ -1,0 +1,84 @@
+# Dragoon L1 PvE - iBeast HiSec Shield/Drone
+#
+# Shield-tanked drone boat for L1 missions with beam lasers as secondary DPS.
+# Core probe launcher for scanning escalations.
+
+archetype:
+  hull: Dragoon
+  skill_tier: meta
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: HiSec PvE Community Fits
+  license: community
+
+eft: |
+  [Dragoon, iBeast-HiSec PvE-Dragoon]
+  IFFA Compact Damage Control
+  Overdrive Injector System II
+  Drone Damage Amplifier II
+  Drone Damage Amplifier II
+
+  1MN Y-S8 Compact Afterburner
+  Medium Azeotropic Restrained Shield Extender
+  Compact Multispectrum Shield Hardener
+
+  Dual Modulated Light Energy Beam I
+  Core Probe Launcher I
+  Dual Modulated Light Energy Beam I
+  [Empty High slot]
+  Dual Modulated Light Energy Beam I
+
+  Small EM Shield Reinforcer I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+  Caldari Navy Hornet x5
+  Imperial Navy Acolyte x5
+  Federation Navy Hobgoblin x5
+
+  Standard S x3
+  Core Scanner Probe I x16
+  Multifrequency S x3
+  Radio S x3
+
+skill_requirements:
+  required:
+    Amarr Destroyer: 3
+    Drones: 4
+    Light Drone Operation: 3
+    Small Energy Turret: 2
+    Astrometrics: 3
+  recommended:
+    Drone Interfacing: 3
+    Shield Management: 3
+    Shield Upgrades: 3
+
+stats:
+  ehp: 8500
+  tank_sustained: 0
+  capacitor_stable: true
+  align_time: 5.0
+  speed_ab: 500
+  validated_date: "2026-02-14"
+
+notes:
+  purpose: "L1 mission runner with scanning capability for escalations"
+  engagement: "Orbit at 20km, let drones do primary DPS, beams as secondary"
+  warnings:
+    - "Shield buffer only - dock to repair"
+    - "Core probe launcher for scanning down escalation sites"
+    - "3 drone flights for damage type selection"
+    - "Dual DDAs boost drone DPS significantly"
+    - "One empty high slot - can add a salvager"
+    - "EM shield reinforcer plugs the shield EM hole"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "Dual Modulated Light Energy Beam I"
+      upgrade_to: "Small Focused Beam Laser II"
+      skill_required: "Small Energy Turret 5"
+    - ship: "Arbitrator"
+      notes: "Cruiser upgrade - 50 bandwidth, 150m3 bay"

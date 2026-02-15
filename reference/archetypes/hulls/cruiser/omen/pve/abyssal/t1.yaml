@@ -1,0 +1,80 @@
+# Omen T1 Abyssal - Armor Active Tank
+#
+# T1 fit for Tier 1 Abyssal Deadspace filaments. Armor tank with web for frigate control.
+# Dual multispectrum membranes for omni resist.
+
+archetype:
+  hull: Omen
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Omen, T1 Abyssal Omen]
+  Extruded Compact Heat Sink
+  Extruded Compact Heat Sink
+  Extruded Compact Heat Sink
+  Compact Multispectrum Energized Membrane
+  Compact Multispectrum Energized Membrane
+  Medium ACM Compact Armor Repairer
+
+  10MN Y-S8 Compact Afterburner
+  Large Compact Pb-Acid Cap Battery
+  X5 Enduring Stasis Webifier
+
+  Focused Anode Pulse Particle Stream I
+  Focused Anode Pulse Particle Stream I
+  Focused Anode Pulse Particle Stream I
+  Focused Anode Pulse Particle Stream I
+  Focused Anode Pulse Particle Stream I
+
+  Medium EM Armor Reinforcer I
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+
+  Acolyte I x8
+
+  Imperial Navy Multifrequency M x5
+  Imperial Navy Microwave M x5
+
+skill_requirements:
+  required:
+    Amarr Cruiser: 3
+    Medium Energy Turret: 3
+    Repair Systems: 3
+    Hull Upgrades: 3
+  recommended:
+    Amarr Cruiser: 4
+    Capacitor Management: 4
+    Mechanics: 4
+
+stats:
+  ehp: 12000
+  tank_sustained: 80
+  capacitor_stable: false
+  align_time: 8.0
+  speed_ab: 550
+  validated_date: "2026-02-14"
+
+notes:
+  purpose: "Tier 1 Abyssal Deadspace entry fit"
+  engagement: "AB orbit at 5-10km, web frigates, rep through damage"
+  warnings:
+    - "Tier 1 ONLY - do not attempt higher tiers with this fit"
+    - "Web is critical for controlling frigate NPCs in Abyss"
+    - "Cap battery helps sustain active armor rep"
+    - "Dual nano pump rigs boost repair amount"
+    - "EM armor reinforcer plugs the armor EM hole"
+    - "Omni tank (dual multispectrum) for all Abyssal weather types"
+    - "Acolyte I drones for anti-frigate duty (EM damage)"
+    - "Imperial Navy crystals for improved DPS"
+    - "20 minute timer - do not dawdle"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Focused Anode Pulse Particle Stream I"
+      upgrade_to: "Focused Medium Pulse Laser II"
+      skill_required: "Medium Energy Turret 5"
+    - module: "Compact Multispectrum Energized Membrane"
+      upgrade_to: "Multispectrum Energized Membrane II"
+      skill_required: "Hull Upgrades 5"

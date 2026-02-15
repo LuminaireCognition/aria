@@ -1,0 +1,76 @@
+# Coercer L1 PvE - Amarr Enforcer
+#
+# Basic mission runner with compact modules. Armor repair tank with cap battery.
+# Beam lasers for range flexibility.
+
+archetype:
+  hull: Coercer
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Coercer, Amarr Enforcer]
+  Extruded Compact Heat Sink
+  Capacitor Power Relay II
+  Small I-a Enduring Armor Repairer
+
+  1MN Monopropellant Enduring Afterburner
+  Small Compact Pb-Acid Cap Battery
+
+  Dual Anode Light Particle Stream I
+  Dual Anode Light Particle Stream I
+  Dual Anode Light Particle Stream I
+  Dual Anode Light Particle Stream I
+  Dual Anode Light Particle Stream I
+  Dual Anode Light Particle Stream I
+  Dual Anode Light Particle Stream I
+  Dual Anode Light Particle Stream I
+
+  Small Energy Locus Coordinator I
+  Small Energy Collision Accelerator I
+  Small Capacitor Control Circuit I
+
+  Microwave S x8
+  Standard S x8
+  Multifrequency S x8
+
+skill_requirements:
+  required:
+    Amarr Destroyer: 1
+    Small Energy Turret: 2
+    Repair Systems: 2
+    Hull Upgrades: 2
+  recommended:
+    Amarr Destroyer: 3
+    Small Energy Turret: 3
+    Capacitor Management: 3
+
+stats:
+  ehp: 4366
+  tank_sustained: 30
+  capacitor_stable: false
+  align_time: 5.0
+  speed_ab: 500
+  validated_date: "2026-02-14"
+
+damage_tuning:
+  default_damage: em_thermal
+  tank_profile: armor_active
+
+notes:
+  purpose: "Entry-level L1 mission runner for new Amarr pilots"
+  engagement: "Orbit at 10-15km with beam lasers, swap crystals for range"
+  warnings:
+    - "Cap power relay trades tank for cap stability"
+    - "Carry Microwave (close), Standard (mid), Radio (long) crystals"
+    - "Armor repairer is cap hungry - pulse it, don't run continuously"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Dual Anode Light Particle Stream I"
+      upgrade_to: "Dual Modulated Light Energy Beam I"
+      skill_required: "Small Energy Turret 3"
+    - module: "Capacitor Power Relay II"
+      upgrade_to: "Heat Sink II"
+      skill_required: "Weapon Upgrades 4"

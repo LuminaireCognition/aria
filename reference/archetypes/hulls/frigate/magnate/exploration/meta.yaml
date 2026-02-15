@@ -1,0 +1,81 @@
+# Magnate Exploration - iBeast Scan
+#
+# Meta-level exploration fit with mixed T1/T2 modules.
+# Includes salvagers and filaments for wormhole/nullsec exploration.
+
+archetype:
+  hull: Magnate
+  skill_tier: meta
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Community fit guide
+  license: community
+
+eft: |
+  [Magnate, iBeast Scan]
+  'Halcyon' Core Equalizer I
+  Inertial Stabilizers II
+  Inertial Stabilizers II
+  Damage Control I
+
+  Relic Analyzer I
+  5MN Quad LiF Restrained Microwarpdrive
+  Data Analyzer I
+
+  Salvager I
+  Salvager I
+  Core Probe Launcher I
+
+  Small Gravity Capacitor Upgrade I
+  Small Gravity Capacitor Upgrade I
+
+  Hornet I x3
+
+  Core Scanner Probe I x16
+  Noise-5 'Needlejack' Filament x3
+  Border-5 'Pochven' Filament x1
+
+skill_requirements:
+  required:
+    Amarr Frigate: 3
+    Astrometrics: 3
+    Hacking: 2
+    Archaeology: 2
+    Spaceship Command: 4
+  recommended:
+    Astrometric Rangefinding: 3
+    Astrometric Pinpointing: 3
+    Salvaging: 3
+
+stats:
+  dps: 42
+  ehp: 1852
+  tank_sustained: 0
+  capacitor_stable: true
+  align_time: 3.0
+  speed_mwd: 2400
+  validated_date: "2026-02-14"
+
+notes:
+  purpose: "Exploration with salvaging capability for wormhole/nullsec"
+  engagement: "Avoid combat - use MWD to escape"
+  warnings:
+    - "Hornets provide minimal defense only"
+    - "Filaments included for emergency escape from nullsec"
+    - "Dual salvagers for wreck sites and relic site salvage"
+    - "Inertial Stabilizers II requires Omega"
+    - "'Halcyon' Core Equalizer I boosts probe scan strength"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "Relic Analyzer I"
+      upgrade_to: "Relic Analyzer II"
+      skill_required: "Archaeology 5"
+    - module: "Data Analyzer I"
+      upgrade_to: "Data Analyzer II"
+      skill_required: "Hacking 5"
+    - ship: "Anathema (Covert Ops)"
+      notes: "Covops cloak + warp, superior scanning"

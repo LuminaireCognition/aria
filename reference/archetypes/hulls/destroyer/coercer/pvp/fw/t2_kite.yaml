@@ -1,0 +1,74 @@
+# Coercer FW PvP - iBeast Speed/Kite Variant
+#
+# Speed-focused FW Coercer with web instead of scram and Overdrive for velocity.
+# Sacrifices tackle for superior range control.
+
+archetype:
+  hull: Coercer
+  skill_tier: t2
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Community fit guide
+  license: community
+
+eft: |
+  [Coercer, iBeast-Faction Warfare PvP-Coercer]
+  IFFA Compact Damage Control
+  Overdrive Injector System II
+  Heat Sink II
+
+  5MN Y-T8 Compact Microwarpdrive
+  Fleeting Compact Stasis Webifier
+
+  Small Focused Pulse Laser II
+  Small Focused Pulse Laser II
+  Small Focused Pulse Laser II
+  Small Focused Pulse Laser II
+  Small Focused Pulse Laser II
+  Small Focused Pulse Laser II
+  Small Focused Pulse Laser II
+  Small Focused Pulse Laser II
+
+  Small Transverse Bulkhead I
+  Small Transverse Bulkhead I
+  Small Transverse Bulkhead I
+
+  Scorch S x8
+  Conflagration S x8
+
+skill_requirements:
+  required:
+    Amarr Destroyer: 3
+    Small Energy Turret: 5
+    Gunnery: 4
+    Hull Upgrades: 4
+    Navigation: 4
+  recommended:
+    Thermodynamics: 3
+    Evasive Maneuvering: 4
+    Controlled Bursts: 4
+
+stats:
+  ehp: 7214
+  tank_sustained: 0
+  capacitor_stable: false
+  align_time: 5.0
+  speed_mwd: 2200
+  validated_date: "2026-02-14"
+
+notes:
+  purpose: "Speed-focused FW Coercer - web for range control instead of scram"
+  engagement: "MWD kite at Scorch optimal, web to control range, swap to Conflag if they close"
+  warnings:
+    - "No scram - cannot hold targets. Web only for range control"
+    - "Overdrive gives speed advantage over scram variant"
+    - "3x transverse bulkhead rigs - hull tank is the real buffer"
+    - "Cannot stop MWD targets from escaping"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - ship: "Imperial Navy Slicer"
+      notes: "Superior kite platform with longer range"

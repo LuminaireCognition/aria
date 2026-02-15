@@ -1,0 +1,93 @@
+# Tormentor L1 Missions - iBeast HiSec PvE
+#
+# Meta-level mission fit with Heat Sink II and drone support.
+# Beam lasers + drones for combined DPS.
+
+archetype:
+  hull: Tormentor
+  skill_tier: meta
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Community fit guide
+  license: community
+
+eft: |
+  [Tormentor, iBeast HiSec PvE]
+  Compact Multispectrum Energized Membrane
+  Compact Multispectrum Energized Membrane
+  Heat Sink II
+  Small I-a Enduring Armor Repairer
+
+  1MN Monopropellant Enduring Afterburner
+  Eutectic Compact Cap Recharger
+  Eutectic Compact Cap Recharger
+
+  Small Focused Anode Particle Stream I
+  Small Focused Anode Particle Stream I
+  Small Focused Anode Particle Stream I
+
+  Small Auxiliary Nano Pump I
+  Small Auxiliary Nano Pump I
+  Small Capacitor Control Circuit I
+
+  Hornet I x4
+
+  Standard S x4
+  Multifrequency S x3
+  Radio S x4
+
+skill_requirements:
+  required:
+    Amarr Frigate: 3
+    Small Energy Turret: 3
+    Gunnery: 3
+    Drones: 3
+    Repair Systems: 2
+    Hull Upgrades: 4
+  recommended:
+    Light Drone Operation: 3
+    Drone Durability: 2
+    Capacitor Management: 4
+
+stats:
+  dps: 98
+  ehp: 2655
+  tank_sustained: 50
+  capacitor_stable: false
+  align_time: 4.0
+  speed_ab: 470
+  optimal_range: 8000
+  validated_date: "2026-02-14"
+
+damage_tuning:
+  default_damage: em_thermal
+  tank_profile: armor_active
+
+  notes:
+    - "Lasers deal EM/Thermal, drones deal Kinetic (Hornets)"
+    - "Swap crystals for range, not damage type"
+    - "Dual cap rechargers help sustain beams + repper"
+
+notes:
+  purpose: "L1 mission runner with turret + drone combined DPS"
+  engagement: "Orbit at 5-8km, launch drones, beam lasers on target"
+  warnings:
+    - "Heat Sink II requires Omega"
+    - "Dual cap rechargers for capacitor stability"
+    - "Recall drones before warping"
+    - "Hornets deal kinetic - good complement to EM/Thermal lasers"
+    - "CPU may be tight at low skill levels"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "Small Focused Anode Particle Stream I"
+      upgrade_to: "Small Focused Pulse Laser II"
+      skill_required: "Small Energy Turret 5"
+    - module: "Hornet I"
+      upgrade_to: "Hobgoblin II"
+      skill_required: "Light Drone Operation 5"
+    - ship: "Dragoon (Destroyer)"
+      notes: "Drone destroyer, great for L1s"

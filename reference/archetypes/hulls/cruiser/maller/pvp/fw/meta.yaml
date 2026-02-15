@@ -1,0 +1,85 @@
+# Maller FW PvP - iBeast Plate Brawler
+#
+# Extreme buffer plate tank with dual 1600mm plates. Brawl fit for FW medium plexes.
+# Designed to outlast opponents through sheer EHP.
+
+archetype:
+  hull: Maller
+  skill_tier: meta
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Community fit guide
+  license: community
+
+eft: |
+  [Maller, iBeast-Faction Warfare PvP-Maller]
+  Damage Control II
+  Compact Multispectrum Energized Membrane
+  Heat Sink II
+  Heat Sink II
+  1600mm Rolled Tungsten Compact Plates
+  1600mm Rolled Tungsten Compact Plates
+
+  Faint Epsilon Scoped Warp Scrambler
+  Fleeting Compact Stasis Webifier
+  Fleeting Compact Stasis Webifier
+
+  Quad Modulated Light Energy Beam I
+  Quad Modulated Light Energy Beam I
+  Quad Modulated Light Energy Beam I
+  Quad Modulated Light Energy Beam I
+  Quad Modulated Light Energy Beam I
+
+  Medium Trimark Armor Pump I
+  Medium Trimark Armor Pump I
+  Medium Trimark Armor Pump I
+
+  Federation Navy Hobgoblin x3
+
+  Imperial Navy Multifrequency M x5
+  Imperial Navy Radio M x5
+  Imperial Navy Xray M x5
+  Imperial Navy Standard M x5
+
+skill_requirements:
+  required:
+    Amarr Cruiser: 3
+    Medium Energy Turret: 3
+    Hull Upgrades: 4
+    Gunnery: 3
+  recommended:
+    Amarr Cruiser: 4
+    Weapon Upgrades: 4
+    Thermodynamics: 3
+
+stats:
+  ehp: 45000
+  tank_sustained: 0
+  capacitor_stable: false
+  align_time: 14.0
+  speed_ab: 300
+  validated_date: "2026-02-14"
+
+notes:
+  purpose: "FW medium plex brick tank brawler - outlast everything"
+  engagement: "Scram + dual web, hold target at brawl range, grind them down"
+  warnings:
+    - "EXTREMELY slow with dual 1600mm plates"
+    - "Buffer tank only - no active repair"
+    - "Dual web + scram for total range control"
+    - "Quad Light beams (not Medium) - unusual but fits PG"
+    - "Triple trimark rigs maximize armor HP"
+    - "Navy crystals for improved DPS at all ranges"
+    - "Fed Navy Hobgoblins for thermal drone DPS"
+    - "Massive EHP but very low DPS - fights take forever"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "Quad Modulated Light Energy Beam I"
+      upgrade_to: "Focused Medium Pulse Laser II"
+      skill_required: "Medium Energy Turret 5"
+    - ship: "Augoror Navy Issue"
+      notes: "Navy Augoror is the natural upgrade for Amarr armor brawl"
