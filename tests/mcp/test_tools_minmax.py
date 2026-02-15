@@ -297,26 +297,26 @@ class TestScoreBreakpoint:
 
     def test_critical_before_high(self):
         """Critical impact sorts before high."""
-        critical = _score_breakpoint("SkillA", 2, {"impact": "critical"})
-        high = _score_breakpoint("SkillB", 2, {"impact": "high"})
+        critical = _score_breakpoint(2, {"impact": "critical"})
+        high = _score_breakpoint(2, {"impact": "high"})
         assert critical < high
 
     def test_high_before_medium(self):
         """High impact sorts before medium."""
-        high = _score_breakpoint("SkillA", 2, {"impact": "high"})
-        medium = _score_breakpoint("SkillB", 2, {"impact": "medium"})
+        high = _score_breakpoint(2, {"impact": "high"})
+        medium = _score_breakpoint(2, {"impact": "medium"})
         assert high < medium
 
     def test_rank_tiebreaker_within_tier(self):
         """Within same tier, lower rank sorts first."""
-        low_rank = _score_breakpoint("SkillA", 1, {"impact": "high"})
-        high_rank = _score_breakpoint("SkillB", 5, {"impact": "high"})
+        low_rank = _score_breakpoint(1, {"impact": "high"})
+        high_rank = _score_breakpoint(5, {"impact": "high"})
         assert low_rank < high_rank
 
     def test_unknown_impact_defaults_to_medium(self):
         """Unknown impact maps to medium (tier 2)."""
-        unknown = _score_breakpoint("SkillA", 2, {"impact": "unknown_tier"})
-        medium = _score_breakpoint("SkillB", 2, {"impact": "medium"})
+        unknown = _score_breakpoint(2, {"impact": "unknown_tier"})
+        medium = _score_breakpoint(2, {"impact": "medium"})
         assert unknown[0] == medium[0]
 
 

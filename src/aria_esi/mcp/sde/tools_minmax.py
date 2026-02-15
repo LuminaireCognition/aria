@@ -104,6 +104,7 @@ def scope_skills_to_roles(
     direct_requirement_names: set[str],
     detected_roles: list[str],
     efficacy_rules: dict,
+    role_skills_map: dict[str, dict] | None = None,
 ) -> tuple[list[dict], list[dict]]:
     """
     Filter a skill tree to role-relevant skills.
@@ -120,11 +121,16 @@ def scope_skills_to_roles(
         direct_requirement_names: Set of skill names from SDE direct requirements
         detected_roles: List of detected/specified roles
         efficacy_rules: Loaded efficacy rules
+        role_skills_map: Optional pre-built role skills map to avoid recomputation
 
     Returns:
         (included_skills, excluded_skills) — both are lists of skill dicts
     """
-    role_skills = _build_role_skill_set(detected_roles, efficacy_rules)
+    role_skills = (
+        role_skills_map
+        if role_skills_map is not None
+        else _build_role_skill_set(detected_roles, efficacy_rules)
+    )
 
     included = []
     excluded = []
@@ -201,7 +207,6 @@ def effectiveness_per_sp(
 
 
 def _score_breakpoint(
-    skill_name: str,
     rank: int,
     breakpoint_info: dict,
 ) -> tuple[int, int]:
@@ -234,15 +239,6 @@ def _get_applicable_breakpoints(
     return applicable
 
 
-def _is_multiplier_in_roles(
-    skill_name: str,
-    role_skills_map: dict[str, dict],
-) -> bool:
-    """Check if a skill is marked as multiplicative in any detected role."""
-    skill_info = role_skills_map.get(skill_name)
-    return bool(skill_info and skill_info.get("multiplicative"))
-
-
 # =============================================================================
 # Prerequisite Injection
 # =============================================================================
@@ -253,6 +249,7 @@ def resolve_injected_prerequisites(
     phase1_skill_levels: dict[str, int],
     query_service,
     db_conn,
+    attributes: dict[str, int] | None = None,
 ) -> list[dict]:
     """
     Scan phase skills for unmet prerequisites. Inject orphans at minimum
@@ -321,12 +318,11 @@ def resolve_injected_prerequisites(
             continue
 
         rank = skill_attrs["rank"]
-        sp_cost = calculate_sp_for_level(rank, to_level) - (
-            calculate_sp_for_level(rank, from_level) if from_level > 0 else 0
-        )
+        sp_cost = calculate_sp_for_level(rank, to_level) - calculate_sp_for_level(rank, from_level)
         sp_per_min = calculate_sp_per_minute(
             skill_attrs.get("primary_attribute"),
             skill_attrs.get("secondary_attribute"),
+            attributes,
         )
         training_seconds = int(math.ceil((sp_cost / max(sp_per_min, 1)) * 60))
 
@@ -469,6 +465,7 @@ def calculate_minmax_efficacy(
     target_levels: dict[str, int],
     roles: list[str],
     efficacy_rules: dict,
+    role_skills_map: dict[str, dict] | None = None,
 ) -> float:
     """
     Calculate efficacy percentage with role-derived weights.
@@ -483,6 +480,7 @@ def calculate_minmax_efficacy(
         target_levels: Phase 3 target levels (100% reference)
         roles: Detected roles for weight derivation
         efficacy_rules: Loaded efficacy rules
+        role_skills_map: Optional pre-built role skills map to avoid recomputation
 
     Returns:
         Efficacy as percentage (0-100)
@@ -490,7 +488,11 @@ def calculate_minmax_efficacy(
     if not skills_at_level or not target_levels:
         return 100.0
 
-    role_skills = _build_role_skill_set(roles, efficacy_rules)
+    role_skills = (
+        role_skills_map
+        if role_skills_map is not None
+        else _build_role_skill_set(roles, efficacy_rules)
+    )
 
     weighted_sum = 0.0
     total_weight = 0.0
@@ -602,8 +604,8 @@ def generate_minmax_plan(
             continue
 
         rank = skill.get("rank", 1)
-        sp_cost = calculate_sp_for_level(rank, required_level) - (
-            calculate_sp_for_level(rank, from_level) if from_level > 0 else 0
+        sp_cost = calculate_sp_for_level(rank, required_level) - calculate_sp_for_level(
+            rank, from_level
         )
         sp_per_min = calculate_sp_per_minute(
             skill.get("primary_attribute"),
@@ -638,6 +640,15 @@ def generate_minmax_plan(
 
     # Collect all role-relevant skill names (from efficacy rules + direct requirements)
     all_role_relevant = set(role_skills.keys()) | direct_requirement_names
+
+    # Precompute skill names per strong role for strength classification
+    strong_role_skill_names: dict[str, set[str]] = {
+        r: {
+            s.get("skill")
+            for s in efficacy_rules.get("ship_roles", {}).get(r, {}).get("skills", [])
+        }
+        for r in strong_roles
+    }
 
     for skill_name in all_role_relevant:
         # Look up skill info from the full tree or SDE
@@ -677,20 +688,13 @@ def generate_minmax_plan(
                 primary_attr = sde_attrs.get("primary_attribute")
                 secondary_attr = sde_attrs.get("secondary_attribute")
 
-        sp_cost = calculate_sp_for_level(rank, target) - (
-            calculate_sp_for_level(rank, from_level) if from_level > 0 else 0
-        )
+        sp_cost = calculate_sp_for_level(rank, target) - calculate_sp_for_level(rank, from_level)
         sp_per_min = calculate_sp_per_minute(primary_attr, secondary_attr, attrs)
         training_seconds = int(math.ceil((sp_cost / max(sp_per_min, 1)) * 60))
 
         # Determine which roles this skill belongs to for strength classification
         skill_in_strong = skill_name in direct_requirement_names or any(
-            skill_name
-            in {
-                s.get("skill")
-                for s in efficacy_rules.get("ship_roles", {}).get(r, {}).get("skills", [])
-            }
-            for r in strong_roles
+            skill_name in strong_role_skill_names[r] for r in strong_roles
         )
         skill_in_weak_only = not skill_in_strong
 
@@ -712,7 +716,7 @@ def generate_minmax_plan(
         # Compute sort score — tuple[int, int, float, str] for all branches
         sort_key: tuple[int, int, float, str]
         if bucket == "breakpoint":
-            bp_score = _score_breakpoint(skill_name, rank, applicable_breakpoints[skill_name])
+            bp_score = _score_breakpoint(rank, applicable_breakpoints[skill_name])
             sort_key = (0, bp_score[0], float(bp_score[1]), skill_name)
         elif bucket == "multiplier":
             eff_score = effectiveness_per_sp(skill_name, from_level, target, rank, role_skills)
@@ -762,7 +766,7 @@ def generate_minmax_plan(
     # Inject orphan prerequisites for Phase 2
     if query_service and db_conn:
         phase2_skills = resolve_injected_prerequisites(
-            phase2_skills, phase1_skill_levels, query_service, db_conn
+            phase2_skills, phase1_skill_levels, query_service, db_conn, attrs
         )
 
     # =================================================================
@@ -779,10 +783,8 @@ def generate_minmax_plan(
     for skill_name, level in current.items():
         phase2_skill_levels[skill_name] = max(phase2_skill_levels.get(skill_name, 0), level)
 
-    # Build candidate set: all role-relevant skills + Phase 1 skills that are also role-relevant
-    phase3_candidate_names = set(all_role_relevant) | (
-        set(phase1_skill_levels.keys()) & all_role_relevant
-    )
+    # Build candidate set: all role-relevant skills
+    phase3_candidate_names = set(all_role_relevant)
 
     phase3_candidates: list[dict] = []
 
@@ -805,9 +807,7 @@ def generate_minmax_plan(
                 secondary_attr = sde_attrs.get("secondary_attribute")
 
         from_level = current_level
-        sp_cost = calculate_sp_for_level(rank, 5) - (
-            calculate_sp_for_level(rank, from_level) if from_level > 0 else 0
-        )
+        sp_cost = calculate_sp_for_level(rank, 5) - calculate_sp_for_level(rank, from_level)
         sp_per_min = calculate_sp_per_minute(primary_attr, secondary_attr, attrs)
         training_seconds = int(math.ceil((sp_cost / max(sp_per_min, 1)) * 60))
 
@@ -836,7 +836,7 @@ def generate_minmax_plan(
     # Excluded skills (from scope_skills_to_roles)
     # =================================================================
     _, excluded_skills = scope_skills_to_roles(
-        full_tree, direct_requirement_names, detected_roles, efficacy_rules
+        full_tree, direct_requirement_names, detected_roles, efficacy_rules, role_skills
     )
     # Remove injected prerequisites from excluded list
     injected_names = {
@@ -858,7 +858,7 @@ def generate_minmax_plan(
         p1_levels[skill_name] = max(p1_levels.get(skill_name, 0), level)
 
     efficacy_p1 = calculate_minmax_efficacy(
-        p1_levels, target_levels, detected_roles, efficacy_rules
+        p1_levels, target_levels, detected_roles, efficacy_rules, role_skills
     )
 
     # Phase 2 end
@@ -867,7 +867,7 @@ def generate_minmax_plan(
         p2_levels[s["skill_name"]] = max(p2_levels.get(s["skill_name"], 0), s["to_level"])
 
     efficacy_p2 = calculate_minmax_efficacy(
-        p2_levels, target_levels, detected_roles, efficacy_rules
+        p2_levels, target_levels, detected_roles, efficacy_rules, role_skills
     )
 
     # Phase 3 end = 100% by definition
@@ -978,6 +978,7 @@ async def _minmax_plan_impl(
         LEFT JOIN categories c ON t.category_id = c.category_id
         LEFT JOIN groups g ON t.group_id = g.group_id
         WHERE t.type_name_lower = ?
+        AND t.published = 1
         LIMIT 1
         """,
         (query_lower,),
@@ -1087,9 +1088,12 @@ async def _minmax_plan_impl(
                     }
                 )
 
+        # Rebuild after first loop so the second loop doesn't recompute per iteration
+        existing_skill_names = {s["skill_name"] for s in full_tree}
+
         # Also add direct requirements that might not be in the tree
         for req_name in direct_requirement_names:
-            if req_name in existing_skill_names or req_name in {s["skill_name"] for s in full_tree}:
+            if req_name in existing_skill_names:
                 continue
             sde_attrs = _lookup_skill_attrs(req_name, query_service, conn)
             if sde_attrs:
