@@ -60,10 +60,10 @@ Templates are in `reference/notification-templates/` (read-only, tracked in git)
 
 ## Profile Schema
 
-A profile YAML file uses the v2 interest engine format:
+A profile YAML file uses the v3 interest engine format:
 
 ```yaml
-schema_version: 2
+schema_version: 3
 
 name: "profile-name"           # Unique identifier (matches filename)
 display_name: "Human Name"     # Display name for UI/logs
@@ -135,7 +135,7 @@ commentary:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `schema_version` | int | Yes | Current version: `2` |
+| `schema_version` | int | Yes | Current version: `3` |
 | `name` | string | Yes | Unique identifier (alphanumeric, hyphens, underscores) |
 | `display_name` | string | No | Human-readable name (auto-generated from name if omitted) |
 | `description` | string | No | Purpose description |
@@ -442,7 +442,7 @@ To avoid duplicates, ensure profiles have non-overlapping topology configuration
 ### Minimal Profile
 
 ```yaml
-schema_version: 2
+schema_version: 3
 name: "simple"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"
 
@@ -456,7 +456,7 @@ Uses preset defaults with 5 minute throttle.
 ### Home System Monitoring
 
 ```yaml
-schema_version: 2
+schema_version: 3
 name: "home-ops"
 display_name: "Home Operations"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"
@@ -496,7 +496,7 @@ quiet_hours:
 ### High-Value Only
 
 ```yaml
-schema_version: 2
+schema_version: 3
 name: "expensive-losses"
 display_name: "Expensive Losses"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"
@@ -519,7 +519,7 @@ No location filter, only value-based notifications.
 For faction-aligned pilots who want notifications about their faction's activity:
 
 ```yaml
-schema_version: 2
+schema_version: 3
 name: "serpentis-ops"
 display_name: "Serpentis Corporate Intelligence"
 webhook_url: "https://discord.com/api/webhooks/xxx/yyy"

@@ -6,7 +6,7 @@
 #
 # Use: uv run aria-esi notifications create newbie-watch --template starter-systems --webhook <url>
 
-schema_version: 2
+schema_version: 3
 
 name: "starter-systems"
 display_name: "Starter System Watch"

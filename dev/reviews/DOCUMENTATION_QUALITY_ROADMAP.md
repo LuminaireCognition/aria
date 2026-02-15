@@ -306,15 +306,15 @@ Issues that should be resolved before publicly announcing the project:
 
 ### Must Fix
 
-- [ ] **Create `docs/COMMANDS.md`** — visitors need to see what ARIA can do
-- [ ] **Fix all broken links** — dead links signal unmaintained project
-- [ ] **Remove stale `lite` RP references** — internal inconsistency visible to contributors
-- [ ] **Fix `personas/README.md` hook reference** — blocks "Adding a New Persona" instructions
-- [ ] **Reconcile notification schema version** — v1/v2 inconsistency confuses early adopters
-- [ ] **Expand FIRST_RUN examples** — with descriptions per example
-- [ ] **Verify LICENSE file exists and is correct** — MIT license mentioned but verify
-- [ ] **Verify `.env.example` exists** — CLAUDE.md references it as template
-- [ ] **Add `docs/TROUBLESHOOTING.md`** — consolidate scattered troubleshooting
+- [x] **Create `docs/COMMANDS.md`** — 48-command reference across 7 categories *(PR #34)*
+- [x] **Fix all broken links** — personas/README.md, reference/INDEX.md *(PR #34)*
+- [x] **Remove stale `lite` RP references** — 13 skills, rp-levels.md, test fixtures, first-run-setup *(PR #34 + polish)*
+- [x] **Fix `personas/README.md` hook reference** — updated to `uv run aria-esi persona-context` *(PR #34)*
+- [x] **Reconcile notification schema version** — all docs, templates, examples updated to v3 *(polish commit)*
+- [x] **Expand FIRST_RUN examples** — 2-3 sentence descriptions per example *(PR #34)*
+- [x] **Verify LICENSE file exists and is correct** — confirmed MIT license present
+- [x] **Verify `.env.example` exists** — confirmed present
+- [x] **Add `docs/TROUBLESHOOTING.md`** — consolidated from 8 source files *(PR #34)*
 
 ### Should Fix
 

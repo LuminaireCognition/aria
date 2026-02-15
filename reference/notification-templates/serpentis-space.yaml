@@ -3,7 +3,7 @@
 #
 # Use: uv run aria-esi notifications create serpentis-intel --template serpentis-space --webhook <url> --persona paria-s
 
-schema_version: 2
+schema_version: 3
 
 name: "serpentis-space"
 display_name: "Serpentis Space Intel"

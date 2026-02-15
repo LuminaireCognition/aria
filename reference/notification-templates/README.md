@@ -18,10 +18,10 @@ uv run aria-esi notifications create <profile-name> --template <template-name> -
 
 ## Template Schema
 
-Templates use the v2 interest engine YAML format:
+Templates use the v3 interest engine YAML format:
 
 ```yaml
-schema_version: 2
+schema_version: 3
 
 name: "template-name"
 display_name: "Human Readable Name"

@@ -3,7 +3,7 @@
 #
 # Use: uv run aria-esi notifications create my-market-intel --template market-hubs --webhook <url>
 
-schema_version: 2
+schema_version: 3
 
 name: "market-hubs"
 display_name: "Market Hub Intel"

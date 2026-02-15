@@ -3,7 +3,7 @@
 #
 # Use: uv run aria-esi notifications create gank-watch --template gank-pipes --webhook <url>
 
-schema_version: 2
+schema_version: 3
 
 name: "gank-pipes"
 display_name: "Gank Pipe Alerts"
