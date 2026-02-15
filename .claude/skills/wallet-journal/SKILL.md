@@ -148,7 +148,7 @@ uv run aria-esi wallet-journal [--days N] [--type TYPE]
 
 ## Response Formats
 
-### Standard Format (rp_level: off or lite)
+### Standard Format (rp_level: off)
 
 ```markdown
 ## Wallet Journal (Last 7 Days)

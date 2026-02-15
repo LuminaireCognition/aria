@@ -251,11 +251,15 @@ Run the wizard again or ensure all templates were copied:
 
 ## Examples
 
-See `examples/` directory for reference configurations:
-- `examples/gallente-selfsufficient/` - Gallente self-sufficient playstyle (mining, missions, manufacturing)
-- `examples/caldari-mission-runner/` - Caldari L4 mission runner (ISK/hour optimized)
-- `examples/minmatar-explorer/` - Minmatar nomadic explorer (wormholes, nullsec)
-- `examples/amarr-industrialist/` - Amarr industrialist (mining to manufacturing)
+See `examples/` for complete reference configurations you can copy and customize:
+
+- **`examples/gallente-selfsufficient/`** - Gallente self-sufficient playstyle. Mines ore, runs missions for standings, and manufactures ships and modules. A well-rounded "do everything" profile that prioritizes independence over ISK/hour efficiency.
+
+- **`examples/caldari-mission-runner/`** - Caldari L4 mission runner. Optimized for ISK/hour with a dedicated mission-running ship roster. Focused on grinding Caldari Navy standings to unlock L4 agents and maximize LP payouts.
+
+- **`examples/minmatar-explorer/`** - Minmatar nomadic explorer. Roams wormholes and nullsec in scanning frigates and covops ships. No fixed home — moves between regions following relic sites and data sites for profit.
+
+- **`examples/amarr-industrialist/`** - Amarr industrialist. Mining-to-manufacturing pipeline focused on T1 ship production. Tracks blueprints, material efficiency research, and profit margins across multiple production lines.
 
 ---
 

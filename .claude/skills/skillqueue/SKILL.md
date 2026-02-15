@@ -163,7 +163,7 @@ uv run aria-esi skillqueue
 
 ### Standard Queue Display
 
-**Plain version (rp_level: off or lite):**
+**Plain version (rp_level: off):**
 
 ```markdown
 ## Skill Queue Status

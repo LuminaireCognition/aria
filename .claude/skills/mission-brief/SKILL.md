@@ -242,8 +242,8 @@ When multiple variants remain after filtering, use `AskUserQuestion` to let the 
 | RP Level | Question Text |
 |----------|---------------|
 | `full` | "Multiple intelligence operations match this designation. Which theater requires tactical analysis, Capsuleer?" |
-| `moderate` | "Multiple intel files found for this mission. Which variant do you need?" |
-| `lite`/`off` | "Found multiple versions of this mission. Which one?" |
+| `on` | "Multiple intel files found for this mission. Which variant do you need?" |
+| `off` | "Found multiple versions of this mission. Which one?" |
 
 **AskUserQuestion Structure:**
 ```json

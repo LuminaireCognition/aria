@@ -168,7 +168,7 @@ Only load what's needed:
 2. Create `manifest.yaml` with metadata
 3. Create `voice.md` with tone and phrases
 4. Create `intel-sources.md` with agency references
-5. Update `.claude/hooks/aria-boot.d/persona-detect.sh` to detect the faction
+5. Regenerate persona context: `uv run aria-esi persona-context`
 
 ## Design Principles
 

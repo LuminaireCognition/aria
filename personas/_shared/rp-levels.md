@@ -51,15 +51,6 @@ Response pattern:
 
 Resume: "Back to it" or continuing in-universe speech.
 
-## Migration from 4-Level System
+## Migration Note
 
-Previous versions used 4 levels. Map old values as follows:
-
-| Old Level | New Level | Notes |
-|-----------|-----------|-------|
-| `off` | `off` | No change |
-| `lite` | `off` | Merged into off |
-| `moderate` | `on` | Renamed |
-| `full` | `full` | No change |
-
-The `lite` level was consolidated into `off` because the distinction (EVE terms only vs. natural) was too subtle to justify separate loading paths.
+> The previous 4-level system (`off`, `lite`, `moderate`, `full`) was consolidated to 3 levels in v0.2. `lite` merged into `off`; `moderate` renamed to `on`.

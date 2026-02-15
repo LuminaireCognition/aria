@@ -41,7 +41,7 @@ expected_output:
   birthday: "2024-03-15T12:00:00Z"
   aria_configuration:
     eve_experience: "intermediate"
-    rp_level: "lite"
+    rp_level: "off"
     module_tier: "T2"
     faction: "Gallente Federation"
   constraints:

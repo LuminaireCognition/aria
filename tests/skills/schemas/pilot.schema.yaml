@@ -64,7 +64,7 @@ $defs:
         enum: ["new", "intermediate", "veteran"]
       rp_level:
         type: string
-        enum: ["off", "lite", "moderate", "full"]
+        enum: ["off", "on", "full"]
       module_tier:
         type: string
         enum: ["T1", "Meta", "T2"]

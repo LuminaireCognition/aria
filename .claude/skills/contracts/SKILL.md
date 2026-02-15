@@ -240,7 +240,7 @@ PYTHONPATH=.claude/scripts uv run python -m aria_esi contracts [options]
 
 ## Response Formats
 
-### Standard Display (rp_level: off or lite)
+### Standard Display (rp_level: off)
 
 ```markdown
 ## Personal Contracts

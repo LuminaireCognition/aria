@@ -131,7 +131,7 @@ CAPSULEER SINCE: [Date]
 
 ARIA CONFIGURATION:
   EVE Experience:  [new/intermediate/veteran]
-  RP Level:        [off/lite/moderate/full]
+  RP Level:        [off/on/full]
   Module Tier:     [T1/Meta or T2]
   Faction:         [Primary Faction]
 

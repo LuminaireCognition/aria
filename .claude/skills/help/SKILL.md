@@ -34,9 +34,9 @@ Surface available commands, capabilities, and reference data. Reduce the need fo
 
 ### Default `/help` Output
 
-**Note:** Use standard markdown format unless `rp_level` is `moderate` or `full`. The formatted box version is shown below for reference, but at `off`/`lite` use plain markdown tables.
+**Note:** Use standard markdown format unless `rp_level` is `on` or `full`. The formatted box version is shown below for reference, but at `off` use plain markdown tables.
 
-**Plain version (rp_level: off or lite):**
+**Plain version (rp_level: off):**
 
 ```markdown
 ## ARIA Commands
@@ -89,7 +89,7 @@ Natural language works too: "is Hek safe", "fit my Vexor", "prepare for Serpenti
 Roleplay is off by default. See `/help rp` to enable immersive mode.
 ```
 
-**Formatted version (rp_level: moderate or full):**
+**Formatted version (rp_level: on or full):**
 
 ```
 ═══════════════════════════════════════════════════════════════════
@@ -660,8 +660,7 @@ Edit your pilot profile and set:
 
 LEVELS:
   off ......... Just the facts (default)
-  lite ........ EVE terminology, no persona
-  moderate .... Light flavor, formatted reports, "pilot" address
+  on .......... Light flavor, formatted reports, "pilot" address
   full ........ Maximum immersion, faction AI persona, "capsuleer"
 
 CURRENT: Check your pilot profile → "RP Level" field
@@ -671,7 +670,7 @@ The RP system is polished and complete - faction personas,
 formatted intel reports, in-universe framing. It's there for
 pilots who want immersion. But most users just want answers.
 
-If RP is enabled at 'full' or 'moderate':
+If RP is enabled at 'full' or 'on':
   "ARIA, drop RP" ... temporarily disable roleplay
   "ARIA, resume" .... re-enable roleplay
 ═══════════════════════════════════════════════════════════════════
@@ -682,8 +681,8 @@ If RP is enabled at 'full' or 'moderate':
 ═══════════════════════════════════════════════════════════════════
 ARIA HELP: Faction Personas (RP Mode Only)
 ───────────────────────────────────────────────────────────────────
-Faction personas only apply when rp_level is 'moderate' or 'full'.
-At 'off' or 'lite', faction choice doesn't affect communication.
+Faction personas only apply when rp_level is 'on' or 'full'.
+At 'off', faction choice doesn't affect communication.
 
 AVAILABLE PERSONAS (when RP enabled):
   GALLENTE ... ARIA Mk.IV (libertarian, witty, cultured)
@@ -699,7 +698,7 @@ TO SWITCH FACTIONS:
 3. Optionally update Mission Provider, Hostile Factions
 4. Restart session (exit and run 'claude' again)
 
-NOTE: To experience faction personas, set rp_level to 'moderate'
+NOTE: To experience faction personas, set rp_level to 'on'
 or 'full'. See /help rp for details.
 ═══════════════════════════════════════════════════════════════════
 ```

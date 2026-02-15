@@ -43,8 +43,10 @@ Setup paths:
 |----------|-------------|
 | [TLDR.md](TLDR.md) | Quick reference - install, configure, run |
 | [FIRST_RUN.md](FIRST_RUN.md) | Detailed first-time setup guide |
+| [COMMANDS.md](COMMANDS.md) | All 48 slash commands with examples |
 | [ESI.md](ESI.md) | EVE SSO/ESI integration (optional) |
 | [FAQ.md](FAQ.md) | Frequently asked questions |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues and solutions |
 
 ## User Guides
 
