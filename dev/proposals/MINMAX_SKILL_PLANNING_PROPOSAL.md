@@ -304,6 +304,8 @@ def effectiveness_per_sp(skill_name: str, from_level: int, to_level: int, rank: 
 
 Phase 3 uses simple `effectiveness_per_sp` across all remaining skills without bucket separation. At this stage all high-priority skills are done; the ordering optimizes "which last-mile skills give the most for their training time."
 
+
+**Multi-role scoring rule:** When a skill appears in multiple active roles, compute `effectiveness_per_sp` using the maximum per-role `per_level` contribution for that skill. This keeps ordering conservative and prevents additive inflation across loosely related roles.
 ### Efficacy Calculation
 
 **Definition:** 100% efficacy = all role-relevant skills at their Phase 3 target levels (V for most).
@@ -759,3 +761,26 @@ Use one `effectiveness_per_sp` score across all skill types (breakpoints, multip
 **Recommended implementation order:** Phase A (core algorithm + hauler role) > Phase B (dispatcher) > Phase C (SKILL.md) > Phase D (YAML expansion, as needed).
 
 Phases A+B+C deliver the core feature with the JF and drone boat use cases. Phase D expands role coverage on demand. Phase E (fit-specific plans) is deferred to a separate proposal.
+
+## Open Decisions (Auto-generated)
+
+### Q2: minmax_missing_efficacy_fallback
+
+**Question:** What is the canonical behavior when detected/specified roles have missing or empty efficacy definitions?
+
+- `O1`: Strict role-scope fallback
+- `O2`: Prereq plus full-tree-to-V fallback
+- `O3`: Hard-fail with explicit error
+
+**Impact:** Without this, implementations can produce either narrow role-scoped plans, broad generic plans, or errors for the same input.
+
+### Q3: minmax_dependency_injection_target_level
+
+**Question:** When unmet prerequisites are pulled in to satisfy a Phase 2/3 skill, what target level should the injected prerequisite use?
+
+- `O1`: Minimum required level only
+- `O2`: Apply normal phase targeting
+- `O3`: Promote injected prerequisites to Phase 1
+
+**Impact:** This changes phase boundaries, training totals per phase, and ordering guarantees for dependency chains.
+
