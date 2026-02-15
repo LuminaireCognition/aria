@@ -81,6 +81,7 @@ class TestParameterSchemas:
         expected_actions = {
             "training_time",
             "easy_80_plan",
+            "minmax_plan",
             "get_multipliers",
             "get_breakpoints",
             "t2_requirements",

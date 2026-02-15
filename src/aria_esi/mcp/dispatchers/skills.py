@@ -1,9 +1,10 @@
 """
 Skills Dispatcher for MCP Server.
 
-Consolidates 9 skill-related tools into a single dispatcher:
+Consolidates 10 skill-related tools into a single dispatcher:
 - training_time: Calculate skill training time
 - easy_80_plan: Generate Easy 80% skill plan
+- minmax_plan: Generate phased min-max skill plan
 - get_multipliers: Get high-impact multiplier skills
 - get_breakpoints: Get breakpoint skills for activities
 - t2_requirements: Check T2 item skill requirements
@@ -32,6 +33,7 @@ if TYPE_CHECKING:
 SkillsAction = Literal[
     "training_time",
     "easy_80_plan",
+    "minmax_plan",
     "get_multipliers",
     "get_breakpoints",
     "t2_requirements",
@@ -44,6 +46,7 @@ SkillsAction = Literal[
 VALID_ACTIONS: set[str] = {
     "training_time",
     "easy_80_plan",
+    "minmax_plan",
     "get_multipliers",
     "get_breakpoints",
     "t2_requirements",
@@ -72,10 +75,10 @@ def register_skills_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
         # training_time params
         skill_list: list[dict] | None = None,
         attributes: dict | None = None,
-        # easy_80_plan params
+        # easy_80_plan / minmax_plan params
         current_skills: dict | None = None,
-        # get_multipliers/get_breakpoints params
-        role: str | None = None,
+        # minmax_plan / get_multipliers / get_breakpoints params
+        roles: list[str] | None = None,
         category_filter: str | None = None,
         # activity params
         activity: str | None = None,
@@ -90,6 +93,7 @@ def register_skills_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
         Actions:
         - training_time: Calculate training time for skills
         - easy_80_plan: Generate Easy 80% skill plan for item
+        - minmax_plan: Generate phased min-max skill plan for item
         - get_multipliers: Get high-impact multiplier skills
         - get_breakpoints: Get breakpoint skills
         - t2_requirements: Check T2 skill requirements
@@ -110,11 +114,17 @@ def register_skills_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                 current_skills: Optional dict of current skill levels
                 attributes: Optional attributes for time calculation
 
+            Min-max plan params (action="minmax_plan"):
+                item: Item name (ship, module, or skill)
+                roles: Optional list of role overrides (e.g., ["jump_capable", "hauler"])
+                current_skills: Optional dict of current skill levels
+                attributes: Optional character attributes
+
             Multipliers params (action="get_multipliers"):
-                role: Optional role filter (drone_boat, turret_boat, etc.)
+                roles: Optional role filter as list (uses first element)
 
             Breakpoints params (action="get_breakpoints"):
-                role: Optional role filter
+                roles: Optional role filter as list (uses first element)
                 category_filter: Optional category filter (combat, tank, etc.)
 
             T2 requirements params (action="t2_requirements"):
@@ -143,7 +153,8 @@ def register_skills_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
         Examples:
             skills(action="training_time", skill_list=[{"skill_name": "Mechanics", "from_level": 3, "to_level": 5}])
             skills(action="easy_80_plan", item="Vexor Navy Issue")
-            skills(action="get_multipliers", role="drone_boat")
+            skills(action="minmax_plan", item="Ark", roles=["jump_capable", "hauler"])
+            skills(action="get_multipliers", roles=["drone_boat"])
             skills(action="activity_plan", activity="gas huffing")
         """
         if action not in VALID_ACTIONS:
@@ -175,7 +186,7 @@ def register_skills_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                 "skill_list": skill_list,
                 "attributes": attributes,
                 "current_skills": current_skills,
-                "role": role,
+                "roles": roles,
                 "category_filter": category_filter,
                 "activity": activity,
                 "tier": tier,
@@ -184,12 +195,18 @@ def register_skills_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
             },
         )
 
+        # Extract single role for actions that use singular role
+        # (get_multipliers, get_breakpoints accept the first element)
+        role = roles[0] if roles else None
+
         # Execute action
         match action:
             case "training_time":
                 result = await _training_time(skill_list, attributes)
             case "easy_80_plan":
                 result = await _easy_80_plan(item, current_skills, attributes)
+            case "minmax_plan":
+                result = await _minmax_plan(item, roles, current_skills, attributes)
             case "get_multipliers":
                 result = await _get_multipliers(role)
             case "get_breakpoints":
@@ -361,6 +378,22 @@ async def _easy_80_plan(
     from ..sde.tools_easy80 import _easy_80_plan_impl
 
     result = await _easy_80_plan_impl(item, current_skills, attributes)
+    return wrap_output(result, "skill_plan", max_items=SKILLS.OUTPUT_MAX_SKILLS)
+
+
+async def _minmax_plan(
+    item: str | None,
+    roles: list[str] | None,
+    current_skills: dict | None,
+    attributes: dict | None,
+) -> dict:
+    """Min-max plan action - generate phased min-max skill plan."""
+    if not item:
+        raise InvalidParameterError("item", item, "Required for action='minmax_plan'")
+
+    from ..sde.tools_minmax import _minmax_plan_impl
+
+    result = await _minmax_plan_impl(item, roles, current_skills, attributes)
     return wrap_output(result, "skill_plan", max_items=SKILLS.OUTPUT_MAX_SKILLS)
 
 
