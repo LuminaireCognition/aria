@@ -1,9 +1,11 @@
 # Min-Max Skill Planning Proposal
 
-**Status:** REVISED (2026-02-15) — Synced with current codebase
+**Status:** READY FOR IMPLEMENTATION (2026-02-15) — All open decisions resolved (Q1-Q3)
 **Related:** `skills()` MCP dispatcher, `fitting()` dispatcher, `/skillplan` skill, Easy 80% system
 
 **Changelog:**
+- **2026-02-15c:** Resolved Q3 (dependency injection target level) with S1 (minimum required level, placed in Phase 2 before dependent skill). Added `injected_prerequisite` scoring bucket. Expanded Cross-Phase Dependency Guarantee with orphan prerequisite definition and injection mechanics. Added `resolve_injected_prerequisites()` to Phase A. Added Golden Test 4 (Venture injection-heavy). All open decisions now resolved.
+- **2026-02-15b:** Resolved Q2 (missing efficacy fallback) with per-role data threshold (S4 hybrid). Added Per-Role Data Threshold section to Phase 2 algorithm. Added `classify_role_strength()` to Phase A implementation plan. Updated risk mitigation for incomplete efficacy rules.
 - **2026-02-15:** Synced with codebase post-cleanup. Fixed `1/rank` → `-rank` fallback inconsistency in Phase A.3. Added `validation.py` to Phase B modified files and "What Needs to Be Built" table. Added Q1 resolution to Open Decisions. Updated `ship_category_roles` limitation to note archetype library now covers destroyers/haulers. Added Sigil/Epithal to proposed hauler `example_ships`. Fixed skill name: "Armor Resistance Phasing" → "Resistance Phasing" (matching YAML). Annotated MULTIPLIER_SKILLS with exact 8-skill inventory. Added mtime-cache and SkillRequirementsResult model notes to viability table.
 - **2026-02-08:** Review fixes applied. Added multi-role scoring rule, open decisions Q1-Q3.
 
@@ -215,7 +217,42 @@ Without this rule, Amarr Freighter and Jump Freighters would be excluded (they a
    - Multiplier skills: train to IV
    - Other role skills: train to IV
 4. Exclude any skill where Phase 1 already meets or exceeds the Phase 2 target
-5. Sort by scoring bucket priority (see Scoring section), then by effectiveness/SP within bucket
+5. Classify each role as **strong** or **weak** (see Per-Role Data Threshold below)
+6. Sort strong-role skills by scoring bucket priority (see Scoring section), then by effectiveness/SP within bucket
+7. Append weak-role skills after all strong-role skills, ordered by rank ascending (faster to train first)
+
+#### Per-Role Data Threshold
+
+Each detected role is classified before Phase 2 ordering:
+
+```python
+MINIMUM_SCORED_SKILLS = 2  # At least 2 skills with per_level > 0
+
+def classify_role_strength(role: str, efficacy_rules: dict) -> str:
+    """Classify a role as 'strong' or 'weak' based on efficacy data coverage."""
+    role_data = efficacy_rules["ship_roles"].get(role, {})
+    scored_skills = [
+        s for s in role_data.get("skills", [])
+        if s.get("per_level", 0) > 0
+    ]
+    return "strong" if len(scored_skills) >= MINIMUM_SCORED_SKILLS else "weak"
+```
+
+**Strong roles** (>= 2 skills with `per_level > 0`) contribute to Phase 2 normally — their skills are scored by bucket priority and effectiveness/SP.
+
+**Weak roles** (< 2 scored skills) have their skills included in the plan but placed *after* all strong-role skills in Phase 2, ordered by rank ascending (lower rank = faster to train = first). A warning is emitted:
+
+```python
+if weak_roles:
+    warnings.append(
+        f"Role(s) {weak_roles} have limited efficacy data. "
+        f"Their skills appear in Phase 2 but without effectiveness-based ordering."
+    )
+```
+
+**Rationale:** This per-role granularity avoids two failure modes: (1) a single sparse role degrading the ordering quality of a data-rich role (solved by scoring strong and weak roles independently), and (2) blocking the entire plan because one role lacks data (solved by always generating a plan). The threshold of 2 is the minimum needed for effectiveness/SP comparisons to be meaningful — with only 1 scored skill there is nothing to compare against.
+
+**Edge case — all roles are weak:** The plan still generates. Phase 2 contains all role-relevant skills ordered by rank. The warning makes clear that ordering is by training speed, not effectiveness. This is strictly better than no plan (the user still gets role scoping and excluded-skill transparency) while being honest about the limitation.
 
 **Phase 2 target of IV — design choice:** The IV ceiling for non-breakpoint skills is inherited from the Easy 80% observation that Level IV provides ~80% of the Level V bonus for ~20% of the SP cost. This is a reasonable default for Phase 2 ("Get Effective"), since Phase 3 ("Get Maximal") exists to take everything to V. For skills with linear per-level bonuses (e.g., Jump Fuel Conservation at 10%/level), the per-SP efficiency is identical at every level — the argument for stopping at IV is purely that V costs as much SP as I→IV combined, making it a diminishing-returns boundary. This is acknowledged as a design choice, not a min-max derivation.
 
@@ -231,7 +268,62 @@ Without this rule, Amarr Freighter and Jump Freighters would be excluded (they a
 
 #### Cross-Phase Dependency Guarantee
 
-Before emitting the plan, validate that every skill's prerequisites are satisfied by an earlier phase or an earlier entry within the same phase. If a Phase 2 skill requires a prerequisite not in Phase 1, that prerequisite is pulled into Phase 2 ahead of the skill that needs it.
+Before emitting the plan, validate that every skill's prerequisites are satisfied by an earlier phase or an earlier entry within the same phase.
+
+**Orphan prerequisites** are skills that:
+1. Are NOT in the item's SDE prerequisite tree (not Phase 1)
+2. Are NOT in any detected role's `skills` list (not role-relevant)
+3. Are NOT in the item's `direct_requirements`
+4. ARE required by a Phase 2 or Phase 3 skill as a training prerequisite
+
+Common orphans include Power Grid Management (required by all shield_tank skills, Thermodynamics, Capacitor Management) and Science (required by Astrogeology, Astrometrics, Jump Drive Operation, Thermodynamics). These skills appear in zero role definitions but gate nearly half the roles in the system.
+
+**Injection algorithm:**
+
+```python
+def resolve_injected_prerequisites(phase_skills: list, phase1_skills: dict) -> list:
+    """
+    Scan Phase 2/3 skills for unmet prerequisites. Inject orphans at minimum
+    required level, placed immediately before the first skill that needs them.
+
+    Orphan prerequisites do NOT appear in Phase 3 — they train to the minimum
+    level needed and no further.
+    """
+    injected = {}  # skill_name -> {to_level, placed_before}
+
+    for skill in phase_skills:
+        for prereq_name, prereq_level in get_skill_prerequisites(skill.skill_name):
+            # Already satisfied by Phase 1?
+            if phase1_skills.get(prereq_name, 0) >= prereq_level:
+                continue
+            # Already a role skill in this phase?
+            if any(s.skill_name == prereq_name for s in phase_skills):
+                continue
+            # Already injected at sufficient level?
+            if injected.get(prereq_name, {}).get("to_level", 0) >= prereq_level:
+                continue
+
+            # Inject at minimum required level
+            injected[prereq_name] = {
+                "to_level": prereq_level,
+                "placed_before": skill.skill_name,
+                "scoring_bucket": "injected_prerequisite",
+                "reason": f"Prerequisite for {skill.skill_name} (minimum level)",
+            }
+
+    # Recursively check injected skills' own prerequisites
+    # (e.g., Electronics Upgrades III requires CPU Management II AND PGM II)
+    resolve_injected_prerequisites(list(injected.values()), phase1_skills)
+
+    return merge_injected_into_phase(phase_skills, injected)
+```
+
+**Key rules:**
+- **Minimum level only.** An orphan trains to `max(required_level)` across all dependents in the plan. If Shield Management needs PGM III and Thermodynamics needs PGM IV, the orphan trains to IV.
+- **No Phase 3 entry.** Orphan prerequisites have zero role efficacy. Training them beyond the minimum wastes SP, which violates min-max philosophy.
+- **Placement is local.** The orphan appears immediately before the first skill that depends on it, within that skill's bucket position. This makes the training order self-documenting ("train Science IV *because* Astrogeology needs it").
+- **Recursive resolution.** Injected orphans may themselves have prerequisites (e.g., Hacking requires Electronics Upgrades III, which requires CPU Management II and Power Grid Management II). The algorithm resolves transitively.
+- **Orphans are neither excluded nor role-relevant.** They appear in the plan as `scoring_bucket: "injected_prerequisite"` but are not counted in the `excluded_skills` list (they ARE trained) and do not contribute to efficacy calculations (they have zero role effectiveness).
 
 ### current_skills Interaction
 
@@ -255,8 +347,13 @@ Skills within Phase 2 are ordered by bucket, then by within-bucket score:
 | Priority | Bucket | Contains | Ordering Within Bucket |
 |----------|--------|----------|----------------------|
 | 1 | **breakpoint** | Skills from `breakpoint_skills.yaml` applicable to detected roles | By `impact` tier: `critical` > `high` > `medium`, then by rank ascending (faster to train first) |
+| — | **injected_prerequisite** | Orphan prerequisites of breakpoint skills (see Cross-Phase Dependency Guarantee) | Immediately before the dependent skill within the breakpoint bucket |
 | 2 | **multiplier** | Skills in `MULTIPLIER_SKILLS` applicable to detected roles | By `effectiveness_per_sp` descending |
+| — | **injected_prerequisite** | Orphan prerequisites of multiplier skills | Immediately before the dependent skill within the multiplier bucket |
 | 3 | **role_support** | Other skills from efficacy rules for detected roles | By `effectiveness_per_sp` descending |
+| — | **injected_prerequisite** | Orphan prerequisites of role_support skills | Immediately before the dependent skill within the role_support bucket |
+
+**`injected_prerequisite` placement rule:** An injected orphan prerequisite is placed immediately before the *first* skill that depends on it, within that skill's bucket position. If multiple skills in different buckets depend on the same orphan, the orphan is placed before the highest-priority dependent (i.e., it appears as early as needed). Injected prerequisites train to the **minimum level required** by any dependent skill in the plan — no Phase 3 entry is created for them. See "Cross-Phase Dependency Guarantee" for the full injection algorithm.
 
 #### Effectiveness-Per-SP Calculation
 
@@ -344,9 +441,10 @@ This is implemented as a new `calculate_minmax_efficacy()` function in `tools_mi
 **Definition:** A skill is excluded if it meets **all** of the following:
 1. It is NOT in any detected role's `skills` list in `ship_efficacy_rules.yaml`
 2. It is NOT in the item's `direct_requirements` (per the SDE Direct Requirement Inclusion Rule)
-3. It was added to the tree as a support skill (by Easy 80%), not as an SDE prerequisite
+3. It is NOT an injected orphan prerequisite (per the Cross-Phase Dependency Guarantee)
+4. It was added to the tree as a support skill (by Easy 80%), not as an SDE prerequisite
 
-Skills in the SDE `full_prerequisite_tree` are never excluded — they are Phase 1 requirements. Skills in `direct_requirements` are never excluded — they are always role-relevant. Only support skills added beyond the SDE tree that don't match any detected role are excluded.
+Skills in the SDE `full_prerequisite_tree` are never excluded — they are Phase 1 requirements. Skills in `direct_requirements` are never excluded — they are always role-relevant. Injected orphan prerequisites are never excluded — they are required to satisfy dependency chains (they appear in the plan as `scoring_bucket: "injected_prerequisite"`). Only support skills added beyond the SDE tree that don't match any detected role and aren't needed as prerequisites are excluded.
 
 Excluded skills are reported in the output for transparency, so the user understands why certain skills were intentionally omitted.
 
@@ -477,20 +575,36 @@ Build the minmax plan generator as a standalone module, following the same patte
    - No cross-bucket comparison
    - Handles `per_level: 0` skills via `-rank` fallback (negative rank sorts after all positive scores, then orders by training speed)
 
-4. **`scope_skills_to_roles()`** — Role scoping filter
+4. **`classify_role_strength()`** — Per-role data threshold evaluation
+   - Input: role name, efficacy rules
+   - Output: `"strong"` or `"weak"`
+   - A role is strong if it has >= `MINIMUM_SCORED_SKILLS` (2) skills with `per_level > 0`
+   - Used by `generate_minmax_plan()` to partition roles before Phase 2 ordering
+   - Weak-role skills are appended after strong-role skills in Phase 2, ordered by rank
+
+5. **`resolve_injected_prerequisites()`** — Cross-phase dependency injection
+   - Input: phase skills list, Phase 1 skill levels
+   - Output: phase skills with orphan prerequisites injected
+   - Scans each Phase 2/3 skill's prerequisites against Phase 1 and existing phase skills
+   - Injects orphans at minimum required level, placed before the first dependent skill
+   - Recursively resolves injected skills' own prerequisites
+   - Orphans get `scoring_bucket: "injected_prerequisite"` and no Phase 3 entry
+
+6. **`scope_skills_to_roles()`** — Role scoping filter
    - Input: full skill tree (SDE + support), detected roles, direct requirements
    - Output: filtered tree containing skills that appear in at least one of:
      (a) a detected role's `skills` list in efficacy rules, or
      (b) the item's `direct_requirements`
-   - Exclusion list for transparency (only skills in neither set)
+   - Exclusion list for transparency (only skills in neither set and not injected orphans)
 
-5. **`calculate_minmax_efficacy()`** — Role-aware efficacy calculation
+7. **`calculate_minmax_efficacy()`** — Role-aware efficacy calculation
    - Input: skills_at_level, target_levels, detected roles
    - Output: efficacy percentage (0-100)
    - Derives multiplier weight from role efficacy data (`multiplicative` flag) instead of hardcoded `MULTIPLIER_SKILLS` dict
+   - Injected orphan prerequisites are excluded from efficacy weighting (zero role contribution)
    - Does NOT modify the existing `calculate_efficacy()` in `tools_easy80.py`
 
-6. **`_minmax_plan_impl()`** — Standalone async implementation for dispatcher
+8. **`_minmax_plan_impl()`** — Standalone async implementation for dispatcher
 
 **YAML addition:** `reference/skills/ship_efficacy_rules.yaml` — add `hauler` role. Required because the motivating JF example needs agility/warp skills defined. Needed before core algorithm can be validated against the golden test cases.
 
@@ -639,31 +753,33 @@ This is a substantially different extraction model from the current one, not a m
 1. The phase assignment logic with direct-requirement rule (~100 lines)
 2. The bucket-based scoring and ordering with `per_level: 0` fallback (~80 lines)
 3. The role-scoping filter with direct-requirement inclusion (~50 lines)
-4. The `calculate_minmax_efficacy()` function (~50 lines)
-5. The `_minmax_plan_impl` orchestrator (~280 lines)
-6. Cross-phase dependency validation (~30 lines)
-7. `detect_ship_roles()` hauler extension (~25 lines)
-8. Tests and fixtures (~450 lines)
+4. The per-role data threshold classification (~20 lines)
+5. The orphan prerequisite injection with recursive resolution (~60 lines)
+6. The `calculate_minmax_efficacy()` function (~50 lines)
+7. The `_minmax_plan_impl` orchestrator (~300 lines)
+8. Cross-phase dependency validation (~30 lines)
+9. `detect_ship_roles()` hauler extension (~25 lines)
+10. Tests and fixtures (~530 lines)
 
 ### What Needs to Be Built
 
 | Component | Estimated Lines | Complexity |
 |-----------|----------------|------------|
-| `tools_minmax.py` (core) | ~590 | Medium — phase assignment + bucket scoring + efficacy |
+| `tools_minmax.py` (core) | ~690 | Medium — phase assignment + bucket scoring + role threshold + orphan injection + efficacy |
 | `detect_ship_roles()` hauler addition | ~25 | Low — follows existing pattern |
 | Dispatcher wiring + `role`→`roles` migration | ~50 | Low — follows exact pattern |
 | `validation.py` parameter schema update | ~5 | Low — add `minmax_plan` entry + rename `role`→`roles` |
 | `hauler` role (YAML) | ~30 | Low — data-only |
 | SKILL.md updates | ~40 | Low — documentation |
-| Test fixtures + golden tests | ~450 | Medium — need SDE-verified scenarios |
-| **Total** | **~1190** | |
+| Test fixtures + golden tests | ~530 | Medium — need SDE-verified scenarios + weak-role + injection tests |
+| **Total** | **~1295** | |
 
 ### Risks and Mitigations
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | Scoring produces unintuitive ordering within buckets | Medium — users would distrust the plan | Golden test cases validate ordering against known-good sequences; bucket separation prevents cross-category confusion |
-| Incomplete efficacy rules for niche roles | Low — plan degrades gracefully | Fall back to prerequisite-only plan (Phase 1 + "train everything to V") when no efficacy data exists; warn user |
+| Incomplete efficacy rules for niche roles | Low — plan degrades gracefully | Per-role data threshold (Q2 resolution): strong roles drive Phase 2 ordering normally; weak roles have skills appended after strong-role skills, ordered by rank. Warning emitted for weak roles. Plan always generates. |
 | Phase 1 is very large for capital ships | Low — correct behavior | Clearly label Phase 1 as "SDE requirements (non-negotiable)" so users understand this is inherent to the ship class, not a planning failure |
 | Role composition produces conflicting priorities | Low — roles are additive | When multiple roles are detected/specified, union all skills from all roles' efficacy rules. Bucket assignment uses highest priority across roles (if a skill is a breakpoint in any role, it's a breakpoint) |
 | Scope creep into "skill optimizer" territory | Medium — could become unbounded | Strict scope: minmax_plan returns a static plan, not an interactive optimizer. No "what if I train X first" mode |
@@ -735,6 +851,27 @@ The following scenarios have well-understood optimal training orders and serve a
 **Phase split assertion:**
 - Mining V appears in Phase 1 if SDE requires it for the ship, OR in Phase 2 if it's a breakpoint beyond SDE requirements
 
+### Test 4: Venture Mining (miner + shield_tank) — Orphan Prerequisite Injection
+
+The Venture has a minimal SDE tree (Spaceship Command I, Mining Frigate I), making it the primary injection test case.
+
+**Key injection assertions for Phase 2:**
+1. Science IV must be injected before Astrogeology (Astrogeology requires Science IV; Science is not in any role's `skills` list)
+2. Power Grid Management III must be injected before Shield Management (Shield Management requires PGM III; PGM is not in any role's `skills` list)
+3. Power Grid Management III must also satisfy Shield Operation (requires PGM I) and Tactical Shield Manipulation (requires PGM III) — injected once at `max(I, III, III) = III`
+
+**Injection bucket assertions:**
+- Science IV and PGM III must have `scoring_bucket: "injected_prerequisite"`
+- They must appear immediately before the first skill that depends on them within the bucket ordering
+- Neither Science nor PGM appears in Phase 3 (zero role efficacy — no further training)
+
+**Exclusion assertions:**
+- Science and PGM must NOT appear in `excluded_skills` (they are trained, not excluded)
+- Skills like Drones and Gunnery (not in miner or shield_tank roles, not SDE prerequisites, not needed as prerequisites) must appear in `excluded_skills`
+
+**Efficacy assertion:**
+- Science and PGM must NOT contribute to `efficacy_at_phase_end` calculations (they have zero role effectiveness)
+
 ---
 
 ## Alternative Approaches Considered
@@ -761,7 +898,7 @@ Use one `effectiveness_per_sp` score across all skill types (breakpoints, multip
 **Viability: HIGH.** The proposal is implementable with moderate effort because:
 
 1. **~60% of the infrastructure exists** — role detection, efficacy rules, breakpoint/multiplier skills, training time calculation, and the dispatcher pattern are all production-ready
-2. **The new code is focused** — ~590 lines of core algorithm, plus ~80 lines of dispatcher/detection/validation changes
+2. **The new code is focused** — ~690 lines of core algorithm, plus ~80 lines of dispatcher/detection/validation changes
 3. **The data model is extensible** — adding new roles to efficacy rules is YAML-only, no code changes
 4. **The feature is orthogonal** — min-max planning doesn't modify or conflict with Easy 80%; they coexist as complementary tools
 5. **The scoring approach is testable** — bucket-based sorting with golden test cases provides concrete pass/fail assertions, not "does this score look reasonable"
@@ -778,23 +915,15 @@ Phases A+B+C deliver the core feature with the JF and drone boat use cases. Phas
 
 **Decision:** `O1` — Use maximum per-role `per_level` contribution. This is codified in the Multi-role scoring rule (see Scoring section above).
 
-### Q2: minmax_missing_efficacy_fallback
+### Q2: minmax_missing_efficacy_fallback — RESOLVED
 
 **Question:** What is the canonical behavior when detected/specified roles have missing or empty efficacy definitions?
 
-- `O1`: Strict role-scope fallback
-- `O2`: Prereq plus full-tree-to-V fallback
-- `O3`: Hard-fail with explicit error
+**Decision:** `S4` — Per-role data threshold with fallback. Each role is classified as **strong** (>= 2 skills with `per_level > 0`) or **weak** (< 2). Strong roles drive Phase 2 bucket-based ordering normally. Weak roles have their skills appended after all strong-role skills in Phase 2, ordered by rank ascending. A warning names the weak roles. The plan always generates — never blocks the user. See "Per-Role Data Threshold" in the Phase 2 algorithm section.
 
-**Impact:** Without this, implementations can produce either narrow role-scoped plans, broad generic plans, or errors for the same input.
-
-### Q3: minmax_dependency_injection_target_level
+### Q3: minmax_dependency_injection_target_level — RESOLVED
 
 **Question:** When unmet prerequisites are pulled in to satisfy a Phase 2/3 skill, what target level should the injected prerequisite use?
 
-- `O1`: Minimum required level only
-- `O2`: Apply normal phase targeting
-- `O3`: Promote injected prerequisites to Phase 1
-
-**Impact:** This changes phase boundaries, training totals per phase, and ordering guarantees for dependency chains.
+**Decision:** `S1` — Minimum required level, placed in Phase 2 before the dependent skill. Orphan prerequisites train to the exact level needed (the maximum across all dependents in the plan), are placed immediately before the first skill that depends on them within its bucket position, and receive `scoring_bucket: "injected_prerequisite"`. No Phase 3 entry is created — orphans have zero role efficacy and training them beyond the minimum wastes SP. See "Cross-Phase Dependency Guarantee" for the full injection algorithm and `injected_prerequisite` entries in the Bucket Priority table.
 

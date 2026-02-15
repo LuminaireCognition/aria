@@ -1,0 +1,28 @@
+[
+  {
+    "decision_key": "minmax_multi_role_scoring_aggregation",
+    "decision_id": "Q1",
+    "selected_option_id": "O1",
+    "resolved_in_run": "04952a641380ef47",
+    "resolved_at": "2026-02-15T05:08:06.769487+00:00",
+    "question_summary": "How should `effectiveness_per_sp` be computed when a skill appears in multiple selected/detected roles?"
+  },
+  {
+    "decision_key": "minmax_missing_efficacy_fallback",
+    "decision_id": "Q2",
+    "selected_option_id": "S4",
+    "resolved_in_run": "manual",
+    "resolved_at": "2026-02-15T10:45:00.000000+00:00",
+    "question_summary": "What is the canonical behavior when detected/specified roles have missing or empty efficacy definitions?",
+    "decision_detail": "Per-role data threshold with fallback. Roles classified as strong (>=2 scored skills) or weak (<2). Strong roles drive Phase 2 ordering; weak roles appended after, ordered by rank. Plan always generates with warning for weak roles."
+  },
+  {
+    "decision_key": "minmax_dependency_injection_target_level",
+    "decision_id": "Q3",
+    "selected_option_id": "S1",
+    "resolved_in_run": "manual",
+    "resolved_at": "2026-02-15T11:00:00.000000+00:00",
+    "question_summary": "When unmet prerequisites are pulled in to satisfy a Phase 2/3 skill, what target level should the injected prerequisite use?",
+    "decision_detail": "Minimum required level, placed in Phase 2 before the dependent skill. Orphan prerequisites train to max(required_level) across all dependents, appear immediately before first dependent within its bucket position, get scoring_bucket 'injected_prerequisite', and have no Phase 3 entry (zero role efficacy)."
+  }
+]
