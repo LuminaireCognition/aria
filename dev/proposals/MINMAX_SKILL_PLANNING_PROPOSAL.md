@@ -812,16 +812,15 @@ The two coexist as complementary tools. A pilot might use Easy 80% for their mai
 
 The following scenarios have well-understood optimal training orders and serve as assertion-level tests for the scoring algorithm. Each test validates *relative ordering*, not exact scores.
 
-### Test 1: Ishtar Drone Ratting (drone_boat + armor_tank)
+### Test 1: Ishtar Drone Ratting (drone_boat + active_tank + armor_tank)
 
 **Key ordering assertions for Phase 2:**
 1. Drones V (breakpoint, critical) must appear before all multiplier skills
-2. Drone Interfacing to IV (multiplier, 10%/level, rank 1) must appear before Medium Drone Operation to IV (5%/level, rank 2) — higher per_level AND lower rank
+2. Medium Drone Operation to IV (multiplier, 5%/level, rank 2) must appear before Drone Interfacing to IV (multiplier, 10%/level, rank 5) — MDO has higher effectiveness/SP because rank 2 costs ~2.5× less SP than rank 5, outweighing DI's higher per_level
 3. Heavy Drone Operation to IV must appear (applicable for battleship-sized drones on Ishtar)
 
-**Key exclusion assertions:**
-- Mining, Ice Harvesting, Gas Cloud Harvesting must be excluded
-- Missile Launcher Operation must be excluded
+**Exclusion note:**
+Mining, Ice Harvesting, Gas Cloud Harvesting, and Missile Launcher Operation are not in the Ishtar's SDE prerequisite tree and are not in any detected role's skill list. They never enter the pipeline, so they do not appear in `excluded_skills`. The exclusion list only contains skills that *were* in the tree but filtered out by role scoping (e.g., support skills from a different role).
 
 ### Test 2: Ark Jump Freighter (jump_capable + hauler)
 
