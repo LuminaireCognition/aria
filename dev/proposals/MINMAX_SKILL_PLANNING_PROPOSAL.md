@@ -1,7 +1,11 @@
 # Min-Max Skill Planning Proposal
 
-**Status:** REVISED (2026-02-08) — Review fixes applied
+**Status:** REVISED (2026-02-15) — Synced with current codebase
 **Related:** `skills()` MCP dispatcher, `fitting()` dispatcher, `/skillplan` skill, Easy 80% system
+
+**Changelog:**
+- **2026-02-15:** Synced with codebase post-cleanup. Fixed `1/rank` → `-rank` fallback inconsistency in Phase A.3. Added `validation.py` to Phase B modified files and "What Needs to Be Built" table. Added Q1 resolution to Open Decisions. Updated `ship_category_roles` limitation to note archetype library now covers destroyers/haulers. Added Sigil/Epithal to proposed hauler `example_ships`. Fixed skill name: "Armor Resistance Phasing" → "Resistance Phasing" (matching YAML). Annotated MULTIPLIER_SKILLS with exact 8-skill inventory. Added mtime-cache and SkillRequirementsResult model notes to viability table.
+- **2026-02-08:** Review fixes applied. Added multi-role scoring rule, open decisions Q1-Q3.
 
 ---
 
@@ -298,7 +302,7 @@ def effectiveness_per_sp(skill_name: str, from_level: int, to_level: int, rank: 
 - **No cross-bucket comparison.** Breakpoints are always trained before multipliers, regardless of their per-SP efficiency. A critical breakpoint like Drones V (25% DPS gain) trains before Drone Interfacing IV (40% gain over 4 levels) because the breakpoint unlocks a discrete capability.
 - **No synthetic weighting.** The old proposal used arbitrary constants (`25.0` for breakpoints, `1.2` for multiplicative). This design avoids magic numbers by sorting on separate axes.
 - **`per_level` comparisons are within-bucket only.** Comparing "10% drone damage" to "2% turret RoF" is meaningless across roles, but within a single role's multiplier bucket (e.g., Drone Interfacing vs. Medium Drone Operation), both use the same metric (drone DPS contribution per level) and the comparison is valid.
-- **`per_level: 0` fallback.** Skills with discrete effects (e.g., Exhumers, Armor Resistance Phasing) and direct-requirement hull skills not in any role's efficacy rules score `-rank` instead of 0. This sorts them *after* all skills with measurable per-level bonuses within the same bucket (any positive score beats a negative tiebreaker), then orders among themselves by training speed (lower rank = less negative = first). This is intentional: measurable bonuses should train before unmeasured hull skills. Most `per_level: 0` skills are handled by the breakpoint bucket (Drones V, Cloaking IV, etc.) and never reach this fallback.
+- **`per_level: 0` fallback.** Skills with discrete effects (e.g., Exhumers, Resistance Phasing) and direct-requirement hull skills not in any role's efficacy rules score `-rank` instead of 0. This sorts them *after* all skills with measurable per-level bonuses within the same bucket (any positive score beats a negative tiebreaker), then orders among themselves by training speed (lower rank = less negative = first). This is intentional: measurable bonuses should train before unmeasured hull skills. Most `per_level: 0` skills are handled by the breakpoint bucket (Drones V, Cloaking IV, etc.) and never reach this fallback.
 
 #### Phase 3 Ordering
 
@@ -451,7 +455,7 @@ A cyno alt is a common companion to a JF pilot but is a *different character* wi
 
 **New file:** `src/aria_esi/mcp/sde/tools_minmax.py`
 
-Build the minmax plan generator as a standalone module, following the same pattern as `tools_easy80.py`:
+Build the minmax plan generator as a standalone module, following the same pattern as `tools_easy80.py`. Since the legacy MCP tools cleanup (commit `2340645`), all SDE tool implementations live under `src/aria_esi/mcp/sde/tools_*.py` and are dispatched from `src/aria_esi/mcp/dispatchers/skills.py`:
 
 1. **`generate_minmax_plan()`** — Core orchestrator
    - Input: item name, detected roles, current skills, attributes
@@ -471,7 +475,7 @@ Build the minmax plan generator as a standalone module, following the same patte
    - Input: skill, bucket type, role data
    - Output: sort key (impact tier for breakpoints, effectiveness/SP for others)
    - No cross-bucket comparison
-   - Handles `per_level: 0` skills via `1/rank` fallback
+   - Handles `per_level: 0` skills via `-rank` fallback (negative rank sorts after all positive scores, then orders by training speed)
 
 4. **`scope_skills_to_roles()`** — Role scoping filter
    - Input: full skill tree (SDE + support), detected roles, direct requirements
@@ -504,6 +508,8 @@ hauler:
     - Impel
     - Occator
     - Bestower
+    - Sigil
+    - Epithal
   skills:
     - skill: Evasive Maneuvering
       effect: "+5% agility per level"
@@ -562,11 +568,11 @@ if any(g in group_lower for g in ["freighter", "jump freighter", "industrial",
 
 ### Phase B: Dispatcher Integration
 
-**Modified file:** `src/aria_esi/mcp/dispatchers/skills.py`
+**Modified files:**
+- `src/aria_esi/mcp/dispatchers/skills.py` — Add `minmax_plan` to `SkillsAction` literal and `VALID_ACTIONS` set; add `roles` parameter to the `skills()` function signature; wire `minmax_plan` to `_minmax_plan_impl`.
+- `src/aria_esi/mcp/validation.py` — Add `"minmax_plan"` entry to `SKILLS_ACTION_PARAMS` schema (e.g., `{"item", "roles", "current_skills", "attributes"}`). Without this, the parameter validation layer will flag `roles` as an irrelevant parameter.
 
-Add `minmax_plan` to `VALID_ACTIONS` and wire it to `_minmax_plan_impl`.
-
-Rename the existing `role` parameter (singular) to `roles` (plural, `list[str] | None`) across all actions. This is a one-time migration — `get_multipliers` and `get_breakpoints` accept the first element of the list; `minmax_plan` uses the full list. No backwards compatibility shim needed.
+Rename the existing `role` parameter (singular) to `roles` (plural, `list[str] | None`) across all actions. This is a one-time migration — `get_multipliers` and `get_breakpoints` accept the first element of the list; `minmax_plan` uses the full list. No backwards compatibility shim needed. The `SKILLS_ACTION_PARAMS` entries for `get_multipliers` and `get_breakpoints` must be updated from `{"role"}` to `{"roles"}` to match.
 
 **Validation:** If `roles` is provided, every entry must be a key in `ship_efficacy_rules.yaml`. Invalid entries raise `InvalidParameterError` with the list of valid role names.
 
@@ -618,15 +624,16 @@ This is a substantially different extraction model from the current one, not a m
 | Component | Location | Reuse Level |
 |-----------|----------|-------------|
 | Role detection | `tools_easy80.py:detect_ship_roles()` | Reuse + extend (add `hauler` detection) |
-| Efficacy rules (YAML) | `reference/skills/ship_efficacy_rules.yaml` | Direct reuse |
-| Breakpoint skills (YAML) | `reference/skills/breakpoint_skills.yaml` | Direct reuse |
-| Multiplier skills | `tools_easy80.py:MULTIPLIER_SKILLS` | Direct reuse (Easy 80% only; minmax derives from YAML) |
+| Efficacy rules (YAML) | `reference/skills/ship_efficacy_rules.yaml` | Direct reuse (13 roles defined: drone_boat, turret_boat, missile_boat, armor_tank, shield_tank, miner, explorer, stealth_ship, logi, active_tank, jump_capable, capital_support, gas_miner, ice_miner, navigation) |
+| Breakpoint skills (YAML) | `reference/skills/breakpoint_skills.yaml` | Direct reuse (17 breakpoints across combat, tank, stealth, industrial, capital, exploration, logi categories) |
+| Multiplier skills | `tools_easy80.py:MULTIPLIER_SKILLS` | Direct reuse (Easy 80% only; minmax derives from YAML). Contains 8 skills: Drone Interfacing, Surgical Strike, Rapid Firing, Warhead Upgrades, Rapid Launch, Repair Systems, Shield Management, Astrogeology |
 | Training time calc | `tools_skills.py:calculate_sp_*()` | Direct reuse |
 | SDE skill tree | `queries.py:get_full_skill_tree()` | Direct reuse |
-| SDE direct requirements | SDE dispatcher `skill_requirements` | Direct reuse (provides `direct_requirements`) |
+| SDE direct requirements | SDE dispatcher `skill_requirements` action | Direct reuse (returns `direct_requirements` and `full_prerequisite_tree` via `SkillRequirementsResult` model) |
 | Efficacy calculation | `tools_easy80.py:calculate_efficacy()` | **Not reused** — new `calculate_minmax_efficacy()` with role-derived weights |
 | Dispatcher pattern | `dispatchers/skills.py` | Direct reuse |
-| YAML caching pattern | `tools_easy80.py:load_*()` | Direct reuse |
+| Parameter validation | `validation.py:SKILLS_ACTION_PARAMS` | Extend (add `minmax_plan` entry) |
+| YAML caching pattern | `tools_easy80.py:load_*()` | Direct reuse (mtime-based cache invalidation) |
 
 **Estimate: ~60% of the implementation is assembly of existing components.** The genuinely new code is:
 1. The phase assignment logic with direct-requirement rule (~100 lines)
@@ -645,10 +652,11 @@ This is a substantially different extraction model from the current one, not a m
 | `tools_minmax.py` (core) | ~590 | Medium — phase assignment + bucket scoring + efficacy |
 | `detect_ship_roles()` hauler addition | ~25 | Low — follows existing pattern |
 | Dispatcher wiring + `role`→`roles` migration | ~50 | Low — follows exact pattern |
+| `validation.py` parameter schema update | ~5 | Low — add `minmax_plan` entry + rename `role`→`roles` |
 | `hauler` role (YAML) | ~30 | Low — data-only |
 | SKILL.md updates | ~40 | Low — documentation |
 | Test fixtures + golden tests | ~450 | Medium — need SDE-verified scenarios |
-| **Total** | **~1185** | |
+| **Total** | **~1190** | |
 
 ### Risks and Mitigations
 
@@ -666,7 +674,7 @@ These are acknowledged design boundaries, not bugs:
 
 1. **No hull bonus awareness.** The algorithm knows that Heavy Assault Cruisers is a direct requirement for the Ishtar (via SDE Direct Requirement Inclusion Rule), but it doesn't know that HAC provides 10% drone damage per level as an Ishtar hull bonus. Hull bonuses are ship-specific and not captured in the role-agnostic efficacy rules. This means hull skills sort by `-rank` tiebreaker (after all measurable-bonus skills) in the `role_support` bucket rather than by their actual per-level impact. **Future fix:** Phase E (fit-specific plans) can extract per-module and per-hull bonuses from `fitting(action="calculate_stats")` to produce truly optimal hull skill ordering.
 
-2. **`ship_category_roles` mapping is incomplete.** The YAML has category-to-role mappings for frigates, cruisers, battlecruisers, battleships, mining barges, and exhumers. It lacks mappings for destroyers, industrials, command ships, HACs, strategic cruisers, and other groups. `detect_ship_roles()` compensates with hardcoded ship name lists, but new ship types may not be detected. This is an ongoing data expansion task (Phase D), not an algorithm limitation.
+2. **`ship_category_roles` mapping is incomplete.** The YAML has category-to-role mappings for frigates, cruisers, battlecruisers, battleships, mining barges, and exhumers. It lacks mappings for destroyers, industrials/haulers, command ships, HACs, strategic cruisers, and other groups. `detect_ship_roles()` compensates with hardcoded ship name lists, but new ship types may not be detected. Note: the archetype library (`reference/archetypes/hulls/`) now includes destroyer hulls (Coercer, Dragoon) and hauler hulls (Sigil, Epithal), so the archetype coverage is ahead of the `ship_category_roles` YAML. Adding destroyer and hauler/industrial entries to `ship_category_roles` is a straightforward YAML addition in Phase D.
 
 ### Relationship to Easy 80%
 
@@ -753,7 +761,7 @@ Use one `effectiveness_per_sp` score across all skill types (breakpoints, multip
 **Viability: HIGH.** The proposal is implementable with moderate effort because:
 
 1. **~60% of the infrastructure exists** — role detection, efficacy rules, breakpoint/multiplier skills, training time calculation, and the dispatcher pattern are all production-ready
-2. **The new code is focused** — ~590 lines of core algorithm, plus ~75 lines of dispatcher/detection changes
+2. **The new code is focused** — ~590 lines of core algorithm, plus ~80 lines of dispatcher/detection/validation changes
 3. **The data model is extensible** — adding new roles to efficacy rules is YAML-only, no code changes
 4. **The feature is orthogonal** — min-max planning doesn't modify or conflict with Easy 80%; they coexist as complementary tools
 5. **The scoring approach is testable** — bucket-based sorting with golden test cases provides concrete pass/fail assertions, not "does this score look reasonable"
@@ -763,6 +771,12 @@ Use one `effectiveness_per_sp` score across all skill types (breakpoints, multip
 Phases A+B+C deliver the core feature with the JF and drone boat use cases. Phase D expands role coverage on demand. Phase E (fit-specific plans) is deferred to a separate proposal.
 
 ## Open Decisions (Auto-generated)
+
+### Q1: minmax_multi_role_scoring_aggregation — RESOLVED
+
+**Question:** How should `effectiveness_per_sp` be computed when a skill appears in multiple selected/detected roles?
+
+**Decision:** `O1` — Use maximum per-role `per_level` contribution. This is codified in the Multi-role scoring rule (see Scoring section above).
 
 ### Q2: minmax_missing_efficacy_fallback
 
