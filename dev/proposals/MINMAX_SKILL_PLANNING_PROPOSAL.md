@@ -840,35 +840,37 @@ Mining, Ice Harvesting, Gas Cloud Harvesting, and Missile Launcher Operation are
 - Must NOT contain Amarr Frigate, Amarr Destroyer, Amarr Cruiser, Amarr Battlecruiser, or Amarr Battleship (these are NOT in the Ark's prerequisite chain)
 - Skill name must be "Amarr Hauler" (not "Amarr Industrial")
 
-### Test 3: Skiff Mining (miner + shield_tank)
+### Test 3: Skiff Mining (miner + ice_miner)
+
+**Auto-detected roles:** `["miner", "ice_miner"]` — Note: `shield_tank` is NOT auto-detected; the Skiff's tank role would require manual `roles` override.
 
 **Key ordering assertions for Phase 2:**
-1. Mining V (breakpoint, high — unlocks Mining Barge skill) must appear before Astrogeology to IV
-2. Astrogeology to IV (multiplier, 5%/level yield) must appear before Mining Upgrades to IV (support, 5%/level CPU reduction — lower practical impact)
+1. Mining IV→V (breakpoint, high — unlocks Mining Barge skill) must appear first. The SDE requires Mining IV for the Skiff; the breakpoint extends it to V in Phase 2.
+2. Mining Upgrades to IV (role_support) must appear after multiplier skills (Mining Frigate IV is a multiplier that appears before it)
+3. Astrogeology V is already satisfied in Phase 1 (SDE prerequisite), so it does NOT appear in Phase 2
 
 **Phase split assertion:**
-- Mining V appears in Phase 1 if SDE requires it for the ship, OR in Phase 2 if it's a breakpoint beyond SDE requirements
+- Mining IV is in Phase 1 (SDE requirement). Mining V is in Phase 2 (breakpoint extension beyond SDE level).
 
-### Test 4: Venture Mining (miner + shield_tank) — Orphan Prerequisite Injection
+### Test 4: Venture Mining (miner + gas_miner) — Orphan Prerequisite Injection
 
-The Venture has a minimal SDE tree (Spaceship Command I, Mining Frigate I), making it the primary injection test case.
+**Auto-detected roles:** `["miner", "gas_miner"]` — Note: `shield_tank` is NOT auto-detected.
+
+The Venture has a minimal SDE tree (Spaceship Command I, Mining Frigate I), making it the primary injection test case. However, injection only triggers when a Phase 2 skill has unmet prerequisites not already in Phase 1 or Phase 2. With `miner` + `gas_miner` roles, Astrogeology is the key skill that requires Science IV as a prerequisite.
 
 **Key injection assertions for Phase 2:**
-1. Science IV must be injected before Astrogeology (Astrogeology requires Science IV; Science is not in any role's `skills` list)
-2. Power Grid Management III must be injected before Shield Management (Shield Management requires PGM III; PGM is not in any role's `skills` list)
-3. Power Grid Management III must also satisfy Shield Operation (requires PGM I) and Tactical Shield Manipulation (requires PGM III) — injected once at `max(I, III, III) = III`
+1. Science must be injected before Astrogeology if Astrogeology requires Science at a level not satisfied by Phase 1. Since Science is not in either role's `skills` list and not in the Venture's SDE tree, it must be injected as an orphan prerequisite.
 
-**Injection bucket assertions:**
-- Science IV and PGM III must have `scoring_bucket: "injected_prerequisite"`
+**Note on shield_tank injection:** The PGM/Shield Management injection scenario described in the original proposal only applies when `shield_tank` is in the detected roles (e.g., via manual `roles=["miner", "shield_tank"]` override). With auto-detected roles, no shield skills enter the plan.
+
+**Injection bucket assertions (when injection triggers):**
+- Injected skills must have `scoring_bucket: "injected_prerequisite"`
 - They must appear immediately before the first skill that depends on them within the bucket ordering
-- Neither Science nor PGM appears in Phase 3 (zero role efficacy — no further training)
+- Injected skills do NOT appear in Phase 3 (zero role efficacy — no further training)
 
 **Exclusion assertions:**
-- Science and PGM must NOT appear in `excluded_skills` (they are trained, not excluded)
-- Skills like Drones and Gunnery (not in miner or shield_tank roles, not SDE prerequisites, not needed as prerequisites) must appear in `excluded_skills`
-
-**Efficacy assertion:**
-- Science and PGM must NOT contribute to `efficacy_at_phase_end` calculations (they have zero role effectiveness)
+- Injected prerequisite skills must NOT appear in `excluded_skills` (they are trained, not excluded)
+- Skills not in the SDE tree and not in any detected role do not appear in `excluded_skills` either (they never entered the pipeline)
 
 ---
 

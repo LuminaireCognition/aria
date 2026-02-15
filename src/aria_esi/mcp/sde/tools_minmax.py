@@ -444,8 +444,8 @@ def _get_skill_prerequisites(
         return []
 
     skill_id = row[0]
-    direct_reqs = query_service.get_type_skill_requirements(skill_id)
-    return [(req.skill_name, req.required_level) for req in direct_reqs]
+    skill_prereqs = query_service.get_skill_prerequisites(skill_id)
+    return [(req.skill_name, req.required_level) for req in skill_prereqs]
 
 
 def _lookup_skill_attrs(
