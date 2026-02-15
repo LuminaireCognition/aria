@@ -19,6 +19,15 @@ Developer-focused documentation for ARIA contributors.
 | [DATA_SOURCES.md](DATA_SOURCES.md) | External data source registry and caching policy |
 | [PERSONA_LOADING.md](PERSONA_LOADING.md) | Persona loading internals, overlay resolution, security delimiters |
 
+## Contributing
+
+| Document | Description |
+|----------|-------------|
+| [CONTRIBUTING_SKILLS.md](CONTRIBUTING_SKILLS.md) | How to create a new skill |
+| [CONTRIBUTING_PERSONAS.md](CONTRIBUTING_PERSONAS.md) | How to create a new persona |
+| [MCP_DEVELOPMENT.md](MCP_DEVELOPMENT.md) | Adding MCP dispatcher actions |
+| [GETTING_STARTED.md](GETTING_STARTED.md) | Developer quick start (clone to first test) |
+
 ## AI Runtime Instructions
 
 Documents in [ai-runtime/](ai-runtime/) are read by the LLM during sessions, not by humans:

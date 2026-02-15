@@ -20,6 +20,7 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 <a href="./docs/FIRST_RUN.md">First Run</a> |
 <a href="./docs/ESI.md">ESI Setup</a> |
 <a href="./docs/FAQ.md">FAQ</a> |
+<a href="./CONTRIBUTING.md">Contributing</a> |
 <a href="./docs/README.md">Full Docs Index</a>
 </p>
 
@@ -314,6 +315,12 @@ See [SECURITY.md](SECURITY.md) for full details.
 - Fuzzwork market endpoints (market pricing)
 - EVE University Wiki pages for mission intel (cached locally)
 - zKillboard RedisQ stream (optional, only when real-time intel is enabled)
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute configurations, PvE intel, reference data, skills, personas, and code.
 
 ---
 

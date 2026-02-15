@@ -4,13 +4,13 @@ This directory contains Architecture Decision Records (ADRs) documenting signifi
 
 ## Index
 
-| ADR | Title | Status | Date |
-|-----|-------|--------|------|
-| [001](ADR-001-multi-pilot-architecture.md) | Multi-Pilot Architecture | Accepted | 2026-01 |
-| [002](ADR-002-skill-metadata-schema.md) | Skill Metadata Schema | Accepted | 2026-01 |
-| [003](ADR-003-data-volatility-protocol.md) | Data Volatility Protocol | Accepted | 2026-01 |
-| [004](ADR-004-roleplay-opt-in.md) | Roleplay Opt-In Design | Accepted | 2026-01 |
-| [005](ADR-005-boot-modularization.md) | Boot Script Modularization | Accepted | 2026-01 |
+| ADR | Title | Status | Date | Summary |
+|-----|-------|--------|------|---------|
+| [001](ADR-001-multi-pilot-architecture.md) | Multi-Pilot Architecture | Accepted | 2026-01 | Directory-based pilot isolation with registry lookup |
+| [002](ADR-002-skill-metadata-schema.md) | Skill Metadata Schema | Accepted | 2026-01 | YAML frontmatter in SKILL.md with auto-generated _index.json |
+| [003](ADR-003-data-volatility-protocol.md) | Data Volatility Protocol | Accepted | 2026-01 | Never proactively mention volatile data; query on request only |
+| [004](ADR-004-roleplay-opt-in.md) | Roleplay Opt-In Design | Accepted | 2026-01 | Three RP levels (off/on/full) defaulting to off |
+| [005](ADR-005-boot-modularization.md) | Boot Script Modularization | Accepted | 2026-01 | Modular boot scripts with parallel execution |
 
 ## ADR Format
 

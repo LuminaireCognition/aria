@@ -4,7 +4,7 @@
 **Reviewer:** AI-assisted audit (Claude Opus 4.6)
 **Scope:** Full documentation audit — user-facing, developer-facing, and AI-runtime docs
 **Context:** Pre-public-announcement readiness review
-**Revision:** 2 — Updated with completion status from PR #34, polish commit, and fresh audit
+**Revision:** 3 — Updated with Phase 3 (contributor enablement) completions
 
 ---
 
@@ -12,7 +12,7 @@
 
 ARIA has extensive documentation (~250 markdown files, ~33,000+ lines), but it suffers from a fundamental structural problem: **user-facing and developer-facing documentation are co-mingled in `docs/`**, and a third category — **AI runtime instructions** — lives alongside both without clear labeling. Before public announcement, the highest-impact work is splitting `docs/` by audience so that new users see a clean, focused documentation surface rather than a mixed bag of setup guides and MCP context policy internals.
 
-Phase 1 (critical path) is **complete** as of PR #34 and the subsequent polish commit. The remaining work is structural reorganization (Phase 2) and contributor enablement (Phase 3).
+Phases 1-3 are **complete**. Phase 1 (PR #34), Phase 2 (audience split), and Phase 3 (contributor enablement) addressed all critical and high-priority items. Remaining work is Phase 4 (quality gates) and a few nice-to-have items.
 
 ---
 
@@ -252,7 +252,7 @@ These files are referenced by CLAUDE.md and read by the LLM at runtime, not by h
 | **CLAUDE.md references all resolve correctly** | All 18 doc references, 6 JSON references, all script references verified. | **✅ No action needed** | Fully compliant — no broken references. |
 | **No deprecated `lite` references in CLAUDE.md** | Only `off`, `on`, `full` used. | **✅ Clean** | No action needed. |
 | **CONTEXT_POLICY.md budget tracking unimplemented** | Section documents code that isn't called in production. Could confuse LLM about available capabilities. | Open | Mark more prominently as unimplemented or remove section. |
-| **docs/ESI.md line 21 may reference non-existent file** | References `reference/mechanics/esi_capabilities.md` — needs verification. | **NEW** | Verify file exists; if not, remove or correct reference. |
+| ~~**docs/ESI.md line 21 may reference non-existent file**~~ | ~~References `reference/mechanics/esi_capabilities.md`~~ | **✅ Verified** | File exists. No action needed. |
 
 ---
 
@@ -264,7 +264,7 @@ These files are referenced by CLAUDE.md and read by the LLM at runtime, not by h
 |--------|-----------|--------|-----|
 | ~~`personas/README.md` L171~~ | ~~`.claude/hooks/aria-boot.d/persona-detect.sh`~~ | **✅ FIXED** | Updated to `uv run aria-esi persona-context` *(PR #34)* |
 | ~~`reference/INDEX.md` L42-89~~ | ~~`missions/*.md`, `ships/fittings/*.md`~~ | **✅ FIXED** | Broken entries removed *(PR #34)* |
-| `docs/ESI.md` L21 | `reference/mechanics/esi_capabilities.md` | **NEW — Needs verification** | Verify file exists; remove reference if not |
+| ~~`docs/ESI.md` L21~~ | ~~`reference/mechanics/esi_capabilities.md`~~ | **✅ Verified** | File exists |
 | ~~`docs/DATA_AUTHORITY.md` L96~~ | ~~`sov-load-coalitions` command~~ | **Deferred** | Low priority — developer-facing file |
 
 ### Stale Terminology
@@ -299,9 +299,9 @@ Ordered by impact-to-effort ratio. Completed items struck through.
 
 ~~Moving ~12 files from `docs/` to `dev/docs/` and `dev/docs/ai-runtime/`.~~ 12 files moved, all references updated, README indexes created. *(Phase 2)*
 
-### 4. Add CONTRIBUTING.md link to README (HIGH impact, LOW effort)
+### ~~4. Add CONTRIBUTING.md link to README~~ ✅ DONE
 
-Root README.md has no link to CONTRIBUTING.md. A GitHub visitor looking to contribute can't find it. This is a 2-line fix that significantly improves contributor discoverability.
+~~Root README.md has no link to CONTRIBUTING.md.~~ Contributing section + Quick Docs bar link added. *(Phase 3)*
 
 ### ~~5. Fix All Broken Links~~ ✅ DONE
 
@@ -332,7 +332,7 @@ Issues that should be resolved before publicly announcing the project:
 - [x] **Verify LICENSE file exists and is correct** — confirmed MIT license present
 - [x] **Verify `.env.example` exists** — confirmed present
 - [x] **Add `docs/TROUBLESHOOTING.md`** — consolidated from 8 source files *(PR #34)*
-- [ ] **Add CONTRIBUTING.md link to root README** — currently missing; contributors can't discover guidelines *(NEW)*
+- [x] **Add CONTRIBUTING.md link to root README** — Contributing section + Quick Docs bar link *(Phase 3)*
 
 ### Should Fix
 
@@ -340,24 +340,24 @@ Issues that should be resolved before publicly announcing the project:
 - [x] **Split `NOTIFICATION_PROFILES.md`** — Quick Start + Cookbook *(Phase 2)*
 - [x] **Split `PERSONA_LOADING.md`** — user config vs developer internals *(Phase 2)*
 - [x] **Add WSL2 guidance** — present in README.md (platform support), FAQ.md (cron in WSL2), and implicitly in DEPLOYMENT.md *(verified 2026-02-15)*
-- [ ] **Create `dev/docs/CONTRIBUTING_SKILLS.md`** — skill creation guide
-- [ ] **Create `dev/docs/CONTRIBUTING_PERSONAS.md`** — persona creation guide
+- [x] **Create `dev/docs/CONTRIBUTING_SKILLS.md`** — step-by-step skill creation guide *(Phase 3)*
+- [x] **Create `dev/docs/CONTRIBUTING_PERSONAS.md`** — step-by-step persona creation guide *(Phase 3)*
 - [ ] **Expand `dev/RELEASE.md`** — release process for public project
-- [ ] **Add `ROUTE_SCENARIOS.md` disclaimer** — some scenarios describe features ARIA doesn't support (jump bridges, cynos, Thera)
+- [x] **Add `ROUTE_SCENARIOS.md` disclaimer** — clarifies which scenarios ARIA supports *(Phase 3)*
 - [x] **Archive `dev/DESIGN.md`** — moved to `dev/archive/DESIGN.md` *(polish commit 0644453)*
-- [ ] **Add testing requirements to CONTRIBUTING.md** — PR checklist doesn't mention running pytest *(NEW)*
-- [ ] **Verify `docs/ESI.md` L21 reference** — `reference/mechanics/esi_capabilities.md` may not exist *(NEW)*
+- [x] **Add testing requirements to CONTRIBUTING.md** — pytest command + link to TESTING.md *(Phase 3)*
+- [x] **Verify `docs/ESI.md` L21 reference** — `reference/mechanics/esi_capabilities.md` confirmed to exist *(Phase 3)*
 
 ### Nice to Have
 
 - [ ] **Add CI link checker** — `markdown-link-check` or `lychee` in GitHub Actions
 - [ ] **Create `docs/FEATURES.md`** — expanded showcase for GitHub visitors
-- [ ] **Add `dev/docs/MCP_DEVELOPMENT.md`** — dispatcher development guide
-- [ ] **Expand `dev/decisions/README.md`** — ADR index
-- [ ] **Add `dev/docs/GETTING_STARTED.md`** — developer quick start
-- [ ] **Create `.claude/skills/README.md`** — categorized skill directory index (SCHEMA.md exists for frontmatter format)
+- [x] **Add `dev/docs/MCP_DEVELOPMENT.md`** — dispatcher development guide *(Phase 3)*
+- [x] **Expand `dev/decisions/README.md`** — ADR index with summaries *(Phase 3)*
+- [x] **Add `dev/docs/GETTING_STARTED.md`** — developer quick start *(Phase 3)*
+- [x] **Create `.claude/skills/README.md`** — categorized skill directory index *(Phase 3)*
 - [ ] **Add terminology tables to empire personas** — parity with PARIA's voice definition
-- [ ] **Expand `docs/ARCHITECTURE.md`** — add MCP dispatcher examples and CLI fallback mention *(NEW)*
+- [x] **Expand `docs/ARCHITECTURE.md`** — MCP dispatcher examples + CLI fallback *(Phase 3)*
 - [ ] **Add more README badges** — coverage, Python version, license *(NEW)*
 - [ ] **Add "Finding Things" section to `dev/README.md`** — help developers navigate 80+ dev files *(NEW)*
 
@@ -440,7 +440,7 @@ All 9 items completed in PR #34 and subsequent polish commit.
 | 6 | Reconcile notification schema v1→v3 | ✅ Done |
 | 7 | Expand FIRST_RUN.md examples with descriptions | ✅ Done |
 | 8 | Archive dev/DESIGN.md | ✅ Done |
-| 9 | Add CONTRIBUTING.md link to root README | **Open — NEW** |
+| 9 | Add CONTRIBUTING.md link to root README | ✅ Done |
 
 ### Phase 2: Audience Split ✅ COMPLETE
 
@@ -457,20 +457,18 @@ All 9 items completed in PR #34 and subsequent polish commit.
 | 18 | Split NOTIFICATION_PROFILES.md → Quick Start + Cookbook | ✅ Done |
 | 19 | Split PERSONA_LOADING.md → user config + dev internals | ✅ Done |
 
-### Phase 3: Contributor Enablement
+### Phase 3: Contributor Enablement ✅ COMPLETE
 
-| # | Action | Effort | Files |
-|---|--------|--------|-------|
-| 20 | Create `dev/docs/CONTRIBUTING_SKILLS.md` | 2 hrs | New file |
-| 21 | Create `dev/docs/CONTRIBUTING_PERSONAS.md` | 2 hrs | New file |
-| 22 | Create `.claude/skills/README.md` skill index | 1.5 hrs | New file |
-| 23 | Create `dev/docs/MCP_DEVELOPMENT.md` | 3 hrs | New file |
-| 24 | Create `dev/docs/GETTING_STARTED.md` (dev quick start) | 2 hrs | New file |
-| 25 | Expand `dev/decisions/README.md` with ADR index | 30 min | 1 file |
-| 26 | Add worked example to CONTEXT_AWARE_TOPOLOGY.md | 1 hr | 1 file |
-| 27 | Add testing requirements to CONTRIBUTING.md | 30 min | 1 file |
-
-**Total: ~12.5 hours**
+| # | Action | Status |
+|---|--------|--------|
+| 20 | Create `dev/docs/CONTRIBUTING_SKILLS.md` | ✅ Done |
+| 21 | Create `dev/docs/CONTRIBUTING_PERSONAS.md` | ✅ Done |
+| 22 | Create `.claude/skills/README.md` skill index | ✅ Done |
+| 23 | Create `dev/docs/MCP_DEVELOPMENT.md` | ✅ Done |
+| 24 | Create `dev/docs/GETTING_STARTED.md` (dev quick start) | ✅ Done |
+| 25 | Expand `dev/decisions/README.md` with ADR summaries | ✅ Done |
+| 26 | Add worked example to CONTEXT_AWARE_TOPOLOGY.md | ✅ Done |
+| 27 | Add testing requirements to CONTRIBUTING.md | ✅ Done |
 
 ### Phase 4: Quality Gates (ongoing)
 
@@ -504,9 +502,9 @@ Documentation is "release-ready" when:
 | 1 | Clone-to-response in 10 min | ✅ Achievable with current docs |
 | 2 | Understand ARIA in 2 min | ✅ README + COMMANDS.md cover this |
 | 3 | `docs/` user-only | ✅ 12 developer/AI-runtime files moved to `dev/docs/` |
-| 4 | Zero broken links | ⚠️ 1 potential issue (ESI.md L21) |
+| 4 | Zero broken links | ✅ ESI.md L21 reference verified (file exists) |
 | 5 | Zero stale terminology | ✅ `lite` references cleaned; migration note is appropriate |
-| 6 | Skill creation guide | ❌ Not yet created |
+| 6 | Skill creation guide | ✅ `dev/docs/CONTRIBUTING_SKILLS.md` created |
 | 7 | All commands in COMMANDS.md | ✅ 48 commands documented |
 | 8 | Single troubleshooting entry | ✅ `docs/TROUBLESHOOTING.md` exists |
 
@@ -518,14 +516,14 @@ Documentation is "release-ready" when:
 |----------|-------------|--------|
 | README has clear quick start | ✅ Yes | Maintain |
 | README shows real output examples | ✅ Yes (3 examples) | Expand to 5-6 |
-| README links to CONTRIBUTING.md | ❌ No | Add link |
-| docs/ is user-focused | ❌ No (mixed audiences) | Split by Phase 2 |
+| README links to CONTRIBUTING.md | ✅ Yes | Maintain |
+| docs/ is user-focused | ✅ Yes (split in Phase 2) | Maintain |
 | Progressive disclosure (quick start → guide → reference) | ✅ Yes (TLDR → FIRST_RUN → COMMANDS → detailed) | Maintain |
 | Consolidated troubleshooting | ✅ Yes (TROUBLESHOOTING.md) | Maintain |
-| Contributing guide for major extension points | ❌ No (skills, personas undocumented) | Phase 3 |
+| Contributing guide for major extension points | ✅ Yes (skills, personas, MCP) | Maintain |
 | Automated link checking in CI | ❌ No | Phase 4 |
 | Command/API reference page | ✅ Yes (COMMANDS.md) | Maintain |
-| Architecture overview | ✅ Yes (ARCHITECTURE.md) | Enhance with MCP examples |
+| Architecture overview | ✅ Yes (ARCHITECTURE.md + MCP examples) | Maintain |
 | Security policy | ✅ Yes (SECURITY.md) | Maintain |
 | License clarity | ✅ Yes (README, CONTRIBUTING, LICENSE) | Maintain |
 | Example configurations | ✅ Yes (4 examples with descriptions) | Maintain, grow organically |
@@ -573,4 +571,4 @@ docs/DATA_FILES.md            → dev/docs/ai-runtime/DATA_FILES.md
 
 ---
 
-*Review generated 2026-02-15. Revision 2: Updated completion status, added new findings from fresh audit. Supersedes revision 1.*
+*Review generated 2026-02-15. Revision 3: Phase 3 contributor enablement complete. Supersedes revision 2.*
