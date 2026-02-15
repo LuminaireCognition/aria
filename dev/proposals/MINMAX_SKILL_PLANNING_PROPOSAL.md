@@ -489,17 +489,16 @@ Note: Phase 1 is large for capital ships because the SDE requires many skills at
 | # | Skill | From→To | Rank | Time | Bucket | Reason |
 |---|-------|---------|------|------|--------|--------|
 | 1 | Jump Drive Calibration | I→V | 9 | 53d 6h | breakpoint [critical] | +2 LY jump range per level |
-| 2 | Jump Fuel Conservation | 0→IV | 8 | 8d 9h | multiplier | 10% fuel reduction per level |
-| 3 | Evasive Maneuvering | 0→IV | 2 | 2d 2h | role_support | +5% agility per level (from `hauler`) |
-| 4 | Jump Freighters | I→IV | 14 | 14d 14h | role_support | JF hull bonuses (direct requirement, scored by rank) |
+| 2 | Evasive Maneuvering | 0→IV | 2 | 2d 2h | multiplier | +5% agility per level (from `hauler`, `multiplicative: true`) |
+| 3 | Jump Fuel Conservation | 0→IV | 8 | 8d 9h | multiplier | 10% fuel reduction per level (from `jump_capable`, `multiplicative: true`) |
+| 4 | Jump Freighters | I→IV | 14 | 14d 14h | role_support | JF hull bonuses (direct requirement, scored by `-rank`) |
 
 **Phase total: ~78d 7h** | **Efficacy: ~88%**
 
 Notes:
 - JDC ranks first as a critical breakpoint (jump range is discrete per level, not percentage)
-- Jump Fuel Conservation is a multiplier (10%/level fuel reduction) and trains relatively fast at rank 8 to IV
-- Jump Freighters appears via the SDE Direct Requirement Inclusion Rule — it's a direct requirement of the Ark, so it's always role-relevant even though it's not in any role's `skills` list
-- Evasive Maneuvering appears from the `hauler` role's efficacy rules
+- Evasive Maneuvering and Jump Fuel Conservation are both in the multiplier bucket (`multiplicative: true` in their respective roles). EM wins on effectiveness/SP: rank 2 costs ~4× less SP than rank 8 for the same number of levels, giving EM higher effectiveness per SP invested
+- Jump Freighters appears via the SDE Direct Requirement Inclusion Rule — it's a direct requirement of the Ark, so it's always role-relevant even though it's not in any role's `skills` list. It lands in `role_support` (not multiplicative) and sorts by `-rank` tiebreaker
 - JDO V is already required at V in Phase 1 by SDE, so it doesn't appear in Phase 2
 - Spaceship Command, Navigation, and Warp Drive Operation (from `hauler` role) are already at V in Phase 1, so they don't appear in Phase 2
 
@@ -828,8 +827,8 @@ The following scenarios have well-understood optimal training orders and serve a
 
 **Key ordering assertions for Phase 2:**
 1. Jump Drive Calibration I→V (breakpoint, critical) must appear first
-2. Jump Fuel Conservation to IV (multiplier, 10%/level) must appear before Evasive Maneuvering to IV (support, 5%/level)
-3. Evasive Maneuvering to IV (positive effectiveness_per_sp) must appear before Jump Freighters I→IV (direct requirement, `-rank` tiebreaker)
+2. Evasive Maneuvering to IV (multiplier, 5%/level, rank 2) must appear before Jump Fuel Conservation to IV (multiplier, 10%/level, rank 8) — both are `multiplicative: true` in their roles, so both land in the multiplier bucket; EM wins on effectiveness/SP because rank 2 costs ~4× less SP than rank 8 for the same number of levels
+3. Both Evasive Maneuvering and Jump Fuel Conservation (positive effectiveness_per_sp) must appear before Jump Freighters I→IV (direct requirement, `-rank` tiebreaker in role_support bucket)
 
 **Direct requirement inclusion assertions:**
 - Jump Freighters must appear in Phase 2 (I→IV) and Phase 3 (IV→V) via SDE Direct Requirement Inclusion Rule
