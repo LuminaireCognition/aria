@@ -478,7 +478,7 @@ To ground the proposal, here's what a min-max plan for "dedicated Ark pilot" wou
 | 10 | Amarr Freighter | IV | 10 | 10d 11h | SDE prerequisite |
 | 11 | Jump Freighters | I | 14 | 1h 56m | SDE prerequisite |
 
-**Phase total: ~106d 4h** | **Efficacy: ~38%**
+**Phase total: ~106d 4h** | **Efficacy: 57.8%**
 
 Note: Phase 1 is large for capital ships because the SDE requires many skills at V. This is inherent to the ship class — there is no shortcut. The value of the min-max plan here is showing exactly what's required vs. what's optional.
 
@@ -493,7 +493,7 @@ Note: Phase 1 is large for capital ships because the SDE requires many skills at
 | 3 | Jump Fuel Conservation | 0→IV | 8 | 8d 9h | multiplier | 10% fuel reduction per level (from `jump_capable`, `multiplicative: true`) |
 | 4 | Jump Freighters | I→IV | 14 | 14d 14h | role_support | JF hull bonuses (direct requirement, scored by `-rank`) |
 
-**Phase total: ~78d 7h** | **Efficacy: ~88%**
+**Phase total: ~78d 7h** | **Efficacy: 91.4%**
 
 Notes:
 - JDC ranks first as a critical breakpoint (jump range is discrete per level, not percentage)
@@ -527,11 +527,11 @@ Notes:
 
 | Phase | Time | Cumulative | Efficacy |
 |-------|------|------------|----------|
-| 1: Get Online | 106d 4h | 106d 4h | ~38% |
-| 2: Get Effective | 78d 7h | 184d 11h | ~88% |
+| 1: Get Online | 106d 4h | 106d 4h | 57.8% |
+| 2: Get Effective | 78d 7h | 184d 11h | 91.4% |
 | 3: Get Maximal | 165d 19h | 350d 6h | 100% |
 
-**Total: ~350 days from 0 to maximal Ark pilot.** Phase 1 is dominated by SDE prerequisites. The min-max plan's value is most visible in Phases 2-3, where 78 days of targeted training jumps from 38% to 88% efficacy, while the final 50% improvement (Phase 3) takes 166 more days — clearly showing diminishing returns.
+**Total: ~350 days from 0 to maximal Ark pilot.** Phase 1 is dominated by SDE prerequisites. The min-max plan's value is most visible in Phases 2-3, where 78 days of targeted training jumps from 57.8% to 91.4% efficacy, while the final 8.6% improvement (Phase 3) takes 166 more days — clearly showing diminishing returns.
 
 ### Contrast: Cyno Alt (Illustrative, Not Algorithm Output)
 
