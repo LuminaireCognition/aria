@@ -1014,7 +1014,10 @@
         "how long to train [skill/ship]",
         "skill requirements for [item]",
         "can I fly [ship]",
-        "what do I need for [activity]"
+        "what do I need for [activity]",
+        "min-max plan for [ship]",
+        "max out [ship] skills",
+        "priority training order for [ship]"
       ],
       "requires_pilot": true,
       "esi_scopes": "[esi-skills.read_skills.v1]",
@@ -1482,6 +1485,9 @@
     "skill requirements for [item]": "skillplan",
     "can i fly [ship]": "skillplan",
     "what do i need for [activity]": "skillplan",
+    "min-max plan for [ship]": "skillplan",
+    "max out [ship] skills": "skillplan",
+    "priority training order for [ship]": "skillplan",
     "/skillqueue": "skillqueue",
     "skill queue": "skillqueue",
     "what am i training": "skillqueue",

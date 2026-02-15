@@ -179,8 +179,9 @@ SDE_ACTION_PARAMS: dict[str, set[str]] = {
 SKILLS_ACTION_PARAMS: dict[str, set[str]] = {
     "training_time": {"skill_list", "attributes"},
     "easy_80_plan": {"item", "current_skills", "attributes"},
-    "get_multipliers": {"role"},
-    "get_breakpoints": {"role", "category_filter"},
+    "minmax_plan": {"item", "roles", "current_skills", "attributes"},
+    "get_multipliers": {"roles"},
+    "get_breakpoints": {"roles", "category_filter"},
     "t2_requirements": {"item"},
     "activity_plan": {"activity", "tier", "parameters", "current_skills"},
     "activity_list": {"category_filter"},

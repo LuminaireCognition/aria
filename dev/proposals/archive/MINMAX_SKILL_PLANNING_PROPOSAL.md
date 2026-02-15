@@ -1,7 +1,13 @@
 # Min-Max Skill Planning Proposal
 
-**Status:** REVISED (2026-02-08) — Review fixes applied
+**Status:** IMPLEMENTED (2026-02-15) — Phases A-C complete. Core algorithm, dispatcher, SKILL.md, hauler role.
 **Related:** `skills()` MCP dispatcher, `fitting()` dispatcher, `/skillplan` skill, Easy 80% system
+
+**Changelog:**
+- **2026-02-15c:** Resolved Q3 (dependency injection target level) with S1 (minimum required level, placed in Phase 2 before dependent skill). Added `injected_prerequisite` scoring bucket. Expanded Cross-Phase Dependency Guarantee with orphan prerequisite definition and injection mechanics. Added `resolve_injected_prerequisites()` to Phase A. Added Golden Test 4 (Venture injection-heavy). All open decisions now resolved.
+- **2026-02-15b:** Resolved Q2 (missing efficacy fallback) with per-role data threshold (S4 hybrid). Added Per-Role Data Threshold section to Phase 2 algorithm. Added `classify_role_strength()` to Phase A implementation plan. Updated risk mitigation for incomplete efficacy rules.
+- **2026-02-15:** Synced with codebase post-cleanup. Fixed `1/rank` → `-rank` fallback inconsistency in Phase A.3. Added `validation.py` to Phase B modified files and "What Needs to Be Built" table. Added Q1 resolution to Open Decisions. Updated `ship_category_roles` limitation to note archetype library now covers destroyers/haulers. Added Sigil/Epithal to proposed hauler `example_ships`. Fixed skill name: "Armor Resistance Phasing" → "Resistance Phasing" (matching YAML). Annotated MULTIPLIER_SKILLS with exact 8-skill inventory. Added mtime-cache and SkillRequirementsResult model notes to viability table.
+- **2026-02-08:** Review fixes applied. Added multi-role scoring rule, open decisions Q1-Q3.
 
 ---
 
@@ -211,7 +217,42 @@ Without this rule, Amarr Freighter and Jump Freighters would be excluded (they a
    - Multiplier skills: train to IV
    - Other role skills: train to IV
 4. Exclude any skill where Phase 1 already meets or exceeds the Phase 2 target
-5. Sort by scoring bucket priority (see Scoring section), then by effectiveness/SP within bucket
+5. Classify each role as **strong** or **weak** (see Per-Role Data Threshold below)
+6. Sort strong-role skills by scoring bucket priority (see Scoring section), then by effectiveness/SP within bucket
+7. Append weak-role skills after all strong-role skills, ordered by rank ascending (faster to train first)
+
+#### Per-Role Data Threshold
+
+Each detected role is classified before Phase 2 ordering:
+
+```python
+MINIMUM_SCORED_SKILLS = 2  # At least 2 skills with per_level > 0
+
+def classify_role_strength(role: str, efficacy_rules: dict) -> str:
+    """Classify a role as 'strong' or 'weak' based on efficacy data coverage."""
+    role_data = efficacy_rules["ship_roles"].get(role, {})
+    scored_skills = [
+        s for s in role_data.get("skills", [])
+        if s.get("per_level", 0) > 0
+    ]
+    return "strong" if len(scored_skills) >= MINIMUM_SCORED_SKILLS else "weak"
+```
+
+**Strong roles** (>= 2 skills with `per_level > 0`) contribute to Phase 2 normally — their skills are scored by bucket priority and effectiveness/SP.
+
+**Weak roles** (< 2 scored skills) have their skills included in the plan but placed *after* all strong-role skills in Phase 2, ordered by rank ascending (lower rank = faster to train = first). A warning is emitted:
+
+```python
+if weak_roles:
+    warnings.append(
+        f"Role(s) {weak_roles} have limited efficacy data. "
+        f"Their skills appear in Phase 2 but without effectiveness-based ordering."
+    )
+```
+
+**Rationale:** This per-role granularity avoids two failure modes: (1) a single sparse role degrading the ordering quality of a data-rich role (solved by scoring strong and weak roles independently), and (2) blocking the entire plan because one role lacks data (solved by always generating a plan). The threshold of 2 is the minimum needed for effectiveness/SP comparisons to be meaningful — with only 1 scored skill there is nothing to compare against.
+
+**Edge case — all roles are weak:** The plan still generates. Phase 2 contains all role-relevant skills ordered by rank. The warning makes clear that ordering is by training speed, not effectiveness. This is strictly better than no plan (the user still gets role scoping and excluded-skill transparency) while being honest about the limitation.
 
 **Phase 2 target of IV — design choice:** The IV ceiling for non-breakpoint skills is inherited from the Easy 80% observation that Level IV provides ~80% of the Level V bonus for ~20% of the SP cost. This is a reasonable default for Phase 2 ("Get Effective"), since Phase 3 ("Get Maximal") exists to take everything to V. For skills with linear per-level bonuses (e.g., Jump Fuel Conservation at 10%/level), the per-SP efficiency is identical at every level — the argument for stopping at IV is purely that V costs as much SP as I→IV combined, making it a diminishing-returns boundary. This is acknowledged as a design choice, not a min-max derivation.
 
@@ -227,7 +268,62 @@ Without this rule, Amarr Freighter and Jump Freighters would be excluded (they a
 
 #### Cross-Phase Dependency Guarantee
 
-Before emitting the plan, validate that every skill's prerequisites are satisfied by an earlier phase or an earlier entry within the same phase. If a Phase 2 skill requires a prerequisite not in Phase 1, that prerequisite is pulled into Phase 2 ahead of the skill that needs it.
+Before emitting the plan, validate that every skill's prerequisites are satisfied by an earlier phase or an earlier entry within the same phase.
+
+**Orphan prerequisites** are skills that:
+1. Are NOT in the item's SDE prerequisite tree (not Phase 1)
+2. Are NOT in any detected role's `skills` list (not role-relevant)
+3. Are NOT in the item's `direct_requirements`
+4. ARE required by a Phase 2 or Phase 3 skill as a training prerequisite
+
+Common orphans include Power Grid Management (required by all shield_tank skills, Thermodynamics, Capacitor Management) and Science (required by Astrogeology, Astrometrics, Jump Drive Operation, Thermodynamics). These skills appear in zero role definitions but gate nearly half the roles in the system.
+
+**Injection algorithm:**
+
+```python
+def resolve_injected_prerequisites(phase_skills: list, phase1_skills: dict) -> list:
+    """
+    Scan Phase 2/3 skills for unmet prerequisites. Inject orphans at minimum
+    required level, placed immediately before the first skill that needs them.
+
+    Orphan prerequisites do NOT appear in Phase 3 — they train to the minimum
+    level needed and no further.
+    """
+    injected = {}  # skill_name -> {to_level, placed_before}
+
+    for skill in phase_skills:
+        for prereq_name, prereq_level in get_skill_prerequisites(skill.skill_name):
+            # Already satisfied by Phase 1?
+            if phase1_skills.get(prereq_name, 0) >= prereq_level:
+                continue
+            # Already a role skill in this phase?
+            if any(s.skill_name == prereq_name for s in phase_skills):
+                continue
+            # Already injected at sufficient level?
+            if injected.get(prereq_name, {}).get("to_level", 0) >= prereq_level:
+                continue
+
+            # Inject at minimum required level
+            injected[prereq_name] = {
+                "to_level": prereq_level,
+                "placed_before": skill.skill_name,
+                "scoring_bucket": "injected_prerequisite",
+                "reason": f"Prerequisite for {skill.skill_name} (minimum level)",
+            }
+
+    # Recursively check injected skills' own prerequisites
+    # (e.g., Electronics Upgrades III requires CPU Management II AND PGM II)
+    resolve_injected_prerequisites(list(injected.values()), phase1_skills)
+
+    return merge_injected_into_phase(phase_skills, injected)
+```
+
+**Key rules:**
+- **Minimum level only.** An orphan trains to `max(required_level)` across all dependents in the plan. If Shield Management needs PGM III and Thermodynamics needs PGM IV, the orphan trains to IV.
+- **No Phase 3 entry.** Orphan prerequisites have zero role efficacy. Training them beyond the minimum wastes SP, which violates min-max philosophy.
+- **Placement is local.** The orphan appears immediately before the first skill that depends on it, within that skill's bucket position. This makes the training order self-documenting ("train Science IV *because* Astrogeology needs it").
+- **Recursive resolution.** Injected orphans may themselves have prerequisites (e.g., Hacking requires Electronics Upgrades III, which requires CPU Management II and Power Grid Management II). The algorithm resolves transitively.
+- **Orphans are neither excluded nor role-relevant.** They appear in the plan as `scoring_bucket: "injected_prerequisite"` but are not counted in the `excluded_skills` list (they ARE trained) and do not contribute to efficacy calculations (they have zero role effectiveness).
 
 ### current_skills Interaction
 
@@ -251,8 +347,13 @@ Skills within Phase 2 are ordered by bucket, then by within-bucket score:
 | Priority | Bucket | Contains | Ordering Within Bucket |
 |----------|--------|----------|----------------------|
 | 1 | **breakpoint** | Skills from `breakpoint_skills.yaml` applicable to detected roles | By `impact` tier: `critical` > `high` > `medium`, then by rank ascending (faster to train first) |
+| — | **injected_prerequisite** | Orphan prerequisites of breakpoint skills (see Cross-Phase Dependency Guarantee) | Immediately before the dependent skill within the breakpoint bucket |
 | 2 | **multiplier** | Skills in `MULTIPLIER_SKILLS` applicable to detected roles | By `effectiveness_per_sp` descending |
+| — | **injected_prerequisite** | Orphan prerequisites of multiplier skills | Immediately before the dependent skill within the multiplier bucket |
 | 3 | **role_support** | Other skills from efficacy rules for detected roles | By `effectiveness_per_sp` descending |
+| — | **injected_prerequisite** | Orphan prerequisites of role_support skills | Immediately before the dependent skill within the role_support bucket |
+
+**`injected_prerequisite` placement rule:** An injected orphan prerequisite is placed immediately before the *first* skill that depends on it, within that skill's bucket position. If multiple skills in different buckets depend on the same orphan, the orphan is placed before the highest-priority dependent (i.e., it appears as early as needed). Injected prerequisites train to the **minimum level required** by any dependent skill in the plan — no Phase 3 entry is created for them. See "Cross-Phase Dependency Guarantee" for the full injection algorithm.
 
 #### Effectiveness-Per-SP Calculation
 
@@ -298,12 +399,14 @@ def effectiveness_per_sp(skill_name: str, from_level: int, to_level: int, rank: 
 - **No cross-bucket comparison.** Breakpoints are always trained before multipliers, regardless of their per-SP efficiency. A critical breakpoint like Drones V (25% DPS gain) trains before Drone Interfacing IV (40% gain over 4 levels) because the breakpoint unlocks a discrete capability.
 - **No synthetic weighting.** The old proposal used arbitrary constants (`25.0` for breakpoints, `1.2` for multiplicative). This design avoids magic numbers by sorting on separate axes.
 - **`per_level` comparisons are within-bucket only.** Comparing "10% drone damage" to "2% turret RoF" is meaningless across roles, but within a single role's multiplier bucket (e.g., Drone Interfacing vs. Medium Drone Operation), both use the same metric (drone DPS contribution per level) and the comparison is valid.
-- **`per_level: 0` fallback.** Skills with discrete effects (e.g., Exhumers, Armor Resistance Phasing) and direct-requirement hull skills not in any role's efficacy rules score `-rank` instead of 0. This sorts them *after* all skills with measurable per-level bonuses within the same bucket (any positive score beats a negative tiebreaker), then orders among themselves by training speed (lower rank = less negative = first). This is intentional: measurable bonuses should train before unmeasured hull skills. Most `per_level: 0` skills are handled by the breakpoint bucket (Drones V, Cloaking IV, etc.) and never reach this fallback.
+- **`per_level: 0` fallback.** Skills with discrete effects (e.g., Exhumers, Resistance Phasing) and direct-requirement hull skills not in any role's efficacy rules score `-rank` instead of 0. This sorts them *after* all skills with measurable per-level bonuses within the same bucket (any positive score beats a negative tiebreaker), then orders among themselves by training speed (lower rank = less negative = first). This is intentional: measurable bonuses should train before unmeasured hull skills. Most `per_level: 0` skills are handled by the breakpoint bucket (Drones V, Cloaking IV, etc.) and never reach this fallback.
 
 #### Phase 3 Ordering
 
 Phase 3 uses simple `effectiveness_per_sp` across all remaining skills without bucket separation. At this stage all high-priority skills are done; the ordering optimizes "which last-mile skills give the most for their training time."
 
+
+**Multi-role scoring rule:** When a skill appears in multiple active roles, compute `effectiveness_per_sp` using the maximum per-role `per_level` contribution for that skill. This keeps ordering conservative and prevents additive inflation across loosely related roles.
 ### Efficacy Calculation
 
 **Definition:** 100% efficacy = all role-relevant skills at their Phase 3 target levels (V for most).
@@ -338,9 +441,10 @@ This is implemented as a new `calculate_minmax_efficacy()` function in `tools_mi
 **Definition:** A skill is excluded if it meets **all** of the following:
 1. It is NOT in any detected role's `skills` list in `ship_efficacy_rules.yaml`
 2. It is NOT in the item's `direct_requirements` (per the SDE Direct Requirement Inclusion Rule)
-3. It was added to the tree as a support skill (by Easy 80%), not as an SDE prerequisite
+3. It is NOT an injected orphan prerequisite (per the Cross-Phase Dependency Guarantee)
+4. It was added to the tree as a support skill (by Easy 80%), not as an SDE prerequisite
 
-Skills in the SDE `full_prerequisite_tree` are never excluded — they are Phase 1 requirements. Skills in `direct_requirements` are never excluded — they are always role-relevant. Only support skills added beyond the SDE tree that don't match any detected role are excluded.
+Skills in the SDE `full_prerequisite_tree` are never excluded — they are Phase 1 requirements. Skills in `direct_requirements` are never excluded — they are always role-relevant. Injected orphan prerequisites are never excluded — they are required to satisfy dependency chains (they appear in the plan as `scoring_bucket: "injected_prerequisite"`). Only support skills added beyond the SDE tree that don't match any detected role and aren't needed as prerequisites are excluded.
 
 Excluded skills are reported in the output for transparency, so the user understands why certain skills were intentionally omitted.
 
@@ -374,7 +478,7 @@ To ground the proposal, here's what a min-max plan for "dedicated Ark pilot" wou
 | 10 | Amarr Freighter | IV | 10 | 10d 11h | SDE prerequisite |
 | 11 | Jump Freighters | I | 14 | 1h 56m | SDE prerequisite |
 
-**Phase total: ~106d 4h** | **Efficacy: ~38%**
+**Phase total: ~106d 4h** | **Efficacy: 57.8%**
 
 Note: Phase 1 is large for capital ships because the SDE requires many skills at V. This is inherent to the ship class — there is no shortcut. The value of the min-max plan here is showing exactly what's required vs. what's optional.
 
@@ -385,17 +489,16 @@ Note: Phase 1 is large for capital ships because the SDE requires many skills at
 | # | Skill | From→To | Rank | Time | Bucket | Reason |
 |---|-------|---------|------|------|--------|--------|
 | 1 | Jump Drive Calibration | I→V | 9 | 53d 6h | breakpoint [critical] | +2 LY jump range per level |
-| 2 | Jump Fuel Conservation | 0→IV | 8 | 8d 9h | multiplier | 10% fuel reduction per level |
-| 3 | Evasive Maneuvering | 0→IV | 2 | 2d 2h | role_support | +5% agility per level (from `hauler`) |
-| 4 | Jump Freighters | I→IV | 14 | 14d 14h | role_support | JF hull bonuses (direct requirement, scored by rank) |
+| 2 | Evasive Maneuvering | 0→IV | 2 | 2d 2h | multiplier | +5% agility per level (from `hauler`, `multiplicative: true`) |
+| 3 | Jump Fuel Conservation | 0→IV | 8 | 8d 9h | multiplier | 10% fuel reduction per level (from `jump_capable`, `multiplicative: true`) |
+| 4 | Jump Freighters | I→IV | 14 | 14d 14h | role_support | JF hull bonuses (direct requirement, scored by `-rank`) |
 
-**Phase total: ~78d 7h** | **Efficacy: ~88%**
+**Phase total: ~78d 7h** | **Efficacy: 91.4%**
 
 Notes:
 - JDC ranks first as a critical breakpoint (jump range is discrete per level, not percentage)
-- Jump Fuel Conservation is a multiplier (10%/level fuel reduction) and trains relatively fast at rank 8 to IV
-- Jump Freighters appears via the SDE Direct Requirement Inclusion Rule — it's a direct requirement of the Ark, so it's always role-relevant even though it's not in any role's `skills` list
-- Evasive Maneuvering appears from the `hauler` role's efficacy rules
+- Evasive Maneuvering and Jump Fuel Conservation are both in the multiplier bucket (`multiplicative: true` in their respective roles). EM wins on effectiveness/SP: rank 2 costs ~4× less SP than rank 8 for the same number of levels, giving EM higher effectiveness per SP invested
+- Jump Freighters appears via the SDE Direct Requirement Inclusion Rule — it's a direct requirement of the Ark, so it's always role-relevant even though it's not in any role's `skills` list. It lands in `role_support` (not multiplicative) and sorts by `-rank` tiebreaker
 - JDO V is already required at V in Phase 1 by SDE, so it doesn't appear in Phase 2
 - Spaceship Command, Navigation, and Warp Drive Operation (from `hauler` role) are already at V in Phase 1, so they don't appear in Phase 2
 
@@ -424,11 +527,11 @@ Notes:
 
 | Phase | Time | Cumulative | Efficacy |
 |-------|------|------------|----------|
-| 1: Get Online | 106d 4h | 106d 4h | ~38% |
-| 2: Get Effective | 78d 7h | 184d 11h | ~88% |
+| 1: Get Online | 106d 4h | 106d 4h | 57.8% |
+| 2: Get Effective | 78d 7h | 184d 11h | 91.4% |
 | 3: Get Maximal | 165d 19h | 350d 6h | 100% |
 
-**Total: ~350 days from 0 to maximal Ark pilot.** Phase 1 is dominated by SDE prerequisites. The min-max plan's value is most visible in Phases 2-3, where 78 days of targeted training jumps from 38% to 88% efficacy, while the final 50% improvement (Phase 3) takes 166 more days — clearly showing diminishing returns.
+**Total: ~350 days from 0 to maximal Ark pilot.** Phase 1 is dominated by SDE prerequisites. The min-max plan's value is most visible in Phases 2-3, where 78 days of targeted training jumps from 57.8% to 91.4% efficacy, while the final 8.6% improvement (Phase 3) takes 166 more days — clearly showing diminishing returns.
 
 ### Contrast: Cyno Alt (Illustrative, Not Algorithm Output)
 
@@ -449,7 +552,7 @@ A cyno alt is a common companion to a JF pilot but is a *different character* wi
 
 **New file:** `src/aria_esi/mcp/sde/tools_minmax.py`
 
-Build the minmax plan generator as a standalone module, following the same pattern as `tools_easy80.py`:
+Build the minmax plan generator as a standalone module, following the same pattern as `tools_easy80.py`. Since the legacy MCP tools cleanup (commit `2340645`), all SDE tool implementations live under `src/aria_esi/mcp/sde/tools_*.py` and are dispatched from `src/aria_esi/mcp/dispatchers/skills.py`:
 
 1. **`generate_minmax_plan()`** — Core orchestrator
    - Input: item name, detected roles, current skills, attributes
@@ -469,22 +572,38 @@ Build the minmax plan generator as a standalone module, following the same patte
    - Input: skill, bucket type, role data
    - Output: sort key (impact tier for breakpoints, effectiveness/SP for others)
    - No cross-bucket comparison
-   - Handles `per_level: 0` skills via `1/rank` fallback
+   - Handles `per_level: 0` skills via `-rank` fallback (negative rank sorts after all positive scores, then orders by training speed)
 
-4. **`scope_skills_to_roles()`** — Role scoping filter
+4. **`classify_role_strength()`** — Per-role data threshold evaluation
+   - Input: role name, efficacy rules
+   - Output: `"strong"` or `"weak"`
+   - A role is strong if it has >= `MINIMUM_SCORED_SKILLS` (2) skills with `per_level > 0`
+   - Used by `generate_minmax_plan()` to partition roles before Phase 2 ordering
+   - Weak-role skills are appended after strong-role skills in Phase 2, ordered by rank
+
+5. **`resolve_injected_prerequisites()`** — Cross-phase dependency injection
+   - Input: phase skills list, Phase 1 skill levels
+   - Output: phase skills with orphan prerequisites injected
+   - Scans each Phase 2/3 skill's prerequisites against Phase 1 and existing phase skills
+   - Injects orphans at minimum required level, placed before the first dependent skill
+   - Recursively resolves injected skills' own prerequisites
+   - Orphans get `scoring_bucket: "injected_prerequisite"` and no Phase 3 entry
+
+6. **`scope_skills_to_roles()`** — Role scoping filter
    - Input: full skill tree (SDE + support), detected roles, direct requirements
    - Output: filtered tree containing skills that appear in at least one of:
      (a) a detected role's `skills` list in efficacy rules, or
      (b) the item's `direct_requirements`
-   - Exclusion list for transparency (only skills in neither set)
+   - Exclusion list for transparency (only skills in neither set and not injected orphans)
 
-5. **`calculate_minmax_efficacy()`** — Role-aware efficacy calculation
+7. **`calculate_minmax_efficacy()`** — Role-aware efficacy calculation
    - Input: skills_at_level, target_levels, detected roles
    - Output: efficacy percentage (0-100)
    - Derives multiplier weight from role efficacy data (`multiplicative` flag) instead of hardcoded `MULTIPLIER_SKILLS` dict
+   - Injected orphan prerequisites are excluded from efficacy weighting (zero role contribution)
    - Does NOT modify the existing `calculate_efficacy()` in `tools_easy80.py`
 
-6. **`_minmax_plan_impl()`** — Standalone async implementation for dispatcher
+8. **`_minmax_plan_impl()`** — Standalone async implementation for dispatcher
 
 **YAML addition:** `reference/skills/ship_efficacy_rules.yaml` — add `hauler` role. Required because the motivating JF example needs agility/warp skills defined. Needed before core algorithm can be validated against the golden test cases.
 
@@ -502,6 +621,8 @@ hauler:
     - Impel
     - Occator
     - Bestower
+    - Sigil
+    - Epithal
   skills:
     - skill: Evasive Maneuvering
       effect: "+5% agility per level"
@@ -560,11 +681,11 @@ if any(g in group_lower for g in ["freighter", "jump freighter", "industrial",
 
 ### Phase B: Dispatcher Integration
 
-**Modified file:** `src/aria_esi/mcp/dispatchers/skills.py`
+**Modified files:**
+- `src/aria_esi/mcp/dispatchers/skills.py` — Add `minmax_plan` to `SkillsAction` literal and `VALID_ACTIONS` set; add `roles` parameter to the `skills()` function signature; wire `minmax_plan` to `_minmax_plan_impl`.
+- `src/aria_esi/mcp/validation.py` — Add `"minmax_plan"` entry to `SKILLS_ACTION_PARAMS` schema (e.g., `{"item", "roles", "current_skills", "attributes"}`). Without this, the parameter validation layer will flag `roles` as an irrelevant parameter.
 
-Add `minmax_plan` to `VALID_ACTIONS` and wire it to `_minmax_plan_impl`.
-
-Rename the existing `role` parameter (singular) to `roles` (plural, `list[str] | None`) across all actions. This is a one-time migration — `get_multipliers` and `get_breakpoints` accept the first element of the list; `minmax_plan` uses the full list. No backwards compatibility shim needed.
+Rename the existing `role` parameter (singular) to `roles` (plural, `list[str] | None`) across all actions. This is a one-time migration — `get_multipliers` and `get_breakpoints` accept the first element of the list; `minmax_plan` uses the full list. No backwards compatibility shim needed. The `SKILLS_ACTION_PARAMS` entries for `get_multipliers` and `get_breakpoints` must be updated from `{"role"}` to `{"roles"}` to match.
 
 **Validation:** If `roles` is provided, every entry must be a key in `ship_efficacy_rules.yaml`. Invalid entries raise `InvalidParameterError` with the list of valid role names.
 
@@ -616,44 +737,48 @@ This is a substantially different extraction model from the current one, not a m
 | Component | Location | Reuse Level |
 |-----------|----------|-------------|
 | Role detection | `tools_easy80.py:detect_ship_roles()` | Reuse + extend (add `hauler` detection) |
-| Efficacy rules (YAML) | `reference/skills/ship_efficacy_rules.yaml` | Direct reuse |
-| Breakpoint skills (YAML) | `reference/skills/breakpoint_skills.yaml` | Direct reuse |
-| Multiplier skills | `tools_easy80.py:MULTIPLIER_SKILLS` | Direct reuse (Easy 80% only; minmax derives from YAML) |
+| Efficacy rules (YAML) | `reference/skills/ship_efficacy_rules.yaml` | Direct reuse (13 roles defined: drone_boat, turret_boat, missile_boat, armor_tank, shield_tank, miner, explorer, stealth_ship, logi, active_tank, jump_capable, capital_support, gas_miner, ice_miner, navigation) |
+| Breakpoint skills (YAML) | `reference/skills/breakpoint_skills.yaml` | Direct reuse (17 breakpoints across combat, tank, stealth, industrial, capital, exploration, logi categories) |
+| Multiplier skills | `tools_easy80.py:MULTIPLIER_SKILLS` | Direct reuse (Easy 80% only; minmax derives from YAML). Contains 8 skills: Drone Interfacing, Surgical Strike, Rapid Firing, Warhead Upgrades, Rapid Launch, Repair Systems, Shield Management, Astrogeology |
 | Training time calc | `tools_skills.py:calculate_sp_*()` | Direct reuse |
 | SDE skill tree | `queries.py:get_full_skill_tree()` | Direct reuse |
-| SDE direct requirements | SDE dispatcher `skill_requirements` | Direct reuse (provides `direct_requirements`) |
+| SDE direct requirements | SDE dispatcher `skill_requirements` action | Direct reuse (returns `direct_requirements` and `full_prerequisite_tree` via `SkillRequirementsResult` model) |
 | Efficacy calculation | `tools_easy80.py:calculate_efficacy()` | **Not reused** — new `calculate_minmax_efficacy()` with role-derived weights |
 | Dispatcher pattern | `dispatchers/skills.py` | Direct reuse |
-| YAML caching pattern | `tools_easy80.py:load_*()` | Direct reuse |
+| Parameter validation | `validation.py:SKILLS_ACTION_PARAMS` | Extend (add `minmax_plan` entry) |
+| YAML caching pattern | `tools_easy80.py:load_*()` | Direct reuse (mtime-based cache invalidation) |
 
 **Estimate: ~60% of the implementation is assembly of existing components.** The genuinely new code is:
 1. The phase assignment logic with direct-requirement rule (~100 lines)
 2. The bucket-based scoring and ordering with `per_level: 0` fallback (~80 lines)
 3. The role-scoping filter with direct-requirement inclusion (~50 lines)
-4. The `calculate_minmax_efficacy()` function (~50 lines)
-5. The `_minmax_plan_impl` orchestrator (~280 lines)
-6. Cross-phase dependency validation (~30 lines)
-7. `detect_ship_roles()` hauler extension (~25 lines)
-8. Tests and fixtures (~450 lines)
+4. The per-role data threshold classification (~20 lines)
+5. The orphan prerequisite injection with recursive resolution (~60 lines)
+6. The `calculate_minmax_efficacy()` function (~50 lines)
+7. The `_minmax_plan_impl` orchestrator (~300 lines)
+8. Cross-phase dependency validation (~30 lines)
+9. `detect_ship_roles()` hauler extension (~25 lines)
+10. Tests and fixtures (~530 lines)
 
 ### What Needs to Be Built
 
 | Component | Estimated Lines | Complexity |
 |-----------|----------------|------------|
-| `tools_minmax.py` (core) | ~590 | Medium — phase assignment + bucket scoring + efficacy |
+| `tools_minmax.py` (core) | ~690 | Medium — phase assignment + bucket scoring + role threshold + orphan injection + efficacy |
 | `detect_ship_roles()` hauler addition | ~25 | Low — follows existing pattern |
 | Dispatcher wiring + `role`→`roles` migration | ~50 | Low — follows exact pattern |
+| `validation.py` parameter schema update | ~5 | Low — add `minmax_plan` entry + rename `role`→`roles` |
 | `hauler` role (YAML) | ~30 | Low — data-only |
 | SKILL.md updates | ~40 | Low — documentation |
-| Test fixtures + golden tests | ~450 | Medium — need SDE-verified scenarios |
-| **Total** | **~1185** | |
+| Test fixtures + golden tests | ~530 | Medium — need SDE-verified scenarios + weak-role + injection tests |
+| **Total** | **~1295** | |
 
 ### Risks and Mitigations
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
 | Scoring produces unintuitive ordering within buckets | Medium — users would distrust the plan | Golden test cases validate ordering against known-good sequences; bucket separation prevents cross-category confusion |
-| Incomplete efficacy rules for niche roles | Low — plan degrades gracefully | Fall back to prerequisite-only plan (Phase 1 + "train everything to V") when no efficacy data exists; warn user |
+| Incomplete efficacy rules for niche roles | Low — plan degrades gracefully | Per-role data threshold (Q2 resolution): strong roles drive Phase 2 ordering normally; weak roles have skills appended after strong-role skills, ordered by rank. Warning emitted for weak roles. Plan always generates. |
 | Phase 1 is very large for capital ships | Low — correct behavior | Clearly label Phase 1 as "SDE requirements (non-negotiable)" so users understand this is inherent to the ship class, not a planning failure |
 | Role composition produces conflicting priorities | Low — roles are additive | When multiple roles are detected/specified, union all skills from all roles' efficacy rules. Bucket assignment uses highest priority across roles (if a skill is a breakpoint in any role, it's a breakpoint) |
 | Scope creep into "skill optimizer" territory | Medium — could become unbounded | Strict scope: minmax_plan returns a static plan, not an interactive optimizer. No "what if I train X first" mode |
@@ -664,7 +789,7 @@ These are acknowledged design boundaries, not bugs:
 
 1. **No hull bonus awareness.** The algorithm knows that Heavy Assault Cruisers is a direct requirement for the Ishtar (via SDE Direct Requirement Inclusion Rule), but it doesn't know that HAC provides 10% drone damage per level as an Ishtar hull bonus. Hull bonuses are ship-specific and not captured in the role-agnostic efficacy rules. This means hull skills sort by `-rank` tiebreaker (after all measurable-bonus skills) in the `role_support` bucket rather than by their actual per-level impact. **Future fix:** Phase E (fit-specific plans) can extract per-module and per-hull bonuses from `fitting(action="calculate_stats")` to produce truly optimal hull skill ordering.
 
-2. **`ship_category_roles` mapping is incomplete.** The YAML has category-to-role mappings for frigates, cruisers, battlecruisers, battleships, mining barges, and exhumers. It lacks mappings for destroyers, industrials, command ships, HACs, strategic cruisers, and other groups. `detect_ship_roles()` compensates with hardcoded ship name lists, but new ship types may not be detected. This is an ongoing data expansion task (Phase D), not an algorithm limitation.
+2. **`ship_category_roles` mapping is incomplete.** The YAML has category-to-role mappings for frigates, cruisers, battlecruisers, battleships, mining barges, and exhumers. It lacks mappings for destroyers, industrials/haulers, command ships, HACs, strategic cruisers, and other groups. `detect_ship_roles()` compensates with hardcoded ship name lists, but new ship types may not be detected. Note: the archetype library (`reference/archetypes/hulls/`) now includes destroyer hulls (Coercer, Dragoon) and hauler hulls (Sigil, Epithal), so the archetype coverage is ahead of the `ship_category_roles` YAML. Adding destroyer and hauler/industrial entries to `ship_category_roles` is a straightforward YAML addition in Phase D.
 
 ### Relationship to Easy 80%
 
@@ -687,23 +812,22 @@ The two coexist as complementary tools. A pilot might use Easy 80% for their mai
 
 The following scenarios have well-understood optimal training orders and serve as assertion-level tests for the scoring algorithm. Each test validates *relative ordering*, not exact scores.
 
-### Test 1: Ishtar Drone Ratting (drone_boat + armor_tank)
+### Test 1: Ishtar Drone Ratting (drone_boat + active_tank + armor_tank)
 
 **Key ordering assertions for Phase 2:**
 1. Drones V (breakpoint, critical) must appear before all multiplier skills
-2. Drone Interfacing to IV (multiplier, 10%/level, rank 1) must appear before Medium Drone Operation to IV (5%/level, rank 2) — higher per_level AND lower rank
+2. Medium Drone Operation to IV (multiplier, 5%/level, rank 2) must appear before Drone Interfacing to IV (multiplier, 10%/level, rank 5) — MDO has higher effectiveness/SP because rank 2 costs ~2.5× less SP than rank 5, outweighing DI's higher per_level
 3. Heavy Drone Operation to IV must appear (applicable for battleship-sized drones on Ishtar)
 
-**Key exclusion assertions:**
-- Mining, Ice Harvesting, Gas Cloud Harvesting must be excluded
-- Missile Launcher Operation must be excluded
+**Exclusion note:**
+Mining, Ice Harvesting, Gas Cloud Harvesting, and Missile Launcher Operation are not in the Ishtar's SDE prerequisite tree and are not in any detected role's skill list. They never enter the pipeline, so they do not appear in `excluded_skills`. The exclusion list only contains skills that *were* in the tree but filtered out by role scoping (e.g., support skills from a different role).
 
 ### Test 2: Ark Jump Freighter (jump_capable + hauler)
 
 **Key ordering assertions for Phase 2:**
 1. Jump Drive Calibration I→V (breakpoint, critical) must appear first
-2. Jump Fuel Conservation to IV (multiplier, 10%/level) must appear before Evasive Maneuvering to IV (support, 5%/level)
-3. Evasive Maneuvering to IV (positive effectiveness_per_sp) must appear before Jump Freighters I→IV (direct requirement, `-rank` tiebreaker)
+2. Evasive Maneuvering to IV (multiplier, 5%/level, rank 2) must appear before Jump Fuel Conservation to IV (multiplier, 10%/level, rank 8) — both are `multiplicative: true` in their roles, so both land in the multiplier bucket; EM wins on effectiveness/SP because rank 2 costs ~4× less SP than rank 8 for the same number of levels
+3. Both Evasive Maneuvering and Jump Fuel Conservation (positive effectiveness_per_sp) must appear before Jump Freighters I→IV (direct requirement, `-rank` tiebreaker in role_support bucket)
 
 **Direct requirement inclusion assertions:**
 - Jump Freighters must appear in Phase 2 (I→IV) and Phase 3 (IV→V) via SDE Direct Requirement Inclusion Rule
@@ -716,14 +840,37 @@ The following scenarios have well-understood optimal training orders and serve a
 - Must NOT contain Amarr Frigate, Amarr Destroyer, Amarr Cruiser, Amarr Battlecruiser, or Amarr Battleship (these are NOT in the Ark's prerequisite chain)
 - Skill name must be "Amarr Hauler" (not "Amarr Industrial")
 
-### Test 3: Skiff Mining (miner + shield_tank)
+### Test 3: Skiff Mining (miner + ice_miner)
+
+**Auto-detected roles:** `["miner", "ice_miner"]` — Note: `shield_tank` is NOT auto-detected; the Skiff's tank role would require manual `roles` override.
 
 **Key ordering assertions for Phase 2:**
-1. Mining V (breakpoint, high — unlocks Mining Barge skill) must appear before Astrogeology to IV
-2. Astrogeology to IV (multiplier, 5%/level yield) must appear before Mining Upgrades to IV (support, 5%/level CPU reduction — lower practical impact)
+1. Mining IV→V (breakpoint, high — unlocks Mining Barge skill) must appear first. The SDE requires Mining IV for the Skiff; the breakpoint extends it to V in Phase 2.
+2. Mining Upgrades to IV (role_support) must appear after multiplier skills (Mining Frigate IV is a multiplier that appears before it)
+3. Astrogeology V is already satisfied in Phase 1 (SDE prerequisite), so it does NOT appear in Phase 2
 
 **Phase split assertion:**
-- Mining V appears in Phase 1 if SDE requires it for the ship, OR in Phase 2 if it's a breakpoint beyond SDE requirements
+- Mining IV is in Phase 1 (SDE requirement). Mining V is in Phase 2 (breakpoint extension beyond SDE level).
+
+### Test 4: Venture Mining (miner + gas_miner) — Orphan Prerequisite Injection
+
+**Auto-detected roles:** `["miner", "gas_miner"]` — Note: `shield_tank` is NOT auto-detected.
+
+The Venture has a minimal SDE tree (Spaceship Command I, Mining Frigate I), making it the primary injection test case. However, injection only triggers when a Phase 2 skill has unmet prerequisites not already in Phase 1 or Phase 2. With `miner` + `gas_miner` roles, Astrogeology is the key skill that requires Science IV as a prerequisite.
+
+**Key injection assertions for Phase 2:**
+1. Science must be injected before Astrogeology if Astrogeology requires Science at a level not satisfied by Phase 1. Since Science is not in either role's `skills` list and not in the Venture's SDE tree, it must be injected as an orphan prerequisite.
+
+**Note on shield_tank injection:** The PGM/Shield Management injection scenario described in the original proposal only applies when `shield_tank` is in the detected roles (e.g., via manual `roles=["miner", "shield_tank"]` override). With auto-detected roles, no shield skills enter the plan.
+
+**Injection bucket assertions (when injection triggers):**
+- Injected skills must have `scoring_bucket: "injected_prerequisite"`
+- They must appear immediately before the first skill that depends on them within the bucket ordering
+- Injected skills do NOT appear in Phase 3 (zero role efficacy — no further training)
+
+**Exclusion assertions:**
+- Injected prerequisite skills must NOT appear in `excluded_skills` (they are trained, not excluded)
+- Skills not in the SDE tree and not in any detected role do not appear in `excluded_skills` either (they never entered the pipeline)
 
 ---
 
@@ -751,7 +898,7 @@ Use one `effectiveness_per_sp` score across all skill types (breakpoints, multip
 **Viability: HIGH.** The proposal is implementable with moderate effort because:
 
 1. **~60% of the infrastructure exists** — role detection, efficacy rules, breakpoint/multiplier skills, training time calculation, and the dispatcher pattern are all production-ready
-2. **The new code is focused** — ~590 lines of core algorithm, plus ~75 lines of dispatcher/detection changes
+2. **The new code is focused** — ~690 lines of core algorithm, plus ~80 lines of dispatcher/detection/validation changes
 3. **The data model is extensible** — adding new roles to efficacy rules is YAML-only, no code changes
 4. **The feature is orthogonal** — min-max planning doesn't modify or conflict with Easy 80%; they coexist as complementary tools
 5. **The scoring approach is testable** — bucket-based sorting with golden test cases provides concrete pass/fail assertions, not "does this score look reasonable"
@@ -759,3 +906,24 @@ Use one `effectiveness_per_sp` score across all skill types (breakpoints, multip
 **Recommended implementation order:** Phase A (core algorithm + hauler role) > Phase B (dispatcher) > Phase C (SKILL.md) > Phase D (YAML expansion, as needed).
 
 Phases A+B+C deliver the core feature with the JF and drone boat use cases. Phase D expands role coverage on demand. Phase E (fit-specific plans) is deferred to a separate proposal.
+
+## Open Decisions (Auto-generated)
+
+### Q1: minmax_multi_role_scoring_aggregation — RESOLVED
+
+**Question:** How should `effectiveness_per_sp` be computed when a skill appears in multiple selected/detected roles?
+
+**Decision:** `O1` — Use maximum per-role `per_level` contribution. This is codified in the Multi-role scoring rule (see Scoring section above).
+
+### Q2: minmax_missing_efficacy_fallback — RESOLVED
+
+**Question:** What is the canonical behavior when detected/specified roles have missing or empty efficacy definitions?
+
+**Decision:** `S4` — Per-role data threshold with fallback. Each role is classified as **strong** (>= 2 skills with `per_level > 0`) or **weak** (< 2). Strong roles drive Phase 2 bucket-based ordering normally. Weak roles have their skills appended after all strong-role skills in Phase 2, ordered by rank ascending. A warning names the weak roles. The plan always generates — never blocks the user. See "Per-Role Data Threshold" in the Phase 2 algorithm section.
+
+### Q3: minmax_dependency_injection_target_level — RESOLVED
+
+**Question:** When unmet prerequisites are pulled in to satisfy a Phase 2/3 skill, what target level should the injected prerequisite use?
+
+**Decision:** `S1` — Minimum required level, placed in Phase 2 before the dependent skill. Orphan prerequisites train to the exact level needed (the maximum across all dependents in the plan), are placed immediately before the first skill that depends on them within its bucket position, and receive `scoring_bucket: "injected_prerequisite"`. No Phase 3 entry is created — orphans have zero role efficacy and training them beyond the minimum wastes SP. See "Cross-Phase Dependency Guarantee" for the full injection algorithm and `injected_prerequisite` entries in the Bucket Priority table.
+
