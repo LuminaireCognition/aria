@@ -553,6 +553,50 @@ def detect_ship_roles(group_name: str | None, type_name: str | None) -> list[str
             roles.append("logi")
 
     # =========================================================================
+    # Haulers (freighters, JFs, DSTs, blockade runners, T1 industrials)
+    # =========================================================================
+    hauler_ships = [
+        "bestower",
+        "sigil",
+        "badger",
+        "tayra",
+        "nereus",
+        "epithal",
+        "wreathe",
+        "mammoth",
+        "hoarder",
+        "kryos",
+        "miasmos",
+        "impel",
+        "occator",
+        "bustard",
+        "mastodon",
+        "prorator",
+        "viator",
+        "crane",
+        "prowler",
+    ]
+    jump_freighters_hauler = ["rhea", "anshar", "ark", "nomad"]
+    for ship in hauler_ships + jump_freighters_hauler:
+        if ship in type_lower:
+            if "hauler" not in roles:
+                roles.append("hauler")
+            break
+
+    if any(
+        g in group_lower
+        for g in [
+            "freighter",
+            "jump freighter",
+            "industrial",
+            "deep space transport",
+            "blockade runner",
+        ]
+    ):
+        if "hauler" not in roles:
+            roles.append("hauler")
+
+    # =========================================================================
     # Capital Ships / Jump Capable
     # =========================================================================
     capital_groups = ["carrier", "dreadnought", "force auxiliary", "supercarrier", "titan"]

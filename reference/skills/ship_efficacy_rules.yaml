@@ -632,6 +632,56 @@ ship_roles:
       overall: 82
 
   # =============================================================================
+  # Hauler Roles
+  # =============================================================================
+
+  hauler:
+    description: Ships focused on cargo transport (freighters, DSTs, blockade runners)
+    primary_metric: cargo_and_agility
+    example_ships:
+      - Ark
+      - Rhea
+      - Anshar
+      - Nomad
+      - Impel
+      - Occator
+      - Bestower
+      - Sigil
+      - Epithal
+    skills:
+      - skill: Evasive Maneuvering
+        effect: "+5% agility per level"
+        per_level: 5
+        category: agility
+        multiplicative: true
+      - skill: Spaceship Command
+        effect: "+2% agility per level"
+        per_level: 2
+        category: agility
+        multiplicative: true
+      - skill: Warp Drive Operation
+        effect: "-10% cap per warp per level"
+        per_level: 10
+        category: utility
+        multiplicative: false
+      - skill: Navigation
+        effect: "+5% sub-warp velocity per level"
+        per_level: 5
+        category: speed
+        multiplicative: true
+    easy_80_plan:
+      required_5: []
+      cap_at_4:
+        - Evasive Maneuvering
+        - Spaceship Command
+        - Warp Drive Operation
+      optional:
+        - Navigation
+    efficacy_at_4:
+      agility: 85
+      overall: 83
+
+  # =============================================================================
   # Capital/Jump Capable Roles
   # =============================================================================
 
