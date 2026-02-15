@@ -27,7 +27,7 @@ How did you test these changes?
 
 ## Checklist
 
-- [ ] I have read [CONTRIBUTING.md](CONTRIBUTING.md)
+- [ ] I have read [CONTRIBUTING.md](../CONTRIBUTING.md)
 - [ ] My changes follow the existing code/documentation style
 - [ ] I have not committed any credentials or personal data
 - [ ] PvE intel contributions include source attribution (if applicable)

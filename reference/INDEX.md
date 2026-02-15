@@ -46,7 +46,7 @@ Personal operational files are stored in `userdata/pilots/{active_pilot}/`:
 | [mechanics/npc_damage_types.md](mechanics/npc_damage_types.md) | Faction damage tables, EWAR types, tank priorities |
 | [mechanics/drones.json](mechanics/drones.json) | **Drone damage types**, faction recommendations, bandwidth |
 | [pve-intel/INDEX.md](pve-intel/INDEX.md) | Mission & PvE intel index by faction/level |
-| [pve-intel/cache/](pve-intel/cache/) | Cached mission briefings (auto-populated by `/mission-brief`) |
+| `pve-intel/cache/` | Cached mission briefings (auto-populated by `/mission-brief`, gitignored) |
 
 ### Exploration
 
@@ -96,7 +96,7 @@ Background intelligence on New Eden.
 
 | File | Purpose |
 |------|---------|
-| [.cache-manifest.json](.cache-manifest.json) | Cache freshness tracking (24h TTL) |
+| `.cache-manifest.json` | Cache freshness tracking (24h TTL, gitignored) |
 | [mechanics/esi_api_urls.md](mechanics/esi_api_urls.md) | **ESI documentation URLs** - working URLs, 404 avoidance |
 | [pve-intel/README.md](pve-intel/README.md) | PvE intel format specification |
 

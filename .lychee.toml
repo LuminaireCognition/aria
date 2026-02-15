@@ -6,6 +6,14 @@ exclude_path = [
   ".claude/skills",
   "dev/archive",
   "dev/proposals/archive",
+  "dev/reviews/archive",
+  "dev/design",
+  "dev/mechanics",
+  "dev/planning",
+  "examples",
+  "personas",
+  "reference/pve-intel",
+  "reference/sites",
   "node_modules",
   ".venv",
 ]
@@ -22,8 +30,26 @@ exclude = [
   # Local development URLs
   'http://localhost',
   'http://127\.0\.0\.1',
-  # zKillboard WebSocket (not a web page)
-  'wss://zkillboard',
+  # Sites that block automated crawlers (403)
+  'reddit\.com',
+  'researchgate\.net',
+  'tandfonline\.com',
+  'thoughtco\.com',
+  'scispace\.com',
+  'digitalcommons\.',
+  'scholarworks\.',
+  'oaktrust\.library\.',
+  'red\.library\.usd\.edu',
+  'pdxscholar\.library\.',
+  # More bot-blocked sites
+  'futurelearn\.com',
+  'scribd\.com',
+  # Sites with persistent SSL/cert issues
+  'wiki\.eve-inspiracy\.com',
+  'portal\.cops\.usdoj\.gov',
+  'stevenberlinjohnson\.com',
+  # Local gitignored files referenced in docs
+  '\.cache-manifest\.json',
 ]
 
 # Accept 429 (rate limited) as OK — we don't want CI to fail on rate limits

@@ -156,7 +156,7 @@ ARIA verifies data against the SDE and trusted sources, but mistakes can happen:
 1. **Recent game change?** SDE updates lag patches by days/weeks.
 2. **Mission-specific?** Wiki data may be outdated for rarely-run missions.
 
-Report issues at the [GitHub repository](https://github.com/aria-eve/aria/issues).
+Report issues at the [GitHub repository](https://github.com/LuminaireCognition/aria/issues).
 
 ### Market prices seem off
 
