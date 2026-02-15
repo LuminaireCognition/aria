@@ -1,0 +1,55 @@
+# Maller Hull Manifest
+#
+# The Maller is an Amarr T1 cruiser with exceptional armor tank.
+# Resistance bonus makes it one of the toughest cruisers in the game.
+
+hull: Maller
+class: cruiser
+faction: amarr
+tech_level: 1
+
+slots:
+  high: 5
+  mid: 3
+  low: 6
+  rig: 3
+
+drones:
+  bandwidth: 15
+  bay: 15
+
+bonuses:
+  - "5% bonus to Medium Energy Turret rate of fire per Amarr Cruiser level"
+  - "5% bonus to armor resistances per Amarr Cruiser level"
+
+roles:
+  - turret_boat
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_active
+  weapons:
+    primary: lasers
+    secondary: drones
+
+  notes:
+    - "6 low slots with resist bonus - heaviest armor tank among T1 cruisers"
+    - "Only 3 mid slots - limited utility"
+    - "Lower DPS than Omen (5% vs 10% RoF bonus)"
+    - "Trades damage for extreme survivability"
+    - "Tiny drone bay (15m3) - 3 light drones only"
+
+crystal_recommendations:
+  brawling: "Multifrequency M"
+  general: "Standard M"
+  sniping: "Radio M"
+  note: "Beam lasers preferred for PvE to maximize range advantage"
+
+capacitor:
+  stable_expected: false
+  notes: "Active armor rep is cap hungry. Cap battery or cap rigs recommended."
+
+engagement:
+  range: "10-30km (beam), 5-10km (pulse)"
+  speed: "Slow - relies on tank, not speed"
+  notes: "Brick tank. Outlast enemies through sheer durability."

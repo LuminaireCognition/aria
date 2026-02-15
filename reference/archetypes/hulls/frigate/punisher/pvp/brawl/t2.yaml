@@ -1,0 +1,76 @@
+# Punisher PvP Brawl - PVP Punisher
+#
+# Full T2 autocannon brawler. Reactive hardener + SAAR for adaptive tank.
+# Extremely heavy buffer with burst active repair.
+
+archetype:
+  hull: Punisher
+  skill_tier: t2
+  omega_required: true
+
+attribution:
+  author: Community
+  source: Community fit
+  license: community
+
+eft: |
+  [Punisher, PVP Punisher]
+  Reactive Armor Hardener
+  400mm Rolled Tungsten Compact Plates
+  Multispectrum Energized Membrane II
+  400mm Rolled Tungsten Compact Plates
+  Small Ancillary Armor Repairer
+
+  1MN Y-S8 Compact Afterburner
+  Faint Epsilon Scoped Warp Scrambler
+
+  150mm Light AutoCannon II
+  150mm Light AutoCannon II
+  150mm Light AutoCannon II
+  150mm Light AutoCannon II
+
+  Small Trimark Armor Pump I
+  Small Trimark Armor Pump I
+  Small Trimark Armor Pump I
+
+  Hail S x800
+  Republic Fleet Phased Plasma S x1200
+  Republic Fleet EMP S x1200
+  Barrage S x800
+  Republic Fleet Fusion S x1200
+  Nanite Repair Paste x125
+
+skill_requirements:
+  required:
+    Amarr Frigate: 4
+    Small Projectile Turret: 5
+    Gunnery: 4
+    Repair Systems: 3
+    Hull Upgrades: 5
+  recommended:
+    Thermodynamics: 3
+    Capacitor Management: 4
+    Motion Prediction: 4
+
+stats:
+  dps: 120
+  ehp: 9500
+  tank_sustained: 80
+  capacitor_stable: false
+  align_time: 6.0
+  speed_ab: 450
+  optimal_range: 1000
+  falloff: 7500
+  validated_date: "2026-02-14"
+
+notes:
+  purpose: "Maximum tank PvP brawler with selectable damage types"
+  engagement: "AB scram brawl, orbit 500-1000m"
+  warnings:
+    - "Projectile turrets - no laser bonuses but selectable damage"
+    - "Reactive hardener adapts to incoming damage type"
+    - "SAAR provides burst repair - manage paste carefully"
+    - "Hail S for maximum DPS at close range"
+    - "Barrage S for falloff engagements"
+    - "Very slow due to dual plates + trimarks"
+    - "Carry multiple ammo types for damage flexibility"

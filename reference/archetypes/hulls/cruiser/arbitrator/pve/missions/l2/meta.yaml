@@ -1,0 +1,95 @@
+# Arbitrator L2 PvE - iBeast HiSec Shield/Drone
+#
+# Shield-tanked drone boat for L2 missions with RLML secondary DPS.
+# Core probe launcher for scanning escalations.
+
+archetype:
+  hull: Arbitrator
+  skill_tier: meta
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: HiSec PvE Community Fits
+  license: community
+
+eft: |
+  [Arbitrator, iBeast-HiSec PvE-Arbitrator]
+  N-JM Compact Omnidirectional Tracking Enhancer
+  IFFA Compact Damage Control
+  Drone Damage Amplifier II
+  Drone Damage Amplifier II
+  Drone Damage Amplifier II
+
+  10MN Monopropellant Enduring Afterburner
+  Large F-S9 Regolith Compact Shield Extender
+  Large F-S9 Regolith Compact Shield Extender
+  Enduring Multispectrum Shield Hardener
+
+  Prototype 'Arbalest' Rapid Light Missile Launcher
+  Prototype 'Arbalest' Rapid Light Missile Launcher
+  Core Probe Launcher I
+  Prototype 'Arbalest' Rapid Light Missile Launcher
+
+  Medium EM Shield Reinforcer I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Caldari Navy Vespa x5
+  Imperial Navy Infiltrator x5
+  Federation Navy Hammerhead x5
+
+  Scourge Light Missile x1500
+  Inferno Light Missile x1557
+  Mjolnir Light Missile x1500
+  Nova Light Missile x1500
+  Sisters Core Scanner Probe x8
+  Core Scanner Probe I x8
+
+skill_requirements:
+  required:
+    Amarr Cruiser: 3
+    Drones: 4
+    Medium Drone Operation: 3
+    Missile Launcher Operation: 3
+    Light Missiles: 2
+    Astrometrics: 3
+  recommended:
+    Drone Interfacing: 3
+    Rapid Launch: 3
+    Shield Management: 3
+
+stats:
+  ehp: 16000
+  tank_sustained: 0
+  capacitor_stable: true
+  align_time: 8.0
+  speed_ab: 500
+  validated_date: "2026-02-14"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: shield_buffer
+
+notes:
+  purpose: "L2 mission drone boat with scanning for escalations"
+  engagement: "Orbit at 30km, deploy medium drones, RLMLs for frigate support"
+  warnings:
+    - "Shield buffer only - dock to repair"
+    - "Triple DDAs for maximum drone DPS"
+    - "Omni tracking enhancer improves drone application"
+    - "Carry all 4 missile damage types for faction matching"
+    - "Core probe launcher + Sisters probes for escalations"
+    - "EM shield reinforcer plugs the shield EM hole"
+    - "150m3 drone bay allows 3 full medium flights"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "Drone Damage Amplifier II"
+      upgrade_to: "Drone Damage Amplifier II"
+      skill_required: "Already T2"
+    - ship: "Vexor"
+      notes: "Gallente drone cruiser with 75 bandwidth"
+    - ship: "Myrmidon"
+      notes: "Battlecruiser drone boat for L3 missions"

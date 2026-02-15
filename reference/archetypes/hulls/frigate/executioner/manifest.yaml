@@ -1,0 +1,55 @@
+# Executioner Hull Manifest
+#
+# The Executioner is an Amarr T1 fast attack frigate.
+# Speed-focused with laser turrets, no drone bay.
+
+hull: Executioner
+class: frigate
+faction: amarr
+tech_level: 1
+
+slots:
+  high: 4
+  mid: 3
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "10% bonus to Small Energy Turret capacitor use per Amarr Frigate level"
+  - "5% bonus to Small Energy Turret damage per Amarr Frigate level"
+
+roles:
+  - turret_boat
+  - fast_attack
+
+fitting_rules:
+  tank_type: shield_buffer  # Often shield fit for speed
+  weapons:
+    primary: lasers
+    secondary: null  # No drones
+
+  notes:
+    - "Fastest Amarr T1 frigate"
+    - "4 high slots but only 3 turret hardpoints"
+    - "No drone bay - all DPS from turrets"
+    - "3 mid slots for tackle/prop/tank"
+    - "3 low slots - limited tank options"
+
+crystal_recommendations:
+  brawling: "Multifrequency S"
+  general: "Standard S"
+  sniping: "Radio S"
+  note: "Crystals change range, not damage type (always EM/Thermal)"
+
+capacitor:
+  stable_expected: false
+  notes: "Laser cap use mitigated by hull bonus."
+
+engagement:
+  range: "5-15km (kite), 2-5km (brawl)"
+  speed: "Fast kite with MWD"
+  notes: "Speed is the primary defense. Point range kiting preferred."

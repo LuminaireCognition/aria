@@ -1,0 +1,60 @@
+# Arbitrator Hull Manifest
+#
+# The Arbitrator is an Amarr T1 cruiser focused on drones and tracking disruption.
+# Unusual for Amarr in that drones are primary DPS, with EWAR as force multiplier.
+
+hull: Arbitrator
+class: cruiser
+faction: amarr
+tech_level: 1
+
+slots:
+  high: 4
+  mid: 4
+  low: 5
+  rig: 3
+
+drones:
+  bandwidth: 50
+  bay: 150
+
+bonuses:
+  - "10% bonus to drone tracking speed and optimal range per Amarr Cruiser level"
+  - "10% bonus to Tracking Disruptor effectiveness per Amarr Cruiser level"
+
+roles:
+  - drone_boat
+  - armor_tank
+  - ewar
+
+fitting_rules:
+  tank_type: armor_active
+
+  tank_variants:
+    - armor_active
+    - shield_buffer
+
+  weapons:
+    primary: drones
+    secondary: missiles
+
+  notes:
+    - "150m3 drone bay - can carry 3 full flights of mediums"
+    - "Tracking disruptor bonus makes it potent anti-turret EWAR"
+    - "4 mid slots - better utility than most Amarr cruisers"
+    - "High slots used for missiles or neuts, not turrets"
+
+drone_recommendations:
+  primary: "Hammerhead I"
+  anti_frigate: "Hobgoblin I"
+  utility: "EC-300"
+  note: "150m3 bay allows 5 mediums + 5 lights + 5 utility"
+
+capacitor:
+  stable_expected: false
+  notes: "Dual reps are cap hungry. Cap booster or passive cap recommended."
+
+engagement:
+  range: "30-50km (drone control range)"
+  speed: "AB orbit at range"
+  notes: "Deploy drones, apply tracking disruptor to turret ships, orbit at range."

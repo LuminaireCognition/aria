@@ -1,0 +1,80 @@
+# Dragoon FW PvP - iBeast Neut/Drone Brawler
+#
+# Drone DPS with 5 energy neutralizers. SAAR burst tank.
+# Drains enemy capacitor while drones apply damage.
+
+archetype:
+  hull: Dragoon
+  skill_tier: t2
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Community fit guide
+  license: community
+
+eft: |
+  [Dragoon, iBeast-Faction Warfare PvP-Dragoon]
+  IFFA Compact Damage Control
+  Overdrive Injector System II
+  Drone Damage Amplifier II
+  Small Ancillary Armor Repairer
+
+  5MN Quad LiF Restrained Microwarpdrive
+  Small Capacitor Booster II
+  Faint Epsilon Scoped Warp Scrambler
+
+  Small Infectious Scoped Energy Neutralizer
+  Small Infectious Scoped Energy Neutralizer
+  Small Infectious Scoped Energy Neutralizer
+  Small Infectious Scoped Energy Neutralizer
+  Small Infectious Scoped Energy Neutralizer
+
+  Small Transverse Bulkhead I
+  Small Transverse Bulkhead I
+  Small Transverse Bulkhead I
+
+  Republic Fleet Warrior x5
+  Caldari Navy Hornet x5
+  Federation Navy Hobgoblin x5
+
+  Nanite Repair Paste x28
+
+skill_requirements:
+  required:
+    Amarr Destroyer: 3
+    Drones: 4
+    Light Drone Operation: 3
+    Repair Systems: 3
+    Hull Upgrades: 4
+  recommended:
+    Drone Interfacing: 3
+    Thermodynamics: 3
+    Capacitor Management: 4
+
+stats:
+  ehp: 7000
+  tank_sustained: 80
+  capacitor_stable: false
+  align_time: 5.0
+  speed_mwd: 2200
+  validated_date: "2026-02-14"
+
+notes:
+  purpose: "Faction Warfare neut/drone brawler - disables enemy while drones kill"
+  engagement: "MWD in, scram, neut enemy cap dry while drones apply DPS"
+  warnings:
+    - "SAAR has limited charges - carry Nanite Repair Paste"
+    - "5 neuts drain enemy cap fast but also drain yours"
+    - "Cap booster II sustains your own cap under neut pressure"
+    - "3 drone flights: Warrior (exp), Hornet (kin), Hobgoblin (therm) for damage selection"
+    - "Hull tanked via transverse bulkheads"
+    - "Overdrive for speed advantage in engagement"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - ship: "Arbitrator"
+      notes: "Cruiser upgrade - more drones, tracking disruptor"
+    - ship: "Algos"
+      notes: "Gallente alternative with more drone bandwidth"

@@ -1,0 +1,48 @@
+# Sigil Hull Manifest
+#
+# The Sigil is an Amarr T1 industrial hauler.
+# Large cargo capacity with 6 low slots for expanded cargoholds.
+
+hull: Sigil
+class: hauler
+faction: amarr
+tech_level: 1
+
+slots:
+  high: 2
+  mid: 4
+  low: 6
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "5% bonus to cargo capacity per Amarr Industrial level"
+  - "5% bonus to max velocity per Amarr Industrial level"
+
+roles:
+  - general_hauling
+  - transport
+
+fitting_rules:
+  tank_type: shield_buffer
+  weapons:
+    primary: none
+    secondary: none
+
+  notes:
+    - "6 low slots - maximum cargo expansion potential"
+    - "4 mid slots - decent shield tank for a hauler"
+    - "No drone bay - cannot defend itself"
+    - "Cheap hull - disposable for high-value hauling"
+
+capacitor:
+  stable_expected: true
+  notes: "Passive fits are inherently cap stable."
+
+engagement:
+  range: "N/A - hauler"
+  speed: "~100 m/s (no prop), ~1,000 m/s (MWD)"
+  notes: "MWD + Cloak trick for escaping camps. Never autopilot with valuable cargo."
