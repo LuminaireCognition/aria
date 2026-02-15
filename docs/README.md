@@ -29,7 +29,7 @@ Quick navigation for ARIA documentation.
 → [ARCHITECTURE.md](ARCHITECTURE.md) (system diagram & data flow)
 
 **Building or contributing?**
-→ [PYTHON_ENVIRONMENT.md](PYTHON_ENVIRONMENT.md)
+→ [Developer docs](../dev/docs/README.md)
 
 Setup paths:
 - From terminal: `./aria-init`
@@ -52,7 +52,6 @@ Setup paths:
 
 | Document | Description |
 |----------|-------------|
-| [DATA_FILES.md](DATA_FILES.md) | Where your data lives, what to update |
 | [MULTI_PILOT_ARCHITECTURE.md](MULTI_PILOT_ARCHITECTURE.md) | Managing multiple EVE characters |
 | [CONTEXT_AWARE_TOPOLOGY.md](CONTEXT_AWARE_TOPOLOGY.md) | Home systems, routes, geographic context |
 
@@ -60,7 +59,8 @@ Setup paths:
 
 | Document | Description |
 |----------|-------------|
-| [NOTIFICATION_PROFILES.md](NOTIFICATION_PROFILES.md) | Discord notifications (profiles, recipes, commentary) |
+| [NOTIFICATION_PROFILES.md](NOTIFICATION_PROFILES.md) | Discord notifications setup and configuration |
+| [NOTIFICATION_COOKBOOK.md](NOTIFICATION_COOKBOOK.md) | Advanced recipes, examples, and troubleshooting |
 | [ADHOC_MARKETS.md](ADHOC_MARKETS.md) | Custom market scope definitions |
 | [REALTIME_CONFIGURATION.md](REALTIME_CONFIGURATION.md) | Real-time intel configuration |
 
@@ -69,30 +69,21 @@ Setup paths:
 | Document | Description |
 |----------|-------------|
 | [PERSONA_LOADING.md](PERSONA_LOADING.md) | How faction personas work |
-| [EXPERIENCE_ADAPTATION.md](EXPERIENCE_ADAPTATION.md) | Adjusting to player experience level |
 
 ## Reference
 
 | Document | Description |
 |----------|-------------|
-| [DATA_SOURCES.md](DATA_SOURCES.md) | External data sources (wiki, DOTLAN, etc.) |
-| [DATA_VERIFICATION.md](DATA_VERIFICATION.md) | How ARIA verifies game data |
-| [PROTOCOLS.md](PROTOCOLS.md) | Communication and data protocols |
 | [ROUTE_SCENARIOS.md](ROUTE_SCENARIOS.md) | Route planning examples |
 
-## Development
+## System Overview
 
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System components and data flow |
-| [PYTHON_ENVIRONMENT.md](PYTHON_ENVIRONMENT.md) | Python/uv setup for contributors |
 | [DEPLOYMENT.md](DEPLOYMENT.md) | Installation and deployment methods |
-| [TESTING.md](TESTING.md) | Test tiers, coverage, and running tests |
-| [TYPING_ROADMAP.md](TYPING_ROADMAP.md) | Type checking roadmap and status |
-| [COMMAND_SUGGESTIONS.md](COMMAND_SUGGESTIONS.md) | How ARIA suggests commands |
-| [SESSION_CONTEXT.md](SESSION_CONTEXT.md) | Session initialization internals |
-| [CONTEXT_POLICY.md](CONTEXT_POLICY.md) | Context management policies |
-| [Developer Prompt Library](../dev/prompts/README.md) | Manual review prompts for AI-assisted code quality evaluation (not runtime) |
+
+For developer documentation (testing, typing, MCP internals, AI runtime instructions), see [dev/docs/](../dev/docs/README.md).
 
 ## Security
 

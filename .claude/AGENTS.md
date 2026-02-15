@@ -3,7 +3,7 @@
 <INSTRUCTIONS>
 ## Python execution (CRITICAL)
 - Always use `uv run` for Python commands (e.g., `uv run aria-esi ...`, `uv run python -m ...`, `uv run pytest`).
-- Never invoke bare `python`, `python3`, or `pip`. See `docs/PYTHON_ENVIRONMENT.md` for details and examples.
+- Never invoke bare `python`, `python3`, or `pip`. See `dev/docs/PYTHON_ENVIRONMENT.md` for details and examples.
 
 ## Skills
 A skill is a set of local instructions to follow that is stored in a `SKILL.md` file. Below is the list of skills that can be used. Each entry includes a name, description, and file path so you can open the source for full instructions when using a specific skill.

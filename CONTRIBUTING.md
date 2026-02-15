@@ -122,7 +122,7 @@ Never reference volatile data proactively in examples or documentation.
 When contributing Python code:
 - Add type hints for new functions and parameters
 - Run `uv run mypy .` before submitting PRs
-- See [docs/TYPING_ROADMAP.md](docs/TYPING_ROADMAP.md) for typing standards and roadmap
+- See [dev/docs/TYPING_ROADMAP.md](dev/docs/TYPING_ROADMAP.md) for typing standards and roadmap
 - Security-critical modules (`services/auth.py`, `services/keyring_backend.py`) require strict typing
 
 ## Code of Conduct

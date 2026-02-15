@@ -164,9 +164,19 @@ uv run python .claude/scripts/aria-oauth-setup.py
 | `ARIA_LOG_LEVEL` | Logging verbosity | `INFO` |
 | `ESI_CLIENT_ID` | Custom ESI application | (bundled) |
 
+## Credential Security
+
+ARIA stores ESI credentials using a two-tier model:
+- **Tier II**: System keyring (macOS Keychain, GNOME Keyring, Windows Credential Manager)
+- **Tier I**: JSON file with 0600 permissions (fallback)
+
+On headless servers, set `ARIA_NO_KEYRING=1` to suppress warnings.
+
+For full details on keyring backends and migration, see [dev/docs/PYTHON_ENVIRONMENT.md](../dev/docs/PYTHON_ENVIRONMENT.md).
+
 ## Related Documentation
 
 - [FIRST_RUN.md](FIRST_RUN.md) - Detailed first-time setup
 - [ESI.md](ESI.md) - ESI authentication details
-- [PYTHON_ENVIRONMENT.md](PYTHON_ENVIRONMENT.md) - Developer environment setup
+- [PYTHON_ENVIRONMENT.md](../dev/docs/PYTHON_ENVIRONMENT.md) - Developer environment setup
 - [MULTI_PILOT_ARCHITECTURE.md](MULTI_PILOT_ARCHITECTURE.md) - Multiple character support

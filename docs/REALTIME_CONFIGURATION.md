@@ -383,7 +383,7 @@ If webhook shows 401/403 errors, the URL is invalid—create a new webhook in Di
 - `docs/CONTEXT_AWARE_TOPOLOGY.md` - Multi-layer kill filtering (geography, entity, routes, assets)
 - `docs/NOTIFICATION_PROFILES.md` - LLM commentary and multi-webhook routing
 - `dev/proposals/REDISQ_REALTIME_INTEL_PROPOSAL.md` - Full design document
-- `docs/DATA_FILES.md` - Pilot data file reference
+- `dev/docs/ai-runtime/DATA_FILES.md` - Pilot data file reference
 - `.claude/skills/gatecamp/SKILL.md` - Gatecamp skill documentation
 - `.claude/skills/threat-assessment/SKILL.md` - Threat assessment skill
 - `.claude/skills/killmail/SKILL.md` - Killmail analysis skill (Phase 5)

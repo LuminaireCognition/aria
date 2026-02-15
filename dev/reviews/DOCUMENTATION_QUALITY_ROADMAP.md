@@ -1,9 +1,10 @@
 # Documentation Quality Roadmap
 
-**Date:** 2026-02-15
+**Date:** 2026-02-15 (updated)
 **Reviewer:** AI-assisted audit (Claude Opus 4.6)
 **Scope:** Full documentation audit — user-facing, developer-facing, and AI-runtime docs
 **Context:** Pre-public-announcement readiness review
+**Revision:** 2 — Updated with completion status from PR #34, polish commit, and fresh audit
 
 ---
 
@@ -11,7 +12,7 @@
 
 ARIA has extensive documentation (~250 markdown files, ~33,000+ lines), but it suffers from a fundamental structural problem: **user-facing and developer-facing documentation are co-mingled in `docs/`**, and a third category — **AI runtime instructions** — lives alongside both without clear labeling. Before public announcement, the highest-impact work is splitting `docs/` by audience so that new users see a clean, focused documentation surface rather than a mixed bag of setup guides and MCP context policy internals.
 
-The documentation is strong in coverage but weak in organization. Most content exists; it just needs to be in the right place, for the right reader.
+Phase 1 (critical path) is **complete** as of PR #34 and the subsequent polish commit. The remaining work is structural reorganization (Phase 2) and contributor enablement (Phase 3).
 
 ---
 
@@ -19,11 +20,11 @@ The documentation is strong in coverage but weak in organization. Most content e
 
 ### Current State: Everything in `docs/`
 
-`docs/` currently contains 26 files serving three distinct audiences:
+`docs/` currently contains 28 files serving three distinct audiences:
 
 | Audience | Description | Files Currently in `docs/` |
 |----------|-------------|---------------------------|
-| **Users** | People installing and using ARIA to play EVE | TLDR, FIRST_RUN, FAQ, ESI, DEPLOYMENT, MULTI_PILOT, NOTIFICATION_PROFILES, ADHOC_MARKETS, REALTIME_CONFIGURATION, ARCHITECTURE |
+| **Users** | People installing and using ARIA to play EVE | TLDR, FIRST_RUN, FAQ, ESI, DEPLOYMENT, MULTI_PILOT, NOTIFICATION_PROFILES, ADHOC_MARKETS, REALTIME_CONFIGURATION, ARCHITECTURE, COMMANDS, TROUBLESHOOTING, ROUTE_SCENARIOS, CONTEXT_AWARE_TOPOLOGY |
 | **Developers** | People modifying ARIA's code or contributing | TESTING, TYPING_ROADMAP, PYTHON_ENVIRONMENT, CONTEXT_POLICY, SESSION_CONTEXT |
 | **AI Runtime** | Instructions ARIA follows during sessions (read by the LLM, not humans) | DATA_VERIFICATION, DATA_AUTHORITY, PROTOCOLS, EXPERIENCE_ADAPTATION, COMMAND_SUGGESTIONS, DATA_FILES, DATA_SOURCES |
 
@@ -48,8 +49,8 @@ docs/                           # User-facing only
 ├── FAQ.md                      # Common questions
 ├── ESI.md                      # ESI integration
 ├── DEPLOYMENT.md               # Installation
-├── COMMANDS.md                 # Slash command reference (NEW)
-├── TROUBLESHOOTING.md          # Consolidated troubleshooting (NEW)
+├── COMMANDS.md                 # Slash command reference ✅ DONE
+├── TROUBLESHOOTING.md          # Consolidated troubleshooting ✅ DONE
 ├── MULTI_PILOT_ARCHITECTURE.md # Multi-character
 ├── NOTIFICATION_PROFILES.md    # Discord notifications (trimmed)
 ├── ADHOC_MARKETS.md            # Market scopes
@@ -88,7 +89,7 @@ A GitHub visitor evaluating ARIA will:
 2. Click into `docs/` (currently confusing)
 3. Judge the project by what they see
 
-If `docs/` contains 26 files including MCP context budget tracking and singleton reset patterns, the project looks like an internal engineering document dump. If `docs/` contains 16 focused user guides, it looks like a polished product.
+If `docs/` contains 28 files including MCP context budget tracking and singleton reset patterns, the project looks like an internal engineering document dump. If `docs/` contains 16 focused user guides, it looks like a polished product.
 
 ---
 
@@ -98,19 +99,21 @@ If `docs/` contains 26 files including MCP context budget tracking and singleton
 
 | File | Lines | Quality | Notes |
 |------|------:|---------|-------|
-| README.md | 113 | High | Good navigation hub. Needs update after restructure. |
+| README.md | 115 | High | Good navigation hub. Needs update after restructure. |
 | TLDR.md | 86 | High | Excellent quick reference. Model for signal-to-noise. |
-| FIRST_RUN.md | 266 | High | Comprehensive setup guide. Examples section needs expansion. |
+| FIRST_RUN.md | 270 | High | Comprehensive setup guide. Examples have full descriptions. |
 | FAQ.md | 117 | High | Clear, practical. Could grow with community questions. |
 | ESI.md | 424 | Medium | Good content but long. Could split auth setup from scope reference. |
-| DEPLOYMENT.md | 172 | High | Clean installation guide. |
+| DEPLOYMENT.md | 172 | High | Clean installation guide. Includes MCP server setup. |
+| COMMANDS.md | 104 | High | 48 commands across 7 categories. Includes natural language examples. |
+| TROUBLESHOOTING.md | 219 | High | 8 sections covering setup, ESI, data, notifications. Clean escalation path. |
 | MULTI_PILOT_ARCHITECTURE.md | 145 | High | Clear user feature doc. |
 | NOTIFICATION_PROFILES.md | 766 | Medium | Good content, overwhelming length. Needs Quick Start + Cookbook split. |
 | ADHOC_MARKETS.md | 234 | High | Well-structured feature doc with examples. |
 | REALTIME_CONFIGURATION.md | 390 | Medium | Somewhat long but necessary complexity for the feature. |
-| ARCHITECTURE.md | 166 | High | System diagram useful for users understanding what ARIA is. |
-| PERSONA_LOADING.md | 424 | Medium | Mix of user config and developer internals. Needs splitting. |
-| ROUTE_SCENARIOS.md | 80 | Low | Flavor text. Not actionable. See signal-to-noise section. |
+| ARCHITECTURE.md | 166 | Medium | System diagram useful. Missing MCP dispatcher examples. |
+| PERSONA_LOADING.md | 424 | Medium | Mix of user config and developer internals. Naturally organized but could benefit from splitting. |
+| ROUTE_SCENARIOS.md | 80 | Low | Scenario guide. Well-written but describes some features ARIA can't do (jump bridges, cynos, Thera). |
 | CONTEXT_AWARE_TOPOLOGY.md | 139 | Medium | User config reference. Needs worked example. |
 
 ### Files That Should Move to `dev/docs/` (Developer-Facing)
@@ -147,10 +150,8 @@ These files are referenced by CLAUDE.md and read by the LLM at runtime, not by h
 
 | File | Lines | Problem | Recommendation |
 |------|------:|---------|----------------|
-| `docs/ROUTE_SCENARIOS.md` | 80 | EVE route planning flavor text. No ARIA-specific content. Describes scenarios ARIA can't handle (jump bridges, cyno chains, Thera). Not actionable for users. | **Delete** or move to `reference/lore/`. Serves no user or developer purpose in `docs/`. |
-| `dev/DESIGN.md` (PROPOSAL.md) | 533 | Original project proposal from inception. Describes a single-faction RP concept that has been superseded. References directory structures that no longer exist. | **Move to `dev/archive/`**. Historical interest only. |
-| `dev/archive/*.md` (17 files) | ~3000+ | Implemented proposals, superseded designs, historical documents. All properly archived. | **No action needed.** Archive structure is correct. |
-| `dev/reviews/archive/*.md` (12 files) | ~5000+ | Historical code reviews from various LLMs. | **No action needed.** Archive structure is correct. |
+| `docs/ROUTE_SCENARIOS.md` | 80 | Describes some scenarios ARIA can't handle (jump bridges, cyno chains, Thera). Potentially misleading for new users who may expect these features. | **Add disclaimer** at top noting which scenarios are aspirational vs currently supported, or move to `reference/lore/`. |
+| `docs/CONTEXT_POLICY.md` §10 | ~38 | Context Budget Tracking section marked `[Not Yet Implemented]`. | Will move with the file to `dev/docs/`. Mark more clearly or remove the unimplemented section. |
 
 ### High Signal-to-Noise (Keep As-Is)
 
@@ -159,8 +160,11 @@ These files are referenced by CLAUDE.md and read by the LLM at runtime, not by h
 | `docs/TLDR.md` | 86 | Perfect quick reference. Every line earns its place. |
 | `docs/FAQ.md` | 117 | Practical questions, concise answers. |
 | `docs/ADHOC_MARKETS.md` | 234 | Clean structure: overview → quick start → reference → patterns → troubleshooting. |
+| `docs/COMMANDS.md` | 104 | Compact, categorized, includes natural language triggers. |
+| `docs/TROUBLESHOOTING.md` | 219 | 8 sections, clear escalation path, well-organized by problem domain. |
 | `SECURITY.md` | 133 | Appropriately detailed for the sensitivity level. |
 | `README.md` | 355 | Strong first impression. Real examples. Clear quick start. |
+| `CHANGELOG.md` | ~280 | Fully compliant with Keep a Changelog v1.1.0. Detailed entries with context. |
 
 ### Verbose But Justified
 
@@ -169,15 +173,13 @@ These files are referenced by CLAUDE.md and read by the LLM at runtime, not by h
 | `docs/DATA_VERIFICATION.md` | 414 | Case studies are long but educational. Each documents a real error and its fix. Keeps ARIA honest. **Keep.** |
 | `docs/NOTIFICATION_PROFILES.md` | 766 | Comprehensive but overwhelming. **Split** into Quick Start (setup + 2 examples, ~150 lines) and Cookbook (advanced recipes + commentary config, ~600 lines). |
 | `docs/ESI.md` | 424 | Long but covers OAuth flow end-to-end. Could extract scope reference table to an appendix. **Low priority.** |
-| `docs/PERSONA_LOADING.md` | 424 | Mixes user config ("how to enable RP") with developer internals ("persona context compilation pipeline"). **Split** user-facing persona config from developer-facing loading mechanics. |
+| `docs/PERSONA_LOADING.md` | 424 | Mixes user config ("how to enable RP") with developer internals ("persona context compilation pipeline"). Well-organized internally but could benefit from a split for audience clarity. |
 
 ### Concrete Noise Reduction Edits
 
-1. **`docs/ROUTE_SCENARIOS.md`** — Delete from `docs/`. If kept anywhere, move to `reference/lore/route_scenarios.md` as EVE world-building reference.
-2. **`docs/CONTEXT_POLICY.md` §9 (Singleton Management)** — Pure developer concern. Will move with the file to `dev/docs/`.
-3. **`docs/CONTEXT_POLICY.md` §10 (Budget Tracking `[Not Yet Implemented]`)** — Mark clearly or remove the unimplemented section.
-4. **`personas/_shared/rp-levels.md` §Migration from 4-Level System** — Replace 12-line section with one-line footnote: `> The previous "lite" level was merged into "off" in v0.2.`
-5. **`CONTRIBUTING.md` §Keep It In-Universe** — Reads as if all contributions must be in-character. Reword to clarify this applies to persona content, not code or docs.
+1. **`docs/ROUTE_SCENARIOS.md`** — Add disclaimer or move to `reference/lore/route_scenarios.md`.
+2. **`docs/CONTEXT_POLICY.md` §10 (Budget Tracking `[Not Yet Implemented]`)** — Mark clearly or remove the unimplemented section. Will move with file to `dev/docs/`.
+3. **`docs/ARCHITECTURE.md`** — Add MCP dispatcher usage examples and CLI fallback mention.
 
 ---
 
@@ -185,28 +187,30 @@ These files are referenced by CLAUDE.md and read by the LLM at runtime, not by h
 
 ### Critical (Blocks New User Success)
 
-| Gap | Impact | Remedy |
-|-----|--------|--------|
-| **No slash command reference** | Users must use `/help` inside Claude Code or read 51 separate SKILL.md files. No way to browse commands before installing. | Create `docs/COMMANDS.md` with categorized table: command, description, example trigger phrase. |
-| **No consolidated troubleshooting** | Troubleshooting is scattered across README (3 items), FIRST_RUN (4), FAQ (4), DEPLOYMENT (4). A user with "something broke" has to guess which doc to check. | Create `docs/TROUBLESHOOTING.md` consolidating all troubleshooting sections. Individual docs link to it instead of duplicating. |
-| **`FIRST_RUN.md` examples incomplete** | Section lists 4 examples now (fixed in previous review) but lacks descriptions of what each demonstrates. | Add 1-2 sentence description per example explaining the playstyle and what makes it distinctive. |
+| Gap | Impact | Status | Remedy |
+|-----|--------|--------|--------|
+| ~~**No slash command reference**~~ | ~~Users must use `/help` or read 51 SKILL.md files~~ | **✅ DONE** | `docs/COMMANDS.md` — 48 commands across 7 categories *(PR #34)* |
+| ~~**No consolidated troubleshooting**~~ | ~~Troubleshooting scattered across 5 files~~ | **✅ DONE** | `docs/TROUBLESHOOTING.md` — 219 lines, 8 sections *(PR #34)* |
+| ~~**`FIRST_RUN.md` examples incomplete**~~ | ~~Examples lacked descriptions~~ | **✅ DONE** | 4 examples with 2-3 sentence descriptions each *(PR #34)* |
+| **No link to CONTRIBUTING.md from README** | Contributors browsing the repo can't discover contribution guidelines from the main README | **NEW** | Add "Contributing" section or link in root README.md |
 
 ### High (Affects User Experience)
 
-| Gap | Impact | Remedy |
-|-----|--------|--------|
-| **No "What Can ARIA Do?" showcase** | README has 3 examples. Users wanting a feature gallery before installing have nothing. GitHub visitors deciding whether to star/clone see limited surface area. | Add `docs/FEATURES.md` or expand README's "What ARIA Does" section with more collapsed examples covering market, mining, skill planning. |
-| **NOTIFICATION_PROFILES.md overwhelming** | 766 lines. User wanting basic Discord alerts must read past advanced recipe cookbook, LLM commentary config, and warrant scoring. | Split into `NOTIFICATION_PROFILES.md` (setup + basic examples, ~200 lines) and `NOTIFICATION_COOKBOOK.md` (advanced recipes + commentary, ~550 lines). |
-| **No persona quick-switch guide** | FIRST_RUN.md covers faction switching but it's buried. Users wanting to try different personas need to hunt. | Add a "Switching Personas" section to FAQ or make the FIRST_RUN.md section more discoverable via docs/README.md. |
-| **CONTEXT_AWARE_TOPOLOGY.md lacks worked example** | Users configuring topology can't verify they understand the scoring formula. | Add concrete calculation: "System X with these properties scores Y because..." |
+| Gap | Impact | Status | Remedy |
+|-----|--------|--------|--------|
+| **No "What Can ARIA Do?" showcase** | README has 3 examples. Users wanting a feature gallery before installing have nothing. | Open | Add `docs/FEATURES.md` or expand README's "What ARIA Does" with collapsed examples. |
+| **NOTIFICATION_PROFILES.md overwhelming** | 766 lines. User wanting basic Discord alerts must wade through advanced recipes. | Open | Split into Quick Start (~200 lines) and Cookbook (~550 lines). |
+| **No persona quick-switch guide** | Users wanting to try different personas must hunt through FIRST_RUN.md. | Open | Add "Switching Personas" to FAQ or make FIRST_RUN.md section more discoverable. |
+| **CONTEXT_AWARE_TOPOLOGY.md lacks worked example** | Users can't verify they understand the scoring formula. | Open | Add concrete calculation example. |
 
 ### Medium (Polish for Public Release)
 
-| Gap | Impact | Remedy |
-|-----|--------|--------|
-| **No Windows/WSL2 specific guide** | README notes WSL2 support but no guide for Windows users on WSL2 setup specifics. | Add WSL2 section to DEPLOYMENT.md or FAQ. |
-| **No upgrade/migration guide** | DEPLOYMENT.md has `git pull && uv sync` but no guidance for breaking changes, data migrations, or config format updates. | Add "Upgrading" section to DEPLOYMENT.md with version-specific notes pattern. |
-| **No "How ARIA Uses Your Data" privacy page** | FAQ covers "Is my data sent anywhere?" but a dedicated, linkable privacy/data-handling page would be valuable for trust. | Consider `docs/PRIVACY.md` or expand the Security section of README. |
+| Gap | Impact | Status | Remedy |
+|-----|--------|--------|--------|
+| ~~**No Windows/WSL2 specific guide**~~ | ~~README notes WSL2 support but no guidance~~ | **✅ Sufficient** | WSL2 mentioned in README.md (platform support), FAQ.md (cron setup), and DEPLOYMENT.md (implicit via uv instructions). Adequate for current audience. |
+| **No upgrade/migration guide** | DEPLOYMENT.md has `git pull && uv sync` but no breaking-change guidance. | Open | Add "Upgrading" section to DEPLOYMENT.md with version-specific notes pattern. |
+| **No "How ARIA Uses Your Data" privacy page** | FAQ covers "Is my data sent anywhere?" but a dedicated privacy page aids trust. | Open | Consider `docs/PRIVACY.md` or expand Security section. |
+| **CONTRIBUTING.md missing testing requirements** | PR checklist doesn't mention running pytest before submitting | **NEW** | Add testing step to pull request workflow section. |
 
 ---
 
@@ -214,93 +218,106 @@ These files are referenced by CLAUDE.md and read by the LLM at runtime, not by h
 
 ### Critical (Blocks Contributor Success)
 
-| Gap | Impact | Remedy |
-|-----|--------|--------|
-| **No skill creation guide** | 51 skills exist with no documentation on how to create a new one. Skill loading is documented in `skill-loading.md` but from the architecture perspective, not as a contributor walkthrough. | Create `dev/docs/CONTRIBUTING_SKILLS.md` with step-by-step: create directory, write SKILL.md, add to _index.json, test, add overlay support. |
-| **No persona creation guide** | `personas/README.md` L171 references a non-existent hook script. Adding a persona requires reading 4+ files. | Create `dev/docs/CONTRIBUTING_PERSONAS.md` with checklist: directory, manifest.yaml, voice.md, intel-sources.md, regenerate context. |
-| **No `.claude/skills/` index** | 51 skill directories with no navigation. Contributor must `ls` and guess. | Create `.claude/skills/README.md` with categorized listing. |
+| Gap | Impact | Status | Remedy |
+|-----|--------|--------|--------|
+| **No skill creation guide** | 51 skills exist with no how-to documentation. | Open | Create `dev/docs/CONTRIBUTING_SKILLS.md` with step-by-step walkthrough. |
+| **No persona creation guide** | Adding a persona requires reading 4+ files. | Open | Create `dev/docs/CONTRIBUTING_PERSONAS.md` with checklist. |
+| **No `.claude/skills/` index** | 51 skill directories with no navigation. `.claude/skills/SCHEMA.md` exists (frontmatter format reference) but no categorized listing. | Open | Create `.claude/skills/README.md` with categorized skill listing. |
 
 ### High (Friction for Contributors)
 
-| Gap | Impact | Remedy |
-|-----|--------|--------|
-| **No MCP dispatcher development guide** | Adding a new MCP action requires understanding context policy, output wrapping, error handling, testing patterns. No guide exists. | Create `dev/docs/MCP_DEVELOPMENT.md` covering: dispatcher pattern, action implementation, context wrapping, testing with conftest fixtures. |
-| **ADR index incomplete** | 5 ADRs exist in `dev/decisions/` but the README there is minimal. No index of what decisions were made and why. | Expand `dev/decisions/README.md` with decision log table. |
-| **No dev environment quick start** | PYTHON_ENVIRONMENT.md covers `uv run` but doesn't explain the full dev setup flow: clone → uv sync --all-extras → run tests → understand project structure. | Add `dev/docs/GETTING_STARTED.md` for developers. |
-| **`dev/` not indexed beyond README** | 80+ files in dev/ across proposals, reviews, STPs, decisions, archives. No way to find what you need. | Expand `dev/README.md` with better cross-referencing. The current structure section is good; add "Finding Things" section. |
+| Gap | Impact | Status | Remedy |
+|-----|--------|--------|--------|
+| **No MCP dispatcher development guide** | Adding new MCP actions requires understanding context policy, output wrapping, error handling, testing patterns. | Open | Create `dev/docs/MCP_DEVELOPMENT.md`. |
+| **ADR index minimal** | 5 ADRs exist in `dev/decisions/` with a template README. No decision log table. | Open | Expand `dev/decisions/README.md` with decision log. |
+| **No dev environment quick start** | Clone → first-test-run path isn't documented. | Open | Add `dev/docs/GETTING_STARTED.md`. |
+| **`dev/README.md` lacks navigation aid** | Lists directories but doesn't help find specific information. | Open | Add "Finding Things" section to `dev/README.md`. |
 
 ### Medium (Quality of Life)
 
-| Gap | Impact | Remedy |
-|-----|--------|--------|
-| **No code architecture guide** | `docs/ARCHITECTURE.md` covers high-level system diagram but nothing about code organization: where to find services, how dispatchers call implementations, the MCP→services→data flow. | Add `dev/docs/CODE_ARCHITECTURE.md` or expand ARCHITECTURE.md with code-level details. |
-| **Test fixture documentation** | TESTING.md mentions fixtures but doesn't document what's available in conftest.py or how to use mock ESI/market fixtures effectively. | Expand TESTING.md fixtures section with inventory and usage patterns. |
-| **No release process documentation** | `dev/RELEASE.md` exists but is minimal (56 lines). Doesn't cover versioning policy, changelog workflow, or announcement process. | Expand `dev/RELEASE.md` for pre-public-announcement. |
+| Gap | Impact | Status | Remedy |
+|-----|--------|--------|--------|
+| **No code architecture guide** | `docs/ARCHITECTURE.md` covers high-level diagram but not code organization. | Open | Add `dev/docs/CODE_ARCHITECTURE.md` or expand ARCHITECTURE.md. |
+| **Test fixture documentation** | TESTING.md mentions fixtures but no inventory or usage patterns. | Open | Expand TESTING.md fixtures section. |
+| **No release process detail** | `dev/RELEASE.md` is 56 lines — a task checklist, not comprehensive process docs. No versioning policy, changelog workflow, or announcement process. | Open | Expand `dev/RELEASE.md` for public project. |
 
 ---
 
-## 6. Documentation Debt: Broken Links, Stale Content, Inconsistencies
+## 6. AI-Facing Documentation Gaps
+
+### Issues Specific to LLM Runtime Instructions
+
+| Gap | Impact | Status | Remedy |
+|-----|--------|--------|--------|
+| **CLAUDE.md references all resolve correctly** | All 18 doc references, 6 JSON references, all script references verified. | **✅ No action needed** | Fully compliant — no broken references. |
+| **No deprecated `lite` references in CLAUDE.md** | Only `off`, `on`, `full` used. | **✅ Clean** | No action needed. |
+| **CONTEXT_POLICY.md budget tracking unimplemented** | Section documents code that isn't called in production. Could confuse LLM about available capabilities. | Open | Mark more prominently as unimplemented or remove section. |
+| **docs/ESI.md line 21 may reference non-existent file** | References `reference/mechanics/esi_capabilities.md` — needs verification. | **NEW** | Verify file exists; if not, remove or correct reference. |
+
+---
+
+## 7. Documentation Debt: Broken Links, Stale Content, Inconsistencies
 
 ### Broken References
 
 | Source | Reference | Status | Fix |
 |--------|-----------|--------|-----|
-| `personas/README.md` L171 | `.claude/hooks/aria-boot.d/persona-detect.sh` | File does not exist | Update to `uv run aria-esi persona-context` |
-| `reference/INDEX.md` L42-89 | `missions/*.md`, `ships/fittings/*.md` | Directories don't exist | Remove broken entries |
-| `docs/DATA_AUTHORITY.md` L96 | `sov-load-coalitions` command | Undocumented command | Add docs or link to CLI help |
-| `docs/CONTEXT_POLICY.md` L67-68 | `src/aria_esi/mcp/context.py` imports | Verify paths still accurate | Check and update |
+| ~~`personas/README.md` L171~~ | ~~`.claude/hooks/aria-boot.d/persona-detect.sh`~~ | **✅ FIXED** | Updated to `uv run aria-esi persona-context` *(PR #34)* |
+| ~~`reference/INDEX.md` L42-89~~ | ~~`missions/*.md`, `ships/fittings/*.md`~~ | **✅ FIXED** | Broken entries removed *(PR #34)* |
+| `docs/ESI.md` L21 | `reference/mechanics/esi_capabilities.md` | **NEW — Needs verification** | Verify file exists; remove reference if not |
+| ~~`docs/DATA_AUTHORITY.md` L96~~ | ~~`sov-load-coalitions` command~~ | **Deferred** | Low priority — developer-facing file |
 
 ### Stale Terminology
 
 | Term | Location | Status | Fix |
 |------|----------|--------|-----|
-| `lite` RP level | `personas/*/voice.md`, `rp-levels.md` | Deprecated; merged into `off` | Remove from all files |
-| `ship_status.md` | `CONTRIBUTING.md` L44 | Examples use different filenames | Align with actual filenames |
-| 4-level RP migration | `rp-levels.md` L54-65 | Historical; no longer relevant | Collapse to footnote |
+| ~~`lite` RP level~~ | ~~`personas/*/voice.md`, `rp-levels.md`, skills~~ | **✅ FIXED** | Removed from 13 skills, rp-levels.md, test fixtures, first-run-setup *(PR #34 + polish)* |
+| `lite` migration note | `personas/_shared/rp-levels.md` L56 | **✅ Acceptable** | Collapsed to single-line migration note. Appropriate historical context. |
+| ~~`ship_status.md`~~ | ~~`CONTRIBUTING.md` L44~~ | **Needs verification** | Check if example filenames align with actual filenames |
 
 ### Schema Inconsistencies
 
-| Document | Issue | Fix |
-|----------|-------|-----|
-| `NOTIFICATION_PROFILES.md` | Schema version v1 in prose, v2 in examples | Reconcile to v2 throughout |
+| Document | Issue | Status |
+|----------|-------|--------|
+| ~~NOTIFICATION_PROFILES.md~~ | ~~Schema version v1 in prose, v2 in examples~~ | **✅ FIXED** — All docs, templates, examples updated to v3 *(polish commit)* |
 
 ---
 
-## 7. Big Wins: Highest Impact for Least Effort
+## 8. Big Wins: Highest Impact for Least Effort
 
-Ordered by impact-to-effort ratio:
+Ordered by impact-to-effort ratio. Completed items struck through.
 
-### 1. Create `docs/COMMANDS.md` (HIGH impact, MEDIUM effort)
+### ~~1. Create `docs/COMMANDS.md`~~ ✅ DONE
 
-A single-page command reference is the #1 missing doc. Every user needs it. No competing project in the EVE tooling space has 51 commands without a reference card.
+~~A single-page command reference is the #1 missing doc.~~ 48 commands across 7 categories with natural language examples. *(PR #34)*
 
-**Format:** Table with columns: Command, Category, Description, Example. Group by category (Combat, Navigation, Market, Industry, Administration).
+### ~~2. Create `docs/TROUBLESHOOTING.md`~~ ✅ DONE
 
-**Source:** Auto-generate from `.claude/skills/_index.json` + each SKILL.md's first line. This could even be a script.
+~~Consolidate the ~15 troubleshooting items.~~ 219 lines, 8 sections, clear escalation path. *(PR #34)*
 
-### 2. Split `docs/` by Audience (HIGH impact, MEDIUM effort)
+### ~~3. Split `docs/` by Audience~~ ✅ DONE
 
-Moving ~12 files from `docs/` to `dev/docs/` and `dev/docs/ai-runtime/` is a mechanical operation. The hardest part is updating CLAUDE.md references (find-and-replace). The payoff is a dramatically cleaner first impression.
+~~Moving ~12 files from `docs/` to `dev/docs/` and `dev/docs/ai-runtime/`.~~ 12 files moved, all references updated, README indexes created. *(Phase 2)*
 
-### 3. Create `docs/TROUBLESHOOTING.md` (HIGH impact, LOW effort)
+### 4. Add CONTRIBUTING.md link to README (HIGH impact, LOW effort)
 
-Consolidate the ~15 troubleshooting items scattered across 5 files into one page. Takes 1-2 hours. Eliminates the "where do I look when something breaks?" problem entirely.
+Root README.md has no link to CONTRIBUTING.md. A GitHub visitor looking to contribute can't find it. This is a 2-line fix that significantly improves contributor discoverability.
 
-### 4. Fix All Broken Links (MEDIUM impact, LOW effort)
+### ~~5. Fix All Broken Links~~ ✅ DONE
 
-~4 broken references. ~30 minutes to fix. Eliminates dead-end navigation for contributors.
+~~~4 broken references.~~ Fixed in PR #34. One new potential issue in ESI.md L21 (low priority).
 
-### 5. Split `NOTIFICATION_PROFILES.md` (MEDIUM impact, LOW effort)
+### ~~6. Split `NOTIFICATION_PROFILES.md`~~ ✅ DONE
 
-Move everything after "CLI Reference" into a separate `NOTIFICATION_COOKBOOK.md`. Reduces the main doc from 766 to ~300 lines.
+~~Move everything after "CLI Reference" into a separate `NOTIFICATION_COOKBOOK.md`.~~ Split into setup doc (~390 lines) and cookbook (~280 lines). *(Phase 2)*
 
-### 6. Purge Stale `lite` RP References (LOW impact, LOW effort)
+### ~~7. Purge Stale `lite` RP References~~ ✅ DONE
 
-Grep-and-fix across ~5 files. 30 minutes.
+~~Grep-and-fix across ~5 files.~~ Cleaned from 13 skills, rp-levels.md, test fixtures, first-run-setup.
 
 ---
 
-## 8. Pre-Announcement Checklist
+## 9. Pre-Announcement Checklist
 
 Issues that should be resolved before publicly announcing the project:
 
@@ -315,17 +332,21 @@ Issues that should be resolved before publicly announcing the project:
 - [x] **Verify LICENSE file exists and is correct** — confirmed MIT license present
 - [x] **Verify `.env.example` exists** — confirmed present
 - [x] **Add `docs/TROUBLESHOOTING.md`** — consolidated from 8 source files *(PR #34)*
+- [ ] **Add CONTRIBUTING.md link to root README** — currently missing; contributors can't discover guidelines *(NEW)*
 
 ### Should Fix
 
-- [ ] **Split `docs/` by audience** — move developer/AI-runtime docs out
-- [ ] **Split `NOTIFICATION_PROFILES.md`** — Quick Start + Cookbook
-- [ ] **Split `PERSONA_LOADING.md`** — user config vs developer internals
-- [ ] **Add WSL2 guidance** — platform support claims WSL2 but no setup guide
+- [x] **Split `docs/` by audience** — 12 files moved to `dev/docs/` and `dev/docs/ai-runtime/` *(Phase 2)*
+- [x] **Split `NOTIFICATION_PROFILES.md`** — Quick Start + Cookbook *(Phase 2)*
+- [x] **Split `PERSONA_LOADING.md`** — user config vs developer internals *(Phase 2)*
+- [x] **Add WSL2 guidance** — present in README.md (platform support), FAQ.md (cron in WSL2), and implicitly in DEPLOYMENT.md *(verified 2026-02-15)*
 - [ ] **Create `dev/docs/CONTRIBUTING_SKILLS.md`** — skill creation guide
 - [ ] **Create `dev/docs/CONTRIBUTING_PERSONAS.md`** — persona creation guide
 - [ ] **Expand `dev/RELEASE.md`** — release process for public project
-- [ ] **Add `ROUTE_SCENARIOS.md` notice or remove** — currently misleading (describes features ARIA can't do)
+- [ ] **Add `ROUTE_SCENARIOS.md` disclaimer** — some scenarios describe features ARIA doesn't support (jump bridges, cynos, Thera)
+- [x] **Archive `dev/DESIGN.md`** — moved to `dev/archive/DESIGN.md` *(polish commit 0644453)*
+- [ ] **Add testing requirements to CONTRIBUTING.md** — PR checklist doesn't mention running pytest *(NEW)*
+- [ ] **Verify `docs/ESI.md` L21 reference** — `reference/mechanics/esi_capabilities.md` may not exist *(NEW)*
 
 ### Nice to Have
 
@@ -334,16 +355,28 @@ Issues that should be resolved before publicly announcing the project:
 - [ ] **Add `dev/docs/MCP_DEVELOPMENT.md`** — dispatcher development guide
 - [ ] **Expand `dev/decisions/README.md`** — ADR index
 - [ ] **Add `dev/docs/GETTING_STARTED.md`** — developer quick start
-- [ ] **Create `.claude/skills/README.md`** — skill directory index
+- [ ] **Create `.claude/skills/README.md`** — categorized skill directory index (SCHEMA.md exists for frontmatter format)
 - [ ] **Add terminology tables to empire personas** — parity with PARIA's voice definition
+- [ ] **Expand `docs/ARCHITECTURE.md`** — add MCP dispatcher examples and CLI fallback mention *(NEW)*
+- [ ] **Add more README badges** — coverage, Python version, license *(NEW)*
+- [ ] **Add "Finding Things" section to `dev/README.md`** — help developers navigate 80+ dev files *(NEW)*
 
 ---
 
-## 9. CLAUDE.md Assessment
+## 10. CLAUDE.md Assessment
 
-`CLAUDE.md` is 600+ lines and serves as the system prompt for ARIA sessions. It is not user-facing documentation in the traditional sense — it's machine-readable instructions.
+`CLAUDE.md` is 574 lines and serves as the system prompt for ARIA sessions. It is not user-facing documentation in the traditional sense — it's machine-readable instructions.
 
-### Current Issues
+### Current State (Verified 2026-02-15)
+
+- **All 18 documentation references** resolve to existing files ✅
+- **All 6 reference JSON files** exist ✅
+- **All persona/shared files** exist ✅
+- **All script references** exist and are accessible ✅
+- **No deprecated terminology** (`lite`, `moderate`) in CLAUDE.md ✅
+- **No stale file paths** detected ✅
+
+### Ongoing Concerns
 
 1. **Duplicates content from `docs/`** — MCP tool reference tables, agent query docs, data verification principles all exist in both CLAUDE.md and separate docs.
 2. **Maintenance burden** — changes to MCP dispatchers require updating both CLAUDE.md and the relevant docs file.
@@ -357,7 +390,7 @@ Issues that should be resolved before publicly announcing the project:
 
 ---
 
-## 10. `dev/` Directory Health
+## 11. `dev/` Directory Health
 
 ### Current State
 
@@ -365,97 +398,93 @@ Issues that should be resolved before publicly announcing the project:
 
 ```
 dev/
-├── archive/          # 17 historical docs (properly archived)
-├── decisions/        # 5 ADRs
+├── archive/          # 19 historical docs (properly archived, includes DESIGN.md)
+├── decisions/        # 5 ADRs (ADR-001 through ADR-005, all accepted)
 ├── mechanics/        # 3 game mechanics research docs
 ├── plans/            # 1 implementation plan
 ├── proposals/        # 1 active + 25 archived proposals
-├── reviews/          # 10 active reviews + 12 archived
+├── reviews/          # Active reviews + 12 archived
 ├── spikes/           # 1 technical spike
 ├── stp/              # 1 active + 11 completed skill tracking plans
-├── DESIGN.md         # Original project proposal (should archive)
 ├── RELEASE.md        # Release checklist (needs expansion)
 └── README.md         # Directory guide (adequate)
 ```
 
-### Issues
+### Changes Since Last Review
 
-1. **`dev/DESIGN.md` is a historical artifact.** It describes the original single-faction ARIA concept. The project has evolved far beyond it. Move to `dev/archive/`.
-2. **`dev/README.md` is adequate but not great.** It lists directories but doesn't help a developer find specific information. Add a "Finding Things" section.
-3. **No developer getting-started guide.** A contributor clone → first-test-run path isn't documented.
-4. **STP directory well-maintained.** 11 completed, 1 active. Good process evidence.
-5. **Archive discipline is strong.** Proposals get archived when implemented. Reviews get archived when superseded. This is good.
+1. **`dev/DESIGN.md` archived** ✅ — Moved to `dev/archive/DESIGN.md` in polish commit 0644453.
+2. **Archive discipline remains strong** — Proposals archived when implemented, reviews archived when superseded.
+3. **`dev/docs/` does not exist yet** — The audience split (Phase 2) hasn't been executed.
 
-### Recommendations for `dev/`
+### Remaining Issues
 
-1. Move `dev/DESIGN.md` → `dev/archive/DESIGN.md`
-2. After the `docs/` split, `dev/docs/` becomes the developer documentation home
-3. Expand `dev/README.md` to cross-reference `dev/docs/` content
-4. Keep archive discipline — it's working well
+1. **`dev/README.md` is adequate but not great.** It lists directories but doesn't help a developer find specific information. Add a "Finding Things" section.
+2. **No developer getting-started guide.** A contributor clone → first-test-run path isn't documented.
+3. **STP directory well-maintained.** 11 completed, 1 active. Good process evidence.
 
 ---
 
-## 11. Implementation Phases
+## 12. Implementation Phases
 
-### Phase 1: Pre-Announcement Critical Path (1 week)
+### Phase 1: Pre-Announcement Critical Path ✅ COMPLETE
+
+All 9 items completed in PR #34 and subsequent polish commit.
+
+| # | Action | Status |
+|---|--------|--------|
+| 1 | Create `docs/COMMANDS.md` from skill index | ✅ Done |
+| 2 | Create `docs/TROUBLESHOOTING.md` consolidation | ✅ Done |
+| 3 | Fix all broken links (4 instances) | ✅ Done |
+| 4 | Remove stale `lite` RP references | ✅ Done |
+| 5 | Fix personas/README.md hook reference | ✅ Done |
+| 6 | Reconcile notification schema v1→v3 | ✅ Done |
+| 7 | Expand FIRST_RUN.md examples with descriptions | ✅ Done |
+| 8 | Archive dev/DESIGN.md | ✅ Done |
+| 9 | Add CONTRIBUTING.md link to root README | **Open — NEW** |
+
+### Phase 2: Audience Split ✅ COMPLETE
+
+| # | Action | Status |
+|---|--------|--------|
+| 10 | Create `dev/docs/` and `dev/docs/ai-runtime/` directories | ✅ Done |
+| 11 | Move 6 developer docs from `docs/` to `dev/docs/` | ✅ Done |
+| 12 | Move 6 AI-runtime docs from `docs/` to `dev/docs/ai-runtime/` | ✅ Done |
+| 13 | Update all CLAUDE.md references to new paths | ✅ Done |
+| 14 | Update `docs/README.md` index (remove moved files, add new ones) | ✅ Done |
+| 15 | Create `dev/docs/README.md` developer index | ✅ Done |
+| 16 | Create `dev/docs/ai-runtime/README.md` explaining these files | ✅ Done |
+| 17 | Extract user-relevant parts of PYTHON_ENVIRONMENT.md into DEPLOYMENT.md | ✅ Done |
+| 18 | Split NOTIFICATION_PROFILES.md → Quick Start + Cookbook | ✅ Done |
+| 19 | Split PERSONA_LOADING.md → user config + dev internals | ✅ Done |
+
+### Phase 3: Contributor Enablement
 
 | # | Action | Effort | Files |
 |---|--------|--------|-------|
-| 1 | Create `docs/COMMANDS.md` from skill index | 3 hrs | New file |
-| 2 | Create `docs/TROUBLESHOOTING.md` consolidation | 2 hrs | New file + edits to 5 docs |
-| 3 | Fix all broken links (4 instances) | 30 min | 3 files |
-| 4 | Remove stale `lite` RP references | 30 min | ~5 files |
-| 5 | Fix personas/README.md hook reference | 15 min | 1 file |
-| 6 | Reconcile notification schema v1→v2 | 30 min | 1 file |
-| 7 | Expand FIRST_RUN.md examples with descriptions | 15 min | 1 file |
+| 20 | Create `dev/docs/CONTRIBUTING_SKILLS.md` | 2 hrs | New file |
+| 21 | Create `dev/docs/CONTRIBUTING_PERSONAS.md` | 2 hrs | New file |
+| 22 | Create `.claude/skills/README.md` skill index | 1.5 hrs | New file |
+| 23 | Create `dev/docs/MCP_DEVELOPMENT.md` | 3 hrs | New file |
+| 24 | Create `dev/docs/GETTING_STARTED.md` (dev quick start) | 2 hrs | New file |
+| 25 | Expand `dev/decisions/README.md` with ADR index | 30 min | 1 file |
+| 26 | Add worked example to CONTEXT_AWARE_TOPOLOGY.md | 1 hr | 1 file |
+| 27 | Add testing requirements to CONTRIBUTING.md | 30 min | 1 file |
 
-**Total: ~7 hours**
-
-### Phase 2: Audience Split (1-2 weeks)
-
-| # | Action | Effort | Files |
-|---|--------|--------|-------|
-| 8 | Create `dev/docs/` and `dev/docs/ai-runtime/` directories | 15 min | Directories |
-| 9 | Move 6 developer docs from `docs/` to `dev/docs/` | 1 hr | 6 files + updates |
-| 10 | Move 6 AI-runtime docs from `docs/` to `dev/docs/ai-runtime/` | 1 hr | 6 files + updates |
-| 11 | Update all CLAUDE.md references to new paths | 1 hr | CLAUDE.md |
-| 12 | Update `docs/README.md` index (remove moved files, add new ones) | 30 min | 1 file |
-| 13 | Create `dev/docs/README.md` developer index | 1 hr | New file |
-| 14 | Create `dev/docs/ai-runtime/README.md` explaining these files | 30 min | New file |
-| 15 | Extract user-relevant parts of PYTHON_ENVIRONMENT.md into DEPLOYMENT.md | 1 hr | 2 files |
-| 16 | Split NOTIFICATION_PROFILES.md → Quick Start + Cookbook | 1 hr | 2 files |
-| 17 | Split PERSONA_LOADING.md → user config + dev internals | 1.5 hrs | 2 files |
-
-**Total: ~9 hours**
-
-### Phase 3: Contributor Enablement (2-4 weeks)
-
-| # | Action | Effort | Files |
-|---|--------|--------|-------|
-| 18 | Create `dev/docs/CONTRIBUTING_SKILLS.md` | 2 hrs | New file |
-| 19 | Create `dev/docs/CONTRIBUTING_PERSONAS.md` | 2 hrs | New file |
-| 20 | Create `.claude/skills/README.md` skill index | 1.5 hrs | New file |
-| 21 | Create `dev/docs/MCP_DEVELOPMENT.md` | 3 hrs | New file |
-| 22 | Create `dev/docs/GETTING_STARTED.md` (dev quick start) | 2 hrs | New file |
-| 23 | Expand `dev/decisions/README.md` with ADR index | 30 min | 1 file |
-| 24 | Move `dev/DESIGN.md` to archive | 5 min | 1 file |
-| 25 | Add worked example to CONTEXT_AWARE_TOPOLOGY.md | 1 hr | 1 file |
-
-**Total: ~12 hours**
+**Total: ~12.5 hours**
 
 ### Phase 4: Quality Gates (ongoing)
 
 | # | Action | Cadence |
 |---|--------|---------|
-| 26 | Add `markdown-link-check` or `lychee` to CI | One-time setup |
-| 27 | Add PR template: "Does this PR add/remove a command? Update COMMANDS.md" | One-time setup |
-| 28 | Terminology lint in pre-commit (grep for deprecated terms) | One-time setup |
-| 29 | Quarterly doc freshness audit | Quarterly |
-| 30 | Auto-generate COMMANDS.md from skill index (script) | Per release |
+| 28 | Add `markdown-link-check` or `lychee` to CI | One-time setup |
+| 29 | Add PR template: "Does this PR add/remove a command? Update COMMANDS.md" | One-time setup |
+| 30 | Terminology lint in pre-commit (grep for deprecated terms) | One-time setup |
+| 31 | Quarterly doc freshness audit | Quarterly |
+| 32 | Auto-generate COMMANDS.md from skill index (script) | Per release |
 
 ---
 
-## 12. Success Criteria
+## 13. Success Criteria
 
 Documentation is "release-ready" when:
 
@@ -468,25 +497,40 @@ Documentation is "release-ready" when:
 7. **Every slash command** is documented in `docs/COMMANDS.md`
 8. **Troubleshooting has a single entry point** at `docs/TROUBLESHOOTING.md`
 
+### Current Progress Against Criteria
+
+| # | Criterion | Status |
+|---|-----------|--------|
+| 1 | Clone-to-response in 10 min | ✅ Achievable with current docs |
+| 2 | Understand ARIA in 2 min | ✅ README + COMMANDS.md cover this |
+| 3 | `docs/` user-only | ✅ 12 developer/AI-runtime files moved to `dev/docs/` |
+| 4 | Zero broken links | ⚠️ 1 potential issue (ESI.md L21) |
+| 5 | Zero stale terminology | ✅ `lite` references cleaned; migration note is appropriate |
+| 6 | Skill creation guide | ❌ Not yet created |
+| 7 | All commands in COMMANDS.md | ✅ 48 commands documented |
+| 8 | Single troubleshooting entry | ✅ `docs/TROUBLESHOOTING.md` exists |
+
 ---
 
 ## Appendix A: Comparison with Open-Source Documentation Standards
 
 | Practice | ARIA Status | Target |
 |----------|-------------|--------|
-| README has clear quick start | Yes | Maintain |
-| README shows real output examples | Yes (3 examples) | Expand to 5-6 |
-| docs/ is user-focused | No (mixed audiences) | Split by Phase 2 |
-| Progressive disclosure (quick start → guide → reference) | Partial (TLDR → FIRST_RUN → detailed) | Complete with COMMANDS.md |
-| Consolidated troubleshooting | No (scattered) | TROUBLESHOOTING.md |
-| Contributing guide for major extension points | No (skills, personas undocumented) | Phase 3 |
-| Automated link checking in CI | No | Phase 4 |
-| Command/API reference page | No | COMMANDS.md in Phase 1 |
-| Architecture overview | Yes (ARCHITECTURE.md) | Maintain |
-| Security policy | Yes (SECURITY.md) | Maintain |
-| License clarity | Yes (README, CONTRIBUTING) | Maintain |
-| Example configurations | Yes (4 examples) | Maintain, grow organically |
-| Changelog | Yes (new, short) | Maintain as project matures |
+| README has clear quick start | ✅ Yes | Maintain |
+| README shows real output examples | ✅ Yes (3 examples) | Expand to 5-6 |
+| README links to CONTRIBUTING.md | ❌ No | Add link |
+| docs/ is user-focused | ❌ No (mixed audiences) | Split by Phase 2 |
+| Progressive disclosure (quick start → guide → reference) | ✅ Yes (TLDR → FIRST_RUN → COMMANDS → detailed) | Maintain |
+| Consolidated troubleshooting | ✅ Yes (TROUBLESHOOTING.md) | Maintain |
+| Contributing guide for major extension points | ❌ No (skills, personas undocumented) | Phase 3 |
+| Automated link checking in CI | ❌ No | Phase 4 |
+| Command/API reference page | ✅ Yes (COMMANDS.md) | Maintain |
+| Architecture overview | ✅ Yes (ARCHITECTURE.md) | Enhance with MCP examples |
+| Security policy | ✅ Yes (SECURITY.md) | Maintain |
+| License clarity | ✅ Yes (README, CONTRIBUTING, LICENSE) | Maintain |
+| Example configurations | ✅ Yes (4 examples with descriptions) | Maintain, grow organically |
+| Changelog | ✅ Yes (Keep a Changelog v1.1.0 compliant) | Maintain as project matures |
+| CI badges | ⚠️ Partial (CI badge only) | Add coverage, Python version, license |
 
 ## Appendix B: File Move Mapping
 
@@ -529,4 +573,4 @@ docs/DATA_FILES.md            → dev/docs/ai-runtime/DATA_FILES.md
 
 ---
 
-*Review generated 2026-02-15. Supersedes previous review dated 2026-02-10.*
+*Review generated 2026-02-15. Revision 2: Updated completion status, added new findings from fresh audit. Supersedes revision 1.*
