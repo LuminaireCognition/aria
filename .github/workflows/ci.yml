@@ -85,3 +85,15 @@ jobs:
           files: coverage.xml
           fail_ci_if_error: false
         continue-on-error: true
+
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check markdown links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: '--no-progress **/*.md'
+          fail: true

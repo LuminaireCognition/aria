@@ -215,7 +215,7 @@ States: `active`, `expired`, `cancelled`
 
 ## Response Formats
 
-### Standard Display (rp_level: off or lite)
+### Standard Display (rp_level: off)
 
 ```markdown
 ## Market Orders

@@ -2,7 +2,7 @@
 
 Master reference for EVE Online ammunition selection by weapon system.
 
-**Source:** [EVE University Wiki - Ammunition](https://wiki.eveuniversity.org/Ammunition)
+**Source:** [EVE University Wiki - Ammunition](https://wiki.eveuniversity.org/Missiles)
 
 > **Note:** For programmatic lookups, see the structured JSON reference files:
 > - `reference/mechanics/missiles.json` - Missile ammo by damage type and faction

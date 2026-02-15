@@ -203,7 +203,7 @@ uv run aria-esi industry-jobs [options]
 
 ## Response Formats
 
-### Standard Display (rp_level: off or lite)
+### Standard Display (rp_level: off)
 
 ```markdown
 ## Industry Jobs

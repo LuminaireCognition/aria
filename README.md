@@ -1,6 +1,9 @@
 # ARIA - Adaptive Reasoning & Intelligence Array
 
 [![CI](https://github.com/LuminaireCognition/aria/actions/workflows/ci.yml/badge.svg)](https://github.com/LuminaireCognition/aria/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/LuminaireCognition/aria/graph/badge.svg)](https://codecov.io/gh/LuminaireCognition/aria)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Tactical Advisor AI Framework for EVE Online**
 
@@ -20,6 +23,7 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 <a href="./docs/FIRST_RUN.md">First Run</a> |
 <a href="./docs/ESI.md">ESI Setup</a> |
 <a href="./docs/FAQ.md">FAQ</a> |
+<a href="./CONTRIBUTING.md">Contributing</a> |
 <a href="./docs/README.md">Full Docs Index</a>
 </p>
 
@@ -246,8 +250,8 @@ ARIA pulls data from multiple sources with different update frequencies. Market 
 
 For deeper details:
 
-- [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md) — where each data type originates and how it's updated
-- [docs/DATA_VERIFICATION.md](docs/DATA_VERIFICATION.md) — how ARIA validates game data before presenting it
+- [dev/docs/DATA_SOURCES.md](dev/docs/DATA_SOURCES.md) — where each data type originates and how it's updated
+- [dev/docs/ai-runtime/DATA_VERIFICATION.md](dev/docs/ai-runtime/DATA_VERIFICATION.md) — how ARIA validates game data before presenting it
 - [docs/ESI.md](docs/ESI.md) — live character data setup and token lifecycle
 
 ---
@@ -314,6 +318,12 @@ See [SECURITY.md](SECURITY.md) for full details.
 - Fuzzwork market endpoints (market pricing)
 - EVE University Wiki pages for mission intel (cached locally)
 - zKillboard RedisQ stream (optional, only when real-time intel is enabled)
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to contribute configurations, PvE intel, reference data, skills, personas, and code.
 
 ---
 

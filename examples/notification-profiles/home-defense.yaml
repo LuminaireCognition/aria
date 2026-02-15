@@ -9,7 +9,7 @@
 #   3. Replace systems with YOUR home system and adjacent systems
 #   4. Add hostile corps/alliances to your watchlist
 
-schema_version: 1
+schema_version: 3
 
 name: "home-defense"
 display_name: "Home Defense"

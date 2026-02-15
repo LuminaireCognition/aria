@@ -154,7 +154,7 @@ Users provide system names, not IDs. Resolution workflow:
 
 ## Response Format
 
-### Standard Response (rp_level: off or lite)
+### Standard Response (rp_level: off)
 
 ```markdown
 ## Route: Dodixie → Jita

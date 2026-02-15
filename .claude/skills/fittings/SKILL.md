@@ -210,7 +210,7 @@ ESI uses flag values to identify slots:
 
 ## Response Formats
 
-### Standard Display (rp_level: off or lite)
+### Standard Display (rp_level: off)
 
 ```markdown
 ## Saved Fittings

@@ -226,7 +226,7 @@ PYTHONPATH=.claude/scripts uv run python -m aria_esi agents-research
 
 ## Response Formats
 
-### Standard Display (rp_level: off or lite)
+### Standard Display (rp_level: off)
 
 ```markdown
 ## Research Agents

@@ -48,7 +48,7 @@ Available templates:
 ## Profile Structure
 
 ```yaml
-schema_version: 1
+schema_version: 3
 
 name: "profile-name"              # Must match filename (without .yaml)
 display_name: "Human Readable"    # Shows in Discord embeds

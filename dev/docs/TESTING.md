@@ -291,5 +291,5 @@ uv run pytest --collect-only -q
 ## Related Documentation
 
 - [PYTHON_ENVIRONMENT.md](PYTHON_ENVIRONMENT.md) - Development setup
-- [CONTRIBUTING.md](../CONTRIBUTING.md) - Contribution guidelines
-- [pyproject.toml](../pyproject.toml) - Test configuration (L72-99)
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Contribution guidelines
+- [pyproject.toml](../../pyproject.toml) - Test configuration (L72-99)

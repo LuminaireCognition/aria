@@ -6,7 +6,7 @@
 #
 # Use: uv run aria-esi notifications create fw-intel --template fw-frontlines --webhook <url>
 
-schema_version: 2
+schema_version: 3
 
 name: "fw-frontlines"
 display_name: "Faction Warfare Intel"

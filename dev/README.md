@@ -39,6 +39,24 @@ dev/
 └── mechanics/           # Game mechanics documentation
 ```
 
+## Finding Things
+
+| I want to... | Look in |
+|--------------|---------|
+| Add a new skill | `dev/docs/CONTRIBUTING_SKILLS.md` |
+| Add a new persona | `dev/docs/CONTRIBUTING_PERSONAS.md` |
+| Add an MCP dispatcher action | `dev/docs/MCP_DEVELOPMENT.md` |
+| Understand test tiers | `dev/docs/TESTING.md` |
+| See design decisions | `dev/decisions/` |
+| Find a past proposal | `dev/proposals/archive/` |
+| Check typing progress | `dev/docs/TYPING_ROADMAP.md` |
+| Set up dev environment | `dev/docs/GETTING_STARTED.md` |
+| Run a code review | `dev/prompts/README.md` |
+| Understand data sources | `dev/docs/DATA_SOURCES.md` |
+| Read AI runtime rules | `dev/docs/ai-runtime/README.md` |
+| Release a new version | `dev/RELEASE.md` |
+| Run a doc freshness audit | `dev/docs/DOC_FRESHNESS.md` |
+
 ## Review Prompt Library
 
 The `prompts/` directory contains standalone review prompts for evaluating code quality. Give any prompt to an AI coding agent with full codebase access to produce a structured, severity-ranked report.
@@ -66,6 +84,5 @@ Feature proposals go through this lifecycle:
 
 ## Key Documents
 
-- `DESIGN.md` - Overall architecture and design philosophy
 - `RELEASE.md` - Release process and checklist
 - `PROMPT_INJECTION_HARDENING.md` - Security considerations

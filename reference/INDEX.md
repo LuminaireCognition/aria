@@ -17,7 +17,7 @@ Last Updated: YC128.01.13
 | Need | File |
 |------|------|
 | What damage to deal/tank? | [mechanics/npc_damage_types.md](mechanics/npc_damage_types.md) |
-| Drone damage types | [mechanics/drones.md](mechanics/drones.md) |
+| Drone damage types | [mechanics/drones.json](mechanics/drones.json) |
 | Hacking help | [mechanics/hacking_guide.md](mechanics/hacking_guide.md) |
 | Mission intel | [pve-intel/INDEX.md](pve-intel/INDEX.md) |
 | Ship fitting | [fittings/MODULE_NAMES.md](fittings/MODULE_NAMES.md) |
@@ -44,10 +44,9 @@ Personal operational files are stored in `userdata/pilots/{active_pilot}/`:
 | File | Contents |
 |------|----------|
 | [mechanics/npc_damage_types.md](mechanics/npc_damage_types.md) | Faction damage tables, EWAR types, tank priorities |
-| [mechanics/drones.md](mechanics/drones.md) | **Drone damage types**, faction recommendations, bandwidth |
-| [mechanics/drones.json](mechanics/drones.json) | Machine-readable drone data (Python/JSON) |
+| [mechanics/drones.json](mechanics/drones.json) | **Drone damage types**, faction recommendations, bandwidth |
 | [pve-intel/INDEX.md](pve-intel/INDEX.md) | Mission & PvE intel index by faction/level |
-| [pve-intel/cache/](pve-intel/cache/) | Cached mission briefings (auto-populated by `/mission-brief`) |
+| `pve-intel/cache/` | Cached mission briefings (auto-populated by `/mission-brief`, gitignored) |
 
 ### Exploration
 
@@ -97,7 +96,7 @@ Background intelligence on New Eden.
 
 | File | Purpose |
 |------|---------|
-| [.cache-manifest.json](.cache-manifest.json) | Cache freshness tracking (24h TTL) |
+| `.cache-manifest.json` | Cache freshness tracking (24h TTL, gitignored) |
 | [mechanics/esi_api_urls.md](mechanics/esi_api_urls.md) | **ESI documentation URLs** - working URLs, 404 avoidance |
 | [pve-intel/README.md](pve-intel/README.md) | PvE intel format specification |
 
@@ -118,8 +117,7 @@ reference/
 │
 ├── mechanics/                  [Game Mechanics]
 │   ├── npc_damage_types.md
-│   ├── drones.md               ← Master drone reference
-│   ├── drones.json             ← Machine-readable drone data
+│   ├── drones.json             ← Master drone reference (JSON)
 │   ├── hacking_guide.md
 │   ├── ore_database.md
 │   ├── reprocessing.md

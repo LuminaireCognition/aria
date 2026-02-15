@@ -236,7 +236,7 @@ Note: Compressed ore variants have different type IDs.
 
 ## Response Formats
 
-### Standard Display (rp_level: off or lite)
+### Standard Display (rp_level: off)
 
 ```markdown
 ## Mining Ledger (Last 7 days)

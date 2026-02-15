@@ -9,7 +9,7 @@
 #   3. Customize systems list for your region
 #   4. Adjust high_value_threshold as needed
 
-schema_version: 1
+schema_version: 3
 
 name: "killwatch"
 display_name: "Kill Watch"

@@ -216,8 +216,7 @@ Use AskUserQuestion with multiple questions:
       "header": "RP Level",
       "options": [
         {"label": "Off (Recommended)", "description": "Just facts, no theater"},
-        {"label": "Lite", "description": "EVE terminology, direct style"},
-        {"label": "Moderate", "description": "Light personality, formatted reports"},
+        {"label": "On", "description": "Light personality, EVE terminology, formatted reports"},
         {"label": "Full", "description": "Maximum immersion, ship AI roleplay"}
       ],
       "multiSelect": false

@@ -1,5 +1,7 @@
 In the universe of New Eden, a "short" route is rarely the "best" route. Depending on your ship, your cargo, and your security status, route planning is a constant tactical exercise.
 
+> **Note:** ARIA currently supports gate-based routing (scenarios 1-5, 9). Scenarios involving jump bridges (6), cyno chains (7), filaments (8, 10), and Thera wormholes (9) describe gameplay patterns for context but are not yet supported by ARIA's route planner.
+
 Here are discrete route planning scenarios categorized by playstyle.
 
 ---

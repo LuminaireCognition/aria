@@ -283,7 +283,7 @@ When assessing null-sec systems (security <= 0.0), include sovereignty data for 
 
 ### Data Authority
 
-Sovereignty data follows the authority hierarchy defined in `docs/DATA_AUTHORITY.md`:
+Sovereignty data follows the authority hierarchy defined in `dev/docs/ai-runtime/DATA_AUTHORITY.md`:
 
 | Data Type | Source | Authority |
 |-----------|--------|-----------|

@@ -149,4 +149,4 @@ When fixing type errors:
 ## Related Documentation
 
 - [PYTHON_ENVIRONMENT.md](PYTHON_ENVIRONMENT.md) - Development setup
-- [pyproject.toml](../pyproject.toml) - Full mypy configuration (L181-275)
+- [pyproject.toml](../../pyproject.toml) - Full mypy configuration (L181-275)

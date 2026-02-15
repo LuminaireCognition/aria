@@ -397,7 +397,7 @@ Mission-Related Question
 └──────────────────────────────────────┘
 ```
 
-**Key principle:** General web search is prohibited for mission data. The EVE University Wiki is the only blessed external source. See `docs/DATA_SOURCES.md` for rationale.
+**Key principle:** General web search is prohibited for mission data. The EVE University Wiki is the only blessed external source. See `dev/docs/DATA_SOURCES.md` for rationale.
 
 **Recognition triggers for mission context:**
 - Explicit: "mission brief", "/mission-brief", "prepare for [mission]"

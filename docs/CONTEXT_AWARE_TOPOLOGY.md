@@ -84,6 +84,57 @@ Display current topology summary.
 uv run aria-esi topology-show
 ```
 
+## Worked Example
+
+Starting with two operational systems: **Tama** (home) and **Sujarento** (transit).
+
+**1. Configuration:**
+
+```json
+{
+  "redisq": {
+    "context_topology": {
+      "geographic": {
+        "systems": [
+          {"name": "Tama", "classification": "home"},
+          {"name": "Sujarento", "classification": "transit"}
+        ]
+      }
+    }
+  }
+}
+```
+
+**2. Build topology:**
+
+```bash
+uv run aria-esi topology-build
+```
+
+**3. Resulting InterestMap:**
+
+The builder expands outward from each configured system via BFS:
+
+| System | Hop Level | Interest | Source |
+|--------|-----------|----------|--------|
+| Tama | 0 | 1.0 | Configured (home) |
+| Sujarento | 0 | 0.8 | Configured (transit) |
+| Kedama | 1 | 1.0 | 1-hop from Tama |
+| Nourvakaiken | 1 | 1.0 | 1-hop from Tama |
+| Nourvukaiken | 1 | 1.0 | 1-hop from Tama |
+| Aivonen | 1 | 1.0 | 1-hop from Sujarento |
+| Heydieles | 1 | 1.0 | 1-hop from Sujarento |
+| *(~8-12 more 1-hop neighbors)* | 1 | 1.0 | Adjacent gates |
+| *(~15-25 2-hop systems)* | 2 | 0.7 | Two jumps out |
+
+**4. Result:** Kills in Tama and its immediate neighborhood receive full interest (1.0). Kills two jumps away still pass the filter (0.7). Kills in distant systems like Jita are dropped before ESI fetch.
+
+**5. Verify with:**
+
+```bash
+uv run aria-esi topology-show
+```
+
 ## Special Systems
 
 The topology builder automatically classifies well-known systems:
@@ -136,4 +187,4 @@ Kill Stream (RedisQ)
 
 - [REALTIME_CONFIGURATION.md](REALTIME_CONFIGURATION.md) - RedisQ poller and Discord webhooks
 - [NOTIFICATION_PROFILES.md](NOTIFICATION_PROFILES.md) - Interest Engine v2 and multi-webhook routing
-- [DATA_FILES.md](DATA_FILES.md) - Data file locations and volatility
+- [DATA_FILES.md](../dev/docs/ai-runtime/DATA_FILES.md) - Data file locations and volatility

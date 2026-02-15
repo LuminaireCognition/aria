@@ -191,7 +191,7 @@ PYTHONPATH=.claude/scripts uv run python -m aria_esi mail-labels
 
 ## Response Formats
 
-### Standard Display (rp_level: off or lite)
+### Standard Display (rp_level: off)
 
 ```markdown
 ## EVE Mail

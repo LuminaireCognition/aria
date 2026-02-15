@@ -51,7 +51,7 @@ Review requested scopes during OAuth authorization.
   - Fuzzwork market endpoints (market pricing)
   - EVE University Wiki for mission intel (cached locally)
   - zKillboard RedisQ stream (optional, only when real-time intel is enabled)
-- Credentials use a two-tier storage model: system keyring when available (macOS Keychain, GNOME Keyring, Windows Credential Manager), with plaintext JSON fallback (0600 permissions) on systems without a keyring backend — see [PYTHON_ENVIRONMENT.md](docs/PYTHON_ENVIRONMENT.md) for details
+- Credentials use a two-tier storage model: system keyring when available (macOS Keychain, GNOME Keyring, Windows Credential Manager), with plaintext JSON fallback (0600 permissions) on systems without a keyring backend — see [PYTHON_ENVIRONMENT.md](dev/docs/PYTHON_ENVIRONMENT.md) for details
 - `aria-init` prints a runtime advisory (`Linux`, `macOS`, `WSL2`, or `container`) and rejects unsupported native Windows shells.
 
 ### Claude Code Context

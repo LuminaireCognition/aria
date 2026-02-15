@@ -87,6 +87,24 @@ The Model Context Protocol server provides structured data access:
 | `fitting()` | calculate_stats, requirements | Ship fitting calculations |
 | `skills()` | training_time, easy_80_plan | Skill planning |
 
+#### Using MCP Dispatchers
+
+```python
+# Route planning
+universe(action="route", origin="Jita", destination="Amarr", mode="safe")
+
+# Market prices
+market(action="prices", items=["Tritanium", "Pyerite"])
+
+# Item lookup
+sde(action="item_info", item="Vexor Navy Issue")
+
+# Ship fitting statistics
+fitting(action="calculate_stats", eft="[Vexor, My Fit]\nDrone Damage Amplifier II\n...")
+```
+
+If MCP is unavailable, equivalent CLI commands exist via `uv run aria-esi` (e.g., `aria-esi route Jita Amarr --safe`).
+
 ### Data Sources
 
 | Source | Type | Description |

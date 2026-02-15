@@ -1,0 +1,72 @@
+# Lychee link checker configuration
+# https://lychee.cli.rs/
+
+# Exclude paths that contain non-standard or internal links
+exclude_path = [
+  ".claude/skills",
+  "dev/archive",
+  "dev/proposals/archive",
+  "dev/reviews/archive",
+  "dev/design",
+  "dev/mechanics",
+  "dev/planning",
+  "examples",
+  "personas",
+  "reference/pve-intel",
+  "reference/sites",
+  "node_modules",
+  ".venv",
+]
+
+# Exclude URLs that require authentication or are known placeholders
+exclude = [
+  # CCP/ESI endpoints require auth
+  'https://esi\.evetech\.net',
+  'https://login\.eveonline\.com',
+  'https://developers\.eveonline\.com',
+  # Placeholder URLs in examples
+  '<discord-webhook-url>',
+  'discord\.com/api/webhooks',
+  # Local development URLs
+  'http://localhost',
+  'http://127\.0\.0\.1',
+  # Sites that block automated crawlers (403)
+  'reddit\.com',
+  'researchgate\.net',
+  'tandfonline\.com',
+  'thoughtco\.com',
+  'scispace\.com',
+  'digitalcommons\.',
+  'scholarworks\.',
+  'oaktrust\.library\.',
+  'red\.library\.usd\.edu',
+  'pdxscholar\.library\.',
+  # More bot-blocked sites
+  'futurelearn\.com',
+  'scribd\.com',
+  # Sites with persistent SSL/cert issues
+  'wiki\.eve-inspiracy\.com',
+  'portal\.cops\.usdoj\.gov',
+  'stevenberlinjohnson\.com',
+  # Local gitignored files referenced in docs
+  '\.cache-manifest\.json',
+]
+
+# Accept 429 (rate limited) as OK — we don't want CI to fail on rate limits
+accept = [200, 429]
+
+# Timeout per request
+timeout = 30
+
+# Max retries per request
+max_retries = 3
+
+# Don't check mail links
+exclude_mail = true
+
+# Max concurrent requests (be polite to external servers)
+max_concurrency = 8
+
+# Cache results for 1 day
+cache = true
+max_cache_age = "1d"

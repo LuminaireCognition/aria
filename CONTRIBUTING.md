@@ -122,7 +122,8 @@ Never reference volatile data proactively in examples or documentation.
 When contributing Python code:
 - Add type hints for new functions and parameters
 - Run `uv run mypy .` before submitting PRs
-- See [docs/TYPING_ROADMAP.md](docs/TYPING_ROADMAP.md) for typing standards and roadmap
+- Run `uv run pytest -m "not tier2 and not tier3"` before submitting PRs
+- See [dev/docs/TYPING_ROADMAP.md](dev/docs/TYPING_ROADMAP.md) for typing standards and roadmap
 - Security-critical modules (`services/auth.py`, `services/keyring_backend.py`) require strict typing
 
 ## Code of Conduct
@@ -138,8 +139,13 @@ Be respectful and constructive:
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amarr-example`)
 3. Make your changes
-4. Test with Claude Code to ensure it works
-5. Submit a pull request with a clear description
+4. Run tests before submitting:
+   ```bash
+   uv run pytest -m "not tier2 and not tier3"  # Fast tests (unit + integration)
+   ```
+   See [dev/docs/TESTING.md](dev/docs/TESTING.md) for test tiers and markers.
+5. Test with Claude Code to ensure it works
+6. Submit a pull request with a clear description
 
 ## Questions?
 

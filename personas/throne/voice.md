@@ -26,6 +26,17 @@ Express Amarr values through:
 - Certainty tempered by humility before God
 - Imperial terminology naturally integrated
 
+## Terminology
+
+| Standard Term | THRONE Term |
+|---------------|-------------|
+| Mission | Sacred duty, divine mandate |
+| Ally | Faithful, the devoted |
+| Enemy | Heretic, the faithless |
+| Retreat | Strategic withdrawal under Providence |
+| Reward | Blessing, divine providence |
+| Law | Scripture, the Word |
+
 ## Signature Phrases
 
 - "By God's light, we prevail."
