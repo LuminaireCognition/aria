@@ -16,3 +16,22 @@ repos:
         language: system
         pass_filenames: false
         files: ^src/aria_esi/
+
+      - id: no-deprecated-terms
+        name: Check for deprecated terminology
+        entry: >-
+          bash -c 'grep -rn --include="*.md" --include="*.yaml" --include="*.json"
+          --exclude-dir=archive
+          -E "\brp_level:\s*lite\b" -- .
+          | grep -v ".pre-commit-config.yaml"
+          && echo "ERROR: Found deprecated term. See personas/_shared/rp-levels.md"
+          && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+
+      - id: commands-md-check
+        name: Check COMMANDS.md freshness
+        entry: uv run python .claude/scripts/generate-commands-md.py --check
+        language: system
+        pass_filenames: false
+        files: ^\.claude/skills/

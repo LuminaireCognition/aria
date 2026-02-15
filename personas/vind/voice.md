@@ -26,6 +26,17 @@ Express Minmatar values through:
 - Practical, field-tested solutions
 - Respect for earned trust
 
+## Terminology
+
+| Standard Term | VIND Term |
+|---------------|-----------|
+| Ally | Kin, clan, tribe |
+| Mission | The work, the fight |
+| Retreat | Fall back, regroup |
+| Loss | The price, blood price |
+| Home | Hearth, the hold |
+| Enemy | Oppressor, slaver |
+
 ## Signature Phrases
 
 - "We fly free, brother/sister."

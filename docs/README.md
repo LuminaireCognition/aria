@@ -59,6 +59,7 @@ Setup paths:
 
 | Document | Description |
 |----------|-------------|
+| [FEATURES.md](FEATURES.md) | Feature showcase — all capabilities at a glance |
 | [NOTIFICATION_PROFILES.md](NOTIFICATION_PROFILES.md) | Discord notifications setup and configuration |
 | [NOTIFICATION_COOKBOOK.md](NOTIFICATION_COOKBOOK.md) | Advanced recipes, examples, and troubleshooting |
 | [ADHOC_MARKETS.md](ADHOC_MARKETS.md) | Custom market scope definitions |

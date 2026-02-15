@@ -4,7 +4,7 @@
 **Reviewer:** AI-assisted audit (Claude Opus 4.6)
 **Scope:** Full documentation audit — user-facing, developer-facing, and AI-runtime docs
 **Context:** Pre-public-announcement readiness review
-**Revision:** 3 — Updated with Phase 3 (contributor enablement) completions
+**Revision:** 4 — Updated with Phase 4 (quality gates) and final polish completions
 
 ---
 
@@ -12,7 +12,7 @@
 
 ARIA has extensive documentation (~250 markdown files, ~33,000+ lines), but it suffers from a fundamental structural problem: **user-facing and developer-facing documentation are co-mingled in `docs/`**, and a third category — **AI runtime instructions** — lives alongside both without clear labeling. Before public announcement, the highest-impact work is splitting `docs/` by audience so that new users see a clean, focused documentation surface rather than a mixed bag of setup guides and MCP context policy internals.
 
-Phases 1-3 are **complete**. Phase 1 (PR #34), Phase 2 (audience split), and Phase 3 (contributor enablement) addressed all critical and high-priority items. Remaining work is Phase 4 (quality gates) and a few nice-to-have items.
+All four phases are **complete**. Phase 1 (PR #34), Phase 2 (audience split), Phase 3 (contributor enablement), and Phase 4 (quality gates + final polish) addressed all critical, high-priority, and nice-to-have items. The documentation is release-ready.
 
 ---
 
@@ -342,7 +342,7 @@ Issues that should be resolved before publicly announcing the project:
 - [x] **Add WSL2 guidance** — present in README.md (platform support), FAQ.md (cron in WSL2), and implicitly in DEPLOYMENT.md *(verified 2026-02-15)*
 - [x] **Create `dev/docs/CONTRIBUTING_SKILLS.md`** — step-by-step skill creation guide *(Phase 3)*
 - [x] **Create `dev/docs/CONTRIBUTING_PERSONAS.md`** — step-by-step persona creation guide *(Phase 3)*
-- [ ] **Expand `dev/RELEASE.md`** — release process for public project
+- [x] **Expand `dev/RELEASE.md`** — release process for public project *(Phase 4)*
 - [x] **Add `ROUTE_SCENARIOS.md` disclaimer** — clarifies which scenarios ARIA supports *(Phase 3)*
 - [x] **Archive `dev/DESIGN.md`** — moved to `dev/archive/DESIGN.md` *(polish commit 0644453)*
 - [x] **Add testing requirements to CONTRIBUTING.md** — pytest command + link to TESTING.md *(Phase 3)*
@@ -350,16 +350,16 @@ Issues that should be resolved before publicly announcing the project:
 
 ### Nice to Have
 
-- [ ] **Add CI link checker** — `markdown-link-check` or `lychee` in GitHub Actions
-- [ ] **Create `docs/FEATURES.md`** — expanded showcase for GitHub visitors
+- [x] **Add CI link checker** — lychee in GitHub Actions *(Phase 4)*
+- [x] **Create `docs/FEATURES.md`** — expanded showcase for GitHub visitors *(Phase 4)*
 - [x] **Add `dev/docs/MCP_DEVELOPMENT.md`** — dispatcher development guide *(Phase 3)*
 - [x] **Expand `dev/decisions/README.md`** — ADR index with summaries *(Phase 3)*
 - [x] **Add `dev/docs/GETTING_STARTED.md`** — developer quick start *(Phase 3)*
 - [x] **Create `.claude/skills/README.md`** — categorized skill directory index *(Phase 3)*
-- [ ] **Add terminology tables to empire personas** — parity with PARIA's voice definition
+- [x] **Add terminology tables to empire personas** — parity with PARIA's voice definition *(Phase 4)*
 - [x] **Expand `docs/ARCHITECTURE.md`** — MCP dispatcher examples + CLI fallback *(Phase 3)*
-- [ ] **Add more README badges** — coverage, Python version, license *(NEW)*
-- [ ] **Add "Finding Things" section to `dev/README.md`** — help developers navigate 80+ dev files *(NEW)*
+- [x] **Add more README badges** — coverage, Python version, license *(Phase 4)*
+- [x] **Add "Finding Things" section to `dev/README.md`** — help developers navigate 80+ dev files *(Phase 4)*
 
 ---
 
@@ -470,15 +470,15 @@ All 9 items completed in PR #34 and subsequent polish commit.
 | 26 | Add worked example to CONTEXT_AWARE_TOPOLOGY.md | ✅ Done |
 | 27 | Add testing requirements to CONTRIBUTING.md | ✅ Done |
 
-### Phase 4: Quality Gates (ongoing)
+### Phase 4: Quality Gates ✅ COMPLETE
 
-| # | Action | Cadence |
-|---|--------|---------|
-| 28 | Add `markdown-link-check` or `lychee` to CI | One-time setup |
-| 29 | Add PR template: "Does this PR add/remove a command? Update COMMANDS.md" | One-time setup |
-| 30 | Terminology lint in pre-commit (grep for deprecated terms) | One-time setup |
-| 31 | Quarterly doc freshness audit | Quarterly |
-| 32 | Auto-generate COMMANDS.md from skill index (script) | Per release |
+| # | Action | Status |
+|---|--------|--------|
+| 28 | Add lychee link checker to CI | ✅ Done |
+| 29 | Add PR template COMMANDS.md reminder | ✅ Done |
+| 30 | Terminology lint in pre-commit | ✅ Done |
+| 31 | Quarterly doc freshness audit cadence | ✅ Done |
+| 32 | Auto-generate COMMANDS.md from skill index | ✅ Done |
 
 ---
 
@@ -521,14 +521,14 @@ Documentation is "release-ready" when:
 | Progressive disclosure (quick start → guide → reference) | ✅ Yes (TLDR → FIRST_RUN → COMMANDS → detailed) | Maintain |
 | Consolidated troubleshooting | ✅ Yes (TROUBLESHOOTING.md) | Maintain |
 | Contributing guide for major extension points | ✅ Yes (skills, personas, MCP) | Maintain |
-| Automated link checking in CI | ❌ No | Phase 4 |
+| Automated link checking in CI | ✅ Yes (lychee) | Maintain |
 | Command/API reference page | ✅ Yes (COMMANDS.md) | Maintain |
 | Architecture overview | ✅ Yes (ARCHITECTURE.md + MCP examples) | Maintain |
 | Security policy | ✅ Yes (SECURITY.md) | Maintain |
 | License clarity | ✅ Yes (README, CONTRIBUTING, LICENSE) | Maintain |
 | Example configurations | ✅ Yes (4 examples with descriptions) | Maintain, grow organically |
 | Changelog | ✅ Yes (Keep a Changelog v1.1.0 compliant) | Maintain as project matures |
-| CI badges | ⚠️ Partial (CI badge only) | Add coverage, Python version, license |
+| CI badges | ✅ Yes (CI, coverage, Python, license) | Maintain |
 
 ## Appendix B: File Move Mapping
 
@@ -571,4 +571,4 @@ docs/DATA_FILES.md            → dev/docs/ai-runtime/DATA_FILES.md
 
 ---
 
-*Review generated 2026-02-15. Revision 3: Phase 3 contributor enablement complete. Supersedes revision 2.*
+*Review generated 2026-02-15. Revision 4: All phases complete. Documentation release-ready. Supersedes revision 3.*

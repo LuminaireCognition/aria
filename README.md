@@ -1,6 +1,9 @@
 # ARIA - Adaptive Reasoning & Intelligence Array
 
 [![CI](https://github.com/LuminaireCognition/aria/actions/workflows/ci.yml/badge.svg)](https://github.com/LuminaireCognition/aria/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/LuminaireCognition/aria/graph/badge.svg)](https://codecov.io/gh/LuminaireCognition/aria)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Tactical Advisor AI Framework for EVE Online**
 
