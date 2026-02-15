@@ -1,6 +1,6 @@
 # Min-Max Skill Planning Proposal
 
-**Status:** READY FOR IMPLEMENTATION (2026-02-15) — All open decisions resolved (Q1-Q3)
+**Status:** IMPLEMENTED (2026-02-15) — Phases A-C complete. Core algorithm, dispatcher, SKILL.md, hauler role.
 **Related:** `skills()` MCP dispatcher, `fitting()` dispatcher, `/skillplan` skill, Easy 80% system
 
 **Changelog:**

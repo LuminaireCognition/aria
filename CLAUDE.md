@@ -189,7 +189,7 @@ If the `aria-universe` MCP server is connected, 6 domain dispatchers appear in y
 | `universe(action, ...)` | route, systems, borders, search, loop, analyze, nearest, optimize_waypoints, activity, hotspots, gatecamp_risk, fw_frontlines, local_area | Navigation, routing, activity data |
 | `market(action, ...)` | prices, orders, valuation, spread, history, find_nearby, npc_sources, arbitrage_scan, arbitrage_detail, route_value, watchlist_*, scope_* | Market prices, arbitrage, ad-hoc scopes |
 | `sde(action, ...)` | item_info, blueprint_info, search, skill_requirements, corporation_info, agent_search, agent_divisions | Static Data Export queries |
-| `skills(action, ...)` | training_time, easy_80_plan, get_multipliers, get_breakpoints, t2_requirements, activity_* | Skill planning and training time |
+| `skills(action, ...)` | training_time, easy_80_plan, minmax_plan, get_multipliers, get_breakpoints, t2_requirements, activity_* | Skill planning and training time |
 | `fitting(action, ...)` | calculate_stats | Ship fitting statistics |
 | `status()` | (none) | Unified system status |
 
@@ -219,6 +219,7 @@ Both dispatchers deal with "skills" but serve different purposes:
 | "What skills does this ship require?" | `sde` | `skill_requirements` |
 | "How long will training take?" | `skills` | `training_time` |
 | "What's the Easy 80% plan for this item?" | `skills` | `easy_80_plan` |
+| "What's the priority training order for this ship?" | `skills` | `minmax_plan` |
 | "What are the skill prerequisites?" | `sde` | `skill_requirements` |
 
 ```python
