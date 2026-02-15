@@ -164,8 +164,7 @@ def effectiveness_per_sp(
     from_level: int,
     to_level: int,
     rank: int,
-    detected_roles: list[str],
-    efficacy_rules: dict,
+    role_skills_map: dict[str, dict],
 ) -> float:
     """
     Score a skill by effectiveness gain per SP invested.
@@ -178,25 +177,17 @@ def effectiveness_per_sp(
         from_level: Starting level
         to_level: Target level
         rank: Skill training rank
-        detected_roles: Active roles
-        efficacy_rules: Loaded efficacy rules
+        role_skills_map: Pre-built dict from _build_role_skill_set()
 
     Returns:
         Effectiveness score. Positive for measurable bonuses, negative rank
         for unmeasured skills (sorts after all positive scores).
     """
     sp_cost = calculate_sp_for_level(rank, to_level) - calculate_sp_for_level(rank, from_level)
-    if from_level == 0:
-        sp_cost = calculate_sp_for_level(rank, to_level)
 
-    # Find max per_level across all detected roles
-    ship_roles = efficacy_rules.get("ship_roles", {})
-    max_per_level = 0
-    for role in detected_roles:
-        role_data = ship_roles.get(role, {})
-        for skill_info in role_data.get("skills", []):
-            if skill_info.get("skill") == skill_name:
-                max_per_level = max(max_per_level, skill_info.get("per_level", 0))
+    # Look up max per_level from pre-built role skills map
+    skill_info = role_skills_map.get(skill_name)
+    max_per_level = skill_info.get("per_level", 0) if skill_info else 0
 
     if max_per_level == 0:
         # Unmeasured skill — use -rank so lower rank (faster training) sorts first
@@ -245,17 +236,11 @@ def _get_applicable_breakpoints(
 
 def _is_multiplier_in_roles(
     skill_name: str,
-    detected_roles: list[str],
-    efficacy_rules: dict,
+    role_skills_map: dict[str, dict],
 ) -> bool:
     """Check if a skill is marked as multiplicative in any detected role."""
-    ship_roles = efficacy_rules.get("ship_roles", {})
-    for role in detected_roles:
-        role_data = ship_roles.get(role, {})
-        for skill_info in role_data.get("skills", []):
-            if skill_info.get("skill") == skill_name and skill_info.get("multiplicative"):
-                return True
-    return False
+    skill_info = role_skills_map.get(skill_name)
+    return bool(skill_info and skill_info.get("multiplicative"))
 
 
 # =============================================================================
@@ -578,6 +563,7 @@ def generate_minmax_plan(
     # Build reference data
     role_skills = _build_role_skill_set(detected_roles, efficacy_rules)
     applicable_breakpoints = _get_applicable_breakpoints(detected_roles, breakpoint_skills)
+    tree_by_name: dict[str, dict] = {s["skill_name"]: s for s in full_tree}
 
     # Classify roles
     strong_roles = []
@@ -642,7 +628,7 @@ def generate_minmax_plan(
         )
         phase1_skill_levels[skill_name] = required_level
 
-    # Topological ordering: sort by rank ascending (lower rank = earlier in tree)
+    # Ordered by rank ascending (heuristic for prerequisite depth; clients handle actual training order)
     phase1_skills.sort(key=lambda s: (s["rank"], s["skill_name"]))
 
     # =================================================================
@@ -655,7 +641,7 @@ def generate_minmax_plan(
 
     for skill_name in all_role_relevant:
         # Look up skill info from the full tree or SDE
-        tree_entry = next((s for s in full_tree if s.get("skill_name") == skill_name), None)
+        tree_entry = tree_by_name.get(skill_name)
         rank = tree_entry["rank"] if tree_entry else 1
 
         # Determine Phase 2 target level
@@ -698,13 +684,12 @@ def generate_minmax_plan(
         training_seconds = int(math.ceil((sp_cost / max(sp_per_min, 1)) * 60))
 
         # Determine which roles this skill belongs to for strength classification
-        skill_in_strong = any(
+        skill_in_strong = skill_name in direct_requirement_names or any(
             skill_name
             in {
                 s.get("skill")
                 for s in efficacy_rules.get("ship_roles", {}).get(r, {}).get("skills", [])
             }
-            or skill_name in direct_requirement_names
             for r in strong_roles
         )
         skill_in_weak_only = not skill_in_strong
@@ -730,14 +715,10 @@ def generate_minmax_plan(
             bp_score = _score_breakpoint(skill_name, rank, applicable_breakpoints[skill_name])
             sort_key = (0, bp_score[0], float(bp_score[1]), skill_name)
         elif bucket == "multiplier":
-            eff_score = effectiveness_per_sp(
-                skill_name, from_level, target, rank, detected_roles, efficacy_rules
-            )
+            eff_score = effectiveness_per_sp(skill_name, from_level, target, rank, role_skills)
             sort_key = (1, 0, -eff_score, skill_name)
         else:
-            eff_score = effectiveness_per_sp(
-                skill_name, from_level, target, rank, detected_roles, efficacy_rules
-            )
+            eff_score = effectiveness_per_sp(skill_name, from_level, target, rank, role_skills)
             sort_key = (2, 0, -eff_score, skill_name)
 
         entry = {
@@ -759,7 +740,7 @@ def generate_minmax_plan(
             entry["impact_tier"] = applicable_breakpoints[skill_name].get("impact", "medium")
         elif bucket in ("multiplier", "role_support"):
             entry["effectiveness_per_sp"] = effectiveness_per_sp(
-                skill_name, from_level, target, rank, detected_roles, efficacy_rules
+                skill_name, from_level, target, rank, role_skills
             )
 
         phase2_candidates.append(entry)
@@ -798,15 +779,20 @@ def generate_minmax_plan(
     for skill_name, level in current.items():
         phase2_skill_levels[skill_name] = max(phase2_skill_levels.get(skill_name, 0), level)
 
+    # Build candidate set: all role-relevant skills + Phase 1 skills that are also role-relevant
+    phase3_candidate_names = set(all_role_relevant) | (
+        set(phase1_skill_levels.keys()) & all_role_relevant
+    )
+
     phase3_candidates: list[dict] = []
 
-    for skill_name in all_role_relevant:
+    for skill_name in phase3_candidate_names:
         current_level = phase2_skill_levels.get(skill_name, current.get(skill_name, 0))
         if current_level >= 5:
             continue
 
         # Look up skill info
-        tree_entry = next((s for s in full_tree if s.get("skill_name") == skill_name), None)
+        tree_entry = tree_by_name.get(skill_name)
         rank = tree_entry["rank"] if tree_entry else 1
         primary_attr = tree_entry.get("primary_attribute") if tree_entry else None
         secondary_attr = tree_entry.get("secondary_attribute") if tree_entry else None
@@ -825,9 +811,7 @@ def generate_minmax_plan(
         sp_per_min = calculate_sp_per_minute(primary_attr, secondary_attr, attrs)
         training_seconds = int(math.ceil((sp_cost / max(sp_per_min, 1)) * 60))
 
-        eff_score = effectiveness_per_sp(
-            skill_name, from_level, 5, rank, detected_roles, efficacy_rules
-        )
+        eff_score = effectiveness_per_sp(skill_name, from_level, 5, rank, role_skills)
 
         phase3_candidates.append(
             {
@@ -846,54 +830,6 @@ def generate_minmax_plan(
         )
 
     # Sort Phase 3 by effectiveness/SP descending
-    phase3_candidates.sort(key=lambda s: (-s.get("effectiveness_per_sp", 0), s["skill_name"]))
-
-    # Also add Phase 1 skills that need to go to V (e.g., Amarr Freighter IV -> V)
-    for skill_name in phase1_skill_levels:
-        if skill_name not in all_role_relevant:
-            continue
-        current_level = phase2_skill_levels.get(skill_name, phase1_skill_levels[skill_name])
-        if current_level >= 5:
-            continue
-        # Already in phase3_candidates?
-        if any(s["skill_name"] == skill_name for s in phase3_candidates):
-            continue
-
-        tree_entry = next((s for s in full_tree if s.get("skill_name") == skill_name), None)
-        if not tree_entry:
-            continue
-        rank = tree_entry["rank"]
-        from_level = current_level
-        sp_cost = calculate_sp_for_level(rank, 5) - (
-            calculate_sp_for_level(rank, from_level) if from_level > 0 else 0
-        )
-        sp_per_min = calculate_sp_per_minute(
-            tree_entry.get("primary_attribute"),
-            tree_entry.get("secondary_attribute"),
-            attrs,
-        )
-        training_seconds = int(math.ceil((sp_cost / max(sp_per_min, 1)) * 60))
-        eff_score = effectiveness_per_sp(
-            skill_name, from_level, 5, rank, detected_roles, efficacy_rules
-        )
-
-        phase3_candidates.append(
-            {
-                "skill_name": skill_name,
-                "from_level": from_level,
-                "to_level": 5,
-                "rank": rank,
-                "training_seconds": training_seconds,
-                "training_formatted": format_training_time(training_seconds),
-                "reason": "Final level: hull/prerequisite bonuses",
-                "scoring_bucket": "role_support",
-                "effectiveness_per_sp": eff_score,
-                "primary_attribute": tree_entry.get("primary_attribute"),
-                "secondary_attribute": tree_entry.get("secondary_attribute"),
-            }
-        )
-
-    # Re-sort after adding Phase 1 overflow
     phase3_candidates.sort(key=lambda s: (-s.get("effectiveness_per_sp", 0), s["skill_name"]))
 
     # =================================================================
@@ -1096,10 +1032,13 @@ async def _minmax_plan_impl(
     direct_reqs = query_service.get_type_skill_requirements(type_id)
     direct_requirement_names = {req.skill_name for req in direct_reqs}
 
+    # Load YAML data (once, before role validation and plan generation)
+    efficacy_rules = load_efficacy_rules()
+    breakpoint_skills_data = load_breakpoint_skills()
+
     # Detect or validate roles
     if roles is not None:
         # Validate provided roles
-        efficacy_rules = load_efficacy_rules()
         valid_roles = set(efficacy_rules.get("ship_roles", {}).keys())
         invalid = [r for r in roles if r not in valid_roles]
         if invalid:
@@ -1114,14 +1053,17 @@ async def _minmax_plan_impl(
         detected_roles = detect_ship_roles(group_name, type_name) if category_name == "Ship" else []
 
     if not detected_roles:
-        warnings.append(
-            "No roles detected. The plan will contain only SDE prerequisites (Phase 1). "
-            "Specify roles manually with the 'roles' parameter for Phase 2/3 optimization."
-        )
-
-    # Load YAML data
-    efficacy_rules = load_efficacy_rules()
-    breakpoint_skills_data = load_breakpoint_skills()
+        if category_name != "Ship":
+            warnings.append(
+                f"'{category_name}' items don't auto-detect roles. "
+                "Specify roles with the 'roles' parameter for Phase 2/3 optimization "
+                "(e.g., roles=['drone_boat'])."
+            )
+        else:
+            warnings.append(
+                "No roles detected. Specify roles with the 'roles' parameter "
+                "for Phase 2/3 optimization."
+            )
 
     # Add support skills from detected roles to the tree
     if detected_roles:

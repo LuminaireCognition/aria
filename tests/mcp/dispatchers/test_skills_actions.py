@@ -121,6 +121,22 @@ class TestActivityCompareAction:
 
 
 # =============================================================================
+# Min-Max Plan Action Tests
+# =============================================================================
+
+
+class TestMinmaxPlanAction:
+    """Tests for skills minmax_plan action."""
+
+    def test_minmax_plan_requires_item(self, skills_dispatcher):
+        """Min-max plan action requires item parameter."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(skills_dispatcher(action="minmax_plan"))
+
+        assert "item" in str(exc.value).lower()
+
+
+# =============================================================================
 # Invalid Action Tests
 # =============================================================================
 

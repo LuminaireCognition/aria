@@ -11,6 +11,9 @@ triggers:
   - "skill requirements for [item]"
   - "can I fly [ship]"
   - "what do I need for [activity]"
+  - "min-max plan for [ship]"
+  - "max out [ship] skills"
+  - "priority training order for [ship]"
 requires_pilot: true
 esi_scopes: [esi-skills.read_skills.v1]
 data_sources:
@@ -54,6 +57,7 @@ This skill requires the following MCP tools from the `aria-universe` server:
 | `sde_skill_requirements` | Get skill prerequisite tree for items |
 | `skill_training_time` | Calculate training time for skill plans |
 | `skill_easy_80_plan` | Generate Easy 80% plan with efficacy estimates |
+| `skill_minmax_plan` | Generate phased min-max plan with role-scoped optimization |
 | `skill_get_multipliers` | Get high-impact multiplier skills by role |
 | `skill_t2_requirements` | Check T2 items for Level V requirements |
 | `activity_skill_plan` | Get skill requirements for activities |
@@ -166,6 +170,31 @@ The tool returns:
 - `time_savings`: Seconds saved and percentage
 - `efficacy_estimate`: Approximate % effectiveness
 - `multiplier_skills`: High-impact skills flagged
+
+### Step 2b: Generate Min-Max Plan (Alternative)
+
+For pilots who want a **priority-ordered training plan** rather than a flat skill list, use the min-max plan instead of (or in addition to) Easy 80%:
+
+```python
+skills(action="minmax_plan", item="Ishtar", current_skills=current_skills)
+skills(action="minmax_plan", item="Ark", roles=["jump_capable", "hauler"], current_skills=current_skills)
+```
+
+**When to use minmax vs easy_80:**
+
+| Scenario | Recommendation |
+|----------|---------------|
+| Quick "what do I need?" overview | `easy_80_plan` |
+| Optimal training order for a specific ship | `minmax_plan` |
+| Non-ship items (modules, skills) | `easy_80_plan` (unless roles specified) |
+| Pilot wants phased progression | `minmax_plan` |
+
+The min-max plan returns three phases:
+- **Phase 1 — Get Online:** SDE prerequisites at exact required levels (board the ship)
+- **Phase 2 — Get Effective:** Breakpoints, multipliers, and role skills to IV, ordered by effectiveness/SP
+- **Phase 3 — Get Maximal:** All remaining role-relevant skills to V
+
+Each phase includes efficacy estimates showing effectiveness at that training milestone.
 
 ### Step 3: Check for T2 Requirements (Modules Only)
 
