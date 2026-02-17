@@ -611,3 +611,174 @@ class TestNotificationProfileV2Fields:
         assert restored.polling.batch_size == 30
         assert restored.rate_limit_strategy.rollup_threshold == 8
         assert restored.delivery.max_attempts == 4
+
+
+class TestRateLimitStrategyForceRollup:
+    """Tests for RateLimitStrategy force_rollup fields."""
+
+    def test_defaults(self):
+        """New fields default correctly."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        rls = RateLimitStrategy()
+        assert rls.force_rollup is False
+        assert rls.rollup_window_minutes is None
+        assert rls.rollup_title is None
+
+    def test_effective_rollup_window_default_no_force(self):
+        """effective_rollup_window_minutes is 0 when force_rollup=False and no override."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        rls = RateLimitStrategy(force_rollup=False)
+        assert rls.effective_rollup_window_minutes == 0
+
+    def test_effective_rollup_window_default_with_force(self):
+        """effective_rollup_window_minutes is 5 when force_rollup=True and no override."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        rls = RateLimitStrategy(force_rollup=True)
+        assert rls.effective_rollup_window_minutes == 5
+
+    def test_effective_rollup_window_explicit_override(self):
+        """Explicit rollup_window_minutes overrides default."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        rls = RateLimitStrategy(force_rollup=True, rollup_window_minutes=10)
+        assert rls.effective_rollup_window_minutes == 10
+
+        rls2 = RateLimitStrategy(force_rollup=False, rollup_window_minutes=3)
+        assert rls2.effective_rollup_window_minutes == 3
+
+    def test_from_dict_defaults(self):
+        """from_dict with empty dict uses defaults for new fields."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        rls = RateLimitStrategy.from_dict({})
+        assert rls.force_rollup is False
+        assert rls.rollup_window_minutes is None
+        assert rls.rollup_title is None
+
+    def test_from_dict_explicit(self):
+        """from_dict parses all new fields."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        data = {
+            "force_rollup": True,
+            "rollup_window_minutes": 10,
+            "rollup_title": "Smartbomb camp",
+        }
+        rls = RateLimitStrategy.from_dict(data)
+        assert rls.force_rollup is True
+        assert rls.rollup_window_minutes == 10
+        assert rls.rollup_title == "Smartbomb camp"
+
+    def test_to_dict_force_rollup_always_serialized(self):
+        """force_rollup is always in to_dict output."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        profile = NotificationProfile(
+            name="test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            rate_limit_strategy=RateLimitStrategy(force_rollup=True),
+        )
+        data = profile.to_dict()
+        assert data["rate_limit_strategy"]["force_rollup"] is True
+
+    def test_to_dict_optional_fields_omitted_when_none(self):
+        """rollup_window_minutes and rollup_title omitted when None."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        profile = NotificationProfile(
+            name="test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            rate_limit_strategy=RateLimitStrategy(),
+        )
+        data = profile.to_dict()
+        rls_data = data["rate_limit_strategy"]
+        assert "rollup_window_minutes" not in rls_data
+        assert "rollup_title" not in rls_data
+
+    def test_to_dict_optional_fields_present_when_set(self):
+        """rollup_window_minutes and rollup_title present when set."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        profile = NotificationProfile(
+            name="test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            rate_limit_strategy=RateLimitStrategy(
+                rollup_window_minutes=15,
+                rollup_title="Custom title",
+            ),
+        )
+        data = profile.to_dict()
+        rls_data = data["rate_limit_strategy"]
+        assert rls_data["rollup_window_minutes"] == 15
+        assert rls_data["rollup_title"] == "Custom title"
+
+    def test_roundtrip(self):
+        """New fields survive to_dict/from_dict roundtrip."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        original = NotificationProfile(
+            name="roundtrip-force",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            rate_limit_strategy=RateLimitStrategy(
+                force_rollup=True,
+                rollup_window_minutes=7,
+                rollup_title="Pod alert",
+            ),
+        )
+        data = original.to_dict()
+        restored = NotificationProfile.from_dict(data)
+
+        assert restored.rate_limit_strategy.force_rollup is True
+        assert restored.rate_limit_strategy.rollup_window_minutes == 7
+        assert restored.rate_limit_strategy.rollup_title == "Pod alert"
+
+    def test_validate_rollup_window_in_range(self):
+        """Valid rollup_window_minutes passes validation."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        profile = NotificationProfile(
+            name="test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            rate_limit_strategy=RateLimitStrategy(rollup_window_minutes=15),
+        )
+        errors = profile.validate()
+        assert not any("rollup_window_minutes" in e for e in errors)
+
+    def test_validate_rollup_window_too_low(self):
+        """rollup_window_minutes < 1 fails validation."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        profile = NotificationProfile(
+            name="test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            rate_limit_strategy=RateLimitStrategy(rollup_window_minutes=0),
+        )
+        errors = profile.validate()
+        assert any("rollup_window_minutes must be between 1 and 30" in e for e in errors)
+
+    def test_validate_rollup_window_too_high(self):
+        """rollup_window_minutes > 30 fails validation."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        profile = NotificationProfile(
+            name="test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            rate_limit_strategy=RateLimitStrategy(rollup_window_minutes=60),
+        )
+        errors = profile.validate()
+        assert any("rollup_window_minutes must be between 1 and 30" in e for e in errors)
+
+    def test_validate_rollup_window_none_passes(self):
+        """rollup_window_minutes=None passes validation."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        profile = NotificationProfile(
+            name="test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            rate_limit_strategy=RateLimitStrategy(rollup_window_minutes=None),
+        )
+        errors = profile.validate()
+        assert not any("rollup_window_minutes" in e for e in errors)

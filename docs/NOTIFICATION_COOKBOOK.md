@@ -475,6 +475,17 @@ interest:
 
 **How it works:** `require_all: [ship, activity]` gates both signals. ShipSignal scores 1.0 for capsules, 0.0 for everything else. ActivitySignal fires only when pod kills are spiking (3x baseline, minimum 5 pods/hour). Non-capsule kills get gated by ship=0. Capsule kills during non-spike periods get gated by activity=0.
 
+**Pair with forced rollup** to batch pod spike kills into summaries instead of flooding the channel with individual messages:
+
+```yaml
+rate_limit_strategy:
+  force_rollup: true
+  rollup_window_minutes: 5
+  max_rollup_kills: 50
+```
+
+This buffers matched kills and flushes them every 5 minutes as grouped summaries: "Pod spike (12 pods / 5m) — 📍 Jita".
+
 **Activity spike config fields:**
 
 | Field | Type | Default | Description |
@@ -483,6 +494,33 @@ interest:
 | `threshold` | float | `2.0` | Multiplier over 24h baseline to declare spike |
 | `min_current` | int | `0` | Minimum kills in current hour before declaring spike |
 | `score` | float | `0.7` | Score when spike is detected |
+
+### Recipe: Batched Activity Summaries
+
+Use `force_rollup` to buffer individual kill notifications into periodic digests. Useful for high-traffic systems where per-kill alerts would be overwhelming:
+
+```yaml
+interest:
+  engine: v2
+  preset: lowsec
+  signals:
+    location:
+      geographic:
+        systems:
+          - name: "Tama"
+            classification: "hunting"
+          - name: "Amamake"
+            classification: "hunting"
+
+throttle_minutes: 1
+
+rate_limit_strategy:
+  force_rollup: true
+  rollup_window_minutes: 10
+  max_rollup_kills: 100
+```
+
+Every 10 minutes, matched kills are flushed as a single grouped summary — e.g., "Lowsec Activity (8 kills / 10m) — 📍 Tama, Amamake" — instead of 8 separate notifications. This works independently of pod spike detection; any profile can enable `force_rollup` for batched delivery.
 
 ### Recipe: Wormhole Chain Security
 

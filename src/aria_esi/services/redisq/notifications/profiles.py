@@ -52,6 +52,16 @@ class RateLimitStrategy:
     rollup_threshold: int = 10  # Pending kills to trigger rollup
     max_rollup_kills: int = 20  # Max kills in a single rollup message
     backoff_seconds: float = 30.0  # Backoff time on rate limit
+    force_rollup: bool = False  # Buffer all kills and send batched summaries
+    rollup_window_minutes: int | None = None  # Override rollup flush window (1-30)
+    rollup_title: str | None = None  # Custom title for rollup messages
+
+    @property
+    def effective_rollup_window_minutes(self) -> int:
+        """Get the effective rollup window in minutes."""
+        if self.rollup_window_minutes is not None:
+            return self.rollup_window_minutes
+        return 5 if self.force_rollup else 0
 
     @classmethod
     def from_dict(cls, data: dict[str, Any] | None) -> RateLimitStrategy:
@@ -62,6 +72,9 @@ class RateLimitStrategy:
             rollup_threshold=data.get("rollup_threshold", 10),
             max_rollup_kills=data.get("max_rollup_kills", 20),
             backoff_seconds=data.get("backoff_seconds", 30.0),
+            force_rollup=data.get("force_rollup", False),
+            rollup_window_minutes=data.get("rollup_window_minutes"),
+            rollup_title=data.get("rollup_title"),
         )
 
 
@@ -316,11 +329,17 @@ class NotificationProfile:
                 "batch_size": self.polling.batch_size,
                 "overlap_window_seconds": self.polling.overlap_window_seconds,
             }
-            result["rate_limit_strategy"] = {
+            rls_dict: dict[str, Any] = {
                 "rollup_threshold": self.rate_limit_strategy.rollup_threshold,
                 "max_rollup_kills": self.rate_limit_strategy.max_rollup_kills,
                 "backoff_seconds": self.rate_limit_strategy.backoff_seconds,
+                "force_rollup": self.rate_limit_strategy.force_rollup,
             }
+            if self.rate_limit_strategy.rollup_window_minutes is not None:
+                rls_dict["rollup_window_minutes"] = self.rate_limit_strategy.rollup_window_minutes
+            if self.rate_limit_strategy.rollup_title is not None:
+                rls_dict["rollup_title"] = self.rate_limit_strategy.rollup_title
+            result["rate_limit_strategy"] = rls_dict
             result["delivery"] = {
                 "max_attempts": self.delivery.max_attempts,
                 "retry_delay_seconds": self.delivery.retry_delay_seconds,
@@ -365,6 +384,11 @@ class NotificationProfile:
                 f"Profile schema version {self.schema_version} is newer than "
                 f"supported version {SCHEMA_VERSION}"
             )
+
+        # Validate rollup_window_minutes bounds
+        rwm = self.rate_limit_strategy.rollup_window_minutes
+        if rwm is not None and (rwm < 1 or rwm > 30):
+            errors.append("rollup_window_minutes must be between 1 and 30")
 
         # Validate triggers
         if self.triggers.high_value_threshold < 0:

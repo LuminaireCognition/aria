@@ -62,7 +62,7 @@ Configurable fields (per profile):
 - Quiet hours: `quiet_hours` (enabled, start, end, timezone)
 - Commentary: `commentary` (enabled, model, timeout, max tokens, warrant threshold, cost limit, style, max chars, persona)
 - Polling/runtime: `polling` (interval, batch_size, overlap window)
-- Rate limits: `rate_limit_strategy` (rollup_threshold, max_rollup_kills, backoff)
+- Rate limits: `rate_limit_strategy` (rollup_threshold, max_rollup_kills, backoff, force_rollup, rollup_window_minutes, rollup_title)
 - Delivery retry: `delivery` (max_attempts, retry_delay)
 
 ### 5) User-managed pilot data (Markdown)

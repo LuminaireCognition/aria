@@ -159,7 +159,7 @@ commentary:
 | `quiet_hours` | object | No | Time-based suppression |
 | `commentary` | object | No | LLM commentary settings |
 | `polling` | object | No | Worker polling behavior |
-| `rate_limit_strategy` | object | No | Discord rate limit handling |
+| `rate_limit_strategy` | object | No | Discord rate limit handling and rollup batching |
 | `delivery` | object | No | Message delivery retry |
 
 ### Interest Engine v2 Configuration
@@ -386,6 +386,9 @@ rate_limit_strategy:
   rollup_threshold: 10       # Pending kills to trigger rollup (default: 10)
   max_rollup_kills: 20       # Max kills in a single rollup message (default: 20)
   backoff_seconds: 30.0      # Backoff time on rate limit (default: 30.0)
+  force_rollup: false        # Buffer all kills and send batched summaries (default: false)
+  rollup_window_minutes: 5   # Flush window in minutes, 1-30 (default: 5 when force_rollup)
+  rollup_title: "Pod spike"  # Custom rollup message title (optional)
 ```
 
 | Field | Type | Default | Description |
@@ -393,10 +396,22 @@ rate_limit_strategy:
 | `rollup_threshold` | int | `10` | Pending kills before rollup mode |
 | `max_rollup_kills` | int | `20` | Maximum kills in rollup message |
 | `backoff_seconds` | float | `30.0` | Backoff duration on 429 response |
+| `force_rollup` | bool | `false` | Buffer all matched kills and send batched summaries |
+| `rollup_window_minutes` | int | `null` | Override flush window (1–30). Defaults to 5 when `force_rollup` is true, 0 otherwise |
+| `rollup_title` | string | `null` | Custom title for rollup messages. Defaults to "Pod spike" or "Activity" based on content |
 
-When pending notifications exceed `rollup_threshold`, the worker switches to rollup mode, combining multiple kills into a single summary message.
+**Threshold-based rollup (default):** When pending notifications exceed `rollup_threshold`, the worker switches to rollup mode, combining multiple kills into a single summary message. This is reactive — it only triggers when Discord rate limits cause a backlog.
 
-**Pod-aware rollup format:** When 80% or more of kills in a rollup are pods (capsules), the rollup message switches to a pod-specific format: "Pod spike (N pods rolled up)" with a zkillboard related-kills link, omitting the ISK total (since pods have near-zero value). This pairs well with the activity spike `pod_only` configuration.
+**Forced rollup mode:** When `force_rollup: true`, the worker *always* buffers matched kills instead of sending individual notifications. After `rollup_window_minutes` elapse, buffered kills are flushed as batched summaries grouped by system. This is ideal for high-volume profiles like pod spike detection, where individual messages would flood the channel.
+
+Forced rollup message format:
+```
+📊 Pod spike (12 pods / 5m)
+📍 Jita
+🔗 https://zkillboard.com/related/30000142/...
+```
+
+**Pod-aware rollup format:** When 80% or more of kills in a rollup are pods (capsules, including Genolution capsules), the rollup message switches to a pod-specific format with a zkillboard related-kills link, omitting the ISK total (since pods have near-zero value). This pairs well with the activity spike `pod_only` configuration.
 
 ### Delivery Configuration (v2)
 

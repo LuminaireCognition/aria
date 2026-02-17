@@ -110,6 +110,7 @@ quiet_hours:
   timezone: "America/New_York"
 
 rate_limit_strategy:
-  rollup_threshold: 10
+  force_rollup: true           # Buffer kills and send batched summaries
+  rollup_window_minutes: 5     # Flush every 5 minutes
   max_rollup_kills: 50
   backoff_seconds: 30.0

@@ -56,6 +56,10 @@ quiet_hours:
   start: "02:00"
   end: "08:00"
   timezone: "America/New_York"
+
+rate_limit_strategy:
+  force_rollup: false          # Buffer kills into batched summaries
+  rollup_window_minutes: 5     # Flush interval when force_rollup is true
 ```
 
 ## System Classifications
