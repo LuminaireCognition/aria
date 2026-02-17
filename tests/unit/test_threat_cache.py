@@ -498,6 +498,264 @@ class TestCleanup:
         assert remaining_kills[0].kill_id == 2
 
 
+class TestActivitySpikeDetection:
+    """Tests for detect_activity_spike method."""
+
+    def test_spike_detected_when_above_threshold(self, temp_db, monkeypatch):
+        """Should detect spike when current rate exceeds baseline * threshold."""
+        import time as time_mod
+
+        from aria_esi.services.redisq import threat_cache as tc
+
+        monkeypatch.setattr(tc, "_threat_cache", None)
+
+        # Use raw epoch timestamps to avoid naive-datetime timezone issues
+        now_ts = int(time_mod.time())
+        system_id = 30000142
+        conn = temp_db._get_connection()
+
+        # Add 10 kills in last hour (spike)
+        for i in range(10):
+            conn.execute(
+                "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+                (i + 1, now_ts - i * 300, system_id),
+            )
+
+        # Add 23 kills spread over previous 23 hours (1/hour baseline)
+        # hours 2-23 from now to stay within the 24h window
+        for i in range(23):
+            conn.execute(
+                "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+                (100 + i, now_ts - (i + 2) * 3600 + 60, system_id),
+            )
+        conn.commit()
+
+        cache = ThreatCache()
+        cache._db = temp_db
+
+        result = cache.detect_activity_spike(system_id, spike_threshold=2.0)
+        assert result is not None
+        is_spike, current, baseline = result
+        assert is_spike is True
+        assert current == 10.0
+        assert baseline == pytest.approx(1.0, abs=0.05)
+
+    def test_spike_with_pod_only_filter(self, temp_db, monkeypatch):
+        """Should only count pod kills when pod_only=True."""
+        import time as time_mod
+
+        from aria_esi.services.redisq import threat_cache as tc
+
+        monkeypatch.setattr(tc, "_threat_cache", None)
+
+        now_ts = int(time_mod.time())
+        system_id = 30000142
+        conn = temp_db._get_connection()
+
+        # 3 pod kills in last hour
+        for i in range(3):
+            conn.execute(
+                "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 1)",
+                (i + 1, now_ts - i * 600, system_id),
+            )
+        # 7 ship kills in last hour (should be ignored when pod_only)
+        for i in range(7):
+            conn.execute(
+                "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+                (10 + i, now_ts - i * 300, system_id),
+            )
+        # Historical pod kills: 1 per hour for 23 hours
+        for i in range(23):
+            conn.execute(
+                "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 1)",
+                (100 + i, now_ts - (i + 2) * 3600, system_id),
+            )
+        conn.commit()
+
+        cache = ThreatCache()
+        cache._db = temp_db
+
+        result = cache.detect_activity_spike(system_id, spike_threshold=2.0, pod_only=True)
+        assert result is not None
+        is_spike, current, baseline = result
+        assert current == 3.0  # Only pod kills counted
+
+    def test_spike_min_current_prevents_false_positive(self, temp_db, monkeypatch):
+        """min_current should prevent spike on low absolute numbers."""
+        import time as time_mod
+
+        from aria_esi.services.redisq import threat_cache as tc
+
+        monkeypatch.setattr(tc, "_threat_cache", None)
+
+        now_ts = int(time_mod.time())
+        system_id = 30000142
+        conn = temp_db._get_connection()
+
+        # 1 kill in last hour
+        conn.execute(
+            "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+            (1, now_ts - 300, system_id),
+        )
+        # 1 historical kill to establish baseline
+        conn.execute(
+            "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+            (2, now_ts - 12 * 3600, system_id),
+        )
+        conn.commit()
+
+        cache = ThreatCache()
+        cache._db = temp_db
+
+        # Without min_current: spike detected (1 > 0.1 * 2.0)
+        result = cache.detect_activity_spike(system_id, spike_threshold=2.0, min_current=0)
+        assert result is not None
+        assert result[0] is True
+
+        # With min_current=5: no spike (1 < 5)
+        result = cache.detect_activity_spike(system_id, spike_threshold=2.0, min_current=5)
+        assert result is not None
+        assert result[0] is False
+
+    def test_spike_returns_none_without_historical_data(self, temp_db, monkeypatch):
+        """Should return None when no historical data exists."""
+        import time as time_mod
+
+        from aria_esi.services.redisq import threat_cache as tc
+
+        monkeypatch.setattr(tc, "_threat_cache", None)
+
+        now_ts = int(time_mod.time())
+        system_id = 30000142
+        conn = temp_db._get_connection()
+
+        # Only current-hour kill
+        conn.execute(
+            "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+            (1, now_ts - 300, system_id),
+        )
+        conn.commit()
+
+        cache = ThreatCache()
+        cache._db = temp_db
+
+        result = cache.detect_activity_spike(system_id)
+        assert result is None
+
+    def test_spike_at_exact_threshold_does_not_trigger(self, temp_db, monkeypatch):
+        """Spike uses strict > comparison, so exactly at threshold should NOT trigger."""
+        import time as time_mod
+
+        from aria_esi.services.redisq import threat_cache as tc
+
+        monkeypatch.setattr(tc, "_threat_cache", None)
+
+        now_ts = int(time_mod.time())
+        system_id = 30000142
+        conn = temp_db._get_connection()
+
+        # 2 kills in current hour
+        for i in range(2):
+            conn.execute(
+                "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+                (i + 1, now_ts - i * 600, system_id),
+            )
+        # 23 kills historical (1/hour baseline)
+        for i in range(23):
+            conn.execute(
+                "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+                (100 + i, now_ts - (i + 2) * 3600 + 60, system_id),
+            )
+        conn.commit()
+
+        cache = ThreatCache()
+        cache._db = temp_db
+
+        # threshold=2.0, current=2.0, baseline=1.0 → 2.0 > 2.0 is False
+        result = cache.detect_activity_spike(system_id, spike_threshold=2.0)
+        assert result is not None
+        is_spike, current, baseline = result
+        assert is_spike is False
+        assert current == 2.0
+        assert baseline == pytest.approx(1.0, abs=0.05)
+
+    def test_spike_baseline_floor_prevents_false_positive_on_quiet_system(
+        self, temp_db, monkeypatch
+    ):
+        """Low baseline should be floored to 0.1 to prevent noise spikes."""
+        import time as time_mod
+
+        from aria_esi.services.redisq import threat_cache as tc
+
+        monkeypatch.setattr(tc, "_threat_cache", None)
+
+        now_ts = int(time_mod.time())
+        system_id = 30000142
+        conn = temp_db._get_connection()
+
+        # 1 kill in current hour
+        conn.execute(
+            "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+            (1, now_ts - 300, system_id),
+        )
+        # 1 historical kill (very low baseline: 1/23 ≈ 0.043, floored to 0.1)
+        conn.execute(
+            "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+            (2, now_ts - 12 * 3600, system_id),
+        )
+        conn.commit()
+
+        cache = ThreatCache()
+        cache._db = temp_db
+
+        result = cache.detect_activity_spike(system_id, spike_threshold=2.0)
+        assert result is not None
+        is_spike, current, baseline = result
+        # Baseline should be floored to 0.1 (not 0.043)
+        assert baseline == 0.1
+        # 1.0 > 0.1 * 2.0 = 0.2 → True
+        assert is_spike is True
+
+    def test_spike_empty_system_returns_none(self, temp_db, monkeypatch):
+        """System with zero kills should return None."""
+        from aria_esi.services.redisq import threat_cache as tc
+
+        monkeypatch.setattr(tc, "_threat_cache", None)
+
+        cache = ThreatCache()
+        cache._db = temp_db
+
+        result = cache.detect_activity_spike(30000142)
+        assert result is None
+
+    def test_spike_all_kills_in_current_hour_returns_none(self, temp_db, monkeypatch):
+        """When all kills are in the current hour (no history), should return None."""
+        import time as time_mod
+
+        from aria_esi.services.redisq import threat_cache as tc
+
+        monkeypatch.setattr(tc, "_threat_cache", None)
+
+        now_ts = int(time_mod.time())
+        system_id = 30000142
+        conn = temp_db._get_connection()
+
+        # 5 kills all in current hour
+        for i in range(5):
+            conn.execute(
+                "INSERT INTO realtime_kills (kill_id, kill_time, solar_system_id, is_pod_kill) VALUES (?, ?, ?, 0)",
+                (i + 1, now_ts - i * 300, system_id),
+            )
+        conn.commit()
+
+        cache = ThreatCache()
+        cache._db = temp_db
+
+        # total_24h == current_count → returns None
+        result = cache.detect_activity_spike(system_id)
+        assert result is None
+
+
 class TestDataclassSerialization:
     """Tests for dataclass serialization."""
 

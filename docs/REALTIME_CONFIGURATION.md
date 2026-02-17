@@ -182,7 +182,7 @@ Notification profiles are YAML files in `userdata/notifications/`. Each profile 
 Example profile (`userdata/notifications/my-intel.yaml`):
 
 ```yaml
-schema_version: 2
+schema_version: 3
 name: my-intel
 display_name: My Intel Feed
 enabled: true

@@ -329,11 +329,17 @@ class ProfileEvaluator:
             if engine is None:
                 return {"filtered_by": "no_engine"}
 
+            # Build runtime context with data already computed by the poller
+            runtime_ctx: dict[str, Any] = {}
+            if gatecamp_status is not None:
+                runtime_ctx["gatecamp_status"] = gatecamp_status
+
             # Calculate interest using v2 engine
             interest_result: InterestResultV2 = engine.calculate_interest(
                 kill=kill,
                 system_id=kill.solar_system_id,
                 is_prefetch=False,
+                runtime_context=runtime_ctx or None,
             )
 
             # Check if filtered by interest engine

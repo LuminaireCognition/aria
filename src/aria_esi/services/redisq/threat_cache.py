@@ -568,6 +568,8 @@ class ThreatCache:
         self,
         system_id: int,
         spike_threshold: float = 2.0,
+        pod_only: bool = False,
+        min_current: int = 0,
     ) -> tuple[bool, float, float] | None:
         """
         Detect if current activity is significantly above baseline.
@@ -578,6 +580,9 @@ class ThreatCache:
         Args:
             system_id: System ID to check
             spike_threshold: Multiplier threshold (current > baseline * threshold = spike)
+            pod_only: If True, only count pod kills when computing rates
+            min_current: Minimum kills in current hour before declaring a spike
+                        (prevents 1 kill on a 0.1 baseline from triggering)
 
         Returns:
             (is_spike, current_hourly_rate, baseline_rate) if sufficient data,
@@ -585,33 +590,33 @@ class ThreatCache:
         """
         db = self._get_db()
 
-        # Get kills from last hour
-        kills_1h = db.get_recent_kills(system_id=system_id, since_minutes=60)
-        current_hourly_rate = float(len(kills_1h))
+        # Use efficient COUNT queries instead of materializing full objects
+        current_count = db.count_recent_kills(
+            system_id=system_id, since_minutes=60, pod_only=pod_only
+        )
+        current_hourly_rate = float(current_count)
 
-        # Get kills from last 24 hours (for baseline calculation)
-        kills_24h = db.get_recent_kills(system_id=system_id, since_minutes=1440)
+        total_24h_count = db.count_recent_kills(
+            system_id=system_id, since_minutes=1440, pod_only=pod_only
+        )
 
         # Need at least some historical data beyond the current hour
-        # If we only have data from the last hour, we can't calculate a baseline
-        if len(kills_24h) <= len(kills_1h):
-            # Not enough historical data - the 24h kills are all from the last hour
+        if total_24h_count <= current_count:
             return None
 
         # Calculate baseline: average hourly rate over 24h excluding current hour
-        # This prevents the current spike from inflating the baseline
-        historical_kills = len(kills_24h) - len(kills_1h)
+        historical_kills = total_24h_count - current_count
         historical_hours = 23  # 24 hours minus the current hour
         baseline_rate = historical_kills / historical_hours
 
         # Avoid division by zero and require meaningful baseline
         if baseline_rate < 0.1:
-            # System is normally very quiet - use a minimum baseline
-            # to avoid false positives from single kills
             baseline_rate = 0.1
 
-        # Detect spike
-        is_spike = current_hourly_rate > (baseline_rate * spike_threshold)
+        # Detect spike: must exceed threshold AND meet minimum current kills
+        is_spike = (
+            current_hourly_rate > (baseline_rate * spike_threshold) and current_count >= min_current
+        )
 
         return (is_spike, current_hourly_rate, baseline_rate)
 

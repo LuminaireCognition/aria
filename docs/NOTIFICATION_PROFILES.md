@@ -94,6 +94,18 @@ interest:
     value:
       min: 500000000           # ISK value threshold (500M = hauler-class)
 
+    # Activity-based signals (spike detection, gatecamps)
+    # See "Activity Signal Configuration" section below
+    # activity:
+    #   spike:
+    #     enabled: true
+    #     threshold: 2.0
+
+    # Ship type filtering
+    # ship:
+    #   prefer: ["capsule"]
+    #   prefer_score: 1.0
+
   # Rules for always-notify / always-ignore
   rules:
     always_notify:
@@ -208,6 +220,45 @@ rules:
 ```
 
 `always_notify` bypasses gates; `always_ignore` takes precedence over everything.
+
+#### Activity Signal Configuration
+
+The `activity` signal detects dangerous activity patterns. When enabled, it queries ThreatCache directly if no pre-injected data is available (self-sufficient mode).
+
+```yaml
+signals:
+  activity:
+    spike:
+      enabled: true
+      pod_only: true       # Only count pod kills for spike detection
+      threshold: 3.0       # Current rate must exceed baseline * threshold
+      min_current: 5       # Minimum kills in current hour before spike fires
+      score: 0.7           # Score when spike detected
+    gatecamp:
+      enabled: true        # Detect gatecamp patterns
+      min_confidence: medium  # low, medium, high
+      score: 0.9
+    sustained:
+      enabled: true
+      threshold: 5         # Minimum kills in window
+      window_minutes: 60
+      score: 0.5
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `spike.enabled` | bool | `true` | Enable spike detection |
+| `spike.pod_only` | bool | `false` | Only count pod kills for spike rate |
+| `spike.threshold` | float | `2.0` | Multiplier over 24h baseline |
+| `spike.min_current` | int | `0` | Min kills in current hour to declare spike |
+| `spike.score` | float | `0.7` | Score when spike detected |
+| `gatecamp.enabled` | bool | `true` | Enable gatecamp detection |
+| `gatecamp.min_confidence` | string | `medium` | Minimum gatecamp confidence |
+| `gatecamp.score` | float | `0.9` | Score when gatecamp detected |
+| `sustained.enabled` | bool | `true` | Enable sustained activity detection |
+| `sustained.threshold` | int | `5` | Kill count threshold |
+| `sustained.window_minutes` | int | `60` | Time window for sustained check |
+| `sustained.score` | float | `0.5` | Score when sustained activity detected |
 
 #### Location Signal Opt-In
 
@@ -344,6 +395,8 @@ rate_limit_strategy:
 | `backoff_seconds` | float | `30.0` | Backoff duration on 429 response |
 
 When pending notifications exceed `rollup_threshold`, the worker switches to rollup mode, combining multiple kills into a single summary message.
+
+**Pod-aware rollup format:** When 80% or more of kills in a rollup are pods (capsules), the rollup message switches to a pod-specific format: "Pod spike (N pods rolled up)" with a zkillboard related-kills link, omitting the ISK total (since pods have near-zero value). This pairs well with the activity spike `pod_only` configuration.
 
 ### Delivery Configuration (v2)
 

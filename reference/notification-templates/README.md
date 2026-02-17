@@ -15,6 +15,7 @@ uv run aria-esi notifications create <profile-name> --template <template-name> -
 | `fw-frontlines` | Faction warfare contested zones | 16 | FW PvP intel, warzone activity |
 | `starter-systems` | New player hubs and career agents | 16 | Helping newbies, griefing detection |
 | `serpentis-space` | Serpentis Corporation territory | 11 | Nullsec intel, with commentary |
+| `pod-spike-alerts` | Pod kill spike detection at trade hubs | 15 | Smartbomb camp detection, gank aftermath |
 
 ## Template Schema
 

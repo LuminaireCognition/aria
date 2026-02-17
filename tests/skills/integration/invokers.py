@@ -213,9 +213,9 @@ async def invoke_via_api(
                     tool_calls.append({"name": tool_name, "input": tool_input})
 
                     # Get mock response if available
-                    if mock_tools and tool_name in mock_tools:
-                        action = tool_input.get("action", "")
-                        mock_key = f"{tool_name}_{action}"
+                    action = tool_input.get("action", "")
+                    mock_key = f"{tool_name}_{action}" if action else tool_name
+                    if mock_tools and (mock_key in mock_tools or tool_name in mock_tools):
                         mock_response = mock_tools.get(mock_key, mock_tools.get(tool_name, {}))
                     else:
                         mock_response = {"error": f"No mock configured for {tool_name}"}

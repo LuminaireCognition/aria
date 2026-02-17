@@ -70,11 +70,15 @@ class InterestEngineV2:
         # Lazy-initialized prefetch scorer
         self._prefetch_scorer: PrefetchScorer | None = None
 
+        # Temporary runtime context for current calculation
+        self._runtime_context: dict[str, Any] | None = None
+
     def calculate_interest(
         self,
         kill: ProcessedKill | None,
         system_id: int,
         is_prefetch: bool = False,
+        runtime_context: dict[str, Any] | None = None,
     ) -> InterestResultV2:
         """
         Calculate interest score for a kill.
@@ -83,6 +87,11 @@ class InterestEngineV2:
             kill: ProcessedKill with full data, or None for prefetch
             system_id: Solar system ID
             is_prefetch: Whether this is a prefetch evaluation
+            runtime_context: Per-call context merged into signal configs.
+                Merged after static context but before signal-specific config,
+                so signal config keys take precedence. Used to pass data already
+                computed by the poller (e.g., gatecamp_status) without threading
+                it through the full call chain. Cleared after each call.
 
         Returns:
             InterestResultV2 with complete scoring breakdown
@@ -112,7 +121,11 @@ class InterestEngineV2:
         always_notify = any(m.matched for m in notify_matches)
 
         # Step 3: Score all configured categories
-        category_scores = self._score_categories(kill, system_id)
+        self._runtime_context = runtime_context
+        try:
+            category_scores = self._score_categories(kill, system_id)
+        finally:
+            self._runtime_context = None
         result.category_scores = category_scores
 
         # Step 4: Evaluate gates (if not bypassed by always_notify)
@@ -338,8 +351,8 @@ class InterestEngineV2:
             if signal_config is None:
                 signal_config = {}
 
-            # Merge with context
-            merged_config = {**self._context, **signal_config}
+            # Merge with context and runtime context
+            merged_config = {**self._context, **(self._runtime_context or {}), **signal_config}
 
             try:
                 score = provider.score(kill, system_id, merged_config)

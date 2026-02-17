@@ -385,6 +385,45 @@ class RealtimeKillsDatabase:
 
         return row[0] if row else 0
 
+    def count_recent_kills(
+        self,
+        system_id: int,
+        since_minutes: int = 60,
+        pod_only: bool = False,
+    ) -> int:
+        """
+        Count recent kills in a system without materializing full objects.
+
+        Args:
+            system_id: System ID to count kills in
+            since_minutes: How far back to look
+            pod_only: If True, only count pod kills
+
+        Returns:
+            Number of matching kills
+        """
+        conn = self._get_connection()
+        cutoff = int(time.time()) - (since_minutes * 60)
+
+        if pod_only:
+            row = conn.execute(
+                """
+                SELECT COUNT(*) FROM realtime_kills
+                WHERE solar_system_id = ? AND kill_time > ? AND is_pod_kill = 1
+                """,
+                (system_id, cutoff),
+            ).fetchone()
+        else:
+            row = conn.execute(
+                """
+                SELECT COUNT(*) FROM realtime_kills
+                WHERE solar_system_id = ? AND kill_time > ?
+                """,
+                (system_id, cutoff),
+            ).fetchone()
+
+        return row[0] if row else 0
+
     def get_kill_count(self, since_minutes: int | None = None) -> int:
         """
         Get count of kills in database.

@@ -19,29 +19,37 @@ enabled: true
 # Replace with your Discord webhook URL
 webhook_url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_WEBHOOK_TOKEN"
 
-topology:
-  geographic:
-    systems:
-      # YOUR HOME SYSTEM - replace with actual home
-      - name: "Stacmon"
-        classification: "home"
+interest:
+  engine: v2
 
-      # Adjacent systems (1 jump) - your early warning network
-      - name: "Covryn"
-        classification: "transit"
-      - name: "Ostingele"
-        classification: "transit"
-      - name: "Aulbres"
-        classification: "transit"
+  signals:
+    location:
+      geographic:
+        systems:
+          # YOUR HOME SYSTEM - replace with actual home
+          - name: "Stacmon"
+            classification: "home"
 
-      # Known hostile staging (optional) - watch for fleet formations
-      # - name: "EnemyStaging"
-      #   classification: "avoidance"
+          # Adjacent systems (1 jump) - your early warning network
+          - name: "Covryn"
+            classification: "transit"
+          - name: "Ostingele"
+            classification: "transit"
+          - name: "Aulbres"
+            classification: "transit"
 
-triggers:
-  watchlist_activity: true        # Critical: alerts on war targets
-  gatecamp_detected: true         # Know before you undock
-  high_value_threshold: 0         # All kills matter near home
+          # Known hostile staging (optional) - watch for fleet formations
+          # - name: "EnemyStaging"
+          #   classification: "avoidance"
+
+    # No value threshold — all kills matter near home
+    # value:
+    #   min: 0
+
+  rules:
+    always_notify:
+      - watchlist_match         # Critical: alerts on war targets
+      - gatecamp_detected       # Know before you undock
 
 throttle_minutes: 5               # Balance awareness vs spam
 
