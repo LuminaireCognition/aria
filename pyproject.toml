@@ -47,20 +47,6 @@ include = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "pytest>=8.0",
-    "pytest-xdist>=3.5",
-    "pytest-cov>=4.0",
-    "pytest-asyncio>=0.23.0",
-    "pytest-benchmark>=4.0.0",
-    "pytest-httpx>=0.30",
-    "syrupy>=4.0.0",
-    "ruff>=0.4.0",
-    "mypy>=1.8.0",
-    "pre-commit>=3.6.0",
-    "time-machine>=2.10.0",
-    "jsonschema>=4.20.0",  # Test harness schema validation
-]
 resilient = [
     "tenacity>=9.1.2",  # Enhanced retry with exponential backoff (fallback exists without)
 ]
@@ -245,6 +231,18 @@ disable_error_code = [
 
 [dependency-groups]
 dev = [
+    "pytest>=8.0",
+    "pytest-xdist>=3.5",
+    "pytest-cov>=4.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-benchmark>=4.0.0",
+    "pytest-httpx>=0.30",
+    "syrupy>=4.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.8.0",
+    "pre-commit>=3.6.0",
+    "time-machine>=2.10.0",
+    "jsonschema>=4.20.0",
     "tiktoken>=0.12.0",
     "types-pyyaml>=6.0.12.20250915",
 ]
