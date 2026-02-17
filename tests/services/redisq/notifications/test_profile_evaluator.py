@@ -655,14 +655,11 @@ class TestV2ScopeSystems:
         assert result is None
 
     def test_scope_systems_populated_despite_engine_init_failure(self):
-        """_v2_scope_systems is still populated even when engine init fails.
+        """_v2_scope_systems is populated even when engine init fails.
 
-        The scope extraction happens inside the try block before the engine
-        is used, so a build failure should not prevent scope extraction.
-        However, _extract_v2_scope_systems is called on the same line as
-        the engine build success path, so if _build_v2_engine raises,
-        _extract_v2_scope_systems is never called and the field stays None.
-        This test documents the current behavior.
+        Scope extraction reads raw YAML config and is independent of the
+        engine build, so it runs before the try block and succeeds even
+        when _build_v2_engine raises.
         """
         profile = NotificationProfile(
             name="engine-fail",
@@ -687,9 +684,8 @@ class TestV2ScopeSystems:
 
         # Engine init failed — profile is disabled
         assert evaluator.profiles[0]._init_error is not None
-        # Scope systems NOT populated because _extract_v2_scope_systems
-        # is in the try block after _build_v2_engine
-        assert evaluator.profiles[0]._v2_scope_systems is None
+        # Scope systems still populated for store-level pre-filtering
+        assert evaluator.profiles[0]._v2_scope_systems == [30000142]
 
 
 class TestProfileEvaluatorFilteredLists:

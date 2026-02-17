@@ -126,11 +126,14 @@ class ProfileEvaluator:
 
         # Initialize v2 interest engine
         if profile.uses_interest_v2:
+            # Extract scope systems before engine build — this reads raw YAML
+            # config and must succeed even if the engine fails to initialize.
+            profile._v2_scope_systems = self._extract_v2_scope_systems(profile)
+
             try:
                 engine = self._build_v2_engine(profile)
                 profile._interest_engine_v2 = engine
                 profile._topology_filter = None  # v2 handles its own filtering
-                profile._v2_scope_systems = self._extract_v2_scope_systems(profile)
                 logger.debug(
                     "Built v2 interest engine for profile '%s' (preset: %s)",
                     profile.name,

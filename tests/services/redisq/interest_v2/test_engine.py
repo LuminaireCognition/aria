@@ -639,6 +639,40 @@ class TestSignalOptIn:
         assert result.tier == NotificationTier.FILTER
         assert result.interest == 0.0
 
+    def test_provider_scoring_exception_produces_zero_score(self, mock_kill, reset_registry):
+        """A provider that raises during score() produces a zero-score entry with error reason."""
+        from aria_esi.services.redisq.interest_v2.providers.base import BaseSignalProvider
+        from aria_esi.services.redisq.interest_v2.providers.registry import get_provider_registry
+
+        class BrokenSignal(BaseSignalProvider):
+            _name = "broken"
+            _category = "value"
+            _prefetch_capable = False
+
+            def score(self, kill, system_id, config):
+                raise RuntimeError("provider exploded")
+
+        registry = get_provider_registry()
+        registry.register_signal("value", "broken", BrokenSignal)
+
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"value": 1.0},
+            signals={
+                "value": {
+                    "broken": {},
+                },
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        val = result.category_scores.get("value")
+        assert val is not None
+        assert val.signals["broken"].score == 0.0
+        assert "Scoring error" in val.signals["broken"].reason
+        assert "provider exploded" in val.signals["broken"].reason
+
     def test_signal_config_none_value_treated_as_empty(self, mock_kill, reset_registry):
         """Signal config explicitly set to None should be treated as empty dict."""
         config = InterestConfigV2(
