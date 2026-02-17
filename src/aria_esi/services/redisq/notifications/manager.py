@@ -11,6 +11,7 @@ Discord channels based on region, trigger type, and value thresholds.
 from __future__ import annotations
 
 import asyncio
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
@@ -53,6 +54,17 @@ class NotificationHealth:
 
 
 @dataclass
+class _BufferedKill:
+    """A kill buffered for rollup delivery."""
+
+    kill: ProcessedKill
+    profile_name: str
+    buffered_at: float
+    system_name: str | None = None
+    ship_name: str | None = None
+
+
+@dataclass
 class NotificationManager:
     """
     Orchestrates the notification pipeline.
@@ -88,6 +100,9 @@ class NotificationManager:
     # Pattern detection and commentary generation
     _pattern_detector: PatternDetector | None = field(default=None, repr=False)
     _commentary_generators: dict[str, CommentaryGenerator] = field(default_factory=dict, repr=False)
+
+    # Rollup buffers (keyed by profile name)
+    _rollup_buffers: dict[str, list[_BufferedKill]] = field(default_factory=dict, repr=False)
 
     # Background task
     _process_task: asyncio.Task | None = field(default=None, repr=False)
@@ -335,6 +350,7 @@ class NotificationManager:
         self._clients.clear()
         self._queues.clear()
         self._commentary_generators.clear()
+        self._rollup_buffers.clear()
 
         logger.info("Notification manager stopped")
 
@@ -354,6 +370,10 @@ class NotificationManager:
                 if total_sent > 0:
                     logger.debug("Processed %d webhook notifications", total_sent)
 
+                # Flush aged rollup buffers
+                if self._rollup_buffers:
+                    await self._flush_rollup_buffers()
+
                 # Clean up throttle entries periodically
                 if self._evaluator:
                     self._evaluator.cleanup_throttles()
@@ -366,6 +386,130 @@ class NotificationManager:
             except Exception as e:
                 logger.error("Error in notification process loop: %s", e)
                 await asyncio.sleep(5)  # Back off on error
+
+    async def _flush_rollup_buffers(self) -> None:
+        """Flush buffered kills that have aged past the rollup window."""
+        profiles_by_name = {p.name: p for p in self._profiles}
+
+        for profile_name in list(self._rollup_buffers.keys()):
+            buffer = self._rollup_buffers.get(profile_name, [])
+            if not buffer:
+                continue
+
+            profile = profiles_by_name.get(profile_name)
+            if not profile:
+                # Profile removed since buffering — discard
+                self._rollup_buffers.pop(profile_name, None)
+                continue
+
+            window = profile.rate_limit_strategy.effective_rollup_window_minutes
+            cutoff = time.time() - window * 60
+
+            flushable = [b for b in buffer if b.buffered_at <= cutoff]
+            remaining = [b for b in buffer if b.buffered_at > cutoff]
+
+            if not flushable:
+                continue
+
+            # Group by solar_system_id
+            system_groups: dict[int, list[_BufferedKill]] = {}
+            for b in flushable:
+                system_groups.setdefault(b.kill.solar_system_id, []).append(b)
+
+            max_rollup = profile.rate_limit_strategy.max_rollup_kills
+            queue = self._queues.get(profile.webhook_url)
+            if not queue:
+                continue
+
+            for _system_id, system_kills in system_groups.items():
+                for i in range(0, len(system_kills), max_rollup):
+                    chunk = system_kills[i : i + max_rollup]
+                    payload = self._format_rollup_message(chunk, profile)
+                    queue.enqueue(
+                        payload=payload,
+                        kill_id=chunk[0].kill.kill_id,
+                        trigger_type="rollup",
+                    )
+                    logger.debug(
+                        "Enqueued rollup for profile '%s': %d kills in system %d",
+                        profile_name,
+                        len(chunk),
+                        _system_id,
+                    )
+
+            self._rollup_buffers[profile_name] = remaining
+
+    def _format_rollup_message(
+        self, kills: list[_BufferedKill], profile: NotificationProfile
+    ) -> dict[str, Any]:
+        """Format a rollup summary message for a batch of buffered kills."""
+        from ..processor import POD_TYPE_IDS
+
+        total_value = sum(k.kill.total_value for k in kills)
+        kill_count = len(kills)
+
+        # Get primary system (most common)
+        from collections import Counter
+
+        system_counts = Counter(k.kill.solar_system_id for k in kills)
+        primary_system_id = system_counts.most_common(1)[0][0]
+
+        # Format timestamp for zkill URL
+        first_kill_time = kills[0].kill.kill_time
+        if isinstance(first_kill_time, datetime):
+            timestamp = first_kill_time.strftime("%Y%m%d%H%M")
+        else:
+            timestamp = datetime.fromtimestamp(first_kill_time).strftime("%Y%m%d%H%M")
+
+        # Value formatting
+        if total_value >= 1_000_000_000:
+            value_str = f"{total_value / 1_000_000_000:.1f}B"
+        else:
+            value_str = f"{total_value / 1_000_000:.0f}M"
+
+        # Pod detection
+        pod_count = sum(1 for k in kills if k.kill.victim_ship_type_id in POD_TYPE_IDS)
+        pod_ratio = pod_count / kill_count if kill_count else 0
+
+        # Resolve system name
+        system_name_line = ""
+        # Use buffered system_name if available from first kill in this system
+        first_with_name = next((k for k in kills if k.system_name), None)
+        if first_with_name and first_with_name.system_name:
+            system_name_line = f"📍 {first_with_name.system_name}\n"
+        else:
+            try:
+                from ..name_resolver import get_name_resolver
+
+                resolver = get_name_resolver()
+                system_name = resolver.resolve_system_with_fallback(primary_system_id)
+                system_name_line = f"📍 {system_name}\n"
+            except Exception:
+                pass
+
+        rls = profile.rate_limit_strategy
+        window = rls.effective_rollup_window_minutes
+
+        if pod_ratio >= 0.8:
+            pod_label = "pod" if pod_count == 1 else "pods"
+            title = rls.rollup_title or "Pod spike"
+            header = f"📊 {title} ({pod_count} {pod_label} / {window}m)"
+            content = (
+                f"{header}\n"
+                f"{system_name_line}"
+                f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
+            )
+        else:
+            title = rls.rollup_title or "Activity"
+            header = f"📊 {title} ({kill_count} kills / {window}m)"
+            content = (
+                f"{header}\n"
+                f"💀 {value_str} ISK total\n"
+                f"{system_name_line}"
+                f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
+            )
+
+        return {"content": content}
 
     async def process_kill(
         self,
@@ -459,6 +603,25 @@ class NotificationManager:
         for match in eval_result.matches:
             profile = match.profile
             trigger_result = match.trigger_result
+
+            # Buffer kills for force_rollup profiles instead of sending immediately
+            if profile.rate_limit_strategy.force_rollup:
+                buffered = _BufferedKill(
+                    kill=kill,
+                    profile_name=profile.name,
+                    buffered_at=time.time(),
+                    system_name=system_name,
+                    ship_name=ship_name,
+                )
+                self._rollup_buffers.setdefault(profile.name, []).append(buffered)
+                queued_count += 1
+                logger.debug(
+                    "Buffered kill %d for rollup in profile '%s' (buffer=%d)",
+                    kill.kill_id,
+                    profile.name,
+                    len(self._rollup_buffers[profile.name]),
+                )
+                continue
 
             # Generate commentary if profile has it enabled and patterns warrant it
             commentary = None
