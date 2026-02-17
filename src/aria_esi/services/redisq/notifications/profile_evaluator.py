@@ -130,6 +130,7 @@ class ProfileEvaluator:
                 engine = self._build_v2_engine(profile)
                 profile._interest_engine_v2 = engine
                 profile._topology_filter = None  # v2 handles its own filtering
+                profile._v2_scope_systems = self._extract_v2_scope_systems(profile)
                 logger.debug(
                     "Built v2 interest engine for profile '%s' (preset: %s)",
                     profile.name,
@@ -177,6 +178,26 @@ class ProfileEvaluator:
             # This will be resolved by the signal providers
 
         return InterestEngineV2(config, context)
+
+    @staticmethod
+    def _extract_v2_scope_systems(profile: NotificationProfile) -> list[int] | None:
+        """
+        Extract system IDs from v2 interest geographic config for store pre-filtering.
+
+        Returns:
+            List of system IDs if geographic systems configured, else None.
+        """
+        try:
+            signals = profile.interest.get("signals", {})
+            location = signals.get("location", {})
+            geographic = location.get("geographic", {})
+            systems = geographic.get("systems", [])
+            if systems:
+                ids = [s["id"] for s in systems if "id" in s]
+                return ids if ids else None
+        except (AttributeError, TypeError, KeyError):
+            pass
+        return None
 
     def evaluate(
         self,

@@ -510,6 +510,63 @@ class TestProfileEvaluatorV2Engine:
         assert profile_v1.uses_interest_v2 is False
 
 
+class TestV2ScopeSystems:
+    """Tests for _v2_scope_systems extraction."""
+
+    def test_scope_systems_populated_from_geographic(self):
+        """_v2_scope_systems populated from geographic config."""
+        profile = NotificationProfile(
+            name="geo-scope",
+            enabled=True,
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            interest={
+                "engine": "v2",
+                "preset": "custom",
+                "weights": {"location": 0.8},
+                "signals": {
+                    "location": {
+                        "geographic": {
+                            "systems": [
+                                {"name": "Jita", "id": 30000142},
+                                {"name": "Perimeter", "id": 30000144},
+                            ],
+                        },
+                    },
+                },
+            },
+        )
+
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
+            evaluator = ProfileEvaluator([profile])
+
+        assert evaluator.profiles[0]._v2_scope_systems is not None
+        assert set(evaluator.profiles[0]._v2_scope_systems) == {30000142, 30000144}
+
+    def test_scope_systems_none_when_no_geographic(self):
+        """_v2_scope_systems is None when no geographic config."""
+        profile = NotificationProfile(
+            name="no-geo",
+            enabled=True,
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            interest={
+                "engine": "v2",
+                "preset": "lowsec-pvp",
+            },
+        )
+
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
+            evaluator = ProfileEvaluator([profile])
+
+        assert evaluator.profiles[0]._v2_scope_systems is None
+
+    def test_scope_systems_none_for_non_v2_profile(self):
+        """_v2_scope_systems is not set for non-v2 profiles."""
+        profile = make_profile("v1-profile")
+        evaluator = ProfileEvaluator([profile])
+
+        assert evaluator.profiles[0]._v2_scope_systems is None
+
+
 class TestProfileEvaluatorFilteredLists:
     """Tests for filtered lists in EvaluationResult."""
 

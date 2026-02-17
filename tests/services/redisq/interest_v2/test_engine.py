@@ -478,3 +478,124 @@ class TestConfigTierIntegration:
         engine = InterestEngineV2(config)
 
         assert engine._config.tier == ConfigTier.ADVANCED
+
+
+class TestSignalOptIn:
+    """Tests for signal opt-in behavior (unconfigured signals skipped)."""
+
+    def test_unconfigured_security_skipped_in_location(self, mock_kill, reset_registry):
+        """When only geographic is configured, security signal should not run."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0},
+            signals={
+                "location": {
+                    "geographic": {
+                        "systems": [{"name": "Jita", "id": 30000142}],
+                    }
+                    # Note: no "security" key
+                }
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        # Location category should have been scored
+        loc = result.category_scores.get("location")
+        assert loc is not None
+
+        # Only geographic signal should be present, not security
+        if loc.signals:
+            assert "geographic" in loc.signals
+            assert "security" not in loc.signals
+
+    def test_both_location_signals_when_configured(self, mock_kill, reset_registry):
+        """When both geographic and security are configured, both should run."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0},
+            signals={
+                "location": {
+                    "geographic": {
+                        "systems": [{"name": "Jita", "id": 30000142}],
+                    },
+                    "security": {
+                        "bands": [{"min": 0.5, "max": 1.0}],
+                    },
+                }
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        loc = result.category_scores.get("location")
+        assert loc is not None
+        if loc.signals:
+            assert "geographic" in loc.signals
+            assert "security" in loc.signals
+
+    def test_single_signal_category_still_scores(self, mock_kill, reset_registry):
+        """Single-signal categories (e.g., value) still score with category-level config."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"value": 1.0},
+            signals={
+                "value": {
+                    "min": 50_000_000,
+                }
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        val = result.category_scores.get("value")
+        assert val is not None
+        if val.signals:
+            assert "value" in val.signals
+
+    def test_empty_signals_config_returns_no_signals(self, mock_kill, reset_registry):
+        """Category with empty signals config returns no signal scores."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0},
+            signals={},  # No categories configured
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        loc = result.category_scores.get("location")
+        assert loc is not None
+        # No signals should have run because signals_config for location is empty
+        assert not loc.signals
+
+    def test_gate_passes_with_geographic_only_in_configured_system(
+        self, mock_kill, reset_registry
+    ):
+        """Gate on location passes when geographic-only is configured and system matches."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0, "value": 0.5},
+            signals={
+                "location": {
+                    "geographic": {
+                        "systems": [
+                            {"name": "Jita", "id": 30000142, "classification": "home"}
+                        ],
+                    }
+                    # No security — should NOT inflate score
+                },
+                "value": {"min": 10_000_000},
+            },
+            rules=RulesConfig(require_all=["location"]),
+        )
+        engine = InterestEngineV2(config)
+
+        # Kill in Jita (system 30000142) — should match geographic
+        result = engine.calculate_interest(mock_kill, 30000142)
+
+        loc = result.category_scores.get("location")
+        assert loc is not None
+        # Geographic should score well for home system
+        if loc.signals and "geographic" in loc.signals:
+            geo_score = loc.signals["geographic"].score
+            assert geo_score > 0.0

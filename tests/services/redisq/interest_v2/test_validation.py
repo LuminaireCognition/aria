@@ -652,3 +652,126 @@ class TestFormatValidationResult:
 
         # Should show count like "Errors (1):" or "Errors (2):"
         assert "Errors (" in formatted
+
+
+# =============================================================================
+# TestValidateGates
+# =============================================================================
+
+
+class TestValidateGates:
+    """Tests for gate validation against configured signals."""
+
+    def test_location_gate_geographic_only_warning(self):
+        """Warning when gate requires location but only geographic is configured."""
+        config = {
+            "engine": "v2",
+            "preset": "custom",
+            "weights": {"location": 0.8},
+            "signals": {
+                "location": {
+                    "geographic": {
+                        "systems": [{"name": "Jita", "id": 30000142}],
+                    },
+                },
+            },
+            "rules": {
+                "require_all": ["location"],
+            },
+        }
+
+        result = validate_interest_config(config)
+
+        warning_codes = [w.code for w in result.warnings]
+        assert "LOCATION_GATE_GEOGRAPHIC_ONLY" in warning_codes
+
+    def test_no_warning_when_both_location_signals_configured(self):
+        """No warning when both geographic and security are configured."""
+        config = {
+            "engine": "v2",
+            "preset": "custom",
+            "weights": {"location": 0.8},
+            "signals": {
+                "location": {
+                    "geographic": {
+                        "systems": [{"name": "Jita", "id": 30000142}],
+                    },
+                    "security": {
+                        "bands": [{"min": 0.5, "max": 1.0}],
+                    },
+                },
+            },
+            "rules": {
+                "require_all": ["location"],
+            },
+        }
+
+        result = validate_interest_config(config)
+
+        warning_codes = [w.code for w in result.warnings]
+        assert "LOCATION_GATE_GEOGRAPHIC_ONLY" not in warning_codes
+        assert "LOCATION_GATE_NO_SIGNALS" not in warning_codes
+
+    def test_location_gate_no_signals_warning(self):
+        """Warning when gate requires location but no location signals configured."""
+        config = {
+            "engine": "v2",
+            "preset": "custom",
+            "weights": {"location": 0.8},
+            "signals": {},
+            "rules": {
+                "require_all": ["location"],
+            },
+        }
+
+        result = validate_interest_config(config)
+
+        warning_codes = [w.code for w in result.warnings]
+        assert "LOCATION_GATE_NO_SIGNALS" in warning_codes
+
+    def test_no_warning_when_location_not_in_gates(self):
+        """No warning when location is not in any gate."""
+        config = {
+            "engine": "v2",
+            "preset": "custom",
+            "weights": {"location": 0.8, "value": 0.5},
+            "signals": {
+                "location": {
+                    "geographic": {
+                        "systems": [{"name": "Jita", "id": 30000142}],
+                    },
+                },
+            },
+            "rules": {
+                "require_all": ["value"],  # Only value gated, not location
+            },
+        }
+
+        result = validate_interest_config(config)
+
+        warning_codes = [w.code for w in result.warnings]
+        assert "LOCATION_GATE_GEOGRAPHIC_ONLY" not in warning_codes
+        assert "LOCATION_GATE_NO_SIGNALS" not in warning_codes
+
+    def test_location_gate_via_require_any(self):
+        """Warning also triggers when location is in require_any."""
+        config = {
+            "engine": "v2",
+            "preset": "custom",
+            "weights": {"location": 0.8},
+            "signals": {
+                "location": {
+                    "geographic": {
+                        "systems": [{"name": "Jita", "id": 30000142}],
+                    },
+                },
+            },
+            "rules": {
+                "require_any": ["location"],
+            },
+        }
+
+        result = validate_interest_config(config)
+
+        warning_codes = [w.code for w in result.warnings]
+        assert "LOCATION_GATE_GEOGRAPHIC_ONLY" in warning_codes
