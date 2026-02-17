@@ -55,7 +55,7 @@ commentary:
 
 ### Switching to OpenAI
 
-1. Get an API key from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+1. Get an API key from your OpenAI dashboard (platform.openai.com > API keys)
 
 2. Add to your `.env` file:
    ```
