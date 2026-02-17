@@ -22,7 +22,13 @@ class TestActivitySignalScore:
     def test_score_no_activity_data(self, signal: ActivitySignal) -> None:
         """Test scoring with no activity data returns 0."""
         kill = MockProcessedKill()
-        result = signal.score(kill, 30000142, {})
+        # All signals disabled = no self-sufficient querying, no pre-injected data
+        config = {
+            "spike": {"enabled": False},
+            "sustained": {"enabled": False},
+            "gatecamp": {"enabled": False},
+        }
+        result = signal.score(kill, 30000142, config)
         assert result.score == 0.0
         assert "No activity data available" in result.reason
         assert result.prefetch_capable is False
@@ -284,6 +290,133 @@ class TestActivitySignalValidate:
         }
         errors = signal.validate(config)
         assert errors == []
+
+
+class TestActivitySignalSelfSufficient:
+    """Tests for ActivitySignal querying ThreatCache directly."""
+
+    @pytest.fixture
+    def signal(self) -> ActivitySignal:
+        """Create an ActivitySignal instance."""
+        return ActivitySignal()
+
+    def test_spike_queries_threat_cache_when_no_activity_data(
+        self, signal: ActivitySignal, monkeypatch
+    ) -> None:
+        """When no activity_data in config, signal queries ThreatCache."""
+        from unittest.mock import MagicMock
+
+        mock_tc = MagicMock()
+        mock_tc.detect_activity_spike.return_value = (True, 8.0, 2.0)
+
+        # Monkeypatch the method directly to avoid import-path issues
+        monkeypatch.setattr(signal, "_query_spike_data", lambda sys_id, cfg: {
+            "spike_detected": True,
+            "sustained_kills": 8,
+        })
+
+        config = {
+            "spike": {"enabled": True, "score": 0.7, "pod_only": True, "threshold": 3.0, "min_current": 5},
+        }
+        result = signal.score(None, 30000142, config)
+
+        assert result.score == 0.7
+        assert "Activity spike" in result.reason
+
+    def test_query_spike_data_calls_threat_cache(self, signal: ActivitySignal, monkeypatch) -> None:
+        """_query_spike_data calls ThreatCache.detect_activity_spike with correct params."""
+        from unittest.mock import MagicMock
+
+        import aria_esi.services.redisq.threat_cache as tc_mod
+
+        mock_tc = MagicMock()
+        mock_tc.detect_activity_spike.return_value = (True, 8.0, 2.0)
+        monkeypatch.setattr(tc_mod, "get_threat_cache", lambda: mock_tc)
+
+        spike_config = {"pod_only": True, "threshold": 3.0, "min_current": 5}
+        result = signal._query_spike_data(30000142, spike_config)
+
+        assert result is not None
+        assert result["spike_detected"] is True
+        assert result["sustained_kills"] == 8
+        mock_tc.detect_activity_spike.assert_called_once_with(
+            30000142,
+            spike_threshold=3.0,
+            pod_only=True,
+            min_current=5,
+        )
+
+    def test_spike_does_not_query_when_activity_data_present(
+        self, signal: ActivitySignal, monkeypatch
+    ) -> None:
+        """When activity_data exists, signal should NOT query ThreatCache."""
+        called = False
+        original = signal._query_spike_data
+
+        def tracking_query(*args, **kwargs):
+            nonlocal called
+            called = True
+            return original(*args, **kwargs)
+
+        monkeypatch.setattr(signal, "_query_spike_data", tracking_query)
+
+        config = {
+            "activity_data": {"spike_detected": True, "sustained_kills": 2},
+            "spike": {"enabled": True, "score": 0.7},
+        }
+        result = signal.score(None, 30000142, config)
+
+        assert not called
+        assert result.score == 0.7
+
+    def test_spike_graceful_on_threat_cache_failure(
+        self, signal: ActivitySignal, monkeypatch
+    ) -> None:
+        """Signal returns 0 when ThreatCache query fails."""
+        monkeypatch.setattr(signal, "_query_spike_data", lambda sys_id, cfg: None)
+
+        config = {
+            "spike": {"enabled": True, "score": 0.7},
+        }
+        result = signal.score(None, 30000142, config)
+
+        assert result.score == 0.0
+
+    def test_sustained_queries_threat_cache_when_no_activity_data(
+        self, signal: ActivitySignal, monkeypatch
+    ) -> None:
+        """When no activity_data, sustained check queries ThreatCache."""
+        monkeypatch.setattr(signal, "_query_sustained_data", lambda sys_id, cfg: {
+            "spike_detected": False,
+            "sustained_kills": 10,
+        })
+
+        config = {
+            "spike": {"enabled": False},
+            "sustained": {"enabled": True, "score": 0.5, "threshold": 5},
+        }
+        result = signal.score(None, 30000142, config)
+
+        assert result.score == 0.5
+        assert "Sustained activity" in result.reason
+
+    def test_query_sustained_data_calls_db(self, signal: ActivitySignal, monkeypatch) -> None:
+        """_query_sustained_data calls count_recent_kills."""
+        from unittest.mock import MagicMock
+
+        import aria_esi.services.redisq.threat_cache as tc_mod
+
+        mock_tc = MagicMock()
+        mock_db = MagicMock()
+        mock_db.count_recent_kills.return_value = 10
+        mock_tc._get_db.return_value = mock_db
+        monkeypatch.setattr(tc_mod, "get_threat_cache", lambda: mock_tc)
+
+        result = signal._query_sustained_data(30000142, {"window_minutes": 120})
+
+        assert result is not None
+        assert result["sustained_kills"] == 10
+        mock_db.count_recent_kills.assert_called_once_with(system_id=30000142, since_minutes=120)
 
 
 class TestActivitySignalProperties:

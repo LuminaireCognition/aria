@@ -465,12 +465,21 @@ class NotificationWorker:
         else:
             value_str = f"{total_value / 1_000_000:.0f}M"
 
-        # Build message
-        content = (
-            f"📊 Activity ({len(kills)} kills rolled up)\n"
-            f"💀 {value_str} ISK total\n"
-            f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
-        )
+        # Auto-detect pod-heavy rollups for specialized formatting
+        pod_count = sum(1 for k in kills if getattr(k, "victim_ship_type_id", None) == 670)
+        pod_ratio = pod_count / len(kills) if kills else 0
+
+        if pod_ratio >= 0.8:
+            content = (
+                f"📊 Pod spike ({pod_count} pods rolled up)\n"
+                f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
+            )
+        else:
+            content = (
+                f"📊 Activity ({len(kills)} kills rolled up)\n"
+                f"💀 {value_str} ISK total\n"
+                f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
+            )
 
         # Send via webhook
         if self._send_notification:

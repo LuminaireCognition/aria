@@ -237,6 +237,116 @@ class TestKillOperations:
         assert db.get_kill_count() == 2
 
 
+class TestCountRecentKills:
+    """Tests for count_recent_kills method."""
+
+    def test_count_all_kills_in_system(self, db: RealtimeKillsDatabase):
+        """Test counting all kills in a system."""
+        now = datetime.utcnow()
+        for i in range(3):
+            kill = ProcessedKill(
+                kill_id=i + 1,
+                kill_time=now - timedelta(minutes=10),
+                solar_system_id=30000142,
+                victim_ship_type_id=17740,
+                victim_corporation_id=98000001,
+                victim_alliance_id=None,
+                attacker_count=1,
+                attacker_corps=[],
+                attacker_alliances=[],
+                attacker_ship_types=[],
+                final_blow_ship_type_id=None,
+                total_value=10000000.0,
+                is_pod_kill=False,
+            )
+            db.save_kill(kill)
+
+        count = db.count_recent_kills(system_id=30000142, since_minutes=60)
+        assert count == 3
+
+    def test_count_pod_kills_only(self, db: RealtimeKillsDatabase):
+        """Test counting only pod kills."""
+        now = datetime.utcnow()
+        # 2 pod kills + 1 ship kill
+        for i, is_pod in enumerate([True, True, False]):
+            kill = ProcessedKill(
+                kill_id=i + 1,
+                kill_time=now - timedelta(minutes=10),
+                solar_system_id=30000142,
+                victim_ship_type_id=670 if is_pod else 17740,
+                victim_corporation_id=98000001,
+                victim_alliance_id=None,
+                attacker_count=1,
+                attacker_corps=[],
+                attacker_alliances=[],
+                attacker_ship_types=[],
+                final_blow_ship_type_id=None,
+                total_value=10000000.0,
+                is_pod_kill=is_pod,
+            )
+            db.save_kill(kill)
+
+        all_count = db.count_recent_kills(system_id=30000142, since_minutes=60)
+        pod_count = db.count_recent_kills(system_id=30000142, since_minutes=60, pod_only=True)
+        assert all_count == 3
+        assert pod_count == 2
+
+    def test_count_respects_time_window(self, db: RealtimeKillsDatabase):
+        """Test that count respects the time window."""
+        now_ts = time.time()
+        for i, minutes_ago in enumerate([5, 30, 90]):
+            kill = ProcessedKill(
+                kill_id=i + 1,
+                kill_time=datetime.fromtimestamp(now_ts - minutes_ago * 60),
+                solar_system_id=30000142,
+                victim_ship_type_id=17740,
+                victim_corporation_id=98000001,
+                victim_alliance_id=None,
+                attacker_count=1,
+                attacker_corps=[],
+                attacker_alliances=[],
+                attacker_ship_types=[],
+                final_blow_ship_type_id=None,
+                total_value=10000000.0,
+                is_pod_kill=False,
+            )
+            db.save_kill(kill)
+
+        count_1h = db.count_recent_kills(system_id=30000142, since_minutes=60)
+        count_2h = db.count_recent_kills(system_id=30000142, since_minutes=120)
+        assert count_1h == 2
+        assert count_2h == 3
+
+    def test_count_filters_by_system(self, db: RealtimeKillsDatabase):
+        """Test that count filters by system ID."""
+        now = datetime.utcnow()
+        for i, system in enumerate([30000142, 30000142, 30002187]):
+            kill = ProcessedKill(
+                kill_id=i + 1,
+                kill_time=now - timedelta(minutes=5),
+                solar_system_id=system,
+                victim_ship_type_id=17740,
+                victim_corporation_id=98000001,
+                victim_alliance_id=None,
+                attacker_count=1,
+                attacker_corps=[],
+                attacker_alliances=[],
+                attacker_ship_types=[],
+                final_blow_ship_type_id=None,
+                total_value=10000000.0,
+                is_pod_kill=False,
+            )
+            db.save_kill(kill)
+
+        assert db.count_recent_kills(system_id=30000142, since_minutes=60) == 2
+        assert db.count_recent_kills(system_id=30002187, since_minutes=60) == 1
+
+    def test_count_empty_system(self, db: RealtimeKillsDatabase):
+        """Test counting kills in a system with no data."""
+        count = db.count_recent_kills(system_id=30000142, since_minutes=60)
+        assert count == 0
+
+
 class TestStateOperations:
     """Tests for state persistence operations."""
 

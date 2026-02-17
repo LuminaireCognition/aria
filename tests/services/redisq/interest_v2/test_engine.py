@@ -21,6 +21,7 @@ from aria_esi.services.redisq.interest_v2.models import (
     AggregationMode,
     ConfigTier,
     NotificationTier,
+    SignalScore,
 )
 
 
@@ -439,6 +440,120 @@ class TestValidation:
         # but core config should be valid
         config_errors = config.validate()
         assert len(config_errors) == 0
+
+
+class TestRuntimeContext:
+    """Tests for runtime_context parameter in calculate_interest."""
+
+    def test_runtime_context_merged_into_signal_config(self, mock_kill, reset_registry):
+        """Runtime context values should be accessible in signal scoring."""
+        from unittest.mock import MagicMock
+
+        from aria_esi.services.redisq.interest_v2.providers.base import BaseSignalProvider
+        from aria_esi.services.redisq.interest_v2.providers.registry import get_provider_registry
+
+        captured_configs = []
+
+        class CapturingSignal(BaseSignalProvider):
+            _name = "capturing"
+            _category = "activity"
+            _prefetch_capable = False
+
+            def score(self, kill, system_id, config):
+                captured_configs.append(dict(config))
+                return SignalScore(
+                    signal="capturing",
+                    score=0.5,
+                    reason="test",
+                    prefetch_capable=False,
+                )
+
+        registry = get_provider_registry()
+        registry.register_signal("activity", "capturing", CapturingSignal)
+
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"activity": 1.0},
+            signals={"activity": {"capturing": {"some_setting": True}}},
+        )
+        engine = InterestEngineV2(config)
+
+        mock_gatecamp = MagicMock()
+        result = engine.calculate_interest(
+            mock_kill,
+            mock_kill.solar_system_id,
+            runtime_context={"gatecamp_status": mock_gatecamp},
+        )
+
+        assert len(captured_configs) == 1
+        assert captured_configs[0]["gatecamp_status"] is mock_gatecamp
+        assert captured_configs[0]["some_setting"] is True
+
+    def test_runtime_context_cleared_after_calculation(self, mock_kill, reset_registry):
+        """Runtime context should not persist between calls."""
+        config = InterestConfigV2(engine="v2", preset="trade-hub")
+        engine = InterestEngineV2(config)
+
+        engine.calculate_interest(
+            mock_kill,
+            mock_kill.solar_system_id,
+            runtime_context={"test_key": "test_value"},
+        )
+
+        assert engine._runtime_context is None
+
+    def test_runtime_context_none_is_safe(self, mock_kill, reset_registry):
+        """None runtime_context should not cause errors."""
+        config = InterestConfigV2(engine="v2", preset="trade-hub")
+        engine = InterestEngineV2(config)
+
+        result = engine.calculate_interest(
+            mock_kill,
+            mock_kill.solar_system_id,
+            runtime_context=None,
+        )
+
+        assert result is not None
+
+    def test_signal_config_overrides_runtime_context(self, mock_kill, reset_registry):
+        """Signal-specific config should override runtime context values."""
+        from aria_esi.services.redisq.interest_v2.providers.base import BaseSignalProvider
+        from aria_esi.services.redisq.interest_v2.providers.registry import get_provider_registry
+
+        captured_configs = []
+
+        class CapturingSignal(BaseSignalProvider):
+            _name = "capturing2"
+            _category = "activity"
+            _prefetch_capable = False
+
+            def score(self, kill, system_id, config):
+                captured_configs.append(dict(config))
+                return SignalScore(
+                    signal="capturing2",
+                    score=0.5,
+                    reason="test",
+                    prefetch_capable=False,
+                )
+
+        registry = get_provider_registry()
+        registry.register_signal("activity", "capturing2", CapturingSignal)
+
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"activity": 1.0},
+            signals={"activity": {"capturing2": {"overlap_key": "from_signal"}}},
+        )
+        engine = InterestEngineV2(config)
+
+        engine.calculate_interest(
+            mock_kill,
+            mock_kill.solar_system_id,
+            runtime_context={"overlap_key": "from_runtime"},
+        )
+
+        # Signal config should win (applied last in merge)
+        assert captured_configs[0]["overlap_key"] == "from_signal"
 
 
 class TestConfigTierIntegration:

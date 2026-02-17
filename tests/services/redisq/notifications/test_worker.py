@@ -402,6 +402,7 @@ class TestNotificationWorkerRollup:
         ]
         for kill in kills:
             kill.zkb_total_value = 500_000_000
+            kill.victim_ship_type_id = 17740  # Non-pod to avoid pod-spike format
 
         # Mock send notification
         sent_payload = None
@@ -458,6 +459,69 @@ class TestNotificationWorkerRollup:
         result = await worker._send_rollup(kills)
 
         assert result is False
+
+
+class TestNotificationWorkerPodRollup:
+    """Tests for pod-aware rollup formatting."""
+
+    async def test_pod_heavy_rollup_format(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Pod-heavy rollup uses pod spike format."""
+        # Create kills that are mostly pods (>= 80%)
+        kills = []
+        for i in range(5):
+            kill = make_kill(900 + i)
+            kill.victim_ship_type_id = 670  # Capsule
+            kill.zkb_total_value = 10_000_000
+            kills.append(kill)
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        result = await worker._send_rollup(kills)
+
+        assert result is True
+        assert sent_payload is not None
+        assert "Pod spike" in sent_payload["content"]
+        assert "5 pods" in sent_payload["content"]
+        # Should NOT have ISK total
+        assert "ISK" not in sent_payload["content"]
+
+    async def test_mixed_rollup_uses_standard_format(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Mixed kill rollup uses standard ISK-based format."""
+        kills = []
+        # 2 pods, 3 ships = 40% pod ratio (< 80%)
+        for i in range(5):
+            kill = make_kill(950 + i)
+            kill.victim_ship_type_id = 670 if i < 2 else 17740
+            kill.zkb_total_value = 100_000_000
+            kills.append(kill)
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        result = await worker._send_rollup(kills)
+
+        assert result is True
+        assert sent_payload is not None
+        assert "Activity" in sent_payload["content"]
+        assert "5 kills" in sent_payload["content"]
+        assert "ISK" in sent_payload["content"]
 
 
 class TestNotificationWorkerRateLimit:

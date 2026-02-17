@@ -50,11 +50,18 @@ class ActivitySignal(BaseSignalProvider):
         config: dict[str, Any],
     ) -> SignalScore:
         """Score based on activity patterns."""
-        # Get activity context from config
+        # Get activity context from config (may be pre-injected or queried on demand)
         gatecamp_status = config.get("gatecamp_status")
         activity_data = config.get("activity_data")
 
-        if not gatecamp_status and not activity_data:
+        # Check if any signal is configured for self-sufficient querying
+        spike_config = config.get("spike", {"enabled": True})
+        sustained_config = config.get("sustained", {"enabled": True})
+        has_self_sufficient = spike_config.get("enabled", True) or sustained_config.get(
+            "enabled", True
+        )
+
+        if not gatecamp_status and not activity_data and not has_self_sufficient:
             return SignalScore(
                 signal=self._name,
                 score=0.0,
@@ -79,8 +86,10 @@ class ActivitySignal(BaseSignalProvider):
                 scores.append(score)
                 reasons.append(f"Gatecamp ({confidence})")
 
-        # Check spike
-        spike_config = config.get("spike", {"enabled": True})
+        # Check spike - query ThreatCache directly if no pre-injected data
+        if spike_config.get("enabled", True) and not activity_data:
+            activity_data = self._query_spike_data(system_id, spike_config)
+
         if spike_config.get("enabled", True) and activity_data:
             spike_detected = activity_data.get("spike_detected", False)
             if spike_detected:
@@ -89,7 +98,9 @@ class ActivitySignal(BaseSignalProvider):
                 reasons.append("Activity spike")
 
         # Check sustained activity
-        sustained_config = config.get("sustained", {"enabled": True})
+        if sustained_config.get("enabled", True) and not activity_data:
+            activity_data = self._query_sustained_data(system_id, sustained_config)
+
         if sustained_config.get("enabled", True) and activity_data:
             sustained_kills = activity_data.get("sustained_kills", 0)
             threshold = sustained_config.get("threshold", 5)
@@ -118,6 +129,49 @@ class ActivitySignal(BaseSignalProvider):
             prefetch_capable=False,
             raw_value={"patterns": reasons},
         )
+
+    def _query_spike_data(
+        self, system_id: int, spike_config: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        """Query ThreatCache for spike data when no pre-injected data exists."""
+        try:
+            from ...threat_cache import get_threat_cache
+
+            tc = get_threat_cache()
+            result = tc.detect_activity_spike(
+                system_id,
+                spike_threshold=spike_config.get("threshold", 2.0),
+                pod_only=spike_config.get("pod_only", False),
+                min_current=spike_config.get("min_current", 0),
+            )
+            if result is not None:
+                is_spike, current, baseline = result
+                return {
+                    "spike_detected": is_spike,
+                    "sustained_kills": int(current),
+                }
+        except Exception:
+            pass
+        return None
+
+    def _query_sustained_data(
+        self, system_id: int, sustained_config: dict[str, Any]
+    ) -> dict[str, Any] | None:
+        """Query ThreatCache for sustained activity data."""
+        try:
+            from ...threat_cache import get_threat_cache
+
+            tc = get_threat_cache()
+            db = tc._get_db()
+            window = sustained_config.get("window_minutes", 60)
+            count = db.count_recent_kills(system_id=system_id, since_minutes=window)
+            return {
+                "spike_detected": False,
+                "sustained_kills": count,
+            }
+        except Exception:
+            pass
+        return None
 
     def validate(self, config: dict[str, Any]) -> list[str]:
         """Validate activity signal config."""
