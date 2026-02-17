@@ -197,7 +197,8 @@ Add to your profile YAML:
 ```yaml
 commentary:
   enabled: true
-  model: "claude-3-haiku-20240307"
+  provider: "anthropic"         # "anthropic", "openai", or "gemini"
+  model: "claude-sonnet-4-5-20241022"
   timeout_ms: 3000
   max_tokens: 100
   warrant_threshold: 0.3
@@ -207,7 +208,19 @@ commentary:
   persona: "paria"              # Optional persona override
 ```
 
-Requires `ANTHROPIC_API_KEY` environment variable.
+Requires the API key for the chosen provider (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, or `GEMINI_API_KEY`).
+
+**Multi-provider example (OpenAI):**
+
+```yaml
+commentary:
+  enabled: true
+  provider: "openai"
+  model: "gpt-4o-mini"          # Provider-native model name
+  cost_limit_daily_usd: 1.0
+```
+
+Install the optional dependency: `uv sync --extra openai`
 
 ### Pattern Detection
 
@@ -238,8 +251,15 @@ Commentary uses the active pilot's persona to match communication style:
 
 ### Cost Model
 
-- Uses Claude Haiku (~$0.00034/commentary)
-- Typical usage: ~$0.02/day with moderate activity
+Approximate costs per commentary by provider:
+
+| Provider | Default Model | Approx. Cost/Commentary |
+|----------|--------------|------------------------|
+| Anthropic | Claude Sonnet | ~$0.00019 |
+| OpenAI | GPT-4o-mini | ~$0.00011 |
+| Gemini | Gemini 2.0 Flash | ~$0.00007 |
+
+- Typical usage: ~$0.01-0.03/day with moderate activity
 - Daily limit configurable via `cost_limit_daily_usd`
 - Notifications continue without commentary if limit reached
 

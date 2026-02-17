@@ -292,6 +292,7 @@ class NotificationProfile:
         if self.commentary and self.commentary.enabled:
             commentary_dict: dict[str, Any] = {
                 "enabled": self.commentary.enabled,
+                "provider": self.commentary.provider,
                 "model": self.commentary.model,
                 "timeout_ms": self.commentary.timeout_ms,
                 "max_tokens": self.commentary.max_tokens,

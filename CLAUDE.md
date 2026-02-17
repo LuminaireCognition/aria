@@ -163,7 +163,12 @@ If profile contains `[YOUR CHARACTER NAME]` placeholder or doesn't exist, offer 
 
 **CRITICAL:** Always use `uv run` for Python. Never use bare `python`, `python3`, or `pip`.
 
+**CRITICAL:** Never use `uv pip install` to add packages. All dependencies (including dev tools like pytest, mypy, pre-commit) are declared in `pyproject.toml` and pinned in `uv.lock`. Use `uv sync --dev` to install them. Ad-hoc `uv pip install` bypasses the lockfile, ignores pinned versions, and gets overwritten by the next `uv sync`.
+
 ```bash
+# Install all dependencies (including dev tools)
+uv sync --dev
+
 # ARIA ESI CLI (preferred)
 uv run aria-esi <command> [args]
 

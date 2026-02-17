@@ -224,6 +224,18 @@ class AriaSettings(BaseSettings):
         description="Anthropic API key for LLM commentary generation",
     )
 
+    openai_api_key: Optional[str] = Field(
+        default=None,
+        validation_alias="OPENAI_API_KEY",
+        description="OpenAI API key for LLM commentary generation",
+    )
+
+    gemini_api_key: Optional[str] = Field(
+        default=None,
+        validation_alias="GEMINI_API_KEY",
+        description="Google Gemini API key for LLM commentary generation",
+    )
+
     # =========================================================================
     # Data Paths
     # =========================================================================

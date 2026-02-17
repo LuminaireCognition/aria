@@ -74,6 +74,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - P0→P4 production chain tracing with planet type requirements
 - New service: `src/aria_esi/services/planet_cache.py`
 
+#### Multi-LLM Provider Support for Notification Commentary
+- New `provider` field in commentary config: `"anthropic"`, `"openai"`, or `"gemini"`
+- Provider abstraction layer with `LLMProvider` protocol and per-provider adapters
+- Per-profile provider selection: different profiles can use different LLM backends
+- Provider-specific cost tracking with accurate token pricing per provider
+- Optional dependencies: `uv sync --extra openai`, `uv sync --extra gemini`
+- New environment variables: `OPENAI_API_KEY`, `GEMINI_API_KEY`
+- Backward compatible: existing profiles without `provider` field default to Anthropic
+- Migration guide: `docs/MIGRATION_MULTI_LLM.md`
+
 #### Build Cost: T2 Invention Chains
 - T2 invention cost calculations with `--t2` flag
 - Invention success rate calculator (base rate + skills + decryptors)

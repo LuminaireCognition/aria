@@ -366,7 +366,7 @@ def cmd_redisq_follow(args: argparse.Namespace) -> dict | None:
 
         if not commentary_generator.is_configured:
             print(
-                "Commentary disabled: ANTHROPIC_API_KEY not configured",
+                "Commentary disabled: LLM provider API key not configured",
                 file=sys.stderr,
             )
             commentary_generator = None
@@ -1100,7 +1100,7 @@ def register_parsers(subparsers) -> None:
     follow_parser.add_argument(
         "--commentary",
         action="store_true",
-        help="Enable LLM commentary (requires ANTHROPIC_API_KEY)",
+        help="Enable LLM commentary (requires provider API key)",
     )
     follow_parser.add_argument(
         "--persona",

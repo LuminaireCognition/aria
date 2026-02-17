@@ -5,6 +5,7 @@ Tests for LLM commentary generation.
 from __future__ import annotations
 
 import asyncio
+import sys
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -24,12 +25,26 @@ from aria_esi.services.redisq.notifications.commentary import (
     get_stress_level,
     validate_preserved_tokens,
 )
+from aria_esi.services.redisq.notifications.llm_providers._protocol import LLMResponse
+from aria_esi.services.redisq.notifications.profiles import NotificationProfile
 from aria_esi.services.redisq.notifications.patterns import DetectedPattern, PatternContext
 from aria_esi.services.redisq.notifications.persona import PersonaLoader, PersonaVoiceSummary
 from aria_esi.services.redisq.notifications.prompts import (
     build_system_prompt,
 )
 from aria_esi.services.redisq.notifications.types import PatternSeverity
+
+
+def _make_mock_provider(text: str = "Test commentary.", input_tokens: int = 500, output_tokens: int = 30):
+    """Create a mock LLM provider that returns a fixed response."""
+    provider = AsyncMock()
+    provider.generate = AsyncMock(return_value=LLMResponse(
+        text=text,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+    ))
+    provider.close = AsyncMock()
+    return provider
 
 
 class TestCommentaryMetrics:
@@ -82,6 +97,19 @@ class TestCommentaryMetrics:
 
         expected_cost = (1000 / 1000) * COST_PER_1K_INPUT_TOKENS + (100 / 1000) * COST_PER_1K_OUTPUT_TOKENS
         assert abs(metrics.daily_cost_estimate - expected_cost) < 0.0001
+
+    def test_daily_cost_estimate_per_provider(self):
+        """Test that cost estimation uses provider-specific rates."""
+        from aria_esi.services.redisq.notifications.llm_providers import COST_PER_1K_TOKENS
+
+        for provider_name, costs in COST_PER_1K_TOKENS.items():
+            metrics = CommentaryMetrics(provider_name=provider_name)
+            metrics.record_generation(1000, 100)
+
+            expected = (1000 / 1000) * costs["input"] + (100 / 1000) * costs["output"]
+            assert abs(metrics.daily_cost_estimate - expected) < 0.0001, (
+                f"Cost mismatch for provider {provider_name}"
+            )
 
     def test_check_daily_limit_within(self):
         """Test checking daily limit when within budget."""
@@ -174,28 +202,21 @@ class TestCommentaryGenerator:
             same_system_kills_1h=5,
         )
 
-    def test_not_configured_without_api_key(self, mock_persona_loader):
-        """Test is_configured is False without API key."""
-        # Mock settings to return no API key (simulates missing .env)
-        mock_settings = MagicMock()
-        mock_settings.anthropic_api_key = None
-
-        with patch(
-            "aria_esi.core.config.get_settings",
-            return_value=mock_settings,
-        ):
-            generator = CommentaryGenerator(
-                persona_loader=mock_persona_loader,
-                api_key=None,
-            )
-
-            assert generator.is_configured is False
-
-    def test_is_configured_with_api_key(self, mock_persona_loader):
-        """Test is_configured is True with API key."""
+    def test_not_configured_without_provider(self, mock_persona_loader):
+        """Test is_configured is False without provider."""
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=None,
+        )
+
+        assert generator.is_configured is False
+
+    def test_is_configured_with_provider(self, mock_persona_loader):
+        """Test is_configured is True with provider."""
+        mock_provider = _make_mock_provider()
+        generator = CommentaryGenerator(
+            persona_loader=mock_persona_loader,
+            provider=mock_provider,
         )
 
         assert generator.is_configured is True
@@ -203,25 +224,21 @@ class TestCommentaryGenerator:
     @pytest.mark.asyncio
     async def test_generate_commentary_success(self, mock_persona_loader, pattern_context):
         """Test successful commentary generation."""
+        mock_provider = _make_mock_provider(
+            text="Third gank in this system. They're running a rotation.",
+            input_tokens=500,
+            output_tokens=30,
+        )
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
         )
 
-        # Mock the Anthropic client
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Third gank in this system. They're running a rotation.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=30)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
-
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            result = await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-                timeout_ms=3000,
-            )
+        result = await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+            timeout_ms=3000,
+        )
 
         assert result == "Third gank in this system. They're running a rotation."
         assert generator.get_metrics().generated_count == 1
@@ -229,23 +246,16 @@ class TestCommentaryGenerator:
     @pytest.mark.asyncio
     async def test_generate_commentary_no_commentary_signal(self, mock_persona_loader, pattern_context):
         """Test handling NO_COMMENTARY signal."""
+        mock_provider = _make_mock_provider(text="NO_COMMENTARY", input_tokens=500, output_tokens=10)
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
         )
 
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="NO_COMMENTARY")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=10)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
-
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            result = await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
+        result = await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
         assert result is None
         assert generator.get_metrics().no_commentary_count == 1
@@ -253,24 +263,20 @@ class TestCommentaryGenerator:
     @pytest.mark.asyncio
     async def test_generate_commentary_timeout(self, mock_persona_loader, pattern_context):
         """Test handling timeout."""
+        mock_provider = AsyncMock()
+        mock_provider.generate = AsyncMock(side_effect=TimeoutError("Timed out"))
+        mock_provider.close = AsyncMock()
+
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
         )
 
-        async def slow_response(*args, **kwargs):
-            await asyncio.sleep(10)
-            return MagicMock()
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = slow_response
-
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            result = await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-                timeout_ms=100,  # Very short timeout
-            )
+        result = await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+            timeout_ms=100,
+        )
 
         assert result is None
         assert generator.get_metrics().timeout_count == 1
@@ -278,19 +284,19 @@ class TestCommentaryGenerator:
     @pytest.mark.asyncio
     async def test_generate_commentary_error(self, mock_persona_loader, pattern_context):
         """Test handling errors."""
+        mock_provider = AsyncMock()
+        mock_provider.generate = AsyncMock(side_effect=Exception("API Error"))
+        mock_provider.close = AsyncMock()
+
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
         )
 
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(side_effect=Exception("API Error"))
-
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            result = await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
+        result = await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
         assert result is None
         assert generator.get_metrics().error_count == 1
@@ -300,9 +306,10 @@ class TestCommentaryGenerator:
         """Test that generation is skipped when cost limit exceeded."""
         from datetime import date
 
+        mock_provider = _make_mock_provider()
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             cost_limit_daily_usd=0.001,  # Very low limit
         )
 
@@ -311,42 +318,47 @@ class TestCommentaryGenerator:
         generator._metrics.total_input_tokens = 100000
         generator._metrics.total_output_tokens = 10000
 
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock()
-
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            result = await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
+        result = await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
         assert result is None
-        # Should not have called the API
-        mock_client.messages.create.assert_not_called()
+        # Should not have called the provider
+        mock_provider.generate.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_generate_commentary_empty_response(self, mock_persona_loader, pattern_context):
         """Test handling empty response."""
+        mock_provider = _make_mock_provider(text="", input_tokens=500, output_tokens=0)
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
         )
 
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=0)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
-
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            result = await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
+        result = await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
         assert result is None
         assert generator.get_metrics().no_commentary_count == 1
+
+    @pytest.mark.asyncio
+    async def test_generate_commentary_no_provider_returns_none(self, mock_persona_loader, pattern_context):
+        """Test that generate returns None when no provider configured."""
+        generator = CommentaryGenerator(
+            persona_loader=mock_persona_loader,
+            provider=None,
+        )
+
+        result = await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
+
+        assert result is None
+        assert generator.get_metrics().error_count == 1
 
 
 class TestCreateCommentaryGenerator:
@@ -356,12 +368,21 @@ class TestCreateCommentaryGenerator:
         """Test creation with default config."""
         mock_loader = MagicMock(spec=PersonaLoader)
 
-        generator = create_commentary_generator(mock_loader)
+        # Mock settings to return an API key so provider is created
+        mock_settings = MagicMock()
+        mock_settings.anthropic_api_key = "test-key"
+
+        with patch(
+            "aria_esi.core.config.get_settings",
+            return_value=mock_settings,
+        ), patch("anthropic.AsyncAnthropic"):
+            generator = create_commentary_generator(mock_loader)
 
         assert generator._model == "claude-sonnet-4-5-20241022"
         assert generator._max_tokens == 100
         assert generator._default_timeout_ms == 3000
         assert generator._cost_limit_daily_usd == 1.0
+        assert generator._provider_name == "anthropic"
 
     def test_create_with_custom_config(self):
         """Test creation with custom config."""
@@ -374,13 +395,74 @@ class TestCreateCommentaryGenerator:
             "api_key": "custom-key",
         }
 
-        generator = create_commentary_generator(mock_loader, config)
+        with patch("anthropic.AsyncAnthropic"):
+            generator = create_commentary_generator(mock_loader, config)
 
         assert generator._model == "claude-3-opus-20240229"
         assert generator._max_tokens == 200
         assert generator._default_timeout_ms == 5000
         assert generator._cost_limit_daily_usd == 2.0
-        assert generator._api_key == "custom-key"
+        assert generator.is_configured is True
+
+    def test_create_with_openai_provider(self):
+        """Test creation with OpenAI provider and default model."""
+        mock_loader = MagicMock(spec=PersonaLoader)
+        config = {
+            "provider": "openai",
+            "api_key": "test-openai-key",
+        }
+
+        # Mock the openai module since it's an optional dependency
+        mock_openai = MagicMock()
+        with patch.dict(sys.modules, {"openai": mock_openai}):
+            generator = create_commentary_generator(mock_loader, config)
+
+        assert generator._model == "gpt-4o-mini"
+        assert generator._provider_name == "openai"
+        assert generator.is_configured is True
+
+    def test_create_with_gemini_provider(self):
+        """Test creation with Gemini provider and default model."""
+        mock_loader = MagicMock(spec=PersonaLoader)
+        config = {
+            "provider": "gemini",
+            "api_key": "test-gemini-key",
+        }
+
+        # Mock the google.genai module since it's an optional dependency
+        mock_google = MagicMock()
+        mock_genai = MagicMock()
+        mock_google.genai = mock_genai
+        with patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}):
+            generator = create_commentary_generator(mock_loader, config)
+
+        assert generator._model == "gemini-2.0-flash"
+        assert generator._provider_name == "gemini"
+        assert generator.is_configured is True
+
+    def test_create_with_missing_api_key_is_unconfigured(self):
+        """Test that missing API key results in unconfigured generator."""
+        mock_loader = MagicMock(spec=PersonaLoader)
+
+        mock_settings = MagicMock()
+        mock_settings.anthropic_api_key = None
+
+        with patch(
+            "aria_esi.core.config.get_settings",
+            return_value=mock_settings,
+        ):
+            generator = create_commentary_generator(mock_loader)
+
+        assert generator.is_configured is False
+
+    def test_create_with_unknown_provider_is_unconfigured(self):
+        """Test that unknown provider results in unconfigured generator."""
+        mock_loader = MagicMock(spec=PersonaLoader)
+        config = {"provider": "unknown_provider"}
+
+        generator = create_commentary_generator(mock_loader, config)
+
+        assert generator.is_configured is False
 
 
 class TestPrompts:
@@ -579,9 +661,10 @@ class TestCommentaryGeneratorStyle:
 
     def test_generator_with_style(self, mock_persona_loader):
         """Test generator initialization with style."""
+        mock_provider = _make_mock_provider()
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
             max_chars=150,
         )
@@ -590,9 +673,10 @@ class TestCommentaryGeneratorStyle:
 
     def test_generator_default_style(self, mock_persona_loader):
         """Test generator defaults to conversational style."""
+        mock_provider = _make_mock_provider()
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-key",
+            provider=mock_provider,
         )
         assert generator._style == CommentaryStyle.CONVERSATIONAL
         assert generator._max_chars == 200
@@ -604,13 +688,15 @@ class TestCommentaryGeneratorStyle:
             "max_chars": 120,
             "api_key": "test-key",
         }
-        generator = create_commentary_generator(mock_persona_loader, config)
+        with patch("anthropic.AsyncAnthropic"):
+            generator = create_commentary_generator(mock_persona_loader, config)
         assert generator._style == CommentaryStyle.RADIO
         assert generator._max_chars == 120
 
     def test_create_generator_default_style(self, mock_persona_loader):
         """Test factory function defaults to conversational."""
-        generator = create_commentary_generator(mock_persona_loader, {"api_key": "test-key"})
+        with patch("anthropic.AsyncAnthropic"):
+            generator = create_commentary_generator(mock_persona_loader, {"api_key": "test-key"})
         assert generator._style == CommentaryStyle.CONVERSATIONAL
 
 
@@ -636,6 +722,83 @@ class TestCommentaryConfigStyle:
         config = CommentaryConfig.from_dict({})
         assert config.style is None
         assert config.max_chars == 200
+
+    def test_config_with_provider(self):
+        """Test config creation with provider."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        config = CommentaryConfig.from_dict({
+            "enabled": True,
+            "provider": "openai",
+            "model": "gpt-4o-mini",
+        })
+        assert config.provider == "openai"
+        assert config.model == "gpt-4o-mini"
+
+    def test_config_default_provider(self):
+        """Test config defaults to anthropic provider."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        config = CommentaryConfig.from_dict({})
+        assert config.provider == "anthropic"
+
+    def test_provider_survives_to_dict_round_trip(self):
+        """Test that provider field is preserved through to_dict() serialization."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        profile = NotificationProfile(
+            name="round-trip-test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+        profile.commentary = CommentaryConfig.from_dict({
+            "enabled": True,
+            "provider": "openai",
+            "model": "gpt-4o-mini",
+        })
+
+        result = profile.to_dict()
+
+        assert "commentary" in result
+        assert result["commentary"]["provider"] == "openai"
+        assert result["commentary"]["model"] == "gpt-4o-mini"
+
+        # Round-trip: from_dict → to_dict → from_dict preserves provider
+        restored = NotificationProfile.from_dict(result, name="round-trip-test")
+        assert restored.commentary.provider == "openai"
+        assert restored.commentary.model == "gpt-4o-mini"
+
+    def test_provider_default_in_to_dict(self):
+        """Test that default provider (anthropic) appears in to_dict() output."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        profile = NotificationProfile(
+            name="default-provider-test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+        profile.commentary = CommentaryConfig.from_dict({"enabled": True})
+
+        result = profile.to_dict()
+
+        assert result["commentary"]["provider"] == "anthropic"
+
+    def test_config_validate_provider_valid(self):
+        """Test provider validation passes for valid values."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        for provider in ("anthropic", "openai", "gemini"):
+            config = CommentaryConfig(provider=provider)
+            errors = config.validate()
+            assert not any("provider" in e.lower() for e in errors), (
+                f"Unexpected provider error for {provider}"
+            )
+
+    def test_config_validate_provider_invalid(self):
+        """Test provider validation fails for invalid values."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        config = CommentaryConfig(provider="invalid_provider")
+        errors = config.validate()
+        assert any("Unknown provider" in e for e in errors)
 
     def test_config_validate_style_valid(self):
         """Test style validation passes for valid values."""
@@ -735,35 +898,34 @@ class TestStyleOverrideAtRuntime:
     @pytest.mark.asyncio
     async def test_per_call_style_override(self, mock_persona_loader, pattern_context):
         """Test that style can be overridden per-call."""
+        # Create a provider that captures the system_prompt argument
+        captured_args = {}
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            captured_args["system_prompt"] = system_prompt
+            return LLMResponse(text="Camp active. Eyes open.", input_tokens=500, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
+
         # Generator defaults to conversational
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             style=CommentaryStyle.CONVERSATIONAL,
         )
 
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Camp active. Eyes open.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=20)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
-
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            # Override to radio style for this call
-            result = await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-                style=CommentaryStyle.RADIO,
-            )
+        # Override to radio style for this call
+        result = await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+            style=CommentaryStyle.RADIO,
+        )
 
         assert result == "Camp active. Eyes open."
-
-        # Verify the system prompt included radio style guidance
-        call_args = mock_client.messages.create.call_args
-        system_prompt = call_args.kwargs["system"]
-        assert "STYLE: Radio operator voice" in system_prompt
-        assert "Subject ellipsis" in system_prompt
+        assert "STYLE: Radio operator voice" in captured_args["system_prompt"]
+        assert "Subject ellipsis" in captured_args["system_prompt"]
 
 
 class TestStressLevelIntegration:
@@ -818,90 +980,83 @@ class TestStressLevelIntegration:
     @pytest.mark.asyncio
     async def test_high_stress_pattern_uses_high_stress_in_prompt(self, mock_persona_loader):
         """Test that gank_rotation (HIGH stress) passes high stress to prompt."""
+        captured_args = {}
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            captured_args["system_prompt"] = system_prompt
+            return LLMResponse(text="Gank rotation active.", input_tokens=500, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
+
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
         )
 
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Gank rotation active.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=20)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
-
         pattern_context = self._create_pattern_context("gank_rotation")
+        await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
-
-        # Verify stress level was passed to prompt
-        call_args = mock_client.messages.create.call_args
-        system_prompt = call_args.kwargs["system"]
-        assert "stress level: high" in system_prompt.lower()
+        assert "stress level: high" in captured_args["system_prompt"].lower()
 
     @pytest.mark.asyncio
     async def test_low_stress_pattern_uses_low_stress_in_prompt(self, mock_persona_loader):
         """Test that npc_faction_activity (LOW stress) passes low stress to prompt."""
+        captured_args = {}
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            captured_args["system_prompt"] = system_prompt
+            return LLMResponse(text="Faction activity noted.", input_tokens=500, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
+
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
         )
 
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Faction activity noted.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=20)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
-
         pattern_context = self._create_pattern_context("npc_faction_activity")
+        await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
-
-        # Verify stress level was passed to prompt
-        call_args = mock_client.messages.create.call_args
-        system_prompt = call_args.kwargs["system"]
-        assert "stress level: low" in system_prompt.lower()
+        assert "stress level: low" in captured_args["system_prompt"].lower()
 
     @pytest.mark.asyncio
     async def test_unknown_pattern_defaults_to_moderate_stress(self, mock_persona_loader):
         """Test that unknown pattern types default to MODERATE stress."""
+        captured_args = {}
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            captured_args["system_prompt"] = system_prompt
+            return LLMResponse(text="Activity noted.", input_tokens=500, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
+
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
         )
 
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Activity noted.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=20)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
-
-        # Use an unknown pattern type
         pattern_context = self._create_pattern_context("unknown_new_pattern")
+        await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
-
-        # Verify default moderate stress level
-        call_args = mock_client.messages.create.call_args
-        system_prompt = call_args.kwargs["system"]
-        assert "stress level: moderate" in system_prompt.lower()
+        assert "stress level: moderate" in captured_args["system_prompt"].lower()
 
 
 class TestRadioStyleMaxChars:
@@ -1016,128 +1171,126 @@ class TestMultiPatternStressSelection:
     @pytest.mark.asyncio
     async def test_multiple_patterns_uses_highest_stress(self, mock_persona_loader):
         """Test that multiple patterns select the highest-severity stress level."""
+        captured_args = {}
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            captured_args["system_prompt"] = system_prompt
+            return LLMResponse(text="Multiple threats.", input_tokens=500, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
 
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
         )
-
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Multiple threats.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=20)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         # repeat_attacker (MODERATE) + gank_rotation (HIGH) → should use HIGH
         pattern_context = self._create_multi_pattern_context(
             ["repeat_attacker", "gank_rotation"]
         )
 
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
+        await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
-        # Verify highest stress level was used
-        call_args = mock_client.messages.create.call_args
-        system_prompt = call_args.kwargs["system"]
-        assert "stress level: high" in system_prompt.lower()
+        assert "stress level: high" in captured_args["system_prompt"].lower()
 
     @pytest.mark.asyncio
     async def test_low_and_moderate_uses_moderate(self, mock_persona_loader):
         """Test that LOW + MODERATE patterns result in MODERATE stress."""
+        captured_args = {}
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            captured_args["system_prompt"] = system_prompt
+            return LLMResponse(text="Activity noted.", input_tokens=500, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
+
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
         )
-
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Activity noted.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=20)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         # npc_faction_activity (LOW) + repeat_attacker (MODERATE) → MODERATE
         pattern_context = self._create_multi_pattern_context(
             ["npc_faction_activity", "repeat_attacker"]
         )
 
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
+        await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
-        call_args = mock_client.messages.create.call_args
-        system_prompt = call_args.kwargs["system"]
-        assert "stress level: moderate" in system_prompt.lower()
+        assert "stress level: moderate" in captured_args["system_prompt"].lower()
 
     @pytest.mark.asyncio
     async def test_order_independence_high_first(self, mock_persona_loader):
         """Test stress selection is order-independent when HIGH pattern is first."""
+        captured_args = {}
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            captured_args["system_prompt"] = system_prompt
+            return LLMResponse(text="Activity noted.", input_tokens=500, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
+
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
         )
-
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Activity noted.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=20)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         # HIGH first, then LOW - should still use HIGH
         pattern_context = self._create_multi_pattern_context(
             ["war_target_activity", "npc_faction_activity"]
         )
 
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
+        await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
-        call_args = mock_client.messages.create.call_args
-        system_prompt = call_args.kwargs["system"]
-        assert "stress level: high" in system_prompt.lower()
+        assert "stress level: high" in captured_args["system_prompt"].lower()
 
     @pytest.mark.asyncio
     async def test_order_independence_high_last(self, mock_persona_loader):
         """Test stress selection is order-independent when HIGH pattern is last."""
+        captured_args = {}
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            captured_args["system_prompt"] = system_prompt
+            return LLMResponse(text="Activity noted.", input_tokens=500, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
+
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-api-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
         )
-
-        mock_response = MagicMock()
-        mock_response.content = [MagicMock(text="Activity noted.")]
-        mock_response.usage = MagicMock(input_tokens=500, output_tokens=20)
-
-        mock_client = AsyncMock()
-        mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         # LOW first, then HIGH - should still use HIGH
         pattern_context = self._create_multi_pattern_context(
             ["npc_faction_activity", "gank_rotation"]
         )
 
-        with patch.object(generator, "_get_client", return_value=mock_client):
-            await generator.generate_commentary(
-                pattern_context=pattern_context,
-                notification_text="Test notification",
-            )
+        await generator.generate_commentary(
+            pattern_context=pattern_context,
+            notification_text="Test notification",
+        )
 
-        call_args = mock_client.messages.create.call_args
-        system_prompt = call_args.kwargs["system"]
-        assert "stress level: high" in system_prompt.lower()
+        assert "stress level: high" in captured_args["system_prompt"].lower()
 
 
 class TestValidatePreservedTokens:
@@ -1401,10 +1554,21 @@ class TestPerCallMaxCharsOverride:
     @pytest.mark.asyncio
     async def test_per_call_max_chars_threaded_to_llm(self, mock_persona_loader):
         """Per-call max_chars is threaded through generate_commentary to LLM call."""
+        captured_system_prompt = None
+
+        async def mock_generate(system_prompt, user_prompt, model, max_tokens, timeout_seconds):
+            nonlocal captured_system_prompt
+            captured_system_prompt = system_prompt
+            return LLMResponse(text="Test commentary.", input_tokens=100, output_tokens=20)
+
+        mock_provider = AsyncMock()
+        mock_provider.generate = mock_generate
+        mock_provider.close = AsyncMock()
+
         # Create generator with default max_chars=200
         generator = CommentaryGenerator(
             persona_loader=mock_persona_loader,
-            api_key="test-key",
+            provider=mock_provider,
             style=CommentaryStyle.RADIO,
             max_chars=200,
         )
@@ -1431,22 +1595,6 @@ class TestPerCallMaxCharsOverride:
             same_attacker_kills_1h=0,
             same_system_kills_1h=0,
         )
-
-        # Mock the Anthropic client to capture the system prompt
-        captured_system_prompt = None
-
-        async def mock_create(**kwargs):
-            nonlocal captured_system_prompt
-            captured_system_prompt = kwargs.get("system")
-            # Return a mock response
-            mock_response = MagicMock()
-            mock_response.content = [MagicMock(text="Test commentary.")]
-            mock_response.usage = MagicMock(input_tokens=100, output_tokens=20)
-            return mock_response
-
-        mock_client = MagicMock()
-        mock_client.messages.create = mock_create
-        generator._client = mock_client
 
         # Call with per-call override of max_chars=150
         await generator.generate_commentary(
@@ -1610,3 +1758,308 @@ class TestSeverityBasedStressDerivation:
             same_system_kills_1h=0,
         )
         assert get_stress_level(context) == StressLevel.MODERATE
+
+
+class TestProviderFactory:
+    """Tests for the LLM provider factory."""
+
+    def test_create_provider_unknown_raises(self):
+        """Test that unknown provider raises ValueError."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        with pytest.raises(ValueError, match="Unknown provider"):
+            create_provider("nonexistent", api_key="test")
+
+    def test_create_provider_no_key_raises(self):
+        """Test that missing API key raises RuntimeError."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        mock_settings = MagicMock()
+        mock_settings.anthropic_api_key = None
+
+        with patch(
+            "aria_esi.core.config.get_settings",
+            return_value=mock_settings,
+        ), pytest.raises(RuntimeError, match="not configured"):
+            create_provider("anthropic")
+
+    def test_create_anthropic_provider(self):
+        """Test Anthropic provider creation."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        with patch("anthropic.AsyncAnthropic"):
+            provider = create_provider("anthropic", api_key="test-key")
+        assert provider is not None
+
+    def test_create_openai_provider(self):
+        """Test OpenAI provider creation."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        mock_openai = MagicMock()
+        with patch.dict(sys.modules, {"openai": mock_openai}):
+            provider = create_provider("openai", api_key="test-key")
+        assert provider is not None
+
+    def test_create_gemini_provider(self):
+        """Test Gemini provider creation."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        mock_google = MagicMock()
+        mock_genai = MagicMock()
+        mock_google.genai = mock_genai
+        with patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}):
+            provider = create_provider("gemini", api_key="test-key")
+        assert provider is not None
+
+    def test_create_provider_settings_fallback(self):
+        """Test that create_provider reads key from AriaSettings when not provided."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        mock_settings = MagicMock()
+        mock_settings.openai_api_key = "settings-key"
+
+        mock_openai = MagicMock()
+        with patch.dict(sys.modules, {"openai": mock_openai}), patch(
+            "aria_esi.core.config.get_settings",
+            return_value=mock_settings,
+        ):
+            provider = create_provider("openai")
+        assert provider is not None
+
+    def test_create_provider_explicit_key_overrides_settings(self):
+        """Test that explicit api_key takes precedence over AriaSettings."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        # Settings has no key, but explicit key is passed
+        mock_settings = MagicMock()
+        mock_settings.anthropic_api_key = None
+
+        with patch("anthropic.AsyncAnthropic") as mock_cls:
+            provider = create_provider("anthropic", api_key="explicit-key")
+        assert provider is not None
+        # Verify the explicit key was used
+        mock_cls.assert_called_once_with(api_key="explicit-key")
+
+    def test_valid_providers_set(self):
+        """Test that VALID_PROVIDERS contains expected values."""
+        from aria_esi.services.redisq.notifications.llm_providers import VALID_PROVIDERS
+
+        assert "anthropic" in VALID_PROVIDERS
+        assert "openai" in VALID_PROVIDERS
+        assert "gemini" in VALID_PROVIDERS
+
+    def test_provider_defaults_have_required_keys(self):
+        """Test that PROVIDER_DEFAULTS has model and key_field for each provider."""
+        from aria_esi.services.redisq.notifications.llm_providers import PROVIDER_DEFAULTS
+
+        for provider, defaults in PROVIDER_DEFAULTS.items():
+            assert "model" in defaults, f"Missing 'model' for {provider}"
+            assert "key_field" in defaults, f"Missing 'key_field' for {provider}"
+
+    def test_cost_per_1k_tokens_has_all_providers(self):
+        """Test that COST_PER_1K_TOKENS covers all providers."""
+        from aria_esi.services.redisq.notifications.llm_providers import (
+            COST_PER_1K_TOKENS,
+            VALID_PROVIDERS,
+        )
+
+        for provider in VALID_PROVIDERS:
+            assert provider in COST_PER_1K_TOKENS, f"Missing cost data for {provider}"
+            assert "input" in COST_PER_1K_TOKENS[provider]
+            assert "output" in COST_PER_1K_TOKENS[provider]
+
+
+class TestProviderGenerate:
+    """Tests for individual provider generate() methods with mocked SDK clients."""
+
+    @pytest.mark.asyncio
+    async def test_anthropic_provider_generate(self):
+        """Test AnthropicProvider.generate() parses Anthropic API response correctly."""
+        mock_response = MagicMock()
+        mock_content_block = MagicMock()
+        mock_content_block.text = "  Tactical analysis complete.  "
+        mock_response.content = [mock_content_block]
+        mock_response.usage = MagicMock(input_tokens=123, output_tokens=45)
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        with patch("anthropic.AsyncAnthropic", return_value=mock_client):
+            from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+
+            provider = AnthropicProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys",
+            user_prompt="user",
+            model="test-model",
+            max_tokens=100,
+            timeout_seconds=5.0,
+        )
+
+        assert result.text == "Tactical analysis complete."
+        assert result.input_tokens == 123
+        assert result.output_tokens == 45
+
+    @pytest.mark.asyncio
+    async def test_anthropic_provider_generate_empty_content(self):
+        """Test AnthropicProvider.generate() handles empty content list."""
+        mock_response = MagicMock()
+        mock_response.content = []
+        mock_response.usage = MagicMock(input_tokens=100, output_tokens=0)
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        with patch("anthropic.AsyncAnthropic", return_value=mock_client):
+            from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+
+            provider = AnthropicProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys", user_prompt="user",
+            model="m", max_tokens=100, timeout_seconds=5.0,
+        )
+        assert result.text == ""
+
+    @pytest.mark.asyncio
+    async def test_openai_provider_generate(self):
+        """Test OpenAIProvider.generate() parses OpenAI API response correctly."""
+        mock_message = MagicMock()
+        mock_message.content = "  Fleet spotted on gate.  "
+        mock_choice = MagicMock()
+        mock_choice.message = mock_message
+        mock_response = MagicMock()
+        mock_response.choices = [mock_choice]
+        mock_response.usage = MagicMock(prompt_tokens=200, completion_tokens=30)
+
+        mock_client = AsyncMock()
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+
+        mock_openai_module = MagicMock()
+        mock_openai_module.AsyncOpenAI = MagicMock(return_value=mock_client)
+        with patch.dict(sys.modules, {"openai": mock_openai_module}):
+            from aria_esi.services.redisq.notifications.llm_providers._openai import OpenAIProvider
+
+            provider = OpenAIProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys",
+            user_prompt="user",
+            model="gpt-4o-mini",
+            max_tokens=100,
+            timeout_seconds=5.0,
+        )
+
+        assert result.text == "Fleet spotted on gate."
+        assert result.input_tokens == 200
+        assert result.output_tokens == 30
+
+    @pytest.mark.asyncio
+    async def test_openai_provider_generate_empty_choices(self):
+        """Test OpenAIProvider.generate() handles empty choices list."""
+        mock_response = MagicMock()
+        mock_response.choices = []
+        mock_response.usage = MagicMock(prompt_tokens=100, completion_tokens=0)
+
+        mock_client = AsyncMock()
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+
+        mock_openai_module = MagicMock()
+        mock_openai_module.AsyncOpenAI = MagicMock(return_value=mock_client)
+        with patch.dict(sys.modules, {"openai": mock_openai_module}):
+            from aria_esi.services.redisq.notifications.llm_providers._openai import OpenAIProvider
+
+            provider = OpenAIProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys", user_prompt="user",
+            model="m", max_tokens=100, timeout_seconds=5.0,
+        )
+        assert result.text == ""
+
+    @pytest.mark.asyncio
+    async def test_gemini_provider_generate(self):
+        """Test GeminiProvider.generate() parses Gemini API response correctly."""
+        mock_response = MagicMock()
+        mock_response.text = "  Hostiles in local.  "
+        mock_response.usage_metadata = MagicMock(
+            prompt_token_count=150,
+            candidates_token_count=25,
+        )
+
+        mock_client = MagicMock()
+        mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+        mock_genai = MagicMock()
+        mock_genai.Client = MagicMock(return_value=mock_client)
+        mock_google = MagicMock()
+        mock_google.genai = mock_genai
+
+        with patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}):
+            from aria_esi.services.redisq.notifications.llm_providers._gemini import GeminiProvider
+
+            provider = GeminiProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys",
+            user_prompt="user",
+            model="gemini-2.0-flash",
+            max_tokens=100,
+            timeout_seconds=5.0,
+        )
+
+        assert result.text == "Hostiles in local."
+        assert result.input_tokens == 150
+        assert result.output_tokens == 25
+
+    @pytest.mark.asyncio
+    async def test_gemini_provider_generate_none_text(self):
+        """Test GeminiProvider.generate() handles None text response."""
+        mock_response = MagicMock()
+        mock_response.text = None
+        mock_response.usage_metadata = MagicMock(spec=[])  # no token attrs
+
+        mock_client = MagicMock()
+        mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+        mock_genai = MagicMock()
+        mock_genai.Client = MagicMock(return_value=mock_client)
+        mock_google = MagicMock()
+        mock_google.genai = mock_genai
+
+        with patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}):
+            from aria_esi.services.redisq.notifications.llm_providers._gemini import GeminiProvider
+
+            provider = GeminiProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys", user_prompt="user",
+            model="m", max_tokens=100, timeout_seconds=5.0,
+        )
+        assert result.text == ""
+        # Falls back to defaults when attrs are missing
+        assert result.input_tokens == 500
+        assert result.output_tokens == 50
+
+    def test_anthropic_provider_missing_package(self):
+        """Test AnthropicProvider raises RuntimeError when package not installed."""
+        with patch.dict(sys.modules, {"anthropic": None}):
+            # Need to reload to pick up the missing module
+            with pytest.raises((RuntimeError, ImportError)):
+                from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+                AnthropicProvider(api_key="test-key")
+
+    def test_openai_provider_missing_package(self):
+        """Test OpenAIProvider raises RuntimeError when package not installed."""
+        with patch.dict(sys.modules, {"openai": None}):
+            with pytest.raises((RuntimeError, ImportError)):
+                from aria_esi.services.redisq.notifications.llm_providers._openai import OpenAIProvider
+                OpenAIProvider(api_key="test-key")
+
+    def test_gemini_provider_missing_package(self):
+        """Test GeminiProvider raises RuntimeError when package not installed."""
+        with patch.dict(sys.modules, {"google": None, "google.genai": None}):
+            with pytest.raises((RuntimeError, ImportError)):
+                from aria_esi.services.redisq.notifications.llm_providers._gemini import GeminiProvider
+                GeminiProvider(api_key="test-key")
