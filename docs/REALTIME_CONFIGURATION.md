@@ -300,7 +300,7 @@ See `docs/CONTEXT_AWARE_TOPOLOGY.md` for full topology documentation.
 
 ### userdata/notifications/*.yaml (Per-Profile Config)
 
-Each notification profile is self-contained with its own webhook, topology filter, and settings. See `docs/NOTIFICATION_PROFILES.md`.
+Each notification profile is self-contained with its own webhook, topology filter, and settings. See `docs/NOTIFICATION_PROFILES.md`. For delivery behavior options including forced rollup batching, see the [Rate Limit Strategy section](NOTIFICATION_PROFILES.md#rate-limit-strategy-v2).
 
 ### Why the Split?
 
