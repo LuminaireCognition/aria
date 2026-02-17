@@ -404,6 +404,8 @@ rate_limit_strategy:
 
 **Forced rollup mode:** When `force_rollup: true`, the worker *always* buffers matched kills instead of sending individual notifications. After `rollup_window_minutes` elapse, buffered kills are flushed as batched summaries grouped by system. This is ideal for high-volume profiles like pod spike detection, where individual messages would flood the channel.
 
+> **Note:** `throttle_minutes` applies *before* rollup buffering. With the default `throttle_minutes: 5`, only one kill per 5 minutes per system/trigger reaches the buffer — which may defeat the purpose of rollup aggregation. For `force_rollup` profiles that need to capture every kill, set `throttle_minutes: 0`.
+
 Forced rollup message format:
 ```
 📊 Pod spike (12 pods / 5m)

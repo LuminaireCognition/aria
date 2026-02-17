@@ -14,6 +14,7 @@ import pytest
 import yaml
 
 from aria_esi.services.redisq.notifications.manager import (
+    MAX_ROLLUP_BUFFER_SIZE,
     NotificationManager,
     _BufferedKill,
     get_notification_manager,
@@ -866,6 +867,63 @@ class TestNotificationManagerProcessLoop:
         # Just verify no errors occurred during cleanup
         assert True
 
+    @pytest.mark.asyncio
+    async def test_process_loop_flushes_rollup_buffers(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """Process loop flushes aged rollup buffers during iteration."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "loop-rollup",
+            {
+                "name": "loop-rollup",
+                "enabled": True,
+                "webhook_url": "https://discord.com/api/webhooks/123/abc",
+                "throttle_minutes": 0,
+                "interest": {
+                    "engine": "v2",
+                    "preset": "lowsec-pvp",
+                },
+                "rate_limit_strategy": {
+                    "force_rollup": True,
+                    "rollup_window_minutes": 5,
+                    "max_rollup_kills": 20,
+                },
+            },
+        )
+
+        mock_engine = MagicMock()
+        mock_result = MagicMock()
+        mock_result.should_notify = True
+        mock_result.interest = 0.8
+        mock_result.tier.value = "elevated"
+        mock_engine.calculate_interest.return_value = mock_result
+
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=mock_engine):
+            manager = NotificationManager()
+
+        # Buffer kills via process_kill
+        for i in range(3):
+            kill = make_mock_kill(kill_id=5000 + i, victim_ship_type_id=587)
+            await manager.process_kill(kill, system_name="Tama")
+
+        assert len(manager._rollup_buffers.get("loop-rollup", [])) == 3
+
+        # Age the kills past the window
+        for b in manager._rollup_buffers["loop-rollup"]:
+            b.buffered_at = time.time() - 6 * 60
+
+        # Start the process loop — it should flush on next iteration
+        await manager.start()
+        await asyncio.sleep(1.0)  # Allow loop to iterate
+
+        # Verify rollup was flushed: webhook should have been called
+        queue = manager._queues.get("https://discord.com/api/webhooks/123/abc")
+        # The queue processes and sends — check that send was called
+        assert mock_discord_client.return_value.send.called
+
+        await manager.stop()
+
 
 class TestNotificationManagerForceRollup:
     """Tests for force_rollup buffering in NotificationManager."""
@@ -1184,8 +1242,10 @@ class TestNotificationManagerForceRollup:
         assert "4 pods" in msg["content"]
 
     @pytest.mark.asyncio
-    async def test_stop_clears_rollup_buffers(self, temp_profiles_dir, mock_discord_client):
-        """stop() clears pending rollup buffers."""
+    async def test_stop_flushes_then_clears_rollup_buffers(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """stop() flushes buffered kills before clearing buffers."""
         write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
         with self._patch_v2_engine():
             manager = NotificationManager()
@@ -1194,10 +1254,38 @@ class TestNotificationManagerForceRollup:
         await manager.process_kill(kill, system_name="Tama")
         assert len(manager._rollup_buffers["rollup-test"]) == 1
 
-        await manager.start()
+        # The kill is young (just buffered), but stop() should force-flush it
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth == 0
+
         await manager.stop()
 
+        # Buffers should be cleared after flush
         assert len(manager._rollup_buffers) == 0
+        # The kill should have been flushed to the webhook (sent via process_queue)
+        mock_discord_client.return_value.send.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_stop_flushes_young_kills(self, temp_profiles_dir, mock_discord_client):
+        """stop() flushes kills that are still within the rollup window."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Buffer 3 kills — all young (within window)
+        for i in range(3):
+            kill = make_mock_kill(kill_id=1350 + i, victim_ship_type_id=587)
+            await manager.process_kill(kill, system_name="Tama")
+
+        assert len(manager._rollup_buffers["rollup-test"]) == 3
+
+        await manager.stop()
+
+        # All kills should be flushed (force=True ignores age)
+        assert len(manager._rollup_buffers) == 0
+        mock_discord_client.return_value.send.assert_called_once()
+        payload = mock_discord_client.return_value.send.call_args[0][0]
+        assert "3 kills" in payload["content"]
 
     @pytest.mark.asyncio
     async def test_rollup_stale_profile_discarded(self, temp_profiles_dir, mock_discord_client):
@@ -1264,3 +1352,32 @@ class TestNotificationManagerForceRollup:
         queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
         msg = queue._queue[0].payload
         assert "https://zkillboard.com/related/30000142/" in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_buffer_overflow_triggers_flush(self, temp_profiles_dir, mock_discord_client):
+        """Buffer exceeding MAX_ROLLUP_BUFFER_SIZE triggers force-flush."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Pre-fill buffer to just below the cap
+        buffer = []
+        for i in range(MAX_ROLLUP_BUFFER_SIZE - 1):
+            buffer.append(
+                _BufferedKill(
+                    kill=make_mock_kill(kill_id=2000 + i, victim_ship_type_id=587),
+                    profile_name="rollup-test",
+                    buffered_at=time.time(),
+                    system_name="Tama",
+                )
+            )
+        manager._rollup_buffers["rollup-test"] = buffer
+
+        # The next kill should push over the limit and trigger force-flush
+        kill = make_mock_kill(kill_id=3000, victim_ship_type_id=587)
+        await manager.process_kill(kill, system_name="Tama")
+
+        # Buffer should have been flushed (force=True flushes all)
+        assert len(manager._rollup_buffers.get("rollup-test", [])) == 0
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth > 0

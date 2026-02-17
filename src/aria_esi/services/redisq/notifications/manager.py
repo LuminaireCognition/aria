@@ -35,6 +35,10 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
+# Maximum buffered kills per profile before force-flushing.
+# Prevents unbounded memory growth if a profile matches thousands of kills per window.
+MAX_ROLLUP_BUFFER_SIZE = 500
+
 
 @dataclass
 class NotificationHealth:
@@ -333,6 +337,14 @@ class NotificationManager:
                 pass
             self._process_task = None
 
+        # Flush any remaining rollup buffers before closing clients
+        if self._rollup_buffers:
+            await self._flush_rollup_buffers(force=True)
+            # Process queues one final time to drain newly-enqueued rollup messages
+            for _url, queue in self._queues.items():
+                if queue.depth > 0:
+                    await queue.process_queue()
+
         # Close all webhook clients
         for url, client in self._clients.items():
             try:
@@ -387,8 +399,13 @@ class NotificationManager:
                 logger.error("Error in notification process loop: %s", e)
                 await asyncio.sleep(5)  # Back off on error
 
-    async def _flush_rollup_buffers(self) -> None:
-        """Flush buffered kills that have aged past the rollup window."""
+    async def _flush_rollup_buffers(self, *, force: bool = False) -> None:
+        """Flush buffered kills that have aged past the rollup window.
+
+        Args:
+            force: If True, flush all buffered kills regardless of age.
+                   Used during graceful shutdown to avoid dropping kills.
+        """
         profiles_by_name = {p.name: p for p in self._profiles}
 
         for profile_name in list(self._rollup_buffers.keys()):
@@ -402,11 +419,15 @@ class NotificationManager:
                 self._rollup_buffers.pop(profile_name, None)
                 continue
 
-            window = profile.rate_limit_strategy.effective_rollup_window_minutes
-            cutoff = time.time() - window * 60
+            if force:
+                flushable = list(buffer)
+                remaining = []
+            else:
+                window = profile.rate_limit_strategy.effective_rollup_window_minutes
+                cutoff = time.time() - window * 60
 
-            flushable = [b for b in buffer if b.buffered_at <= cutoff]
-            remaining = [b for b in buffer if b.buffered_at > cutoff]
+                flushable = [b for b in buffer if b.buffered_at <= cutoff]
+                remaining = [b for b in buffer if b.buffered_at > cutoff]
 
             if not flushable:
                 continue
@@ -614,13 +635,24 @@ class NotificationManager:
                     ship_name=ship_name,
                 )
                 self._rollup_buffers.setdefault(profile.name, []).append(buffered)
+                buffer_len = len(self._rollup_buffers[profile.name])
                 queued_count += 1
                 logger.debug(
                     "Buffered kill %d for rollup in profile '%s' (buffer=%d)",
                     kill.kill_id,
                     profile.name,
-                    len(self._rollup_buffers[profile.name]),
+                    buffer_len,
                 )
+
+                # Force-flush if buffer exceeds size cap to prevent unbounded growth
+                if buffer_len >= MAX_ROLLUP_BUFFER_SIZE:
+                    logger.warning(
+                        "Rollup buffer for profile '%s' reached %d kills, force-flushing",
+                        profile.name,
+                        buffer_len,
+                    )
+                    await self._flush_rollup_buffers(force=True)
+
                 continue
 
             # Generate commentary if profile has it enabled and patterns warrant it
