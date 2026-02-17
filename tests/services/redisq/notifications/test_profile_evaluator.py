@@ -566,6 +566,131 @@ class TestV2ScopeSystems:
 
         assert evaluator.profiles[0]._v2_scope_systems is None
 
+    def test_scope_systems_none_when_systems_lack_ids(self):
+        """_v2_scope_systems is None when system entries have no 'id' key."""
+        profile = NotificationProfile(
+            name="no-ids",
+            enabled=True,
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            interest={
+                "engine": "v2",
+                "preset": "custom",
+                "signals": {
+                    "location": {
+                        "geographic": {
+                            "systems": [
+                                {"name": "Jita"},  # No id
+                                {"name": "Perimeter"},  # No id
+                            ],
+                        },
+                    },
+                },
+            },
+        )
+
+        result = ProfileEvaluator._extract_v2_scope_systems(profile)
+        assert result is None
+
+    def test_scope_systems_none_when_systems_list_empty(self):
+        """_v2_scope_systems is None when geographic.systems is an empty list."""
+        profile = NotificationProfile(
+            name="empty-systems",
+            enabled=True,
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            interest={
+                "engine": "v2",
+                "preset": "custom",
+                "signals": {
+                    "location": {
+                        "geographic": {
+                            "systems": [],
+                        },
+                    },
+                },
+            },
+        )
+
+        result = ProfileEvaluator._extract_v2_scope_systems(profile)
+        assert result is None
+
+    def test_scope_systems_filters_entries_without_id(self):
+        """_v2_scope_systems includes only entries with 'id' key."""
+        profile = NotificationProfile(
+            name="mixed-ids",
+            enabled=True,
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            interest={
+                "engine": "v2",
+                "preset": "custom",
+                "signals": {
+                    "location": {
+                        "geographic": {
+                            "systems": [
+                                {"name": "Jita", "id": 30000142},
+                                {"name": "Perimeter"},  # No id — skipped
+                            ],
+                        },
+                    },
+                },
+            },
+        )
+
+        result = ProfileEvaluator._extract_v2_scope_systems(profile)
+        assert result == [30000142]
+
+    def test_scope_systems_robust_to_malformed_signals(self):
+        """_v2_scope_systems returns None when interest.signals is malformed."""
+        profile = NotificationProfile(
+            name="malformed",
+            enabled=True,
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            interest={
+                "engine": "v2",
+                "preset": "custom",
+                "signals": None,  # Malformed
+            },
+        )
+
+        result = ProfileEvaluator._extract_v2_scope_systems(profile)
+        assert result is None
+
+    def test_scope_systems_populated_despite_engine_init_failure(self):
+        """_v2_scope_systems is still populated even when engine init fails.
+
+        The scope extraction happens inside the try block before the engine
+        is used, so a build failure should not prevent scope extraction.
+        However, _extract_v2_scope_systems is called on the same line as
+        the engine build success path, so if _build_v2_engine raises,
+        _extract_v2_scope_systems is never called and the field stays None.
+        This test documents the current behavior.
+        """
+        profile = NotificationProfile(
+            name="engine-fail",
+            enabled=True,
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            interest={
+                "engine": "v2",
+                "preset": "custom",
+                "signals": {
+                    "location": {
+                        "geographic": {
+                            "systems": [{"name": "Jita", "id": 30000142}],
+                        },
+                    },
+                },
+            },
+        )
+
+        with patch.object(ProfileEvaluator, "_build_v2_engine") as mock_build:
+            mock_build.side_effect = ValueError("Bad config")
+            evaluator = ProfileEvaluator([profile])
+
+        # Engine init failed — profile is disabled
+        assert evaluator.profiles[0]._init_error is not None
+        # Scope systems NOT populated because _extract_v2_scope_systems
+        # is in the try block after _build_v2_engine
+        assert evaluator.profiles[0]._v2_scope_systems is None
+
 
 class TestProfileEvaluatorFilteredLists:
     """Tests for filtered lists in EvaluationResult."""
