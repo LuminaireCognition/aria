@@ -42,7 +42,11 @@
     }),
     'killmails': dict({
       'store': dict({
-        'initialized': False,
+        'database_size_mb': 0.0,
+        'newest_killmail': None,
+        'oldest_killmail': None,
+        'total_esi_details': 0,
+        'total_killmails': 0,
       }),
     }),
     'market': dict({
