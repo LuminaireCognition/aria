@@ -130,8 +130,10 @@ class TestStatusOutputGolden:
     ):
         """Verify status output maintains consistent structure."""
         # Mock the killmail store path to not exist
-        mock_path = MagicMock()
-        mock_path.exists.return_value = False
+        mock_killmail_path = MagicMock()
+        mock_killmail_path.exists.return_value = False
+        mock_settings = MagicMock()
+        mock_settings.killmail_db_path = mock_killmail_path
 
         with patch(
             "aria_esi.mcp.activity.get_activity_cache",
@@ -157,13 +159,9 @@ class TestStatusOutputGolden:
                                 return_value=mock_notification_manager,
                             ):
                                 with patch(
-                                    "pathlib.Path.home"
-                                ) as mock_home:
-                                    mock_home.return_value.__truediv__ = (
-                                        lambda self, x: mock_path
-                                    )
-                                    mock_path.__truediv__ = lambda self, x: mock_path
-
+                                    "aria_esi.core.config.get_settings",
+                                    return_value=mock_settings,
+                                ):
                                     # Import the actual status function
                                     from aria_esi.mcp.dispatchers.status import (
                                         register_status_tool,
