@@ -637,7 +637,7 @@ class TestNotificationWorkerPodRollupBoundary:
 
         assert result is True
         assert "Pod spike" in sent_payload["content"]
-        assert "1 pods" in sent_payload["content"]
+        assert "1 pod" in sent_payload["content"]
 
     async def test_single_ship_kill_rollup(
         self, worker: NotificationWorker, store: SQLiteKillmailStore

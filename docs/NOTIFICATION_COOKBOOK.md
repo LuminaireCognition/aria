@@ -281,7 +281,7 @@ Approximate costs per commentary by provider:
 
 ## Advanced Configuration Recipes
 
-These recipes demonstrate common notification use cases. For the full Interest Engine v2 specification, see `dev/proposals/NOTIFICATION_FILTER_REARCHITECTURE_PROPOSAL.md`.
+These recipes demonstrate common notification use cases. For the full Interest Engine v2 specification, see `dev/archive/NOTIFICATION_FILTER_REARCHITECTURE_PROPOSAL.md`.
 
 ### Recipe: Corp Member Losses
 

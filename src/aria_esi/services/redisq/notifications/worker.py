@@ -470,8 +470,9 @@ class NotificationWorker:
         pod_ratio = pod_count / len(kills) if kills else 0
 
         if pod_ratio >= 0.8:
+            pod_label = "pod" if pod_count == 1 else "pods"
             content = (
-                f"📊 Pod spike ({pod_count} pods rolled up)\n"
+                f"📊 Pod spike ({pod_count} {pod_label} rolled up)\n"
                 f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
             )
         else:

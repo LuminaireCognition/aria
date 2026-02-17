@@ -8,10 +8,13 @@ Prefetch capable: NO (requires activity pattern analysis)
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any
 
 from ..models import SignalScore
 from ..providers.base import BaseSignalProvider
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from ...models import ProcessedKill
@@ -164,7 +167,7 @@ class ActivitySignal(BaseSignalProvider):
                     "sustained_kills": int(current),
                 }
         except Exception:
-            pass
+            logger.debug("Failed to query spike data for system %s", system_id, exc_info=True)
         return None
 
     def _query_sustained_data(
@@ -183,7 +186,7 @@ class ActivitySignal(BaseSignalProvider):
                 "sustained_kills": count,
             }
         except Exception:
-            pass
+            logger.debug("Failed to query sustained data for system %s", system_id, exc_info=True)
         return None
 
     def validate(self, config: dict[str, Any]) -> list[str]:
