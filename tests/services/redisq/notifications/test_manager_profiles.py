@@ -5,6 +5,7 @@ Integration tests for NotificationManager profile mode.
 from __future__ import annotations
 
 import asyncio
+import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -13,7 +14,9 @@ import pytest
 import yaml
 
 from aria_esi.services.redisq.notifications.manager import (
+    MAX_ROLLUP_BUFFER_SIZE,
     NotificationManager,
+    _BufferedKill,
     get_notification_manager,
     reset_notification_manager,
 )
@@ -863,3 +866,518 @@ class TestNotificationManagerProcessLoop:
 
         # Just verify no errors occurred during cleanup
         assert True
+
+    @pytest.mark.asyncio
+    async def test_process_loop_flushes_rollup_buffers(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """Process loop flushes aged rollup buffers during iteration."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "loop-rollup",
+            {
+                "name": "loop-rollup",
+                "enabled": True,
+                "webhook_url": "https://discord.com/api/webhooks/123/abc",
+                "throttle_minutes": 0,
+                "interest": {
+                    "engine": "v2",
+                    "preset": "lowsec-pvp",
+                },
+                "rate_limit_strategy": {
+                    "force_rollup": True,
+                    "rollup_window_minutes": 5,
+                    "max_rollup_kills": 20,
+                },
+            },
+        )
+
+        mock_engine = MagicMock()
+        mock_result = MagicMock()
+        mock_result.should_notify = True
+        mock_result.interest = 0.8
+        mock_result.tier.value = "elevated"
+        mock_engine.calculate_interest.return_value = mock_result
+
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=mock_engine):
+            manager = NotificationManager()
+
+        # Buffer kills via process_kill
+        for i in range(3):
+            kill = make_mock_kill(kill_id=5000 + i, victim_ship_type_id=587)
+            await manager.process_kill(kill, system_name="Tama")
+
+        assert len(manager._rollup_buffers.get("loop-rollup", [])) == 3
+
+        # Age the kills past the window
+        for b in manager._rollup_buffers["loop-rollup"]:
+            b.buffered_at = time.time() - 6 * 60
+
+        # Start the process loop — it should flush on next iteration
+        await manager.start()
+        await asyncio.sleep(1.0)  # Allow loop to iterate
+
+        # Verify rollup was flushed: webhook should have been called
+        queue = manager._queues.get("https://discord.com/api/webhooks/123/abc")
+        # The queue processes and sends — check that send was called
+        assert mock_discord_client.return_value.send.called
+
+        await manager.stop()
+
+
+class TestNotificationManagerForceRollup:
+    """Tests for force_rollup buffering in NotificationManager."""
+
+    def _make_rollup_profile(self, name="rollup-test", force_rollup=True, **overrides):
+        """Return a profile YAML dict with force_rollup enabled."""
+        data = {
+            "name": name,
+            "enabled": True,
+            "webhook_url": f"https://discord.com/api/webhooks/{name}/abc",
+            "throttle_minutes": 0,
+            "interest": {
+                "engine": "v2",
+                "preset": "lowsec-pvp",
+            },
+            "rate_limit_strategy": {
+                "force_rollup": force_rollup,
+                "rollup_window_minutes": 5,
+                "max_rollup_kills": 20,
+            },
+        }
+        if overrides:
+            for key, val in overrides.items():
+                if key.startswith("rls_"):
+                    data["rate_limit_strategy"][key[4:]] = val
+                else:
+                    data[key] = val
+        return data
+
+    def _patch_v2_engine(self):
+        """Return a patch context that makes v2 engine match all kills."""
+        mock_engine = MagicMock()
+        mock_result = MagicMock()
+        mock_result.should_notify = True
+        mock_result.interest = 0.8
+        mock_result.tier.value = "elevated"
+        mock_engine.calculate_interest.return_value = mock_result
+        return patch.object(ProfileEvaluator, "_build_v2_engine", return_value=mock_engine)
+
+    @pytest.mark.asyncio
+    async def test_force_rollup_buffers_kill(self, temp_profiles_dir, mock_discord_client):
+        """Kill matching force_rollup profile is buffered, not sent to webhook queue."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=100)
+        result = await manager.process_kill(kill, system_name="Tama")
+
+        assert result is True
+        # Kill should be buffered, not in the webhook queue
+        assert "rollup-test" in manager._rollup_buffers
+        assert len(manager._rollup_buffers["rollup-test"]) == 1
+        assert manager._rollup_buffers["rollup-test"][0].kill.kill_id == 100
+        # Webhook queue should be empty (not sent immediately)
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue is not None
+        assert queue.depth == 0
+
+    @pytest.mark.asyncio
+    async def test_rollup_flush_after_window(self, temp_profiles_dir, mock_discord_client):
+        """Buffered kills flush after rollup_window_minutes expires."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=200)
+        await manager.process_kill(kill, system_name="Tama")
+
+        # Artificially age the buffered kill past the window
+        manager._rollup_buffers["rollup-test"][0] = _BufferedKill(
+            kill=kill,
+            profile_name="rollup-test",
+            buffered_at=time.time() - 6 * 60,  # 6 minutes ago (window is 5)
+            system_name="Tama",
+        )
+
+        await manager._flush_rollup_buffers()
+
+        # Buffer should be empty now
+        assert len(manager._rollup_buffers.get("rollup-test", [])) == 0
+        # Webhook queue should have the rollup message
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth == 1
+
+    @pytest.mark.asyncio
+    async def test_young_kills_not_flushed(self, temp_profiles_dir, mock_discord_client):
+        """Kills younger than window stay buffered."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=300)
+        await manager.process_kill(kill, system_name="Tama")
+
+        # Kill was just buffered — should not flush
+        await manager._flush_rollup_buffers()
+
+        assert len(manager._rollup_buffers["rollup-test"]) == 1
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth == 0
+
+    @pytest.mark.asyncio
+    async def test_rollup_message_pod_format(self, temp_profiles_dir, mock_discord_client):
+        """Pod-heavy rollup uses 'Pod spike' title."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Buffer 5 pod kills (victim_ship_type_id=670 is a pod)
+        for i in range(5):
+            kill = make_mock_kill(kill_id=400 + i, is_pod_kill=True, victim_ship_type_id=670)
+            await manager.process_kill(kill, system_name="Tama")
+
+        # Age all kills
+        buf = manager._rollup_buffers["rollup-test"]
+        for i in range(len(buf)):
+            buf[i].buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth == 1
+        # Inspect the queued payload
+        msg = queue._queue[0].payload
+        assert "Pod spike" in msg["content"]
+        assert "5 pods" in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_rollup_message_standard_format(self, temp_profiles_dir, mock_discord_client):
+        """Mixed kills use 'Activity' title."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Buffer 5 non-pod kills
+        for i in range(5):
+            kill = make_mock_kill(kill_id=500 + i, victim_ship_type_id=587)
+            await manager.process_kill(kill, system_name="Tama")
+
+        buf = manager._rollup_buffers["rollup-test"]
+        for i in range(len(buf)):
+            buf[i].buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth == 1
+        msg = queue._queue[0].payload
+        assert "Activity" in msg["content"]
+        assert "5 kills" in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_mixed_profiles(self, temp_profiles_dir, mock_discord_client):
+        """Non-rollup profile sends immediately while rollup profile buffers."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "immediate",
+            self._make_rollup_profile(name="immediate", force_rollup=False),
+        )
+        write_profile_yaml(
+            temp_profiles_dir,
+            "rollup",
+            self._make_rollup_profile(name="rollup", force_rollup=True),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=600)
+        result = await manager.process_kill(kill, system_name="Tama")
+
+        assert result is True
+        # Immediate profile should have queued to its webhook
+        imm_queue = manager._queues.get("https://discord.com/api/webhooks/immediate/abc")
+        assert imm_queue.depth == 1
+        # Rollup profile should be buffered, not queued
+        roll_queue = manager._queues.get("https://discord.com/api/webhooks/rollup/abc")
+        assert roll_queue.depth == 0
+        assert len(manager._rollup_buffers.get("rollup", [])) == 1
+
+    @pytest.mark.asyncio
+    async def test_custom_rollup_title(self, temp_profiles_dir, mock_discord_client):
+        """Custom rollup_title appears in message."""
+        profile_data = self._make_rollup_profile(rls_rollup_title="Smartbomb camp")
+        write_profile_yaml(temp_profiles_dir, "rollup-test", profile_data)
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        for i in range(3):
+            kill = make_mock_kill(kill_id=700 + i, victim_ship_type_id=587)
+            await manager.process_kill(kill, system_name="Niarja")
+
+        for b in manager._rollup_buffers["rollup-test"]:
+            b.buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        msg = queue._queue[0].payload
+        assert "Smartbomb camp" in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_rollup_groups_by_system(self, temp_profiles_dir, mock_discord_client):
+        """Kills in different systems produce separate rollup messages."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # 2 kills in system A, 2 in system B
+        for i in range(2):
+            kill = make_mock_kill(kill_id=800 + i, solar_system_id=30000142)
+            await manager.process_kill(kill, system_name="Jita")
+        for i in range(2):
+            kill = make_mock_kill(kill_id=810 + i, solar_system_id=30002187)
+            await manager.process_kill(kill, system_name="Amarr")
+
+        for b in manager._rollup_buffers["rollup-test"]:
+            b.buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        # Should have 2 rollup messages (one per system)
+        assert queue.depth == 2
+
+    @pytest.mark.asyncio
+    async def test_rollup_billion_isk_formatting(self, temp_profiles_dir, mock_discord_client):
+        """High-value rollup formats ISK in billions."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        for i in range(3):
+            kill = make_mock_kill(
+                kill_id=900 + i, total_value=2_000_000_000, victim_ship_type_id=587
+            )
+            await manager.process_kill(kill, system_name="Tama")
+
+        buf = manager._rollup_buffers["rollup-test"]
+        for i in range(len(buf)):
+            buf[i].buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        msg = queue._queue[0].payload
+        assert "6.0B ISK" in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_rollup_chunks_at_max_rollup_kills(self, temp_profiles_dir, mock_discord_client):
+        """Kills exceeding max_rollup_kills are split into multiple rollup messages."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "rollup-test",
+            self._make_rollup_profile(rls_max_rollup_kills=2),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        for i in range(5):
+            kill = make_mock_kill(kill_id=1000 + i, victim_ship_type_id=587)
+            await manager.process_kill(kill, system_name="Tama")
+
+        buf = manager._rollup_buffers["rollup-test"]
+        for i in range(len(buf)):
+            buf[i].buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        # 5 kills / max 2 per message = 3 messages (2, 2, 1)
+        assert queue.depth == 3
+
+    @pytest.mark.asyncio
+    async def test_rollup_single_pod_singular_label(self, temp_profiles_dir, mock_discord_client):
+        """Single pod kill rollup uses singular 'pod' not 'pods'."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=1100, is_pod_kill=True, victim_ship_type_id=670)
+        await manager.process_kill(kill, system_name="Tama")
+
+        manager._rollup_buffers["rollup-test"][0].buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        msg = queue._queue[0].payload
+        assert "1 pod /" in msg["content"]
+        assert "pods" not in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_rollup_genolution_capsule_counted_as_pod(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """Type 33328 (Capsule - Genolution) counts as pod in rollup detection."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # 2 regular capsules + 2 Genolution capsules = all pods
+        for i, type_id in enumerate([670, 670, 33328, 33328]):
+            kill = make_mock_kill(kill_id=1200 + i, is_pod_kill=True, victim_ship_type_id=type_id)
+            await manager.process_kill(kill, system_name="Tama")
+
+        buf = manager._rollup_buffers["rollup-test"]
+        for i in range(len(buf)):
+            buf[i].buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        msg = queue._queue[0].payload
+        assert "Pod spike" in msg["content"]
+        assert "4 pods" in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_stop_flushes_then_clears_rollup_buffers(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """stop() flushes buffered kills before clearing buffers."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=1300)
+        await manager.process_kill(kill, system_name="Tama")
+        assert len(manager._rollup_buffers["rollup-test"]) == 1
+
+        # The kill is young (just buffered), but stop() should force-flush it
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth == 0
+
+        await manager.stop()
+
+        # Buffers should be cleared after flush
+        assert len(manager._rollup_buffers) == 0
+        # The kill should have been flushed to the webhook (sent via process_queue)
+        mock_discord_client.return_value.send.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_stop_flushes_young_kills(self, temp_profiles_dir, mock_discord_client):
+        """stop() flushes kills that are still within the rollup window."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Buffer 3 kills — all young (within window)
+        for i in range(3):
+            kill = make_mock_kill(kill_id=1350 + i, victim_ship_type_id=587)
+            await manager.process_kill(kill, system_name="Tama")
+
+        assert len(manager._rollup_buffers["rollup-test"]) == 3
+
+        await manager.stop()
+
+        # All kills should be flushed (force=True ignores age)
+        assert len(manager._rollup_buffers) == 0
+        mock_discord_client.return_value.send.assert_called_once()
+        payload = mock_discord_client.return_value.send.call_args[0][0]
+        assert "3 kills" in payload["content"]
+
+    @pytest.mark.asyncio
+    async def test_rollup_stale_profile_discarded(self, temp_profiles_dir, mock_discord_client):
+        """Buffered kills for a removed profile are discarded on flush."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=1400)
+        await manager.process_kill(kill, system_name="Tama")
+
+        # Simulate profile removal by clearing the profiles list
+        manager._profiles = []
+
+        manager._rollup_buffers["rollup-test"][0].buffered_at = time.time() - 6 * 60
+        await manager._flush_rollup_buffers()
+
+        # Buffer for the stale profile should be discarded
+        assert "rollup-test" not in manager._rollup_buffers
+
+    @pytest.mark.asyncio
+    async def test_rollup_no_system_name_uses_resolver_fallback(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """Rollup without buffered system_name falls back to name resolver."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Process kill WITHOUT system_name
+        kill = make_mock_kill(kill_id=1500, solar_system_id=30000142)
+        await manager.process_kill(kill)  # No system_name kwarg
+
+        manager._rollup_buffers["rollup-test"][0].buffered_at = time.time() - 6 * 60
+
+        # Mock the name resolver to return "Jita"
+        mock_resolver = MagicMock()
+        mock_resolver.resolve_system_with_fallback.return_value = "Jita"
+        with patch(
+            "aria_esi.services.redisq.name_resolver.get_name_resolver",
+            return_value=mock_resolver,
+        ):
+            await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        msg = queue._queue[0].payload
+        assert "Jita" in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_rollup_message_contains_zkillboard_url(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """Rollup message contains correctly formatted zkillboard related URL."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=1600, solar_system_id=30000142)
+        await manager.process_kill(kill, system_name="Jita")
+
+        manager._rollup_buffers["rollup-test"][0].buffered_at = time.time() - 6 * 60
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        msg = queue._queue[0].payload
+        assert "https://zkillboard.com/related/30000142/" in msg["content"]
+
+    @pytest.mark.asyncio
+    async def test_buffer_overflow_triggers_flush(self, temp_profiles_dir, mock_discord_client):
+        """Buffer exceeding MAX_ROLLUP_BUFFER_SIZE triggers force-flush."""
+        write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Pre-fill buffer to just below the cap
+        buffer = []
+        for i in range(MAX_ROLLUP_BUFFER_SIZE - 1):
+            buffer.append(
+                _BufferedKill(
+                    kill=make_mock_kill(kill_id=2000 + i, victim_ship_type_id=587),
+                    profile_name="rollup-test",
+                    buffered_at=time.time(),
+                    system_name="Tama",
+                )
+            )
+        manager._rollup_buffers["rollup-test"] = buffer
+
+        # The next kill should push over the limit and trigger force-flush
+        kill = make_mock_kill(kill_id=3000, victim_ship_type_id=587)
+        await manager.process_kill(kill, system_name="Tama")
+
+        # Buffer should have been flushed (force=True flushes all)
+        assert len(manager._rollup_buffers.get("rollup-test", [])) == 0
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth > 0
