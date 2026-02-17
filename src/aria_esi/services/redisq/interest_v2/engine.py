@@ -87,6 +87,11 @@ class InterestEngineV2:
             kill: ProcessedKill with full data, or None for prefetch
             system_id: Solar system ID
             is_prefetch: Whether this is a prefetch evaluation
+            runtime_context: Per-call context merged into signal configs.
+                Merged after static context but before signal-specific config,
+                so signal config keys take precedence. Used to pass data already
+                computed by the poller (e.g., gatecamp_status) without threading
+                it through the full call chain. Cleared after each call.
 
         Returns:
             InterestResultV2 with complete scoring breakdown
