@@ -1,0 +1,115 @@
+# Pod Spike Alerts Template
+# Detects sudden bursts of pod kills — a hallmark of smartbomb camps,
+# suicide gank aftermath, or mass fleet whelps.
+#
+# Use: uv run aria-esi notifications create my-pod-alerts --template pod-spike-alerts --webhook <url>
+#
+# How it works:
+#   - ship signal filters to capsules only (prefer_score: 1.0, default_score: 0.0)
+#   - activity spike signal fires when pod kill rate exceeds 3x the 24h baseline
+#   - require_all: [ship, activity] ensures BOTH must match — no spam from
+#     individual pod losses or general activity spikes
+#
+# Customize:
+#   - Add your home systems to the location list
+#   - Adjust spike threshold (lower = more sensitive)
+#   - Enable gatecamp/sustained signals for broader detection
+
+schema_version: 3
+
+name: "pod-spike-alerts"
+display_name: "Pod Spike Alerts"
+description: "Pod kill spike detection across trade hubs"
+enabled: true
+webhook_url: ""  # User must fill in
+
+interest:
+  engine: v2
+  preset: trade-hub
+  weights:
+    activity: 1.0
+    ship: 0.6
+  signals:
+    location:
+      geographic:
+        systems:
+          # The Forge - Jita
+          - name: "Jita"
+            classification: "hunting"
+          - name: "Perimeter"
+            classification: "transit"
+          - name: "New Caldari"
+            classification: "transit"
+
+          # Sinq Laison - Dodixie
+          - name: "Dodixie"
+            classification: "hunting"
+          - name: "Botane"
+            classification: "transit"
+          - name: "Alentene"
+            classification: "transit"
+
+          # Domain - Amarr
+          - name: "Amarr"
+            classification: "hunting"
+          - name: "Ashab"
+            classification: "transit"
+          - name: "Sarum Prime"
+            classification: "transit"
+
+          # Metropolis - Hek
+          - name: "Hek"
+            classification: "hunting"
+          - name: "Uttindar"
+            classification: "transit"
+          - name: "Nakugard"
+            classification: "transit"
+
+          # Heimatar - Rens
+          - name: "Rens"
+            classification: "hunting"
+          - name: "Frarn"
+            classification: "transit"
+          - name: "Gyng"
+            classification: "transit"
+
+          # Add your home systems here:
+          # - name: "YourHome"
+          #   classification: "home"
+
+    ship:
+      prefer: ["capsule"]
+      prefer_score: 1.0
+      default_score: 0.0
+
+    activity:
+      spike:
+        enabled: true
+        pod_only: true           # Only count pod kills for spike rate
+        threshold: 3.0           # 3x above 24h baseline
+        min_current: 5           # At least 5 pods this hour
+        score: 0.7
+      gatecamp:
+        enabled: false
+      sustained:
+        enabled: false
+
+  thresholds:
+    notify: 0.30
+    priority: 0.70
+
+  rules:
+    require_all: ["ship", "activity"]
+
+throttle_minutes: 5
+
+quiet_hours:
+  enabled: false
+  start: "02:00"
+  end: "08:00"
+  timezone: "America/New_York"
+
+rate_limit_strategy:
+  rollup_threshold: 10
+  max_rollup_kills: 50
+  backoff_seconds: 30.0

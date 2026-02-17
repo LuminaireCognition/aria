@@ -94,6 +94,18 @@ interest:
     value:
       min: 500000000           # ISK value threshold (500M = hauler-class)
 
+    # Activity-based signals (spike detection, gatecamps)
+    # See "Activity Signal Configuration" section below
+    # activity:
+    #   spike:
+    #     enabled: true
+    #     threshold: 2.0
+
+    # Ship type filtering
+    # ship:
+    #   prefer: ["capsule"]
+    #   prefer_score: 1.0
+
   # Rules for always-notify / always-ignore
   rules:
     always_notify:
@@ -383,6 +395,8 @@ rate_limit_strategy:
 | `backoff_seconds` | float | `30.0` | Backoff duration on 429 response |
 
 When pending notifications exceed `rollup_threshold`, the worker switches to rollup mode, combining multiple kills into a single summary message.
+
+**Pod-aware rollup format:** When 80% or more of kills in a rollup are pods (capsules), the rollup message switches to a pod-specific format: "Pod spike (N pods rolled up)" with a zkillboard related-kills link, omitting the ISK total (since pods have near-zero value). This pairs well with the activity spike `pod_only` configuration.
 
 ### Delivery Configuration (v2)
 
