@@ -174,6 +174,7 @@ class NotificationManager:
 
         # Create new generator from profile config
         config = {
+            "provider": profile.commentary.provider,
             "model": profile.commentary.model,
             "max_tokens": profile.commentary.max_tokens,
             "timeout_ms": profile.commentary.timeout_ms,

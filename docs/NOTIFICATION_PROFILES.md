@@ -213,7 +213,8 @@ Enable LLM-generated tactical commentary for interesting kills:
 ```yaml
 commentary:
   enabled: true
-  model: "claude-3-haiku-20240307"
+  provider: "anthropic"         # "anthropic", "openai", or "gemini"
+  model: "claude-sonnet-4-5-20241022"
   timeout_ms: 3000              # Max generation time
   max_tokens: 100               # Max response length
   warrant_threshold: 0.3        # Pattern significance threshold
@@ -223,7 +224,15 @@ commentary:
   persona: "paria"              # Optional persona override
 ```
 
-Requires `ANTHROPIC_API_KEY` environment variable.
+Requires the API key for your chosen provider:
+
+| Provider | Environment Variable | Default Model |
+|----------|---------------------|---------------|
+| `anthropic` | `ANTHROPIC_API_KEY` | `claude-sonnet-4-5-20241022` |
+| `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` |
+| `gemini` | `GEMINI_API_KEY` | `gemini-2.0-flash` |
+
+The `provider` field defaults to `"anthropic"` when omitted (backward compatible).
 
 #### Commentary Styles
 

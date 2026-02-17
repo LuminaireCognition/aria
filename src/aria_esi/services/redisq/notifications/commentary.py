@@ -7,11 +7,10 @@ warrant additional insight.
 
 from __future__ import annotations
 
-import asyncio
 import re
 from dataclasses import dataclass, field
 from datetime import date
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ....core.logging import get_logger
 
@@ -26,6 +25,7 @@ from .types import (
 )
 
 if TYPE_CHECKING:
+    from .llm_providers._protocol import LLMProvider
     from .patterns import PatternContext
     from .persona import PersonaLoader
 
@@ -268,6 +268,7 @@ class CommentaryMetrics:
     no_commentary_count: int = 0
     total_input_tokens: int = 0
     total_output_tokens: int = 0
+    provider_name: str = "anthropic"
     _daily_date: date | None = field(default=None, repr=False)
 
     def record_generation(self, input_tokens: int, output_tokens: int) -> None:
@@ -312,8 +313,14 @@ class CommentaryMetrics:
         Returns:
             Estimated cost in USD
         """
-        input_cost = (self.total_input_tokens / 1000) * COST_PER_1K_INPUT_TOKENS
-        output_cost = (self.total_output_tokens / 1000) * COST_PER_1K_OUTPUT_TOKENS
+        from .llm_providers import COST_PER_1K_TOKENS
+
+        costs = COST_PER_1K_TOKENS.get(
+            self.provider_name,
+            {"input": COST_PER_1K_INPUT_TOKENS, "output": COST_PER_1K_OUTPUT_TOKENS},
+        )
+        input_cost = (self.total_input_tokens / 1000) * costs["input"]
+        output_cost = (self.total_output_tokens / 1000) * costs["output"]
         return input_cost + output_cost
 
     def check_daily_limit(self, limit_usd: float) -> bool:
@@ -361,7 +368,8 @@ class CommentaryGenerator:
         max_tokens: int = DEFAULT_MAX_TOKENS,
         default_timeout_ms: int = DEFAULT_TIMEOUT_MS,
         cost_limit_daily_usd: float = 1.0,
-        api_key: str | None = None,
+        provider: LLMProvider | None = None,
+        provider_name: str = "anthropic",
         style: CommentaryStyle = CommentaryStyle.CONVERSATIONAL,
         max_chars: int = DEFAULT_MAX_CHARS,
     ):
@@ -370,11 +378,12 @@ class CommentaryGenerator:
 
         Args:
             persona_loader: PersonaLoader for voice context
-            model: Claude model to use
+            model: Model identifier for the selected provider
             max_tokens: Maximum tokens in response
             default_timeout_ms: Default timeout in milliseconds
             cost_limit_daily_usd: Daily cost limit in USD
-            api_key: Anthropic API key (or from env ANTHROPIC_API_KEY)
+            provider: LLM provider instance (if None, generator is unconfigured)
+            provider_name: Provider name for cost tracking
             style: Commentary style preset (conversational or radio)
             max_chars: Soft upper bound for radio style character limit
         """
@@ -383,50 +392,11 @@ class CommentaryGenerator:
         self._max_tokens = max_tokens
         self._default_timeout_ms = default_timeout_ms
         self._cost_limit_daily_usd = cost_limit_daily_usd
-        self._api_key = api_key or self._load_api_key()
-        self._metrics = CommentaryMetrics()
-        self._client: Any = None
+        self._provider = provider
+        self._provider_name = provider_name
+        self._metrics = CommentaryMetrics(provider_name=provider_name)
         self._style = style
         self._max_chars = max_chars
-
-    def _load_api_key(self) -> str | None:
-        """
-        Load Anthropic API key from centralized settings.
-
-        AriaSettings handles .env file loading (project root) and
-        environment variable precedence automatically.
-
-        Returns:
-            API key string or None if not configured
-        """
-        from ....core.config import get_settings
-
-        settings = get_settings()
-        return settings.anthropic_api_key
-
-    def _get_client(self) -> Any:
-        """
-        Get or create the Anthropic async client.
-
-        Returns:
-            AsyncAnthropic client
-
-        Raises:
-            RuntimeError: If API key not configured
-        """
-        if self._client is not None:
-            return self._client
-
-        if not self._api_key:
-            raise RuntimeError("Anthropic API key not configured")
-
-        try:
-            from anthropic import AsyncAnthropic
-
-            self._client = AsyncAnthropic(api_key=self._api_key)
-            return self._client
-        except ImportError:
-            raise RuntimeError("anthropic package not installed")
 
     async def generate_commentary(
         self,
@@ -467,10 +437,8 @@ class CommentaryGenerator:
         timeout_ms = timeout_ms or self._default_timeout_ms
         timeout_seconds = timeout_ms / 1000
 
-        try:
-            client = self._get_client()
-        except RuntimeError as e:
-            logger.error("Failed to get Anthropic client: %s", e)
+        if not self._provider:
+            logger.error("No LLM provider configured")
             self._metrics.record_error()
             return None
 
@@ -494,26 +462,18 @@ class CommentaryGenerator:
         user_prompt = build_user_prompt(notification_text, pattern_context)
 
         try:
-            # Call LLM with timeout
-            response = await asyncio.wait_for(
-                client.messages.create(
-                    model=self._model,
-                    max_tokens=self._max_tokens,
-                    system=system_prompt,
-                    messages=[{"role": "user", "content": user_prompt}],
-                ),
-                timeout=timeout_seconds,
+            # Call LLM via provider
+            response = await self._provider.generate(
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                model=self._model,
+                max_tokens=self._max_tokens,
+                timeout_seconds=timeout_seconds,
             )
 
-            # Extract text from response
-            if response.content and len(response.content) > 0:
-                text = response.content[0].text.strip()
-            else:
-                text = ""
-
-            # Track token usage
-            input_tokens = getattr(response.usage, "input_tokens", AVG_INPUT_TOKENS)
-            output_tokens = getattr(response.usage, "output_tokens", AVG_OUTPUT_TOKENS)
+            text = response.text
+            input_tokens = response.input_tokens
+            output_tokens = response.output_tokens
 
             # Check for NO_COMMENTARY signal
             if text.upper() == NO_COMMENTARY_SIGNAL or not text:
@@ -564,15 +524,14 @@ class CommentaryGenerator:
 
     @property
     def is_configured(self) -> bool:
-        """Check if API key is configured."""
-        return bool(self._api_key)
+        """Check if an LLM provider is configured."""
+        return self._provider is not None
 
     async def close(self) -> None:
-        """Close the Anthropic client."""
-        if self._client is not None:
-            # AsyncAnthropic doesn't have a close method by default
-            # but we clear the reference
-            self._client = None
+        """Close the LLM provider."""
+        if self._provider is not None:
+            await self._provider.close()
+            self._provider = None
 
 
 # =============================================================================
@@ -590,7 +549,8 @@ def create_commentary_generator(
     Args:
         persona_loader: Optional PersonaLoader instance (created if None)
         config: Optional configuration dict with:
-            - model: Claude model name
+            - provider: LLM provider ("anthropic", "openai", "gemini")
+            - model: Model name (provider-specific)
             - max_tokens: Max response tokens
             - timeout_ms: Default timeout
             - cost_limit_daily_usd: Daily cost limit
@@ -601,6 +561,8 @@ def create_commentary_generator(
     Returns:
         CommentaryGenerator instance
     """
+    from .llm_providers import PROVIDER_DEFAULTS, create_provider
+
     config = config or {}
 
     # Create PersonaLoader with override if specified
@@ -610,17 +572,34 @@ def create_commentary_generator(
         persona_override = config.get("persona")
         persona_loader = PL(persona_override=persona_override)
 
+    # Resolve provider
+    provider_name = config.get("provider", "anthropic")
+
+    # Default model per provider if not specified
+    model = config.get("model")
+    if not model and provider_name in PROVIDER_DEFAULTS:
+        model = PROVIDER_DEFAULTS[provider_name]["model"]
+    model = model or DEFAULT_MODEL
+
+    # Create provider (may return None if API key missing)
+    provider = None
+    try:
+        provider = create_provider(provider_name, api_key=config.get("api_key"))
+    except (RuntimeError, ValueError) as e:
+        logger.warning("Failed to create LLM provider '%s': %s", provider_name, e)
+
     # Parse style from config
     style_str = config.get("style")
     style = CommentaryStyle(style_str) if style_str else CommentaryStyle.CONVERSATIONAL
 
     return CommentaryGenerator(
         persona_loader=persona_loader,
-        model=config.get("model", DEFAULT_MODEL),
+        model=model,
         max_tokens=config.get("max_tokens", DEFAULT_MAX_TOKENS),
         default_timeout_ms=config.get("timeout_ms", DEFAULT_TIMEOUT_MS),
         cost_limit_daily_usd=config.get("cost_limit_daily_usd", 1.0),
-        api_key=config.get("api_key"),
+        provider=provider,
+        provider_name=provider_name,
         style=style,
         max_chars=config.get("max_chars", DEFAULT_MAX_CHARS),
     )

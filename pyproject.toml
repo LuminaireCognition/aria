@@ -68,9 +68,17 @@ fitting = [
     # EOS is now vendored at src/aria_esi/_vendor/eos/
     # No external dependencies required
 ]
+openai = [
+    "openai>=1.0.0",
+]
+gemini = [
+    "google-genai>=1.0.0",
+]
 full = [
     # All optional functionality
     "tenacity>=9.1.2",
+    "openai>=1.0.0",
+    "google-genai>=1.0.0",
     # EOS is now vendored at src/aria_esi/_vendor/eos/
 ]
 test-semantic = [

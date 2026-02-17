@@ -366,7 +366,7 @@ def cmd_redisq_follow(args: argparse.Namespace) -> dict | None:
 
         if not commentary_generator.is_configured:
             print(
-                "Commentary disabled: ANTHROPIC_API_KEY not configured",
+                "Commentary disabled: LLM provider API key not configured",
                 file=sys.stderr,
             )
             commentary_generator = None

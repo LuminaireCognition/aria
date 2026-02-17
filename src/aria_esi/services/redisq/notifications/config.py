@@ -27,6 +27,7 @@ class CommentaryConfig:
     """
 
     enabled: bool = False
+    provider: str = "anthropic"
     model: str = "claude-sonnet-4-5-20241022"
     timeout_ms: int = 3000
     max_tokens: int = 100
@@ -43,6 +44,7 @@ class CommentaryConfig:
             return cls()
         return cls(
             enabled=data.get("enabled", False),
+            provider=data.get("provider", "anthropic"),
             model=data.get("model", "claude-sonnet-4-5-20241022"),
             timeout_ms=data.get("timeout_ms", 3000),
             max_tokens=data.get("max_tokens", 100),
@@ -60,7 +62,13 @@ class CommentaryConfig:
         Returns:
             List of validation error messages (empty if valid)
         """
+        from .llm_providers import VALID_PROVIDERS
+
         errors = []
+
+        if self.provider not in VALID_PROVIDERS:
+            valid = ", ".join(sorted(VALID_PROVIDERS))
+            errors.append(f"Unknown provider '{self.provider}'. Valid: {valid}")
 
         if self.timeout_ms < 500:
             errors.append("timeout_ms must be >= 500")
