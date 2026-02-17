@@ -220,7 +220,7 @@ commentary:
   cost_limit_daily_usd: 1.0
 ```
 
-Install the optional dependency: `uv pip install aria-esi[openai]`
+Install the optional dependency: `uv sync --extra openai`
 
 ### Pattern Detection
 

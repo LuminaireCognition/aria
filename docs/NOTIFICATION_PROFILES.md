@@ -121,7 +121,8 @@ quiet_hours:
 # Optional: LLM commentary on kills
 commentary:
   enabled: false
-  model: "claude-3-haiku-20240307"
+  provider: "anthropic"            # "anthropic", "openai", or "gemini"
+  model: "claude-sonnet-4-5-20241022"  # Omit to use provider default
   timeout_ms: 3000
   max_tokens: 100
   warrant_threshold: 0.3
