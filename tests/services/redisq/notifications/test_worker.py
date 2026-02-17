@@ -958,3 +958,494 @@ class TestNotificationWorkerHTTPClient:
 
         # Client should be closed and set to None
         assert worker._http_client is None
+
+
+# --- Forced rollup mode tests ---
+
+
+def make_kill_with_system(
+    kill_id: int,
+    system_id: int = 30000142,
+    ship_type_id: int = 670,
+    ingested_at: int | None = None,
+) -> KillmailRecord:
+    """Create a test killmail with configurable system and ship type."""
+    ts = ingested_at or int(datetime(2026, 1, 26, 12, 0, 0).timestamp())
+    return KillmailRecord(
+        kill_id=kill_id,
+        kill_time=ts,
+        solar_system_id=system_id,
+        zkb_hash=f"hash{kill_id}",
+        zkb_total_value=10_000_000.0,
+        zkb_points=5,
+        zkb_is_npc=False,
+        zkb_is_solo=False,
+        zkb_is_awox=False,
+        ingested_at=ts,
+        victim_ship_type_id=ship_type_id,
+        victim_corporation_id=98000001,
+        victim_alliance_id=None,
+    )
+
+
+@pytest_asyncio.fixture
+async def force_store(tmp_path: Path):
+    """Create a test store for forced rollup tests."""
+    s = SQLiteKillmailStore(db_path=tmp_path / "force_test.db")
+    await s.initialize()
+    yield s
+    await s.close()
+
+
+@pytest.fixture
+def force_profile() -> NotificationProfile:
+    """Create a profile with force_rollup=True."""
+    from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+    return NotificationProfile(
+        name="force-rollup-profile",
+        display_name="Force Rollup",
+        enabled=True,
+        webhook_url="https://discord.com/api/webhooks/123/abc",
+        polling=PollingConfig(
+            interval_seconds=0.05,
+            batch_size=50,
+            overlap_window_seconds=0,
+        ),
+        rate_limit_strategy=RateLimitStrategy(
+            force_rollup=True,
+            rollup_window_minutes=1,  # 1 minute window for testability
+            max_rollup_kills=20,
+        ),
+    )
+
+
+@pytest.fixture
+def force_coordinator(force_store: SQLiteKillmailStore) -> ESICoordinator:
+    """Create a test coordinator for forced rollup tests."""
+    return ESICoordinator(store=force_store)
+
+
+@pytest.fixture
+def force_worker(
+    force_profile: NotificationProfile,
+    force_store: SQLiteKillmailStore,
+    force_coordinator: ESICoordinator,
+) -> NotificationWorker:
+    """Create a worker with force_rollup enabled."""
+    return NotificationWorker(
+        profile=force_profile,
+        store=force_store,
+        esi_coordinator=force_coordinator,
+    )
+
+
+class TestNotificationWorkerForcedRollup:
+    """Tests for force_rollup mode."""
+
+    async def test_force_rollup_buffers_kills(
+        self, force_worker: NotificationWorker, force_store: SQLiteKillmailStore
+    ) -> None:
+        """force_rollup=True buffers kills in _pending_kills instead of sending."""
+        # Insert kills
+        for i in range(3):
+            await force_store.insert_kill(make_kill_with_system(2000 + i))
+
+        # No send callback — would crash if called
+        force_worker._send_notification = None
+        force_worker._format_kill = None
+
+        force_worker.start()
+        await asyncio.sleep(0.15)
+        await force_worker.stop()
+
+        # Kills should be buffered
+        assert len(force_worker._pending_kills) >= 3
+        assert force_worker.metrics.kills_processed >= 3
+
+    async def test_flush_sends_after_window(
+        self, force_worker: NotificationWorker, force_store: SQLiteKillmailStore
+    ) -> None:
+        """Flush sends kills that have aged past the rollup window."""
+        import time as _time
+
+        # Create kills with ingested_at in the past (older than 1 min window)
+        old_ts = int(_time.time()) - 120  # 2 minutes ago
+        for i in range(3):
+            kill = make_kill_with_system(2100 + i, ingested_at=old_ts)
+            force_worker._pending_kills.append(kill)
+
+        sent_payloads = []
+
+        async def capture_send(payload, url):
+            sent_payloads.append(payload)
+            return MagicMock(success=True)
+
+        force_worker._send_notification = capture_send
+
+        await force_worker._flush_forced_rollups()
+
+        # Should have sent one rollup
+        assert len(sent_payloads) == 1
+        # Pending kills should be empty now
+        assert len(force_worker._pending_kills) == 0
+
+    async def test_flush_skips_young_kills(
+        self, force_worker: NotificationWorker, force_store: SQLiteKillmailStore
+    ) -> None:
+        """Flush does not send kills that are younger than the window."""
+        import time as _time
+
+        # Create kills with recent ingested_at (younger than 1 min window)
+        recent_ts = int(_time.time())
+        for i in range(3):
+            kill = make_kill_with_system(2200 + i, ingested_at=recent_ts)
+            force_worker._pending_kills.append(kill)
+
+        sent_payloads = []
+
+        async def capture_send(payload, url):
+            sent_payloads.append(payload)
+            return MagicMock(success=True)
+
+        force_worker._send_notification = capture_send
+
+        await force_worker._flush_forced_rollups()
+
+        # Should NOT have sent anything
+        assert len(sent_payloads) == 0
+        # Kills should remain pending
+        assert len(force_worker._pending_kills) == 3
+
+    async def test_flush_groups_by_system(
+        self, force_worker: NotificationWorker, force_store: SQLiteKillmailStore
+    ) -> None:
+        """Flush groups kills by solar_system_id, one rollup per system."""
+        import time as _time
+
+        old_ts = int(_time.time()) - 120
+        # 3 kills in Jita (30000142), 2 kills in Perimeter (30000144)
+        for i in range(3):
+            force_worker._pending_kills.append(
+                make_kill_with_system(2300 + i, system_id=30000142, ingested_at=old_ts)
+            )
+        for i in range(2):
+            force_worker._pending_kills.append(
+                make_kill_with_system(2310 + i, system_id=30000144, ingested_at=old_ts)
+            )
+
+        sent_payloads = []
+
+        async def capture_send(payload, url):
+            sent_payloads.append(payload)
+            return MagicMock(success=True)
+
+        force_worker._send_notification = capture_send
+
+        await force_worker._flush_forced_rollups()
+
+        # Should have sent 2 rollups (one per system)
+        assert len(sent_payloads) == 2
+        assert len(force_worker._pending_kills) == 0
+
+    async def test_flush_caps_at_max_rollup_kills(
+        self, force_worker: NotificationWorker, force_store: SQLiteKillmailStore
+    ) -> None:
+        """Flush sends chunks of max_rollup_kills per message."""
+        import time as _time
+
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        # Set max_rollup_kills to 5
+        force_worker.profile.rate_limit_strategy = RateLimitStrategy(
+            force_rollup=True,
+            rollup_window_minutes=1,
+            max_rollup_kills=5,
+        )
+
+        old_ts = int(_time.time()) - 120
+        # 12 kills in same system → should produce 3 rollup messages (5 + 5 + 2)
+        for i in range(12):
+            force_worker._pending_kills.append(
+                make_kill_with_system(2400 + i, system_id=30000142, ingested_at=old_ts)
+            )
+
+        sent_payloads = []
+
+        async def capture_send(payload, url):
+            sent_payloads.append(payload)
+            return MagicMock(success=True)
+
+        force_worker._send_notification = capture_send
+
+        await force_worker._flush_forced_rollups()
+
+        assert len(sent_payloads) == 3
+        assert len(force_worker._pending_kills) == 0
+
+    async def test_flush_marks_processed(
+        self, force_worker: NotificationWorker, force_store: SQLiteKillmailStore
+    ) -> None:
+        """Flush marks kills as processed via _send_rollup."""
+        import time as _time
+
+        old_ts = int(_time.time()) - 120
+        kills = [make_kill_with_system(2500 + i, ingested_at=old_ts) for i in range(3)]
+        for k in kills:
+            await force_store.insert_kill(k)
+        force_worker._pending_kills.extend(kills)
+
+        force_worker._send_notification = AsyncMock(return_value=MagicMock(success=True))
+
+        await force_worker._flush_forced_rollups()
+
+        for k in kills:
+            assert await force_store.is_kill_processed("force-rollup-profile", k.kill_id)
+
+    async def test_flush_send_failure_stops_flushing(
+        self, force_worker: NotificationWorker, force_store: SQLiteKillmailStore
+    ) -> None:
+        """Send failure during flush stops further flushing, preserves remaining."""
+        import time as _time
+
+        old_ts = int(_time.time()) - 120
+        # 3 kills in system A, 3 kills in system B
+        for i in range(3):
+            force_worker._pending_kills.append(
+                make_kill_with_system(2600 + i, system_id=30000142, ingested_at=old_ts)
+            )
+        for i in range(3):
+            force_worker._pending_kills.append(
+                make_kill_with_system(2610 + i, system_id=30000144, ingested_at=old_ts)
+            )
+
+        call_count = 0
+
+        async def fail_on_second(payload, url):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return MagicMock(success=True)
+            return MagicMock(success=False)
+
+        force_worker._send_notification = fail_on_second
+
+        await force_worker._flush_forced_rollups()
+
+        # First system succeeded, second failed → pending_kills not fully cleared
+        # The exact count depends on iteration order, but at least some remain
+        assert call_count == 2
+
+
+class TestSendRollupPodTypeIDs:
+    """Tests that _send_rollup uses POD_TYPE_IDS (not just 670)."""
+
+    async def test_type_33328_counted_as_pod(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Type 33328 (Capsule - Genolution) counts as a pod in rollup."""
+        kills = []
+        for i in range(5):
+            kill = make_kill(3000 + i)
+            kill.victim_ship_type_id = 33328  # Capsule - Genolution
+            kill.zkb_total_value = 10_000_000
+            kills.append(kill)
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        result = await worker._send_rollup(kills)
+
+        assert result is True
+        assert sent_payload is not None
+        assert "Pod spike" in sent_payload["content"]
+        assert "5 pods" in sent_payload["content"]
+
+    async def test_mixed_pod_types_counted(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Both 670 and 33328 count as pods together."""
+        kills = []
+        for i in range(5):
+            kill = make_kill(3100 + i)
+            # Mix of both pod types
+            kill.victim_ship_type_id = 670 if i % 2 == 0 else 33328
+            kill.zkb_total_value = 10_000_000
+            kills.append(kill)
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        await worker._send_rollup(kills)
+
+        assert "Pod spike" in sent_payload["content"]
+        assert "5 pods" in sent_payload["content"]
+
+
+class TestSendRollupCustomTitle:
+    """Tests for custom rollup_title support."""
+
+    async def test_custom_title_in_pod_rollup(
+        self, force_worker: NotificationWorker
+    ) -> None:
+        """Custom rollup_title appears in pod-heavy rollup."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        force_worker.profile.rate_limit_strategy = RateLimitStrategy(
+            force_rollup=True,
+            rollup_window_minutes=5,
+            rollup_title="Smartbomb camp",
+        )
+
+        kills = [make_kill_with_system(3200 + i, ship_type_id=670) for i in range(5)]
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        force_worker._send_notification = capture_send
+
+        await force_worker._send_rollup(kills)
+
+        assert "Smartbomb camp" in sent_payload["content"]
+        assert "/ 5m" in sent_payload["content"]
+
+    async def test_default_title_pod_rollup(
+        self, force_worker: NotificationWorker
+    ) -> None:
+        """Default title 'Pod spike' used when rollup_title is None."""
+        kills = [make_kill_with_system(3300 + i, ship_type_id=670) for i in range(5)]
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        force_worker._send_notification = capture_send
+
+        await force_worker._send_rollup(kills)
+
+        assert "Pod spike" in sent_payload["content"]
+
+    async def test_default_title_activity_rollup(
+        self, force_worker: NotificationWorker
+    ) -> None:
+        """Default title 'Activity' used for non-pod rollup when rollup_title is None."""
+        kills = [make_kill_with_system(3400 + i, ship_type_id=17740) for i in range(5)]
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        force_worker._send_notification = capture_send
+
+        await force_worker._send_rollup(kills)
+
+        assert "Activity" in sent_payload["content"]
+        assert "/ 1m" in sent_payload["content"]
+
+    async def test_rate_suffix_only_with_force_rollup(
+        self, worker: NotificationWorker
+    ) -> None:
+        """Non-force-rollup uses 'rolled up' phrasing, no rate suffix."""
+        kills = [make_kill(3500 + i) for i in range(5)]
+        for k in kills:
+            k.victim_ship_type_id = 670
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        await worker._send_rollup(kills)
+
+        assert "rolled up" in sent_payload["content"]
+        assert "/ " not in sent_payload["content"]
+
+
+class TestSendRollupSystemName:
+    """Tests that _send_rollup includes system name via name resolver."""
+
+    async def test_system_name_in_rollup(
+        self, worker: NotificationWorker
+    ) -> None:
+        """System name appears in rollup message when resolver works."""
+        from unittest.mock import patch
+
+        kills = [make_kill(3600 + i) for i in range(5)]
+        for k in kills:
+            k.victim_ship_type_id = 670
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        mock_resolver = MagicMock()
+        mock_resolver.resolve_system_with_fallback.return_value = "Jita"
+
+        with patch(
+            "aria_esi.services.redisq.name_resolver.get_name_resolver",
+            return_value=mock_resolver,
+        ):
+            await worker._send_rollup(kills)
+
+        assert "📍 Jita" in sent_payload["content"]
+
+    async def test_system_name_graceful_failure(
+        self, worker: NotificationWorker
+    ) -> None:
+        """Rollup works even when name resolver fails."""
+        from unittest.mock import patch
+
+        kills = [make_kill(3700 + i) for i in range(5)]
+        for k in kills:
+            k.victim_ship_type_id = 670
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        with patch(
+            "aria_esi.services.redisq.name_resolver.get_name_resolver",
+            side_effect=RuntimeError("no resolver"),
+        ):
+            result = await worker._send_rollup(kills)
+
+        assert result is True
+        assert "📍" not in sent_payload["content"]
+        # Should still have the rest of the message
+        assert "Pod spike" in sent_payload["content"]
