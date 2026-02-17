@@ -524,6 +524,182 @@ class TestNotificationWorkerPodRollup:
         assert "ISK" in sent_payload["content"]
 
 
+class TestNotificationWorkerPodRollupBoundary:
+    """Tests for pod rollup threshold boundary conditions."""
+
+    async def test_pod_ratio_exactly_80_percent_triggers_pod_format(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Exactly 80% pods (4/5) should trigger pod spike format."""
+        kills = []
+        for i in range(5):
+            kill = make_kill(1000 + i)
+            # 4 pods, 1 ship = 80%
+            kill.victim_ship_type_id = 670 if i < 4 else 17740
+            kill.zkb_total_value = 10_000_000
+            kills.append(kill)
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        result = await worker._send_rollup(kills)
+
+        assert result is True
+        assert "Pod spike" in sent_payload["content"]
+        assert "4 pods" in sent_payload["content"]
+        assert "ISK" not in sent_payload["content"]
+
+    async def test_pod_ratio_just_below_80_percent_uses_standard_format(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Below 80% pods (3/5 = 60%) should use standard format."""
+        kills = []
+        for i in range(5):
+            kill = make_kill(1010 + i)
+            # 3 pods, 2 ships = 60%
+            kill.victim_ship_type_id = 670 if i < 3 else 17740
+            kill.zkb_total_value = 100_000_000
+            kills.append(kill)
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        result = await worker._send_rollup(kills)
+
+        assert result is True
+        assert "Activity" in sent_payload["content"]
+        assert "5 kills" in sent_payload["content"]
+        assert "ISK" in sent_payload["content"]
+
+    async def test_single_pod_kill_rollup(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Single pod kill (100% ratio) should use pod format."""
+        kill = make_kill(1020)
+        kill.victim_ship_type_id = 670
+        kill.zkb_total_value = 10_000
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        result = await worker._send_rollup([kill])
+
+        assert result is True
+        assert "Pod spike" in sent_payload["content"]
+        assert "1 pods" in sent_payload["content"]
+
+    async def test_single_ship_kill_rollup(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Single ship kill (0% ratio) should use standard format."""
+        kill = make_kill(1030)
+        kill.victim_ship_type_id = 17740
+        kill.zkb_total_value = 500_000_000
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        result = await worker._send_rollup([kill])
+
+        assert result is True
+        assert "Activity" in sent_payload["content"]
+        assert "1 kills" in sent_payload["content"]
+        assert "ISK" in sent_payload["content"]
+
+    async def test_rollup_value_formatting_billions(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Rollup formats value in billions when >= 1B."""
+        kills = [make_kill(1040), make_kill(1041)]
+        for kill in kills:
+            kill.victim_ship_type_id = 17740
+            kill.zkb_total_value = 1_500_000_000  # 1.5B each
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        await worker._send_rollup(kills)
+
+        assert "3.0B" in sent_payload["content"]
+
+    async def test_rollup_value_formatting_millions(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Rollup formats value in millions when < 1B."""
+        kills = [make_kill(1050), make_kill(1051)]
+        for kill in kills:
+            kill.victim_ship_type_id = 17740
+            kill.zkb_total_value = 50_000_000  # 50M each
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        await worker._send_rollup(kills)
+
+        assert "100M" in sent_payload["content"]
+
+    async def test_rollup_missing_victim_ship_type_id(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Kills with None victim_ship_type_id should not count as pods."""
+        kills = []
+        for i in range(3):
+            kill = make_kill(1060 + i)
+            kill.victim_ship_type_id = None  # Missing ship type
+            kill.zkb_total_value = 100_000_000
+            kills.append(kill)
+
+        sent_payload = None
+
+        async def capture_send(payload, url):
+            nonlocal sent_payload
+            sent_payload = payload
+            return MagicMock(success=True)
+
+        worker._send_notification = capture_send
+
+        result = await worker._send_rollup(kills)
+
+        assert result is True
+        assert "Activity" in sent_payload["content"]  # Not pod format
+
+
 class TestNotificationWorkerRateLimit:
     """Tests for rate limit handling."""
 

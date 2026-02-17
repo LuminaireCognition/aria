@@ -223,6 +223,85 @@ class TestActivitySignalScore:
         assert result.score == 0.8
 
 
+class TestActivitySignalEdgeCases:
+    """Tests for edge cases in ActivitySignal scoring."""
+
+    @pytest.fixture
+    def signal(self) -> ActivitySignal:
+        """Create an ActivitySignal instance."""
+        return ActivitySignal()
+
+    def test_sustained_at_exact_threshold_triggers(self, signal: ActivitySignal) -> None:
+        """Sustained kills exactly at threshold should trigger (>= comparison)."""
+        config = {
+            "activity_data": {"spike_detected": False, "sustained_kills": 5},
+            "sustained": {"enabled": True, "score": 0.5, "threshold": 5},
+        }
+        result = signal.score(None, 30000142, config)
+        assert result.score == 0.5
+        assert "Sustained activity (5 kills)" in result.reason
+
+    def test_sustained_one_below_threshold_does_not_trigger(self, signal: ActivitySignal) -> None:
+        """Sustained kills one below threshold should not trigger."""
+        config = {
+            "activity_data": {"spike_detected": False, "sustained_kills": 4},
+            "sustained": {"enabled": True, "score": 0.5, "threshold": 5},
+        }
+        result = signal.score(None, 30000142, config)
+        assert result.score == 0.0
+
+    def test_gatecamp_unknown_confidence_value(self, signal: ActivitySignal) -> None:
+        """Unknown confidence in gatecamp_status should not trigger scoring."""
+        config = {
+            "gatecamp_status": MockGatecampStatus(confidence="extreme"),
+            "gatecamp": {"enabled": True, "score": 0.9, "min_confidence": "low"},
+        }
+        result = signal.score(None, 30000142, config)
+        # "extreme" maps to 0 in confidence_levels.get(confidence, 0)
+        assert result.score == 0.0
+
+    def test_gatecamp_none_confidence_does_not_trigger(self, signal: ActivitySignal) -> None:
+        """None confidence in gatecamp_status should not trigger."""
+        config = {
+            "gatecamp_status": MockGatecampStatus(confidence=None),
+            "gatecamp": {"enabled": True, "score": 0.9, "min_confidence": "low"},
+        }
+        result = signal.score(None, 30000142, config)
+        assert result.score == 0.0
+
+    def test_all_patterns_equal_score_returns_that_score(self, signal: ActivitySignal) -> None:
+        """When multiple patterns have identical scores, max() returns that score."""
+        config = {
+            "gatecamp_status": MockGatecampStatus(confidence="high"),
+            "activity_data": {"spike_detected": True, "sustained_kills": 10},
+            "gatecamp": {"enabled": True, "score": 0.5},
+            "spike": {"enabled": True, "score": 0.5},
+            "sustained": {"enabled": True, "score": 0.5, "threshold": 5},
+        }
+        result = signal.score(None, 30000142, config)
+        assert result.score == 0.5
+        assert len(result.raw_value["patterns"]) == 3
+
+    def test_spike_not_detected_returns_zero(self, signal: ActivitySignal) -> None:
+        """When spike_detected is False, spike pattern should not contribute."""
+        config = {
+            "activity_data": {"spike_detected": False, "sustained_kills": 0},
+            "spike": {"enabled": True, "score": 0.7},
+            "sustained": {"enabled": False},
+        }
+        result = signal.score(None, 30000142, config)
+        assert result.score == 0.0
+
+    def test_spike_enabled_with_empty_spike_config(self, signal: ActivitySignal) -> None:
+        """Spike with no config keys should use defaults (enabled: True)."""
+        config = {
+            "activity_data": {"spike_detected": True, "sustained_kills": 0},
+            # spike config not present at all — defaults to {"enabled": True}
+        }
+        result = signal.score(None, 30000142, config)
+        assert result.score == 0.7  # DEFAULT_SPIKE_SCORE
+
+
 class TestActivitySignalValidate:
     """Tests for ActivitySignal.validate() method."""
 
@@ -290,6 +369,25 @@ class TestActivitySignalValidate:
         }
         errors = signal.validate(config)
         assert errors == []
+
+    def test_validate_score_at_boundaries(self, signal: ActivitySignal) -> None:
+        """Test validation passes for scores at exact boundaries (0.0 and 1.0)."""
+        config = {
+            "gatecamp": {"score": 0.0},
+            "spike": {"score": 1.0},
+        }
+        errors = signal.validate(config)
+        assert errors == []
+
+    def test_validate_multiple_errors_reported(self, signal: ActivitySignal) -> None:
+        """Test that all validation errors are collected, not just the first."""
+        config = {
+            "gatecamp": {"score": 2.0},
+            "spike": {"score": -1.0},
+            "sustained": "not_a_dict",
+        }
+        errors = signal.validate(config)
+        assert len(errors) == 3
 
 
 class TestActivitySignalSelfSufficient:
