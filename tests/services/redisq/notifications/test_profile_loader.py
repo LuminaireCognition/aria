@@ -320,6 +320,77 @@ class TestProfileLoaderTemplates:
         assert profile.has_topology is True
         assert profile.throttle_minutes == 2
 
+    def test_create_from_template_with_persona(self, temp_profiles_dir, temp_templates_dir):
+        """Create profile from template with persona sets commentary config."""
+        template_data = {
+            "name": "template-name",
+            "display_name": "Template Display",
+            "description": "Template description",
+            "topology": {
+                "geographic": {
+                    "systems": [{"name": "Jita"}]
+                }
+            },
+        }
+        with open(temp_templates_dir / "intel.yaml", "w") as f:
+            yaml.dump(template_data, f)
+
+        profile = ProfileLoader.create_from_template(
+            template_name="intel",
+            profile_name="my-intel",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            persona="paria-s",
+        )
+
+        assert profile.name == "my-intel"
+        assert profile.commentary is not None
+        assert profile.commentary.persona == "paria-s"
+        assert profile.commentary.enabled is True
+
+    def test_create_from_template_persona_preserves_existing_commentary(
+        self, temp_profiles_dir, temp_templates_dir
+    ):
+        """Persona parameter doesn't override existing commentary.enabled setting."""
+        template_data = {
+            "name": "template-name",
+            "commentary": {
+                "enabled": True,
+                "provider": "openai",
+            },
+        }
+        with open(temp_templates_dir / "existing.yaml", "w") as f:
+            yaml.dump(template_data, f)
+
+        profile = ProfileLoader.create_from_template(
+            template_name="existing",
+            profile_name="my-existing",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            persona="paria-s",
+        )
+
+        assert profile.commentary is not None
+        assert profile.commentary.persona == "paria-s"
+        assert profile.commentary.provider == "openai"
+        # enabled was already set in the template, so should remain True
+        assert profile.commentary.enabled is True
+
+    def test_create_from_template_no_persona(self, temp_profiles_dir, temp_templates_dir):
+        """Create profile from template without persona leaves commentary unset."""
+        template_data = {
+            "name": "template-name",
+        }
+        with open(temp_templates_dir / "basic.yaml", "w") as f:
+            yaml.dump(template_data, f)
+
+        profile = ProfileLoader.create_from_template(
+            template_name="basic",
+            profile_name="my-basic",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+
+        # No commentary section when persona not specified and template has none
+        assert profile.commentary is None
+
     def test_create_from_template_already_exists(self, temp_profiles_dir, temp_templates_dir):
         """Creating profile that already exists raises ValueError."""
         (temp_templates_dir / "template.yaml").write_text("name: template")
@@ -456,6 +527,35 @@ class TestProfileLoaderCommentaryKeyWarning:
 
         warnings = [e for e in errors if e.startswith("[warning]")]
         assert len(warnings) == 0
+
+    def test_validate_warns_missing_gemini_api_key(self, temp_profiles_dir):
+        """Validation warns when commentary enabled with Gemini but API key missing."""
+        from unittest.mock import MagicMock, patch
+
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        profile = NotificationProfile(
+            name="commentary-gemini",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+        profile.commentary = CommentaryConfig.from_dict({
+            "enabled": True,
+            "provider": "gemini",
+        })
+
+        mock_settings = MagicMock()
+        mock_settings.gemini_api_key = None
+
+        with patch(
+            "aria_esi.core.config.get_settings",
+            return_value=mock_settings,
+        ):
+            errors = ProfileLoader.validate_profile(profile)
+
+        warnings = [e for e in errors if e.startswith("[warning]")]
+        assert len(warnings) == 1
+        assert "gemini" in warnings[0]
+        assert "GEMINI_API_KEY" in warnings[0]
 
     def test_validate_no_warning_when_commentary_disabled(self, temp_profiles_dir):
         """Validation does not warn when commentary is disabled."""

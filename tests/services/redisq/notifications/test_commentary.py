@@ -421,6 +421,25 @@ class TestCreateCommentaryGenerator:
         assert generator._provider_name == "openai"
         assert generator.is_configured is True
 
+    def test_create_with_gemini_provider(self):
+        """Test creation with Gemini provider and default model."""
+        mock_loader = MagicMock(spec=PersonaLoader)
+        config = {
+            "provider": "gemini",
+            "api_key": "test-gemini-key",
+        }
+
+        # Mock the google.genai module since it's an optional dependency
+        mock_google = MagicMock()
+        mock_genai = MagicMock()
+        mock_google.genai = mock_genai
+        with patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}):
+            generator = create_commentary_generator(mock_loader, config)
+
+        assert generator._model == "gemini-2.0-flash"
+        assert generator._provider_name == "gemini"
+        assert generator.is_configured is True
+
     def test_create_with_missing_api_key_is_unconfigured(self):
         """Test that missing API key results in unconfigured generator."""
         mock_loader = MagicMock(spec=PersonaLoader)
@@ -1781,6 +1800,46 @@ class TestProviderFactory:
             provider = create_provider("openai", api_key="test-key")
         assert provider is not None
 
+    def test_create_gemini_provider(self):
+        """Test Gemini provider creation."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        mock_google = MagicMock()
+        mock_genai = MagicMock()
+        mock_google.genai = mock_genai
+        with patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}):
+            provider = create_provider("gemini", api_key="test-key")
+        assert provider is not None
+
+    def test_create_provider_settings_fallback(self):
+        """Test that create_provider reads key from AriaSettings when not provided."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        mock_settings = MagicMock()
+        mock_settings.openai_api_key = "settings-key"
+
+        mock_openai = MagicMock()
+        with patch.dict(sys.modules, {"openai": mock_openai}), patch(
+            "aria_esi.core.config.get_settings",
+            return_value=mock_settings,
+        ):
+            provider = create_provider("openai")
+        assert provider is not None
+
+    def test_create_provider_explicit_key_overrides_settings(self):
+        """Test that explicit api_key takes precedence over AriaSettings."""
+        from aria_esi.services.redisq.notifications.llm_providers import create_provider
+
+        # Settings has no key, but explicit key is passed
+        mock_settings = MagicMock()
+        mock_settings.anthropic_api_key = None
+
+        with patch("anthropic.AsyncAnthropic") as mock_cls:
+            provider = create_provider("anthropic", api_key="explicit-key")
+        assert provider is not None
+        # Verify the explicit key was used
+        mock_cls.assert_called_once_with(api_key="explicit-key")
+
     def test_valid_providers_set(self):
         """Test that VALID_PROVIDERS contains expected values."""
         from aria_esi.services.redisq.notifications.llm_providers import VALID_PROVIDERS
@@ -1808,3 +1867,199 @@ class TestProviderFactory:
             assert provider in COST_PER_1K_TOKENS, f"Missing cost data for {provider}"
             assert "input" in COST_PER_1K_TOKENS[provider]
             assert "output" in COST_PER_1K_TOKENS[provider]
+
+
+class TestProviderGenerate:
+    """Tests for individual provider generate() methods with mocked SDK clients."""
+
+    @pytest.mark.asyncio
+    async def test_anthropic_provider_generate(self):
+        """Test AnthropicProvider.generate() parses Anthropic API response correctly."""
+        mock_response = MagicMock()
+        mock_content_block = MagicMock()
+        mock_content_block.text = "  Tactical analysis complete.  "
+        mock_response.content = [mock_content_block]
+        mock_response.usage = MagicMock(input_tokens=123, output_tokens=45)
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        with patch("anthropic.AsyncAnthropic", return_value=mock_client):
+            from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+
+            provider = AnthropicProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys",
+            user_prompt="user",
+            model="test-model",
+            max_tokens=100,
+            timeout_seconds=5.0,
+        )
+
+        assert result.text == "Tactical analysis complete."
+        assert result.input_tokens == 123
+        assert result.output_tokens == 45
+
+    @pytest.mark.asyncio
+    async def test_anthropic_provider_generate_empty_content(self):
+        """Test AnthropicProvider.generate() handles empty content list."""
+        mock_response = MagicMock()
+        mock_response.content = []
+        mock_response.usage = MagicMock(input_tokens=100, output_tokens=0)
+
+        mock_client = AsyncMock()
+        mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+        with patch("anthropic.AsyncAnthropic", return_value=mock_client):
+            from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+
+            provider = AnthropicProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys", user_prompt="user",
+            model="m", max_tokens=100, timeout_seconds=5.0,
+        )
+        assert result.text == ""
+
+    @pytest.mark.asyncio
+    async def test_openai_provider_generate(self):
+        """Test OpenAIProvider.generate() parses OpenAI API response correctly."""
+        mock_message = MagicMock()
+        mock_message.content = "  Fleet spotted on gate.  "
+        mock_choice = MagicMock()
+        mock_choice.message = mock_message
+        mock_response = MagicMock()
+        mock_response.choices = [mock_choice]
+        mock_response.usage = MagicMock(prompt_tokens=200, completion_tokens=30)
+
+        mock_client = AsyncMock()
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+
+        mock_openai_module = MagicMock()
+        mock_openai_module.AsyncOpenAI = MagicMock(return_value=mock_client)
+        with patch.dict(sys.modules, {"openai": mock_openai_module}):
+            from aria_esi.services.redisq.notifications.llm_providers._openai import OpenAIProvider
+
+            provider = OpenAIProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys",
+            user_prompt="user",
+            model="gpt-4o-mini",
+            max_tokens=100,
+            timeout_seconds=5.0,
+        )
+
+        assert result.text == "Fleet spotted on gate."
+        assert result.input_tokens == 200
+        assert result.output_tokens == 30
+
+    @pytest.mark.asyncio
+    async def test_openai_provider_generate_empty_choices(self):
+        """Test OpenAIProvider.generate() handles empty choices list."""
+        mock_response = MagicMock()
+        mock_response.choices = []
+        mock_response.usage = MagicMock(prompt_tokens=100, completion_tokens=0)
+
+        mock_client = AsyncMock()
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+
+        mock_openai_module = MagicMock()
+        mock_openai_module.AsyncOpenAI = MagicMock(return_value=mock_client)
+        with patch.dict(sys.modules, {"openai": mock_openai_module}):
+            from aria_esi.services.redisq.notifications.llm_providers._openai import OpenAIProvider
+
+            provider = OpenAIProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys", user_prompt="user",
+            model="m", max_tokens=100, timeout_seconds=5.0,
+        )
+        assert result.text == ""
+
+    @pytest.mark.asyncio
+    async def test_gemini_provider_generate(self):
+        """Test GeminiProvider.generate() parses Gemini API response correctly."""
+        mock_response = MagicMock()
+        mock_response.text = "  Hostiles in local.  "
+        mock_response.usage_metadata = MagicMock(
+            prompt_token_count=150,
+            candidates_token_count=25,
+        )
+
+        mock_client = MagicMock()
+        mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+        mock_genai = MagicMock()
+        mock_genai.Client = MagicMock(return_value=mock_client)
+        mock_google = MagicMock()
+        mock_google.genai = mock_genai
+
+        with patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}):
+            from aria_esi.services.redisq.notifications.llm_providers._gemini import GeminiProvider
+
+            provider = GeminiProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys",
+            user_prompt="user",
+            model="gemini-2.0-flash",
+            max_tokens=100,
+            timeout_seconds=5.0,
+        )
+
+        assert result.text == "Hostiles in local."
+        assert result.input_tokens == 150
+        assert result.output_tokens == 25
+
+    @pytest.mark.asyncio
+    async def test_gemini_provider_generate_none_text(self):
+        """Test GeminiProvider.generate() handles None text response."""
+        mock_response = MagicMock()
+        mock_response.text = None
+        mock_response.usage_metadata = MagicMock(spec=[])  # no token attrs
+
+        mock_client = MagicMock()
+        mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+        mock_genai = MagicMock()
+        mock_genai.Client = MagicMock(return_value=mock_client)
+        mock_google = MagicMock()
+        mock_google.genai = mock_genai
+
+        with patch.dict(sys.modules, {"google": mock_google, "google.genai": mock_genai}):
+            from aria_esi.services.redisq.notifications.llm_providers._gemini import GeminiProvider
+
+            provider = GeminiProvider(api_key="test-key")
+
+        result = await provider.generate(
+            system_prompt="sys", user_prompt="user",
+            model="m", max_tokens=100, timeout_seconds=5.0,
+        )
+        assert result.text == ""
+        # Falls back to defaults when attrs are missing
+        assert result.input_tokens == 500
+        assert result.output_tokens == 50
+
+    def test_anthropic_provider_missing_package(self):
+        """Test AnthropicProvider raises RuntimeError when package not installed."""
+        with patch.dict(sys.modules, {"anthropic": None}):
+            # Need to reload to pick up the missing module
+            with pytest.raises((RuntimeError, ImportError)):
+                from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+                AnthropicProvider(api_key="test-key")
+
+    def test_openai_provider_missing_package(self):
+        """Test OpenAIProvider raises RuntimeError when package not installed."""
+        with patch.dict(sys.modules, {"openai": None}):
+            with pytest.raises((RuntimeError, ImportError)):
+                from aria_esi.services.redisq.notifications.llm_providers._openai import OpenAIProvider
+                OpenAIProvider(api_key="test-key")
+
+    def test_gemini_provider_missing_package(self):
+        """Test GeminiProvider raises RuntimeError when package not installed."""
+        with patch.dict(sys.modules, {"google": None, "google.genai": None}):
+            with pytest.raises((RuntimeError, ImportError)):
+                from aria_esi.services.redisq.notifications.llm_providers._gemini import GeminiProvider
+                GeminiProvider(api_key="test-key")
