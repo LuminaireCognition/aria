@@ -27,6 +27,7 @@ Proposals that have been implemented, superseded, or consolidated.
 | PROMPT_LIBRARY_REVIEW_COVERAGE_PROPOSAL.md | Superseded | 2026-02-10 | CI automation not adopted; standalone prompts retained in `dev/prompts/` |
 | FRESHNESS_GATED_AUTO_SYNC_LIBRARY.md | Implemented | 2026-02-13 | All 4 phases: core library, enhanced markers, consolidation, skill integration |
 | MINMAX_SKILL_PLANNING_PROPOSAL.md | Implemented | 2026-02-15 | Phases A-C: core algorithm, dispatcher, SKILL.md, hauler role |
+| MULTI_LLM_SERVICE_FOR_NOTIFICATIONS.md | Implemented | 2026-02-16 | Provider abstraction (Anthropic/OpenAI/Gemini), per-profile config |
 
 ## Archive Policy
 

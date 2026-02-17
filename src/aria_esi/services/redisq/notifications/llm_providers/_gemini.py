@@ -20,8 +20,7 @@ class GeminiProvider:
             from google import genai  # noqa: F401
         except ImportError:
             raise RuntimeError(
-                "gemini provider requires 'google-genai' package. "
-                "Install with: uv pip install aria-esi[gemini]"
+                "gemini provider requires 'google-genai' package. Run: uv sync --extra gemini"
             )
 
         self._client: Any = genai.Client(api_key=api_key)

@@ -20,8 +20,7 @@ class OpenAIProvider:
             from openai import AsyncOpenAI
         except ImportError:
             raise RuntimeError(
-                "openai provider requires 'openai' package. "
-                "Install with: uv pip install aria-esi[openai]"
+                "openai provider requires 'openai' package. Run: uv sync --extra openai"
             )
 
         self._client: Any = AsyncOpenAI(api_key=api_key)
