@@ -299,8 +299,10 @@ class NotificationWorker:
         """Execute a single poll iteration."""
         self._metrics.last_poll_time = datetime.utcnow()
 
-        # Check if we should send rollup (after rate limit clears)
-        if (
+        # Check if we should send rollup
+        if self.profile.rate_limit_strategy.force_rollup:
+            await self._flush_forced_rollups()
+        elif (
             self._pending_kills
             and len(self._pending_kills) >= self.profile.rate_limit_strategy.rollup_threshold
         ):
@@ -382,6 +384,14 @@ class NotificationWorker:
                         logger.warning("ESI fetch error for kill %d: %s", kill.kill_id, e)
                         await self.esi_coordinator.complete_failure(kill.kill_id, str(e), self.name)
 
+            # Force rollup mode: buffer kills instead of sending individually
+            if self.profile.rate_limit_strategy.force_rollup:
+                self._pending_kills.append(kill)
+                self._metrics.kills_processed += 1
+                if kill.kill_time > new_high_water:
+                    new_high_water = kill.kill_time
+                continue
+
             # Format and send notification
             if self._format_kill and self._send_notification:
                 payload = self._format_kill(kill, trigger_result, esi_data)
@@ -431,6 +441,49 @@ class NotificationWorker:
                 consecutive_failures=self._metrics.consecutive_errors,
             )
 
+    async def _flush_forced_rollups(self) -> None:
+        """
+        Flush buffered kills that have aged past the rollup window.
+
+        Groups flushable kills by solar_system_id and sends one rollup
+        per system, capped at max_rollup_kills per message.
+        Kills are only marked as processed after successful send.
+        """
+        if not self._pending_kills:
+            return
+
+        window = self.profile.rate_limit_strategy.effective_rollup_window_minutes
+        cutoff = time.time() - window * 60
+
+        # Partition into flushable (old enough) and remaining (too young)
+        flushable = [k for k in self._pending_kills if k.ingested_at <= cutoff]
+        remaining = [k for k in self._pending_kills if k.ingested_at > cutoff]
+
+        if not flushable:
+            return
+
+        # Group by solar_system_id
+        system_groups: dict[int, list[KillmailRecord]] = {}
+        for kill in flushable:
+            system_groups.setdefault(kill.solar_system_id, []).append(kill)
+
+        max_rollup = self.profile.rate_limit_strategy.max_rollup_kills
+
+        for _system_id, system_kills in system_groups.items():
+            # Send in chunks of max_rollup_kills
+            for i in range(0, len(system_kills), max_rollup):
+                chunk = system_kills[i : i + max_rollup]
+                success = await self._send_rollup(chunk)
+                if not success:
+                    logger.warning(
+                        "Worker '%s' forced rollup send failed, stopping flush",
+                        self.name,
+                    )
+                    return
+
+        # All flushable kills sent successfully — update pending list
+        self._pending_kills = remaining
+
     async def _send_rollup(self, kills: list[KillmailRecord]) -> bool:
         """
         Send a rollup message for multiple kills.
@@ -447,6 +500,8 @@ class NotificationWorker:
             return True
 
         from collections import Counter
+
+        from ..processor import POD_TYPE_IDS
 
         # Calculate aggregates
         total_value = sum(k.zkb_total_value or 0 for k in kills)
@@ -466,19 +521,46 @@ class NotificationWorker:
             value_str = f"{total_value / 1_000_000:.0f}M"
 
         # Auto-detect pod-heavy rollups for specialized formatting
-        pod_count = sum(1 for k in kills if getattr(k, "victim_ship_type_id", None) == 670)
+        pod_count = sum(1 for k in kills if getattr(k, "victim_ship_type_id", None) in POD_TYPE_IDS)
         pod_ratio = pod_count / len(kills) if kills else 0
+
+        # Resolve system name for the primary system
+        system_name_line = ""
+        try:
+            from ..name_resolver import get_name_resolver
+
+            resolver = get_name_resolver()
+            system_name = resolver.resolve_system_with_fallback(primary_system_id)
+            system_name_line = f"📍 {system_name}\n"
+        except Exception:
+            pass  # Graceful degradation — omit system name line
+
+        # Build title
+        rls = self.profile.rate_limit_strategy
+        window = rls.effective_rollup_window_minutes
 
         if pod_ratio >= 0.8:
             pod_label = "pod" if pod_count == 1 else "pods"
+            title = rls.rollup_title or "Pod spike"
+            if rls.force_rollup:
+                header = f"📊 {title} ({pod_count} {pod_label} / {window}m)"
+            else:
+                header = f"📊 {title} ({pod_count} {pod_label} rolled up)"
             content = (
-                f"📊 Pod spike ({pod_count} {pod_label} rolled up)\n"
+                f"{header}\n"
+                f"{system_name_line}"
                 f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
             )
         else:
+            title = rls.rollup_title or "Activity"
+            if rls.force_rollup:
+                header = f"📊 {title} ({len(kills)} kills / {window}m)"
+            else:
+                header = f"📊 {title} ({len(kills)} kills rolled up)"
             content = (
-                f"📊 Activity ({len(kills)} kills rolled up)\n"
+                f"{header}\n"
                 f"💀 {value_str} ISK total\n"
+                f"{system_name_line}"
                 f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
             )
 
