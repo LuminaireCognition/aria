@@ -1100,7 +1100,7 @@ def register_parsers(subparsers) -> None:
     follow_parser.add_argument(
         "--commentary",
         action="store_true",
-        help="Enable LLM commentary (requires ANTHROPIC_API_KEY)",
+        help="Enable LLM commentary (requires provider API key)",
     )
     follow_parser.add_argument(
         "--persona",

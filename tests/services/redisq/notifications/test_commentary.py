@@ -26,6 +26,7 @@ from aria_esi.services.redisq.notifications.commentary import (
     validate_preserved_tokens,
 )
 from aria_esi.services.redisq.notifications.llm_providers._protocol import LLMResponse
+from aria_esi.services.redisq.notifications.profiles import NotificationProfile
 from aria_esi.services.redisq.notifications.patterns import DetectedPattern, PatternContext
 from aria_esi.services.redisq.notifications.persona import PersonaLoader, PersonaVoiceSummary
 from aria_esi.services.redisq.notifications.prompts import (
@@ -721,6 +722,45 @@ class TestCommentaryConfigStyle:
 
         config = CommentaryConfig.from_dict({})
         assert config.provider == "anthropic"
+
+    def test_provider_survives_to_dict_round_trip(self):
+        """Test that provider field is preserved through to_dict() serialization."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        profile = NotificationProfile(
+            name="round-trip-test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+        profile.commentary = CommentaryConfig.from_dict({
+            "enabled": True,
+            "provider": "openai",
+            "model": "gpt-4o-mini",
+        })
+
+        result = profile.to_dict()
+
+        assert "commentary" in result
+        assert result["commentary"]["provider"] == "openai"
+        assert result["commentary"]["model"] == "gpt-4o-mini"
+
+        # Round-trip: from_dict → to_dict → from_dict preserves provider
+        restored = NotificationProfile.from_dict(result, name="round-trip-test")
+        assert restored.commentary.provider == "openai"
+        assert restored.commentary.model == "gpt-4o-mini"
+
+    def test_provider_default_in_to_dict(self):
+        """Test that default provider (anthropic) appears in to_dict() output."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        profile = NotificationProfile(
+            name="default-provider-test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+        profile.commentary = CommentaryConfig.from_dict({"enabled": True})
+
+        result = profile.to_dict()
+
+        assert result["commentary"]["provider"] == "anthropic"
 
     def test_config_validate_provider_valid(self):
         """Test provider validation passes for valid values."""

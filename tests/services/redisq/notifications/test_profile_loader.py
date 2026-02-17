@@ -398,6 +398,84 @@ class TestProfileLoaderValidation:
         assert len(results["invalid"]) > 0
 
 
+class TestProfileLoaderCommentaryKeyWarning:
+    """Tests for provider API key availability warning in validate_profile."""
+
+    def test_validate_warns_missing_api_key(self, temp_profiles_dir):
+        """Validation warns when commentary enabled but API key missing."""
+        from unittest.mock import MagicMock, patch
+
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        profile = NotificationProfile(
+            name="commentary-test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+        profile.commentary = CommentaryConfig.from_dict({
+            "enabled": True,
+            "provider": "openai",
+        })
+
+        mock_settings = MagicMock()
+        mock_settings.openai_api_key = None
+
+        with patch(
+            "aria_esi.core.config.get_settings",
+            return_value=mock_settings,
+        ):
+            errors = ProfileLoader.validate_profile(profile)
+
+        warnings = [e for e in errors if e.startswith("[warning]")]
+        assert len(warnings) == 1
+        assert "openai" in warnings[0]
+        assert "OPENAI_API_KEY" in warnings[0]
+
+    def test_validate_no_warning_when_key_present(self, temp_profiles_dir):
+        """Validation does not warn when API key is present."""
+        from unittest.mock import MagicMock, patch
+
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        profile = NotificationProfile(
+            name="commentary-test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+        profile.commentary = CommentaryConfig.from_dict({
+            "enabled": True,
+            "provider": "anthropic",
+        })
+
+        mock_settings = MagicMock()
+        mock_settings.anthropic_api_key = "sk-test-key"
+
+        with patch(
+            "aria_esi.core.config.get_settings",
+            return_value=mock_settings,
+        ):
+            errors = ProfileLoader.validate_profile(profile)
+
+        warnings = [e for e in errors if e.startswith("[warning]")]
+        assert len(warnings) == 0
+
+    def test_validate_no_warning_when_commentary_disabled(self, temp_profiles_dir):
+        """Validation does not warn when commentary is disabled."""
+        from aria_esi.services.redisq.notifications.config import CommentaryConfig
+
+        profile = NotificationProfile(
+            name="commentary-test",
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+        )
+        profile.commentary = CommentaryConfig.from_dict({
+            "enabled": False,
+            "provider": "openai",
+        })
+
+        errors = ProfileLoader.validate_profile(profile)
+
+        warnings = [e for e in errors if e.startswith("[warning]")]
+        assert len(warnings) == 0
+
+
 class TestGetProfilesSummary:
     """Tests for get_profiles_summary helper."""
 

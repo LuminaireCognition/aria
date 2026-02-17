@@ -335,6 +335,26 @@ class ProfileLoader:
             topo_errors = cls._validate_topology(profile.topology)
             errors.extend(topo_errors)
 
+        # Warn about missing provider API keys (warning, not error)
+        if profile.commentary and profile.commentary.enabled:
+            from .llm_providers import PROVIDER_DEFAULTS
+
+            provider = profile.commentary.provider
+            if provider in PROVIDER_DEFAULTS:
+                from ....core.config import get_settings
+
+                key_field = PROVIDER_DEFAULTS[provider]["key_field"]
+                try:
+                    settings = get_settings()
+                    key_value = getattr(settings, key_field, None)
+                except Exception:
+                    key_value = None
+                if not key_value:
+                    errors.append(
+                        f"[warning] Commentary provider '{provider}' is enabled but "
+                        f"{key_field.upper()} is not set in environment"
+                    )
+
         return errors
 
     @classmethod
