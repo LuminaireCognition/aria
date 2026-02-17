@@ -130,6 +130,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Comprehensive test coverage in `tests/core/test_path_security.py` and `tests/integration/test_security_paths.py`
 - Attack vectors covered: path traversal, absolute paths, wrong extensions, non-allowlisted prefixes, symlink escapes
 
+### Fixed
+
+#### Notification Region Gating Bug
+- **Signal opt-in for multi-signal categories**: When only `signals.location.geographic` was configured (no `security`), the unconfigured `SecuritySignal` still ran and returned `score=1.0`, inflating the location category average to ~0.5 and clearing the 0.3 match threshold. This effectively disabled geographic filtering for profiles using `require_all: [location]`. Now, unconfigured signals in multi-signal categories are skipped.
+- **Store pre-filter for v2 profiles**: v2 profiles with geographic systems configured now use SQL-level `system_id IN (...)` filtering during worker polling, matching the existing v1 topology filter behavior.
+- **New validation warnings**: `notifications validate` now reports two new warning codes:
+  - `LOCATION_GATE_GEOGRAPHIC_ONLY` — gate requires `location` but only `geographic` signal is configured (informational)
+  - `LOCATION_GATE_NO_SIGNALS` — gate requires `location` but no location signals are configured (gate will always fail)
+
 ### Changed
 
 #### Prompt Library (standalone toolkit)

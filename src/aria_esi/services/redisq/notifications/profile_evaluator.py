@@ -126,6 +126,10 @@ class ProfileEvaluator:
 
         # Initialize v2 interest engine
         if profile.uses_interest_v2:
+            # Extract scope systems before engine build — this reads raw YAML
+            # config and must succeed even if the engine fails to initialize.
+            profile._v2_scope_systems = self._extract_v2_scope_systems(profile)
+
             try:
                 engine = self._build_v2_engine(profile)
                 profile._interest_engine_v2 = engine
@@ -177,6 +181,26 @@ class ProfileEvaluator:
             # This will be resolved by the signal providers
 
         return InterestEngineV2(config, context)
+
+    @staticmethod
+    def _extract_v2_scope_systems(profile: NotificationProfile) -> list[int] | None:
+        """
+        Extract system IDs from v2 interest geographic config for store pre-filtering.
+
+        Returns:
+            List of system IDs if geographic systems configured, else None.
+        """
+        try:
+            signals = profile.interest.get("signals", {})
+            location = signals.get("location", {})
+            geographic = location.get("geographic", {})
+            systems = geographic.get("systems", [])
+            if systems:
+                ids = [s["id"] for s in systems if "id" in s]
+                return ids if ids else None
+        except (AttributeError, TypeError, KeyError):
+            pass
+        return None
 
     def evaluate(
         self,

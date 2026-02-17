@@ -39,6 +39,18 @@ For setup, schema reference, and CLI commands, see [NOTIFICATION_PROFILES.md](NO
 4. Not in quiet hours
 5. Trigger conditions met (value threshold, watchlist, etc.)
 
+### Location Gate Not Filtering
+
+**Symptoms**: Using `require_all: [location]` with only `geographic` configured, but kills in unrelated systems still trigger notifications.
+
+**Cause**: Prior to the signal opt-in fix, unconfigured signals (like `security`) would run and return a default score, inflating the location category average past the match threshold.
+
+**Fix**: Update to the latest version. Run `notifications validate` and check for these warnings:
+- `LOCATION_GATE_GEOGRAPHIC_ONLY` — informational: location matching uses only `geographic` (this is usually correct)
+- `LOCATION_GATE_NO_SIGNALS` — error condition: gate requires `location` but no location signals are configured, so the gate will always fail
+
+If you see `LOCATION_GATE_NO_SIGNALS`, add a `signals.location.geographic` block with your systems.
+
 ### Schema Validation Errors
 
 Run validation for specific errors:
@@ -51,6 +63,8 @@ Common issues:
 - Throttle exceeds maximum (60 minutes)
 - Missing required webhook_url
 - Unknown system classification
+- `LOCATION_GATE_GEOGRAPHIC_ONLY` — gate on `location` with only geographic signal (informational)
+- `LOCATION_GATE_NO_SIGNALS` — gate on `location` with no location signals configured
 
 ### Multiple Profiles, Same Webhook
 
@@ -382,6 +396,40 @@ interest:
     notify: 0.6
     priority: 0.85
 ```
+
+### Recipe: Location-Gated Home Intel
+
+Only notify for kills in your home systems, with a hard gate so nothing outside gets through:
+
+```yaml
+interest:
+  engine: v2
+  preset: trade-hub
+
+  signals:
+    location:
+      geographic:
+        systems:
+          - name: "Sortet"
+            classification: "home"
+          - name: "Augnais"
+            classification: "transit"
+          - name: "Mies"
+            classification: "transit"
+
+    value:
+      min: 50000000  # 50M
+
+  rules:
+    require_all:
+      - location             # Hard gate: kill must be in a configured system
+    always_notify:
+      - watchlist_match      # Bypasses gate
+    always_ignore:
+      - npc_only
+```
+
+The `require_all: [location]` gate ensures only kills in Sortet, Augnais, or Mies generate notifications. `always_notify` rules (like `watchlist_match`) bypass gates, so watchlist matches anywhere still notify.
 
 ### Recipe: Wormhole Chain Security
 

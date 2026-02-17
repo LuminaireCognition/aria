@@ -521,6 +521,133 @@ class TestNotificationWorkerRateLimit:
         assert len(worker._pending_kills) >= 0  # May be empty if not processed
 
 
+class TestNotificationWorkerScopeFiltering:
+    """Tests for v2 scope system filtering in _poll_once."""
+
+    async def test_v2_scope_systems_passed_to_store_query(
+        self, store: SQLiteKillmailStore, coordinator: ESICoordinator
+    ) -> None:
+        """When _v2_scope_systems is set, query_kills receives the system IDs."""
+        scoped_profile = NotificationProfile(
+            name="scoped-profile",
+            display_name="Scoped",
+            enabled=True,
+            webhook_url="https://discord.com/api/webhooks/123/abc",
+            polling=PollingConfig(
+                interval_seconds=0.05,
+                batch_size=10,
+                overlap_window_seconds=0,
+            ),
+        )
+        scoped_profile._v2_scope_systems = [30000142, 30000144]
+
+        worker = NotificationWorker(
+            profile=scoped_profile,
+            store=store,
+            esi_coordinator=coordinator,
+        )
+
+        # Insert kills in different systems
+        kill_in_scope = make_kill(700)
+        kill_in_scope = KillmailRecord(
+            kill_id=700,
+            kill_time=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            solar_system_id=30000142,  # In scope
+            zkb_hash="hash700",
+            zkb_total_value=100_000_000.0,
+            zkb_points=10,
+            zkb_is_npc=False,
+            zkb_is_solo=False,
+            zkb_is_awox=False,
+            ingested_at=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            victim_ship_type_id=670,
+            victim_corporation_id=98000001,
+            victim_alliance_id=None,
+        )
+        kill_out_of_scope = KillmailRecord(
+            kill_id=701,
+            kill_time=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            solar_system_id=30002187,  # NOT in scope
+            zkb_hash="hash701",
+            zkb_total_value=100_000_000.0,
+            zkb_points=10,
+            zkb_is_npc=False,
+            zkb_is_solo=False,
+            zkb_is_awox=False,
+            ingested_at=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            victim_ship_type_id=670,
+            victim_corporation_id=98000001,
+            victim_alliance_id=None,
+        )
+
+        await store.insert_kill(kill_in_scope)
+        await store.insert_kill(kill_out_of_scope)
+
+        # Run one poll
+        worker.start()
+        await asyncio.sleep(0.15)
+        await worker.stop()
+
+        # The in-scope kill should have been seen; the out-of-scope kill should not
+        in_scope_processed = await store.is_kill_processed("scoped-profile", 700)
+        out_of_scope_processed = await store.is_kill_processed("scoped-profile", 701)
+
+        assert in_scope_processed is True
+        assert out_of_scope_processed is False
+
+    async def test_no_scope_systems_queries_all(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """When _v2_scope_systems is None, all kills are queried."""
+        assert worker.profile._v2_scope_systems is None
+
+        # Insert kills in different systems
+        kill_a = KillmailRecord(
+            kill_id=800,
+            kill_time=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            solar_system_id=30000142,
+            zkb_hash="hash800",
+            zkb_total_value=100_000_000.0,
+            zkb_points=10,
+            zkb_is_npc=False,
+            zkb_is_solo=False,
+            zkb_is_awox=False,
+            ingested_at=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            victim_ship_type_id=670,
+            victim_corporation_id=98000001,
+            victim_alliance_id=None,
+        )
+        kill_b = KillmailRecord(
+            kill_id=801,
+            kill_time=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            solar_system_id=30002187,
+            zkb_hash="hash801",
+            zkb_total_value=100_000_000.0,
+            zkb_points=10,
+            zkb_is_npc=False,
+            zkb_is_solo=False,
+            zkb_is_awox=False,
+            ingested_at=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            victim_ship_type_id=670,
+            victim_corporation_id=98000001,
+            victim_alliance_id=None,
+        )
+
+        await store.insert_kill(kill_a)
+        await store.insert_kill(kill_b)
+
+        worker.start()
+        await asyncio.sleep(0.15)
+        await worker.stop()
+
+        # Both should have been processed (no system filtering)
+        a_processed = await store.is_kill_processed("test-profile", 800)
+        b_processed = await store.is_kill_processed("test-profile", 801)
+
+        assert a_processed is True
+        assert b_processed is True
+
+
 class TestNotificationWorkerHTTPClient:
     """Tests for HTTP client management."""
 

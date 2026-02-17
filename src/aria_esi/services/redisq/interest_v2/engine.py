@@ -316,10 +316,23 @@ class InterestEngineV2:
         """
         signal_scores: dict[str, SignalScore] = {}
 
+        # Early return if category has no configuration at all
+        if not signals_config:
+            return signal_scores
+
         # Get all registered signals for this category
         providers = registry.get_signals_for_category(category)
 
+        # For multi-signal categories (e.g., location with geographic + security),
+        # only run signals that are explicitly configured by name in signals_config.
+        # Single-signal categories have flat config at category level so always run.
+        multi_signal = len(providers) > 1
+
         for signal_name, provider in providers.items():
+            # Skip unconfigured signals in multi-signal categories
+            if multi_signal and signal_name not in signals_config:
+                continue
+
             # Get signal-specific config
             signal_config = signals_config.get(signal_name, {})
             if signal_config is None:

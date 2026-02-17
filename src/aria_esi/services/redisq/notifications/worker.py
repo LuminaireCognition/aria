@@ -321,6 +321,8 @@ class NotificationWorker:
             geo_layer = self.profile._topology_filter.get_layer("geographic")
             if geo_layer is not None and hasattr(geo_layer, "_interest_map"):
                 system_ids = list(geo_layer._interest_map.keys())
+        elif self.profile._v2_scope_systems is not None:
+            system_ids = self.profile._v2_scope_systems
 
         # Query kills from store with system filtering
         since = datetime.fromtimestamp(since_time) if since_time > 0 else None

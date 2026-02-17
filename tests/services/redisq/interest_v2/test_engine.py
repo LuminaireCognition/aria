@@ -478,3 +478,215 @@ class TestConfigTierIntegration:
         engine = InterestEngineV2(config)
 
         assert engine._config.tier == ConfigTier.ADVANCED
+
+
+class TestSignalOptIn:
+    """Tests for signal opt-in behavior (unconfigured signals skipped)."""
+
+    def test_unconfigured_security_skipped_in_location(self, mock_kill, reset_registry):
+        """When only geographic is configured, security signal should not run."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0},
+            signals={
+                "location": {
+                    "geographic": {
+                        "systems": [{"name": "Jita", "id": 30000142}],
+                    }
+                    # Note: no "security" key
+                }
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        # Location category should have been scored
+        loc = result.category_scores.get("location")
+        assert loc is not None
+
+        # Only geographic signal should be present, not security
+        if loc.signals:
+            assert "geographic" in loc.signals
+            assert "security" not in loc.signals
+
+    def test_both_location_signals_when_configured(self, mock_kill, reset_registry):
+        """When both geographic and security are configured, both should run."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0},
+            signals={
+                "location": {
+                    "geographic": {
+                        "systems": [{"name": "Jita", "id": 30000142}],
+                    },
+                    "security": {
+                        "bands": [{"min": 0.5, "max": 1.0}],
+                    },
+                }
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        loc = result.category_scores.get("location")
+        assert loc is not None
+        if loc.signals:
+            assert "geographic" in loc.signals
+            assert "security" in loc.signals
+
+    def test_single_signal_category_still_scores(self, mock_kill, reset_registry):
+        """Single-signal categories (e.g., value) still score with category-level config."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"value": 1.0},
+            signals={
+                "value": {
+                    "min": 50_000_000,
+                }
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        val = result.category_scores.get("value")
+        assert val is not None
+        if val.signals:
+            assert "value" in val.signals
+
+    def test_empty_signals_config_returns_no_signals(self, mock_kill, reset_registry):
+        """Category with empty signals config returns no signal scores."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0},
+            signals={},  # No categories configured
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        loc = result.category_scores.get("location")
+        assert loc is not None
+        # No signals should have run because signals_config for location is empty
+        assert not loc.signals
+
+    def test_gate_passes_with_geographic_only_in_configured_system(
+        self, mock_kill, reset_registry
+    ):
+        """Gate on location passes when geographic-only is configured and system matches."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0, "value": 0.5},
+            signals={
+                "location": {
+                    "geographic": {
+                        "systems": [
+                            {"name": "Jita", "id": 30000142, "classification": "home"}
+                        ],
+                    }
+                    # No security — should NOT inflate score
+                },
+                "value": {"min": 10_000_000},
+            },
+            rules=RulesConfig(require_all=["location"]),
+        )
+        engine = InterestEngineV2(config)
+
+        # Kill in Jita (system 30000142) — should match geographic
+        result = engine.calculate_interest(mock_kill, 30000142)
+
+        loc = result.category_scores.get("location")
+        assert loc is not None
+        # Geographic should score well for home system
+        if loc.signals and "geographic" in loc.signals:
+            geo_score = loc.signals["geographic"].score
+            assert geo_score > 0.0
+
+    def test_gate_fails_geographic_only_wrong_system(self, mock_kill, reset_registry):
+        """Gate on location fails when geographic-only is configured and system does NOT match.
+
+        This is the core regression test for the bug: before the fix, unconfigured
+        SecuritySignal returned 1.0, inflating the category average to ~0.5 and
+        clearing the 0.3 match threshold even for kills in unrelated systems.
+        """
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0, "value": 0.5},
+            signals={
+                "location": {
+                    "geographic": {
+                        "systems": [
+                            {"name": "Jita", "id": 30000142, "classification": "home"}
+                        ],
+                    }
+                    # No security — must NOT inflate score for non-matching system
+                },
+                "value": {"min": 10_000_000},
+            },
+            rules=RulesConfig(require_all=["location"]),
+        )
+        engine = InterestEngineV2(config)
+
+        # Kill in Amarr (system 30002187) — NOT in configured systems
+        result = engine.calculate_interest(mock_kill, 30002187)
+
+        loc = result.category_scores.get("location")
+        assert loc is not None
+        # Location should NOT match since the system is not configured
+        assert not loc.match, (
+            "Location gate should not match for a system outside geographic config "
+            "(regression: unconfigured security signal inflating score)"
+        )
+        # Gate should fail
+        assert result.tier == NotificationTier.FILTER
+        assert result.interest == 0.0
+
+    def test_provider_scoring_exception_produces_zero_score(self, mock_kill, reset_registry):
+        """A provider that raises during score() produces a zero-score entry with error reason."""
+        from aria_esi.services.redisq.interest_v2.providers.base import BaseSignalProvider
+        from aria_esi.services.redisq.interest_v2.providers.registry import get_provider_registry
+
+        class BrokenSignal(BaseSignalProvider):
+            _name = "broken"
+            _category = "value"
+            _prefetch_capable = False
+
+            def score(self, kill, system_id, config):
+                raise RuntimeError("provider exploded")
+
+        registry = get_provider_registry()
+        registry.register_signal("value", "broken", BrokenSignal)
+
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"value": 1.0},
+            signals={
+                "value": {
+                    "broken": {},
+                },
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        val = result.category_scores.get("value")
+        assert val is not None
+        assert val.signals["broken"].score == 0.0
+        assert "Scoring error" in val.signals["broken"].reason
+        assert "provider exploded" in val.signals["broken"].reason
+
+    def test_signal_config_none_value_treated_as_empty(self, mock_kill, reset_registry):
+        """Signal config explicitly set to None should be treated as empty dict."""
+        config = InterestConfigV2(
+            engine="v2",
+            weights={"location": 1.0},
+            signals={
+                "location": {
+                    "geographic": None,  # Explicitly None
+                }
+            },
+        )
+        engine = InterestEngineV2(config)
+        result = engine.calculate_interest(mock_kill, mock_kill.solar_system_id)
+
+        # Should not crash; geographic signal should still run with empty config
+        loc = result.category_scores.get("location")
+        assert loc is not None

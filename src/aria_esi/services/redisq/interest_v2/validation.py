@@ -94,6 +94,7 @@ def validate_interest_config(config: dict[str, Any]) -> ValidationResult:
     _validate_weights(parsed, errors, warnings)
     _validate_rules(parsed, errors, warnings)
     _validate_signals(parsed, errors, warnings)
+    _validate_gates(parsed, errors, warnings)
     _validate_prefetch(parsed, errors, warnings)
 
     return ValidationResult(
@@ -220,6 +221,51 @@ def _validate_signals(
                         suggestion="Define group in signals.politics.groups",
                     )
                 )
+
+
+def _validate_gates(
+    config: InterestConfigV2,
+    errors: list[ValidationError],
+    warnings: list[ValidationError],
+) -> None:
+    """Validate gate configuration against configured signals."""
+    gate_categories: set[str] = set()
+    if config.rules:
+        gate_categories.update(config.rules.require_all)
+        gate_categories.update(config.rules.require_any)
+
+    if "location" not in gate_categories:
+        return
+
+    # Check what location signals are configured
+    location_signals = config.signals.get("location", {}) if config.signals else {}
+    has_geographic = "geographic" in location_signals
+    has_security = "security" in location_signals
+
+    if not has_geographic and not has_security:
+        warnings.append(
+            ValidationError(
+                field="rules.require_all"
+                if "location" in (config.rules.require_all if config.rules else [])
+                else "rules.require_any",
+                code="LOCATION_GATE_NO_SIGNALS",
+                message="Gate requires 'location' but no location signals are configured",
+                suggestion="Add signals.location.geographic or signals.location.security",
+            )
+        )
+    elif has_geographic and not has_security:
+        warnings.append(
+            ValidationError(
+                field="rules.require_all"
+                if "location" in (config.rules.require_all if config.rules else [])
+                else "rules.require_any",
+                code="LOCATION_GATE_GEOGRAPHIC_ONLY",
+                message=(
+                    "Gate requires 'location' but only 'geographic' signal is configured; "
+                    "location matching is geographic-only"
+                ),
+            )
+        )
 
 
 def _validate_prefetch(

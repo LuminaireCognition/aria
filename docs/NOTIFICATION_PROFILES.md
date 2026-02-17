@@ -190,8 +190,52 @@ interest:
 |-----------|-------------|
 | `always_notify` | Always send notification when these conditions match |
 | `always_ignore` | Never notify when these conditions match |
+| `require_all` | All listed categories must match (AND gate) |
+| `require_any` | At least one listed category must match (OR gate) |
 
-Common rule values: `watchlist_match`, `gatecamp_detected`, `corp_member_victim`, `war_target_activity`, `pod_only`, `npc_only`.
+Common rule values for `always_notify`/`always_ignore`: `watchlist_match`, `gatecamp_detected`, `corp_member_victim`, `war_target_activity`, `pod_only`, `npc_only`.
+
+Gate values for `require_all`/`require_any` are category names: `location`, `value`, `politics`, `activity`, `ship`, `war`, `time`, `routes`, `assets`.
+
+**Example — require location match for all notifications:**
+
+```yaml
+rules:
+  require_all:
+    - location
+  always_notify:
+    - watchlist_match    # Bypasses gates
+```
+
+`always_notify` bypasses gates; `always_ignore` takes precedence over everything.
+
+#### Location Signal Opt-In
+
+The `location` category has two independent signals: `geographic` and `security`. Only signals explicitly configured under `signals.location` will run. If you configure only `geographic`, the `security` signal is not evaluated — the location score is based entirely on geographic matching.
+
+```yaml
+signals:
+  location:
+    geographic:                    # Only this signal runs
+      systems:
+        - name: "Jita"
+          classification: "home"
+    # security: ...               # Not configured — skipped entirely
+```
+
+This prevents unconfigured signals from inflating category scores. If you want both geographic and security-band filtering, configure both explicitly:
+
+```yaml
+signals:
+  location:
+    geographic:
+      systems:
+        - name: "Jita"
+          classification: "home"
+    security:
+      bands:
+        - { min: 0.5, max: 1.0 }  # High-sec only
+```
 
 ### Quiet Hours
 
