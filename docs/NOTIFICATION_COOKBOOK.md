@@ -431,6 +431,59 @@ interest:
 
 The `require_all: [location]` gate ensures only kills in Sortet, Augnais, or Mies generate notifications. `always_notify` rules (like `watchlist_match`) bypass gates, so watchlist matches anywhere still notify.
 
+### Recipe: Pod Spike Alerts
+
+Detect when pod kills spike above baseline in a system — catches gank waves and smartbomb camps without alerting on every individual pod kill:
+
+```yaml
+interest:
+  engine: v2
+  preset: trade-hub
+  weights:
+    activity: 1.0
+    ship: 0.6
+
+  signals:
+    location:
+      geographic:
+        systems:
+          - { name: Jita, id: 30000142, classification: hunting }
+          - { name: Perimeter, id: 30000144, classification: transit }
+    ship:
+      prefer: ["capsule"]
+      prefer_score: 1.0
+      default_score: 0.0
+    activity:
+      spike:
+        enabled: true
+        pod_only: true     # Only count pod kills for spike detection
+        threshold: 3.0     # 3x above baseline
+        min_current: 5     # At least 5 pods/hour before alerting
+        score: 0.7
+      gatecamp:
+        enabled: false
+      sustained:
+        enabled: false
+
+  rules:
+    require_all: ["ship", "activity"]  # Both must match
+
+  thresholds:
+    notify: 0.30
+    priority: 0.70
+```
+
+**How it works:** `require_all: [ship, activity]` gates both signals. ShipSignal scores 1.0 for capsules, 0.0 for everything else. ActivitySignal fires only when pod kills are spiking (3x baseline, minimum 5 pods/hour). Non-capsule kills get gated by ship=0. Capsule kills during non-spike periods get gated by activity=0.
+
+**Activity spike config fields:**
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `pod_only` | bool | `false` | Only count pod kills for spike rate calculation |
+| `threshold` | float | `2.0` | Multiplier over 24h baseline to declare spike |
+| `min_current` | int | `0` | Minimum kills in current hour before declaring spike |
+| `score` | float | `0.7` | Score when spike is detected |
+
 ### Recipe: Wormhole Chain Security
 
 Track all activity in your wormhole chain:

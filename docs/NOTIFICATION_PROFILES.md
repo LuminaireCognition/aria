@@ -209,6 +209,45 @@ rules:
 
 `always_notify` bypasses gates; `always_ignore` takes precedence over everything.
 
+#### Activity Signal Configuration
+
+The `activity` signal detects dangerous activity patterns. When enabled, it queries ThreatCache directly if no pre-injected data is available (self-sufficient mode).
+
+```yaml
+signals:
+  activity:
+    spike:
+      enabled: true
+      pod_only: true       # Only count pod kills for spike detection
+      threshold: 3.0       # Current rate must exceed baseline * threshold
+      min_current: 5       # Minimum kills in current hour before spike fires
+      score: 0.7           # Score when spike detected
+    gatecamp:
+      enabled: true        # Detect gatecamp patterns
+      min_confidence: medium  # low, medium, high
+      score: 0.9
+    sustained:
+      enabled: true
+      threshold: 5         # Minimum kills in window
+      window_minutes: 60
+      score: 0.5
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `spike.enabled` | bool | `true` | Enable spike detection |
+| `spike.pod_only` | bool | `false` | Only count pod kills for spike rate |
+| `spike.threshold` | float | `2.0` | Multiplier over 24h baseline |
+| `spike.min_current` | int | `0` | Min kills in current hour to declare spike |
+| `spike.score` | float | `0.7` | Score when spike detected |
+| `gatecamp.enabled` | bool | `true` | Enable gatecamp detection |
+| `gatecamp.min_confidence` | string | `medium` | Minimum gatecamp confidence |
+| `gatecamp.score` | float | `0.9` | Score when gatecamp detected |
+| `sustained.enabled` | bool | `true` | Enable sustained activity detection |
+| `sustained.threshold` | int | `5` | Kill count threshold |
+| `sustained.window_minutes` | int | `60` | Time window for sustained check |
+| `sustained.score` | float | `0.5` | Score when sustained activity detected |
+
 #### Location Signal Opt-In
 
 The `location` category has two independent signals: `geographic` and `security`. Only signals explicitly configured under `signals.location` will run. If you configure only `geographic`, the `security` signal is not evaluated — the location score is based entirely on geographic matching.

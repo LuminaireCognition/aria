@@ -26,10 +26,23 @@ class ActivitySignal(BaseSignalProvider):
     - Kill spikes (sudden activity increase)
     - Sustained activity (ongoing elevated kills)
 
+    Data sourcing (self-sufficient mode):
+        When spike or sustained signals are enabled but no pre-injected
+        ``activity_data`` exists in config, this signal queries ThreatCache
+        directly. This allows profiles to use activity-based scoring without
+        requiring the notification pipeline to pre-populate activity data.
+
     Config:
         gatecamp: {"enabled": bool, "score": float, "min_confidence": str}
-        spike: {"enabled": bool, "score": float, "threshold": float}
-        sustained: {"enabled": bool, "score": float, "window_minutes": int}
+        spike: {"enabled": bool, "score": float, "threshold": float,
+                "pod_only": bool, "min_current": int}
+        sustained: {"enabled": bool, "score": float, "threshold": int,
+                    "window_minutes": int}
+
+    Spike-specific fields:
+        pod_only: Only count pod kills when computing spike rates
+        min_current: Minimum kills in current hour before declaring a spike
+        threshold: Multiplier over baseline to declare a spike (default 2.0)
 
     Prefetch capable: NO (requires activity history analysis)
     """
