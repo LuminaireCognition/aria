@@ -461,6 +461,39 @@ class TestNotificationWorkerRollup:
         assert result is False
 
 
+    async def test_send_rollup_returns_false_when_no_callback(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Rollup returns False when _send_notification is None (default)."""
+        assert worker._send_notification is None
+
+        kills = [make_kill(500)]
+        kills[0].zkb_total_value = 100_000_000
+
+        result = await worker._send_rollup(kills)
+        assert result is False
+
+    async def test_send_rollup_no_callback_does_not_mark_processed(
+        self, worker: NotificationWorker, store: SQLiteKillmailStore
+    ) -> None:
+        """Rollup with no callback does not mark kills as processed or update metrics."""
+        assert worker._send_notification is None
+
+        kills = [make_kill(501), make_kill(502)]
+        for kill in kills:
+            kill.zkb_total_value = 100_000_000
+            await store.insert_kill(kill)
+
+        initial_rollups = worker._metrics.rollups_sent
+        await worker._send_rollup(kills)
+
+        # Kills should NOT be marked as processed
+        assert not await store.is_kill_processed("test-profile", 501)
+        assert not await store.is_kill_processed("test-profile", 502)
+        # Metrics should be unchanged
+        assert worker._metrics.rollups_sent == initial_rollups
+
+
 class TestNotificationWorkerPodRollup:
     """Tests for pod-aware rollup formatting."""
 

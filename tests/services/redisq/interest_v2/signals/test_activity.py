@@ -516,6 +516,34 @@ class TestActivitySignalSelfSufficient:
         assert result["sustained_kills"] == 10
         mock_db.count_recent_kills.assert_called_once_with(system_id=30000142, since_minutes=120)
 
+    def test_query_spike_data_returns_none_on_exception(
+        self, signal: ActivitySignal, monkeypatch
+    ) -> None:
+        """_query_spike_data returns None when get_threat_cache raises."""
+        import aria_esi.services.redisq.threat_cache as tc_mod
+
+        def _raise():
+            raise RuntimeError("no cache")
+
+        monkeypatch.setattr(tc_mod, "get_threat_cache", _raise)
+
+        result = signal._query_spike_data(30000142, {"threshold": 2.0})
+        assert result is None
+
+    def test_query_sustained_data_returns_none_on_exception(
+        self, signal: ActivitySignal, monkeypatch
+    ) -> None:
+        """_query_sustained_data returns None when get_threat_cache raises."""
+        import aria_esi.services.redisq.threat_cache as tc_mod
+
+        def _raise():
+            raise RuntimeError("no cache")
+
+        monkeypatch.setattr(tc_mod, "get_threat_cache", _raise)
+
+        result = signal._query_sustained_data(30000142, {"window_minutes": 60})
+        assert result is None
+
 
 class TestActivitySignalProperties:
     """Tests for ActivitySignal class properties."""

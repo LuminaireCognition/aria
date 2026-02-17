@@ -346,6 +346,34 @@ class TestCountRecentKills:
         count = db.count_recent_kills(system_id=30000142, since_minutes=60)
         assert count == 0
 
+    def test_count_pod_only_returns_zero_when_only_ship_kills(self, db: RealtimeKillsDatabase):
+        """Test pod_only=True returns 0 when all kills are ship kills."""
+        now = datetime.utcnow()
+        for i in range(3):
+            kill = ProcessedKill(
+                kill_id=i + 1,
+                kill_time=now - timedelta(minutes=10),
+                solar_system_id=30000142,
+                victim_ship_type_id=17740,
+                victim_corporation_id=98000001,
+                victim_alliance_id=None,
+                attacker_count=1,
+                attacker_corps=[],
+                attacker_alliances=[],
+                attacker_ship_types=[],
+                final_blow_ship_type_id=None,
+                total_value=10000000.0,
+                is_pod_kill=False,
+            )
+            db.save_kill(kill)
+
+        # All kills are ships, querying pods should return 0
+        pod_count = db.count_recent_kills(system_id=30000142, since_minutes=60, pod_only=True)
+        assert pod_count == 0
+        # Sanity: all kills are there
+        all_count = db.count_recent_kills(system_id=30000142, since_minutes=60)
+        assert all_count == 3
+
 
 class TestStateOperations:
     """Tests for state persistence operations."""
