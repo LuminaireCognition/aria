@@ -439,11 +439,22 @@ class NotificationManager:
                 system_groups.setdefault(b.kill.solar_system_id, []).append(b)
 
             max_rollup = profile.rate_limit_strategy.max_rollup_kills
+            min_kills = profile.rate_limit_strategy.rollup_min_kills
             queue = self._queues.get(profile.webhook_url)
             if not queue:
                 continue
 
             for _system_id, system_kills in system_groups.items():
+                if len(system_kills) < min_kills:
+                    logger.debug(
+                        "Suppressing rollup for profile '%s': %d kills in system %d "
+                        "below min_kills=%d",
+                        profile_name,
+                        len(system_kills),
+                        _system_id,
+                        min_kills,
+                    )
+                    continue
                 for i in range(0, len(system_kills), max_rollup):
                     chunk = system_kills[i : i + max_rollup]
                     payload = self._format_rollup_message(chunk, profile)

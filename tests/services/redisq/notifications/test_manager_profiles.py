@@ -1288,6 +1288,59 @@ class TestNotificationManagerForceRollup:
         assert "4 pods" in msg["content"]
 
     @pytest.mark.asyncio
+    async def test_rollup_min_kills_suppresses_below_threshold(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """Single kill in a system is suppressed when rollup_min_kills=2."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "rollup-test",
+            self._make_rollup_profile(rls_rollup_min_kills=2),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=1400)
+        await manager.process_kill(kill, system_name="Tama")
+
+        # Age past window
+        manager._rollup_buffers["rollup-test"][0].buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        # Buffer should be cleared (kill consumed)
+        assert len(manager._rollup_buffers.get("rollup-test", [])) == 0
+        # But webhook queue should be empty (suppressed)
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth == 0
+
+    @pytest.mark.asyncio
+    async def test_rollup_min_kills_allows_at_threshold(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """Two kills in a system pass when rollup_min_kills=2."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "rollup-test",
+            self._make_rollup_profile(rls_rollup_min_kills=2),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        for i in range(2):
+            kill = make_mock_kill(kill_id=1410 + i)
+            await manager.process_kill(kill, system_name="Tama")
+
+        # Age past window
+        for b in manager._rollup_buffers["rollup-test"]:
+            b.buffered_at = time.time() - 6 * 60
+
+        await manager._flush_rollup_buffers()
+
+        queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
+        assert queue.depth == 1
+
+    @pytest.mark.asyncio
     async def test_stop_flushes_then_clears_rollup_buffers(
         self, temp_profiles_dir, mock_discord_client
     ):

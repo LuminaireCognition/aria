@@ -51,6 +51,7 @@ class RateLimitStrategy:
 
     rollup_threshold: int = 10  # Pending kills to trigger rollup
     max_rollup_kills: int = 20  # Max kills in a single rollup message
+    rollup_min_kills: int = 1  # Min kills per system to emit a rollup (below = suppress)
     backoff_seconds: float = 30.0  # Backoff time on rate limit
     force_rollup: bool = False  # Buffer all kills and send batched summaries
     rollup_window_minutes: int | None = None  # Override rollup flush window (1-30)
@@ -71,6 +72,7 @@ class RateLimitStrategy:
         return cls(
             rollup_threshold=data.get("rollup_threshold", 10),
             max_rollup_kills=data.get("max_rollup_kills", 20),
+            rollup_min_kills=data.get("rollup_min_kills", 1),
             backoff_seconds=data.get("backoff_seconds", 30.0),
             force_rollup=data.get("force_rollup", False),
             rollup_window_minutes=data.get("rollup_window_minutes"),
@@ -332,6 +334,7 @@ class NotificationProfile:
             rls_dict: dict[str, Any] = {
                 "rollup_threshold": self.rate_limit_strategy.rollup_threshold,
                 "max_rollup_kills": self.rate_limit_strategy.max_rollup_kills,
+                "rollup_min_kills": self.rate_limit_strategy.rollup_min_kills,
                 "backoff_seconds": self.rate_limit_strategy.backoff_seconds,
                 "force_rollup": self.rate_limit_strategy.force_rollup,
             }

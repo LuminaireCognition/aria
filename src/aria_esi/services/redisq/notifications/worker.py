@@ -475,8 +475,18 @@ class NotificationWorker:
             system_groups.setdefault(kill.solar_system_id, []).append(kill)
 
         max_rollup = self.profile.rate_limit_strategy.max_rollup_kills
+        min_kills = self.profile.rate_limit_strategy.rollup_min_kills
 
         for _system_id, system_kills in system_groups.items():
+            if len(system_kills) < min_kills:
+                logger.debug(
+                    "Worker '%s' suppressing rollup: %d kills in system %d below min_kills=%d",
+                    self.name,
+                    len(system_kills),
+                    _system_id,
+                    min_kills,
+                )
+                continue
             # Send in chunks of max_rollup_kills
             for i in range(0, len(system_kills), max_rollup):
                 chunk = system_kills[i : i + max_rollup]
