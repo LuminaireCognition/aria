@@ -24,6 +24,7 @@ from .processor import KillFilter, create_filter_from_config
 
 if TYPE_CHECKING:
     from .entity_filter import EntityAwareFilter
+    from .hull_prices import ShipPriceLookup
     from .models import ProcessedKill
     from .name_resolver import NameResolver
     from .notifications import NotificationManager
@@ -84,6 +85,9 @@ class RedisQPoller:
 
     # Name resolver for display names
     _name_resolver: NameResolver | None = None
+
+    # Ship hull price lookup
+    _hull_price_lookup: ShipPriceLookup | None = None
 
     # Killmail store (persistent storage)
     _killmail_store: SQLiteKillmailStore | None = None
@@ -204,6 +208,21 @@ class RedisQPoller:
         except Exception as e:
             logger.warning("Failed to initialize name resolver: %s", e)
             self._name_resolver = None
+
+        # Initialize ship hull price lookup
+        try:
+            from .hull_prices import ShipPriceLookup
+
+            self._hull_price_lookup = ShipPriceLookup()
+            await self._hull_price_lookup.load()
+            if self._hull_price_lookup.is_loaded:
+                logger.info(
+                    "Hull price lookup loaded: %d ship prices",
+                    self._hull_price_lookup.ship_count,
+                )
+        except Exception as e:
+            logger.warning("Failed to initialize hull price lookup: %s", e)
+            self._hull_price_lookup = None
 
         # Create HTTP client with long timeout for polling
         # follow_redirects required: /listen.php redirects to /object.php as of Aug 2025

@@ -57,7 +57,7 @@ def manager(db_path: Path) -> EntityWatchlistManager:
         );
         CREATE INDEX IF NOT EXISTS idx_entity_items_entity ON entity_watchlist_items(entity_id, entity_type);
 
-        INSERT OR REPLACE INTO metadata (key, value) VALUES ('schema_version', '7');
+        INSERT OR REPLACE INTO metadata (key, value) VALUES ('schema_version', '9');
     """)
     conn.commit()
     conn.close()

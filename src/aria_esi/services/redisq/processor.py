@@ -15,6 +15,7 @@ from .models import ProcessedKill
 
 if TYPE_CHECKING:
     from .entity_filter import EntityAwareFilter, EntityMatchResult
+    from .hull_prices import ShipPriceLookup
 
 logger = get_logger(__name__)
 
@@ -35,13 +36,18 @@ def is_pod_kill(ship_type_id: int | None) -> bool:
     return ship_type_id in POD_TYPE_IDS if ship_type_id else False
 
 
-def parse_esi_killmail(esi_data: dict[str, Any], zkb_data: dict[str, Any]) -> ProcessedKill:
+def parse_esi_killmail(
+    esi_data: dict[str, Any],
+    zkb_data: dict[str, Any],
+    hull_price_lookup: ShipPriceLookup | None = None,
+) -> ProcessedKill:
     """
     Parse ESI killmail response into ProcessedKill.
 
     Args:
         esi_data: Full killmail data from ESI /killmails/{id}/{hash}/
         zkb_data: zKillboard metadata from RedisQ package
+        hull_price_lookup: Optional lookup for ship hull prices
 
     Returns:
         ProcessedKill with extracted data
@@ -88,6 +94,11 @@ def parse_esi_killmail(esi_data: dict[str, Any], zkb_data: dict[str, Any]) -> Pr
     # Get total value from zKillboard (ESI doesn't provide this)
     total_value = zkb_data.get("totalValue", 0.0)
 
+    # Look up hull value from ESI adjusted prices
+    hull_value: float | None = None
+    if hull_price_lookup is not None and victim_ship_type_id is not None:
+        hull_value = hull_price_lookup.get_hull_value(victim_ship_type_id)
+
     return ProcessedKill(
         kill_id=esi_data.get("killmail_id", 0),
         kill_time=kill_time.replace(tzinfo=None),  # Store as naive UTC
@@ -102,6 +113,7 @@ def parse_esi_killmail(esi_data: dict[str, Any], zkb_data: dict[str, Any]) -> Pr
         final_blow_ship_type_id=final_blow_ship_type_id,
         total_value=total_value,
         is_pod_kill=is_pod_kill(victim_ship_type_id),
+        hull_value=hull_value,
     )
 
 

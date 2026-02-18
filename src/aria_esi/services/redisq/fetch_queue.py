@@ -210,9 +210,13 @@ class KillFetchQueue:
 
     async def _process_loop(self) -> None:
         """Main processing loop."""
+        from .hull_prices import get_ship_price_lookup
         from .processor import parse_esi_killmail
 
         assert self._client is not None, "_process_loop called without initialized client"
+
+        # Get hull price lookup (may not be loaded yet, that's OK)
+        hull_price_lookup = get_ship_price_lookup()
 
         while self._processing:
             if not self._queue:
@@ -242,6 +246,9 @@ class KillFetchQueue:
                         processed = parse_esi_killmail(
                             result.esi_data,
                             kill.zkb_data,
+                            hull_price_lookup=hull_price_lookup
+                            if hull_price_lookup.is_loaded
+                            else None,
                         )
                         self._fetched_count += 1
 
