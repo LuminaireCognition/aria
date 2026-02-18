@@ -1288,6 +1288,32 @@ class TestNotificationManagerForceRollup:
         assert "3 kills" in payload["content"]
 
     @pytest.mark.asyncio
+    async def test_stop_drains_non_rollup_queues(self, temp_profiles_dir, mock_discord_client):
+        """stop() drains webhook queues even when no rollup buffers exist."""
+        # Use a non-rollup profile so kills go straight to the webhook queue
+        write_profile_yaml(
+            temp_profiles_dir,
+            "immediate",
+            self._make_rollup_profile(name="immediate", force_rollup=False),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=9900)
+        await manager.process_kill(kill, system_name="Tama")
+
+        # Kill should be in the webhook queue (not buffered)
+        assert len(manager._rollup_buffers) == 0
+        queue = manager._queues.get("https://discord.com/api/webhooks/immediate/abc")
+        assert queue is not None
+        assert queue.depth == 1
+
+        await manager.stop()
+
+        # The queued message should have been sent during stop()
+        mock_discord_client.return_value.send.assert_called_once()
+
+    @pytest.mark.asyncio
     async def test_rollup_stale_profile_discarded(self, temp_profiles_dir, mock_discord_client):
         """Buffered kills for a removed profile are discarded on flush."""
         write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
