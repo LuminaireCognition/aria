@@ -105,6 +105,61 @@ class TestWebhookQueue:
         assert mock_client.send.call_count == 1
 
     @pytest.mark.asyncio
+    async def test_process_queue_all_stale(self, mock_client):
+        """Queue with all stale messages sends nothing and empties."""
+        queue = WebhookQueue(client=mock_client)
+
+        for i in range(5):
+            stale_msg = QueuedMessage(
+                payload={"content": f"stale-{i}"},
+                queued_at=time.time() - 600,  # 10 minutes old
+                kill_id=i,
+            )
+            queue._queue.append(stale_msg)
+
+        assert queue.depth == 5
+
+        sent = await queue.process_queue()
+
+        assert sent == 0
+        assert queue.depth == 0
+        assert mock_client.send.call_count == 0
+
+    @pytest.mark.asyncio
+    async def test_process_queue_send_failure_circuit_breaker(self, mock_client):
+        """Circuit breaker triggers after sustained failures and re-queues message."""
+        mock_client.send = AsyncMock(
+            return_value=SendResult(success=False, status_code=500, error="Server error")
+        )
+
+        queue = WebhookQueue(client=mock_client)
+        # Pre-set failure state so next failure triggers circuit breaker
+        queue._consecutive_failures = 2
+        queue._failure_start = time.time() - 400  # Failures started >5 min ago
+
+        queue.enqueue(payload={"content": "test"}, kill_id=1)
+
+        sent = await queue.process_queue()
+
+        assert sent == 0
+        assert queue.is_paused is True
+        # Failed message should be re-queued (not lost)
+        assert queue.depth == 1
+
+    @pytest.mark.asyncio
+    async def test_enqueue_drops_oldest_when_full(self, mock_client):
+        """Full queue drops oldest message and keeps newest."""
+        queue = WebhookQueue(client=mock_client, max_size=3)
+
+        for i in range(4):
+            queue.enqueue(payload={"id": i}, kill_id=i)
+
+        assert queue.depth == 3
+        # Oldest (id=0) should have been dropped; newest (id=3) should be present
+        payloads = [m.payload["id"] for m in queue._queue]
+        assert payloads == [1, 2, 3]
+
+    @pytest.mark.asyncio
     async def test_paused_queue_skips_processing(self, mock_client):
         """Test paused queue doesn't process."""
         queue = WebhookQueue(client=mock_client)

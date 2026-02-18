@@ -1314,6 +1314,87 @@ class TestNotificationManagerForceRollup:
         mock_discord_client.return_value.send.assert_called_once()
 
     @pytest.mark.asyncio
+    async def test_stop_drains_mixed_rollup_and_non_rollup(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """stop() drains both rollup buffers and non-rollup queues in mixed-profile setup."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "immediate",
+            self._make_rollup_profile(name="immediate", force_rollup=False),
+        )
+        write_profile_yaml(
+            temp_profiles_dir,
+            "rollup",
+            self._make_rollup_profile(name="rollup", force_rollup=True),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        kill = make_mock_kill(kill_id=9910)
+        await manager.process_kill(kill, system_name="Tama")
+
+        # Immediate profile: message in webhook queue
+        imm_queue = manager._queues.get("https://discord.com/api/webhooks/immediate/abc")
+        assert imm_queue.depth == 1
+        # Rollup profile: kill in buffer, queue empty
+        roll_queue = manager._queues.get("https://discord.com/api/webhooks/rollup/abc")
+        assert roll_queue.depth == 0
+        assert len(manager._rollup_buffers["rollup"]) == 1
+
+        await manager.stop()
+
+        # Both the non-rollup queue message and the rollup buffer should have been sent
+        assert mock_discord_client.return_value.send.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_stop_continues_closing_after_client_error(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """stop() closes remaining clients even if one raises an exception."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "profile-a",
+            self._make_rollup_profile(name="profile-a", force_rollup=False),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Replace the client with one that raises on close
+        url = "https://discord.com/api/webhooks/profile-a/abc"
+        failing_client = MagicMock()
+        failing_client.close = AsyncMock(side_effect=RuntimeError("connection lost"))
+        manager._clients[url] = failing_client
+
+        # stop() should not raise despite client.close() error
+        await manager.stop()
+
+        # close was called (and the exception was caught, not propagated)
+        failing_client.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_stop_with_empty_queues_no_errors(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """stop() handles the case where queues exist but are empty (no kills processed)."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "idle-profile",
+            self._make_rollup_profile(name="idle-profile", force_rollup=False),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Don't process any kills — queues exist but are empty
+        queue = manager._queues.get("https://discord.com/api/webhooks/idle-profile/abc")
+        assert queue is not None
+        assert queue.depth == 0
+
+        # stop() should complete without errors
+        await manager.stop()
+        mock_discord_client.return_value.send.assert_not_called()
+
+    @pytest.mark.asyncio
     async def test_rollup_stale_profile_discarded(self, temp_profiles_dir, mock_discord_client):
         """Buffered kills for a removed profile are discarded on flush."""
         write_profile_yaml(temp_profiles_dir, "rollup-test", self._make_rollup_profile())
