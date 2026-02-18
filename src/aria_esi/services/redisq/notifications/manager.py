@@ -487,12 +487,7 @@ class NotificationManager:
         system_counts = Counter(k.kill.solar_system_id for k in kills)
         primary_system_id = system_counts.most_common(1)[0][0]
 
-        # Format timestamp for zkill URL
-        first_kill_time = kills[0].kill.kill_time
-        if isinstance(first_kill_time, datetime):
-            timestamp = first_kill_time.strftime("%Y%m%d%H%M")
-        else:
-            timestamp = datetime.fromtimestamp(first_kill_time).strftime("%Y%m%d%H%M")
+        # zkill rollup link uses system scope (no timestamp)
 
         # Value formatting
         if total_value >= 1_000_000_000:
@@ -530,7 +525,7 @@ class NotificationManager:
             content = (
                 f"{header}\n"
                 f"{system_name_line}"
-                f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
+                f"🔗 https://zkillboard.com/related/{primary_system_id}/"
             )
         else:
             title = rls.rollup_title or "Activity"
@@ -539,7 +534,7 @@ class NotificationManager:
                 f"{header}\n"
                 f"💀 {value_str} ISK total\n"
                 f"{system_name_line}"
-                f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
+                f"🔗 https://zkillboard.com/related/{primary_system_id}/"
             )
 
         return {"content": content}

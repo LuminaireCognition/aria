@@ -527,9 +527,7 @@ class NotificationWorker:
         system_counts = Counter(k.solar_system_id for k in kills)
         primary_system_id = system_counts.most_common(1)[0][0]
 
-        # Format timestamp for zkill URL (YYYYMMDDHHMM)
-        first_kill_time = datetime.fromtimestamp(kills[0].kill_time)
-        timestamp = first_kill_time.strftime("%Y%m%d%H%M")
+        # zkill rollup link uses system scope (no timestamp)
 
         # Format value in billions or millions
         if total_value >= 1_000_000_000:
@@ -566,7 +564,7 @@ class NotificationWorker:
             content = (
                 f"{header}\n"
                 f"{system_name_line}"
-                f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
+                f"🔗 https://zkillboard.com/related/{primary_system_id}/"
             )
         else:
             title = rls.rollup_title or "Activity"
@@ -578,7 +576,7 @@ class NotificationWorker:
                 f"{header}\n"
                 f"💀 {value_str} ISK total\n"
                 f"{system_name_line}"
-                f"🔗 https://zkillboard.com/related/{primary_system_id}/{timestamp}/"
+                f"🔗 https://zkillboard.com/related/{primary_system_id}/"
             )
 
         # Send via webhook
