@@ -28,7 +28,7 @@ logger = get_logger(__name__)
 # =============================================================================
 
 # Schema version for migrations
-SCHEMA_VERSION = 8
+SCHEMA_VERSION = 9
 
 # Common item categories for pre-warming
 COMMON_ITEM_CATEGORIES = [
@@ -307,6 +307,7 @@ CREATE TABLE IF NOT EXISTS realtime_kills (
     final_blow_ship_type_id INTEGER,
     total_value REAL,
     is_pod_kill INTEGER DEFAULT 0,
+    hull_value REAL,
     created_at INTEGER DEFAULT (strftime('%s', 'now'))
 );
 
@@ -733,6 +734,25 @@ class MarketDatabase:
             """)
             conn.commit()
             logger.info("Migration 7 -> 8 complete")
+
+        # Migration 8 -> 9: Add hull_value to realtime_kills
+        if from_version < 9:
+            logger.info("Running migration 8 -> 9: Adding hull_value to realtime_kills")
+            # Table may not exist if created by SCHEMA_SQL on fresh install
+            tables = {
+                row[0]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table'"
+                ).fetchall()
+            }
+            if "realtime_kills" in tables:
+                columns = {
+                    row[1] for row in conn.execute("PRAGMA table_info(realtime_kills)").fetchall()
+                }
+                if "hull_value" not in columns:
+                    conn.execute("ALTER TABLE realtime_kills ADD COLUMN hull_value REAL")
+            conn.commit()
+            logger.info("Migration 8 -> 9 complete")
 
     def _seed_core_scopes(self) -> None:
         """

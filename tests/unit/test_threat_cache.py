@@ -76,6 +76,7 @@ def temp_db():
                 final_blow_ship_type_id INTEGER,
                 total_value REAL,
                 is_pod_kill INTEGER DEFAULT 0,
+                hull_value REAL,
                 watched_entity_match INTEGER DEFAULT 0,
                 watched_entity_ids TEXT,
                 created_at INTEGER DEFAULT (strftime('%s', 'now'))

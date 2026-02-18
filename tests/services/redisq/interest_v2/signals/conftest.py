@@ -30,6 +30,7 @@ class MockProcessedKill:
     attacker_ship_types: list[int] = field(default_factory=lambda: [17703, 17703])  # Astero
     final_blow_ship_type_id: int | None = 17703
     total_value: float = 150_000_000.0  # 150M ISK
+    hull_value: float | None = None
     kill_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 

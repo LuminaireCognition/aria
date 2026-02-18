@@ -119,8 +119,8 @@ class RealtimeKillsDatabase:
                 victim_corporation_id, victim_alliance_id, attacker_count,
                 attacker_corps, attacker_alliances, attacker_ship_types,
                 final_blow_ship_type_id, total_value, is_pod_kill,
-                watched_entity_match, watched_entity_ids
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                hull_value, watched_entity_match, watched_entity_ids
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             row + (watched_match, watched_ids),
         )
@@ -146,8 +146,9 @@ class RealtimeKillsDatabase:
                 kill_id, kill_time, solar_system_id, victim_ship_type_id,
                 victim_corporation_id, victim_alliance_id, attacker_count,
                 attacker_corps, attacker_alliances, attacker_ship_types,
-                final_blow_ship_type_id, total_value, is_pod_kill
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                final_blow_ship_type_id, total_value, is_pod_kill,
+                hull_value
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [k.to_db_row() for k in kills],
         )

@@ -144,6 +144,7 @@ class ProcessedKill:
     final_blow_ship_type_id: int | None
     total_value: float
     is_pod_kill: bool
+    hull_value: float | None = None
 
     def to_db_row(self) -> tuple:
         """
@@ -168,6 +169,7 @@ class ProcessedKill:
             self.final_blow_ship_type_id,
             self.total_value,
             1 if self.is_pod_kill else 0,
+            self.hull_value,
         )
 
     @classmethod
@@ -184,6 +186,8 @@ class ProcessedKill:
         import json
 
         if isinstance(row, tuple):
+            # hull_value is at index 13 if present (added in migration 8->9)
+            hull_value = row[13] if len(row) > 13 else None
             return cls(
                 kill_id=row[0],
                 kill_time=datetime.fromtimestamp(row[1]),
@@ -198,8 +202,16 @@ class ProcessedKill:
                 final_blow_ship_type_id=row[10],
                 total_value=row[11] or 0.0,
                 is_pod_kill=bool(row[12]),
+                hull_value=hull_value,
             )
         else:
+            # Handle missing hull_value column for backward compat
+            hull_value = None
+            try:
+                hull_value = row["hull_value"]
+            except (KeyError, IndexError):
+                pass
+
             return cls(
                 kill_id=row["kill_id"],
                 kill_time=datetime.fromtimestamp(row["kill_time"]),
@@ -218,6 +230,7 @@ class ProcessedKill:
                 final_blow_ship_type_id=row["final_blow_ship_type_id"],
                 total_value=row["total_value"] or 0.0,
                 is_pod_kill=bool(row["is_pod_kill"]),
+                hull_value=hull_value,
             )
 
 

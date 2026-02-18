@@ -15,6 +15,7 @@ Signals compute interest scores for specific categories:
 
 from .activity import ActivitySignal
 from .assets import AssetSignal
+from .hull_value import HullValueSignal
 from .location import GeographicSignal, SecuritySignal
 from .politics import PoliticsSignal
 from .routes import RouteSignal
@@ -27,6 +28,7 @@ __all__ = [
     "ActivitySignal",
     "AssetSignal",
     "GeographicSignal",
+    "HullValueSignal",
     "PoliticsSignal",
     "RouteSignal",
     "SecuritySignal",
@@ -49,6 +51,7 @@ def register_builtin_signals() -> None:
 
     # Value category
     registry.register_signal("value", "value", lambda: ValueSignal())
+    registry.register_signal("value", "hull_value", lambda: HullValueSignal())
 
     # Politics category
     registry.register_signal("politics", "politics", lambda: PoliticsSignal())
