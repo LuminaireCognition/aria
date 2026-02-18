@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import time
 from datetime import datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
@@ -29,7 +30,7 @@ pytestmark = pytest.mark.asyncio
 
 def make_kill(kill_id: int, kill_time: datetime | None = None) -> KillmailRecord:
     """Create a test killmail record."""
-    kt = kill_time or datetime(2026, 1, 26, 12, 0, 0)
+    kt = kill_time or datetime.utcnow()
     return KillmailRecord(
         kill_id=kill_id,
         kill_time=int(kt.timestamp()),
@@ -824,7 +825,7 @@ class TestNotificationWorkerScopeFiltering:
         kill_in_scope = make_kill(700)
         kill_in_scope = KillmailRecord(
             kill_id=700,
-            kill_time=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            kill_time=int(time.time()),
             solar_system_id=30000142,  # In scope
             zkb_hash="hash700",
             zkb_total_value=100_000_000.0,
@@ -832,14 +833,14 @@ class TestNotificationWorkerScopeFiltering:
             zkb_is_npc=False,
             zkb_is_solo=False,
             zkb_is_awox=False,
-            ingested_at=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            ingested_at=int(time.time()),
             victim_ship_type_id=670,
             victim_corporation_id=98000001,
             victim_alliance_id=None,
         )
         kill_out_of_scope = KillmailRecord(
             kill_id=701,
-            kill_time=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            kill_time=int(time.time()),
             solar_system_id=30002187,  # NOT in scope
             zkb_hash="hash701",
             zkb_total_value=100_000_000.0,
@@ -847,7 +848,7 @@ class TestNotificationWorkerScopeFiltering:
             zkb_is_npc=False,
             zkb_is_solo=False,
             zkb_is_awox=False,
-            ingested_at=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            ingested_at=int(time.time()),
             victim_ship_type_id=670,
             victim_corporation_id=98000001,
             victim_alliance_id=None,
@@ -877,7 +878,7 @@ class TestNotificationWorkerScopeFiltering:
         # Insert kills in different systems
         kill_a = KillmailRecord(
             kill_id=800,
-            kill_time=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            kill_time=int(time.time()),
             solar_system_id=30000142,
             zkb_hash="hash800",
             zkb_total_value=100_000_000.0,
@@ -885,14 +886,14 @@ class TestNotificationWorkerScopeFiltering:
             zkb_is_npc=False,
             zkb_is_solo=False,
             zkb_is_awox=False,
-            ingested_at=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            ingested_at=int(time.time()),
             victim_ship_type_id=670,
             victim_corporation_id=98000001,
             victim_alliance_id=None,
         )
         kill_b = KillmailRecord(
             kill_id=801,
-            kill_time=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            kill_time=int(time.time()),
             solar_system_id=30002187,
             zkb_hash="hash801",
             zkb_total_value=100_000_000.0,
@@ -900,7 +901,7 @@ class TestNotificationWorkerScopeFiltering:
             zkb_is_npc=False,
             zkb_is_solo=False,
             zkb_is_awox=False,
-            ingested_at=int(datetime(2026, 1, 26, 12, 0, 0).timestamp()),
+            ingested_at=int(time.time()),
             victim_ship_type_id=670,
             victim_corporation_id=98000001,
             victim_alliance_id=None,
@@ -970,7 +971,7 @@ def make_kill_with_system(
     ingested_at: int | None = None,
 ) -> KillmailRecord:
     """Create a test killmail with configurable system and ship type."""
-    ts = ingested_at or int(datetime(2026, 1, 26, 12, 0, 0).timestamp())
+    ts = ingested_at or int(time.time())
     return KillmailRecord(
         kill_id=kill_id,
         kill_time=ts,

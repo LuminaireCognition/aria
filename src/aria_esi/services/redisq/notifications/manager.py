@@ -579,12 +579,13 @@ class NotificationManager:
         if not eval_result.has_matches:
             logger.debug(
                 "Kill %d: no profile matches (filtered: topology=%d, throttle=%d, "
-                "quiet_hours=%d, triggers=%d)",
+                "quiet_hours=%d, triggers=%d, stale=%d)",
                 kill.kill_id,
                 len(eval_result.filtered_by_topology),
                 len(eval_result.filtered_by_throttle),
                 len(eval_result.filtered_by_quiet_hours),
                 len(eval_result.filtered_by_triggers),
+                len(eval_result.filtered_by_stale),
             )
             return False
 

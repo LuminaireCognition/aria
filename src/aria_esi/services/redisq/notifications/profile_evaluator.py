@@ -8,6 +8,7 @@ profiles should send notifications for a given kill.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from ....core.logging import get_logger
@@ -28,6 +29,10 @@ logger = get_logger(__name__)
 # Maximum profiles to load (soft limit)
 MAX_PROFILES_SOFT = 10
 MAX_PROFILES_HARD = 25
+
+# Maximum age (seconds) for a kill to be notification-worthy.
+# Kills older than this are silently dropped — they have no tactical value.
+MAX_KILL_AGE_SECONDS = 600
 
 
 @dataclass
@@ -51,6 +56,7 @@ class EvaluationResult:
     filtered_by_triggers: list[str] = field(default_factory=list)
     filtered_by_interest: list[str] = field(default_factory=list)  # v2 engine filtering
     filtered_by_engine_error: list[str] = field(default_factory=list)
+    filtered_by_stale: list[str] = field(default_factory=list)
 
     @property
     def has_matches(self) -> bool:
@@ -253,6 +259,8 @@ class ProfileEvaluator:
                 result.filtered_by_interest.append(profile.name)
             elif filter_reason == "interest_engine_init_failed":
                 result.filtered_by_engine_error.append(profile.name)
+            elif filter_reason == "stale":
+                result.filtered_by_stale.append(profile.name)
             elif "trigger_result" in match_result:
                 # Profile matched
                 result.matches.append(
@@ -325,6 +333,14 @@ class ProfileEvaluator:
             Dict with trigger_result and interest_result, or filtered_by key
         """
         try:
+            # Age-gate: reject stale kills (no tactical value after restart)
+            kill_time = kill.kill_time
+            if kill_time.tzinfo is None:
+                kill_time = kill_time.replace(tzinfo=UTC)
+            kill_age_seconds = (datetime.now(UTC) - kill_time).total_seconds()
+            if kill_age_seconds > MAX_KILL_AGE_SECONDS:
+                return {"filtered_by": "stale"}
+
             engine = profile._interest_engine_v2
             if engine is None:
                 return {"filtered_by": "no_engine"}

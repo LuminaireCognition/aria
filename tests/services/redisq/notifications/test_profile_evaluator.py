@@ -4,10 +4,12 @@ Tests for notification profile evaluator.
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
 from aria_esi.services.redisq.notifications.config import QuietHoursConfig, TriggerConfig
 from aria_esi.services.redisq.notifications.profile_evaluator import (
+    MAX_KILL_AGE_SECONDS,
     MAX_PROFILES_HARD,
     MAX_PROFILES_SOFT,
     EvaluationResult,
@@ -74,12 +76,14 @@ def make_kill(
     kill_id: int = 12345,
     solar_system_id: int = 30000142,
     total_value: int = 100_000_000,
+    kill_time: datetime | None = None,
 ) -> MagicMock:
     """Create a mock ProcessedKill."""
     kill = MagicMock()
     kill.kill_id = kill_id
     kill.solar_system_id = solar_system_id
     kill.total_value = total_value
+    kill.kill_time = kill_time if kill_time is not None else datetime.now(timezone.utc)
     return kill
 
 
@@ -731,3 +735,104 @@ class TestProfileEvaluatorFilteredLists:
             filtered_by_interest=["profile-a"],
         )
         assert "profile-a" in result.filtered_by_interest
+
+    def test_filtered_by_stale_list(self):
+        """filtered_by_stale tracks filtered profiles."""
+        result = EvaluationResult(
+            kill_id=123,
+            filtered_by_stale=["profile-a"],
+        )
+        assert "profile-a" in result.filtered_by_stale
+
+
+class TestStaleKillFilter:
+    """Tests for stale kill age-gate in profile evaluation."""
+
+    def test_stale_kill_filtered(self):
+        """Kill older than MAX_KILL_AGE_SECONDS is filtered."""
+        profiles = [make_v2_profile("test")]
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
+            evaluator = ProfileEvaluator(profiles)
+
+        old_time = datetime.now(timezone.utc) - timedelta(minutes=20)
+        kill = make_kill(kill_time=old_time)
+
+        result = evaluator.evaluate(kill)
+
+        assert result.has_matches is False
+        assert "test" in result.filtered_by_stale
+
+    def test_fresh_kill_passes(self):
+        """Kill younger than MAX_KILL_AGE_SECONDS passes the age-gate."""
+        profiles = [make_v2_profile("test")]
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
+            evaluator = ProfileEvaluator(profiles)
+
+        recent_time = datetime.now(timezone.utc) - timedelta(minutes=2)
+        kill = make_kill(kill_time=recent_time)
+
+        result = evaluator.evaluate(kill)
+
+        assert result.has_matches is True
+
+    def test_naive_datetime_handled(self):
+        """Naive datetime kill_time is treated as UTC and filtered correctly."""
+        profiles = [make_v2_profile("test")]
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
+            evaluator = ProfileEvaluator(profiles)
+
+        # Naive datetime (no tzinfo) — should be treated as UTC
+        naive_old = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(minutes=20)
+        kill = make_kill(kill_time=naive_old)
+
+        result = evaluator.evaluate(kill)
+
+        assert result.has_matches is False
+        assert "test" in result.filtered_by_stale
+
+    def test_stale_kill_does_not_consume_throttle(self):
+        """Stale kill is rejected before throttle recording; fresh kill still passes."""
+        profiles = [make_v2_profile("test", throttle_minutes=5)]
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
+            evaluator = ProfileEvaluator(profiles)
+
+        # First: stale kill — should be filtered, not throttled
+        old_time = datetime.now(timezone.utc) - timedelta(minutes=20)
+        stale_kill = make_kill(kill_id=1, kill_time=old_time)
+        result1 = evaluator.evaluate(stale_kill)
+        assert result1.has_matches is False
+        assert "test" in result1.filtered_by_stale
+
+        # Second: fresh kill in same system — should pass (throttle not consumed)
+        fresh_kill = make_kill(kill_id=2)
+        result2 = evaluator.evaluate(fresh_kill)
+        assert result2.has_matches is True
+
+    def test_kill_at_exact_boundary_passes(self):
+        """Kill just under MAX_KILL_AGE_SECONDS passes (uses > not >=)."""
+        profiles = [make_v2_profile("test")]
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
+            evaluator = ProfileEvaluator(profiles)
+
+        # Use 1 second of headroom to avoid test flakiness from clock drift
+        boundary_time = datetime.now(timezone.utc) - timedelta(seconds=MAX_KILL_AGE_SECONDS - 1)
+        kill = make_kill(kill_time=boundary_time)
+
+        result = evaluator.evaluate(kill)
+
+        assert result.has_matches is True
+
+    def test_stale_kill_filtered_across_all_profiles(self):
+        """Stale kill is filtered for every profile, not just the first."""
+        profiles = [make_v2_profile("profile-a"), make_v2_profile("profile-b")]
+        with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
+            evaluator = ProfileEvaluator(profiles)
+
+        old_time = datetime.now(timezone.utc) - timedelta(minutes=20)
+        kill = make_kill(kill_time=old_time)
+
+        result = evaluator.evaluate(kill)
+
+        assert result.has_matches is False
+        assert "profile-a" in result.filtered_by_stale
+        assert "profile-b" in result.filtered_by_stale
