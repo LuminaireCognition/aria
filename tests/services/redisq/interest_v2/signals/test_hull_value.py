@@ -87,6 +87,86 @@ class TestHullValueSignalScore:
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
 
+    def test_score_at_minimum(self, signal: HullValueSignal) -> None:
+        """Test hull value at exactly minimum threshold."""
+        kill = MockProcessedKill(hull_value=500_000_000.0)  # 500M
+        config = {"min": 500_000_000}  # 500M minimum
+
+        result = signal.score(kill, 30000142, config)
+        assert result.score >= 0.0
+        assert result.raw_value == 500_000_000.0
+
+    def test_score_log(self, signal: HullValueSignal) -> None:
+        """Test logarithmic scaling."""
+        kill = MockProcessedKill(hull_value=500_000_000.0)  # 500M
+        config = {
+            "scale": "log",
+            "min": 0,
+            "max": 10_000_000_000,  # 10B
+        }
+
+        result = signal.score(kill, 30000142, config)
+        assert 0.0 < result.score < 1.0
+
+    def test_score_step(self, signal: HullValueSignal) -> None:
+        """Test step function scaling."""
+        config = {
+            "scale": "step",
+            "thresholds": [
+                {"below": 500_000_000, "score": 0.3},  # < 500M
+                {"below": 2_000_000_000, "score": 0.7},  # < 2B
+                {"default": 1.0},  # >= 2B
+            ],
+        }
+
+        low_kill = MockProcessedKill(hull_value=200_000_000.0)  # 200M
+        result = signal.score(low_kill, 30000142, config)
+        assert result.score == 0.3
+
+        mid_kill = MockProcessedKill(hull_value=1_000_000_000.0)  # 1B
+        result = signal.score(mid_kill, 30000142, config)
+        assert result.score == 0.7
+
+        high_kill = MockProcessedKill(hull_value=3_000_000_000.0)  # 3B
+        result = signal.score(high_kill, 30000142, config)
+        assert result.score == 1.0
+
+    def test_score_custom_pivot(self, signal: HullValueSignal) -> None:
+        """Test sigmoid with custom pivot point."""
+        kill = MockProcessedKill(hull_value=1_000_000_000.0)  # 1B
+        config = {
+            "scale": "sigmoid",
+            "pivot": 1_000_000_000,  # 1B pivot
+        }
+
+        result = signal.score(kill, 30000142, config)
+        assert 0.4 <= result.score <= 0.6
+
+    def test_score_custom_steepness(self, signal: HullValueSignal) -> None:
+        """Test sigmoid with custom steepness."""
+        kill = MockProcessedKill(hull_value=2_500_000_000.0)  # 2.5B
+        config_gentle = {
+            "scale": "sigmoid",
+            "pivot": 2_000_000_000,
+            "steepness": 2.0,
+        }
+        config_steep = {
+            "scale": "sigmoid",
+            "pivot": 2_000_000_000,
+            "steepness": 12.0,
+        }
+
+        result_gentle = signal.score(kill, 30000142, config_gentle)
+        result_steep = signal.score(kill, 30000142, config_steep)
+
+        assert result_steep.score > result_gentle.score
+
+    def test_score_raw_value_set(self, signal: HullValueSignal) -> None:
+        """Test raw_value is set in result."""
+        kill = MockProcessedKill(hull_value=1_500_000_000.0)
+        result = signal.score(kill, 30000142, {})
+        assert result.raw_value == 1_500_000_000.0
+
 
 class TestHullValueSignalValidate:
     """Tests for HullValueSignal.validate() method."""
@@ -146,6 +226,24 @@ class TestHullValueSignalValidate:
         errors = signal.validate({"scale": "step"})
         assert len(errors) == 1
         assert "thresholds" in errors[0].lower()
+
+    def test_validate_step_with_thresholds(self, signal: HullValueSignal) -> None:
+        """Test validation passes for step scale with thresholds."""
+        config = {
+            "scale": "step",
+            "thresholds": [
+                {"below": 1_000_000_000, "score": 0.5},
+                {"default": 1.0},
+            ],
+        }
+        errors = signal.validate(config)
+        assert errors == []
+
+    def test_validate_all_scale_types(self, signal: HullValueSignal) -> None:
+        """Test validation passes for all valid scale types."""
+        for scale in ("sigmoid", "linear", "log"):
+            errors = signal.validate({"scale": scale})
+            assert errors == [], f"Unexpected errors for scale '{scale}': {errors}"
 
 
 class TestHullValueSignalProperties:

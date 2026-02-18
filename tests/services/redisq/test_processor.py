@@ -208,6 +208,60 @@ class TestKillFilter:
         assert result is None
 
 
+class TestParseEsiKillmailHullValue:
+    """Tests for hull_price_lookup integration in parse_esi_killmail."""
+
+    def test_hull_value_populated_when_lookup_provided(
+        self, sample_esi_killmail, sample_zkb_data
+    ):
+        """Test hull_value is set when lookup has the ship type."""
+        from unittest.mock import MagicMock
+
+        mock_lookup = MagicMock()
+        mock_lookup.get_hull_value.return_value = 45_000_000.0  # Hurricane price
+
+        kill = parse_esi_killmail(sample_esi_killmail, sample_zkb_data, hull_price_lookup=mock_lookup)
+
+        assert kill.hull_value == 45_000_000.0
+        mock_lookup.get_hull_value.assert_called_once_with(17740)  # Hurricane type_id
+
+    def test_hull_value_none_when_no_lookup(self, sample_esi_killmail, sample_zkb_data):
+        """Test hull_value is None when no lookup provided."""
+        kill = parse_esi_killmail(sample_esi_killmail, sample_zkb_data)
+        assert kill.hull_value is None
+
+    def test_hull_value_none_when_lookup_returns_none(
+        self, sample_esi_killmail, sample_zkb_data
+    ):
+        """Test hull_value is None when lookup doesn't have the type."""
+        from unittest.mock import MagicMock
+
+        mock_lookup = MagicMock()
+        mock_lookup.get_hull_value.return_value = None
+
+        kill = parse_esi_killmail(sample_esi_killmail, sample_zkb_data, hull_price_lookup=mock_lookup)
+
+        assert kill.hull_value is None
+
+    def test_hull_value_none_when_no_victim_ship(self, sample_zkb_data):
+        """Test hull_value is None when victim has no ship type."""
+        from unittest.mock import MagicMock
+
+        esi_data = {
+            "killmail_id": 123,
+            "killmail_time": "2024-01-15T12:34:56Z",
+            "solar_system_id": 30000142,
+            "victim": {},  # No ship_type_id
+            "attackers": [],
+        }
+        mock_lookup = MagicMock()
+
+        kill = parse_esi_killmail(esi_data, sample_zkb_data, hull_price_lookup=mock_lookup)
+
+        assert kill.hull_value is None
+        mock_lookup.get_hull_value.assert_not_called()
+
+
 class TestParseEsiKillmailEdgeCases:
     """Tests for edge cases in killmail parsing."""
 

@@ -97,6 +97,171 @@ class TestProcessedKill:
         assert kill.is_pod_kill is False
 
 
+class TestProcessedKillHullValue:
+    """Tests for hull_value in ProcessedKill serialization."""
+
+    def test_to_db_row_includes_hull_value(self):
+        """Test hull_value is included in db row tuple."""
+        kill = ProcessedKill(
+            kill_id=123,
+            kill_time=datetime(2024, 1, 15, 12, 0, 0),
+            solar_system_id=30000142,
+            victim_ship_type_id=17740,
+            victim_corporation_id=98000001,
+            victim_alliance_id=99000001,
+            attacker_count=1,
+            attacker_corps=[98000002],
+            attacker_alliances=[99000002],
+            attacker_ship_types=[17812],
+            final_blow_ship_type_id=17812,
+            total_value=150_000_000.0,
+            is_pod_kill=False,
+            hull_value=45_000_000.0,
+        )
+
+        row = kill.to_db_row()
+
+        assert row[13] == 45_000_000.0
+
+    def test_to_db_row_hull_value_none(self):
+        """Test hull_value is None in db row when not set."""
+        kill = ProcessedKill(
+            kill_id=123,
+            kill_time=datetime(2024, 1, 15, 12, 0, 0),
+            solar_system_id=30000142,
+            victim_ship_type_id=17740,
+            victim_corporation_id=98000001,
+            victim_alliance_id=99000001,
+            attacker_count=1,
+            attacker_corps=[],
+            attacker_alliances=[],
+            attacker_ship_types=[],
+            final_blow_ship_type_id=None,
+            total_value=0.0,
+            is_pod_kill=False,
+        )
+
+        row = kill.to_db_row()
+
+        assert row[13] is None
+
+    def test_from_db_row_dict_with_hull_value(self):
+        """Test from_db_row dict with hull_value present."""
+        row = {
+            "kill_id": 123,
+            "kill_time": 1705321496,
+            "solar_system_id": 30000142,
+            "victim_ship_type_id": 17740,
+            "victim_corporation_id": 98000001,
+            "victim_alliance_id": 99000001,
+            "attacker_count": 1,
+            "attacker_corps": "[98000002]",
+            "attacker_alliances": "[]",
+            "attacker_ship_types": "[17812]",
+            "final_blow_ship_type_id": 17812,
+            "total_value": 150_000_000.0,
+            "is_pod_kill": 0,
+            "hull_value": 45_000_000.0,
+        }
+
+        kill = ProcessedKill.from_db_row(row)
+
+        assert kill.hull_value == 45_000_000.0
+
+    def test_from_db_row_dict_without_hull_value(self):
+        """Test backward compat: dict without hull_value key."""
+        row = {
+            "kill_id": 123,
+            "kill_time": 1705321496,
+            "solar_system_id": 30000142,
+            "victim_ship_type_id": 17740,
+            "victim_corporation_id": 98000001,
+            "victim_alliance_id": 99000001,
+            "attacker_count": 1,
+            "attacker_corps": "[98000002]",
+            "attacker_alliances": "[]",
+            "attacker_ship_types": "[]",
+            "final_blow_ship_type_id": None,
+            "total_value": 150_000_000.0,
+            "is_pod_kill": 0,
+        }
+
+        kill = ProcessedKill.from_db_row(row)
+
+        assert kill.hull_value is None
+
+    def test_from_db_row_tuple_with_hull_value(self):
+        """Test from_db_row tuple with hull_value at index 13."""
+        row = (
+            123,  # kill_id
+            1705321496,  # kill_time
+            30000142,  # solar_system_id
+            17740,  # victim_ship_type_id
+            98000001,  # victim_corporation_id
+            99000001,  # victim_alliance_id
+            1,  # attacker_count
+            "[98000002]",  # attacker_corps
+            "[]",  # attacker_alliances
+            "[17812]",  # attacker_ship_types
+            17812,  # final_blow_ship_type_id
+            150_000_000.0,  # total_value
+            0,  # is_pod_kill
+            45_000_000.0,  # hull_value
+        )
+
+        kill = ProcessedKill.from_db_row(row)
+
+        assert kill.hull_value == 45_000_000.0
+
+    def test_from_db_row_tuple_without_hull_value(self):
+        """Test backward compat: short tuple without hull_value."""
+        row = (
+            123,  # kill_id
+            1705321496,  # kill_time
+            30000142,  # solar_system_id
+            17740,  # victim_ship_type_id
+            98000001,  # victim_corporation_id
+            99000001,  # victim_alliance_id
+            1,  # attacker_count
+            "[98000002]",  # attacker_corps
+            "[]",  # attacker_alliances
+            "[]",  # attacker_ship_types
+            None,  # final_blow_ship_type_id
+            0.0,  # total_value
+            0,  # is_pod_kill
+        )
+
+        kill = ProcessedKill.from_db_row(row)
+
+        assert kill.hull_value is None
+
+    def test_roundtrip_with_hull_value(self):
+        """Test to_db_row -> from_db_row preserves hull_value."""
+        original = ProcessedKill(
+            kill_id=123,
+            kill_time=datetime(2024, 1, 15, 12, 0, 0),
+            solar_system_id=30000142,
+            victim_ship_type_id=17740,
+            victim_corporation_id=98000001,
+            victim_alliance_id=None,
+            attacker_count=2,
+            attacker_corps=[98000002, 98000003],
+            attacker_alliances=[99000002],
+            attacker_ship_types=[17812],
+            final_blow_ship_type_id=17812,
+            total_value=150_000_000.0,
+            is_pod_kill=False,
+            hull_value=1_200_000_000.0,
+        )
+
+        row = original.to_db_row()
+        restored = ProcessedKill.from_db_row(row)
+
+        assert restored.hull_value == 1_200_000_000.0
+        assert restored.kill_id == original.kill_id
+        assert restored.total_value == original.total_value
+
+
 class TestRedisQConfig:
     """Tests for RedisQConfig dataclass."""
 
