@@ -531,6 +531,7 @@ class TestNotificationProfileV2Fields:
         config = RateLimitStrategy()
         assert config.rollup_threshold == 10
         assert config.max_rollup_kills == 20
+        assert config.rollup_min_kills == 1
         assert config.backoff_seconds == 30.0
 
     def test_rate_limit_strategy_from_dict(self):
@@ -547,6 +548,20 @@ class TestNotificationProfileV2Fields:
         assert config.rollup_threshold == 5
         assert config.max_rollup_kills == 10
         assert config.backoff_seconds == 60.0
+
+    def test_rate_limit_strategy_rollup_min_kills_from_dict(self):
+        """rollup_min_kills is parsed from dict."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        config = RateLimitStrategy.from_dict({"rollup_min_kills": 3})
+        assert config.rollup_min_kills == 3
+
+    def test_rate_limit_strategy_rollup_min_kills_default(self):
+        """rollup_min_kills defaults to 1 (no suppression)."""
+        from aria_esi.services.redisq.notifications.profiles import RateLimitStrategy
+
+        config = RateLimitStrategy.from_dict({})
+        assert config.rollup_min_kills == 1
 
     def test_delivery_config_defaults(self):
         """Delivery config has sensible defaults."""
