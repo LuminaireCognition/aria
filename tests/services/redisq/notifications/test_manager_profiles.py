@@ -868,6 +868,52 @@ class TestNotificationManagerProcessLoop:
         assert True
 
     @pytest.mark.asyncio
+    async def test_process_loop_continues_after_exception(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """Process loop continues running after a transient error."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "recovery-test",
+            {
+                "name": "recovery-test",
+                "enabled": True,
+                "webhook_url": "https://discord.com/api/webhooks/123/abc",
+            },
+        )
+
+        manager = NotificationManager()
+        queue = manager._queues.get("https://discord.com/api/webhooks/123/abc")
+
+        call_count = 0
+        original_process = queue.process_queue
+
+        async def failing_then_ok():
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("transient error")
+            return 0
+
+        queue.process_queue = failing_then_ok
+        # Ensure the queue always reports items so the branch is hit
+        queue.enqueue({"content": "test"}, kill_id=1)
+
+        manager._running = True
+        manager._process_task = asyncio.create_task(manager._process_loop())
+
+        # Let loop run through error + recovery + a few iterations
+        await asyncio.sleep(6)  # >5s backoff
+        manager._running = False
+        manager._process_task.cancel()
+        try:
+            await manager._process_task
+        except asyncio.CancelledError:
+            pass
+
+        assert call_count >= 2  # Loop survived the error and iterated again
+
+    @pytest.mark.asyncio
     async def test_process_loop_flushes_rollup_buffers(
         self, temp_profiles_dir, mock_discord_client
     ):
@@ -1393,6 +1439,28 @@ class TestNotificationManagerForceRollup:
         # stop() should complete without errors
         await manager.stop()
         mock_discord_client.return_value.send.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_stop_continues_closing_after_generator_error(
+        self, temp_profiles_dir, mock_discord_client
+    ):
+        """stop() completes even if a commentary generator raises on close()."""
+        write_profile_yaml(
+            temp_profiles_dir,
+            "gen-fail",
+            self._make_rollup_profile(name="gen-fail", force_rollup=False),
+        )
+        with self._patch_v2_engine():
+            manager = NotificationManager()
+
+        # Inject a failing commentary generator
+        failing_generator = MagicMock()
+        failing_generator.close = AsyncMock(side_effect=RuntimeError("LLM cleanup failed"))
+        manager._commentary_generators["gen-fail"] = failing_generator
+
+        await manager.stop()
+
+        failing_generator.close.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_rollup_stale_profile_discarded(self, temp_profiles_dir, mock_discord_client):

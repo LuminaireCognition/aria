@@ -392,6 +392,25 @@ class TestPollerStop:
             assert poller._running is False
 
     @pytest.mark.asyncio
+    async def test_stop_calls_notification_manager_stop(
+        self, db: RealtimeKillsDatabase, config: RedisQConfig, mock_fetch_queue
+    ):
+        """Test that poller.stop() calls notification_manager.stop()."""
+        mock_nm = AsyncMock()
+
+        with (
+            patch("aria_esi.services.redisq.poller.get_realtime_database", return_value=db),
+            patch("aria_esi.services.redisq.poller.get_fetch_queue", return_value=mock_fetch_queue),
+        ):
+            poller = RedisQPoller(config=config)
+            poller._running = True
+            poller._notification_manager = mock_nm
+
+            await poller.stop()
+
+            mock_nm.stop.assert_awaited_once()
+
+    @pytest.mark.asyncio
     async def test_stop_flushes_ingest_queue(
         self, db: RealtimeKillsDatabase, config: RedisQConfig, mock_fetch_queue, mock_ingest_queue
     ):
