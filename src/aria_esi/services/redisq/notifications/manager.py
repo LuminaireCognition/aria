@@ -340,10 +340,11 @@ class NotificationManager:
         # Flush any remaining rollup buffers before closing clients
         if self._rollup_buffers:
             await self._flush_rollup_buffers(force=True)
-            # Process queues one final time to drain newly-enqueued rollup messages
-            for _url, queue in self._queues.items():
-                if queue.depth > 0:
-                    await queue.process_queue()
+
+        # Drain all webhook queues (rollup flushes AND any in-flight non-rollup messages)
+        for _url, queue in self._queues.items():
+            if queue.depth > 0:
+                await queue.process_queue()
 
         # Close all webhook clients
         for url, client in self._clients.items():

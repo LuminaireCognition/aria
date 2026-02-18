@@ -132,6 +132,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed
 
+#### Notification Queue Drain on Shutdown
+- **Unconditional queue drain in `stop()`**: The webhook queue drain was nested inside `if self._rollup_buffers:`, so non-rollup messages queued in the last process loop cycle before cancellation were silently dropped on shutdown. Queue draining is now unconditional — all in-flight messages are delivered before the process exits.
+
 #### Notification Region Gating Bug
 - **Signal opt-in for multi-signal categories**: When only `signals.location.geographic` was configured (no `security`), the unconfigured `SecuritySignal` still ran and returned `score=1.0`, inflating the location category average to ~0.5 and clearing the 0.3 match threshold. This effectively disabled geographic filtering for profiles using `require_all: [location]`. Now, unconfigured signals in multi-signal categories are skipped.
 - **Store pre-filter for v2 profiles**: v2 profiles with geographic systems configured now use SQL-level `system_id IN (...)` filtering during worker polling, matching the existing v1 topology filter behavior.
