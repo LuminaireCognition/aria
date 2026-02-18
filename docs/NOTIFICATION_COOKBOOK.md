@@ -331,6 +331,30 @@ interest:
       - alliance_member_victim
 ```
 
+### Recipe: Expensive Hull Losses
+
+Filter to kills where the hull itself is expensive (Marauders, Black Ops, capitals), ignoring cheap ships carrying expensive cargo:
+
+```yaml
+interest:
+  engine: v2
+  preset: trade-hub
+
+  signals:
+    hull_value:
+      min: 1000000000  # 1B ISK hull minimum
+      scale: sigmoid
+      pivot: 2000000000
+
+  rules:
+    always_ignore:
+      - pod_only
+
+throttle_minutes: 1
+```
+
+The `hull_value` signal uses ESI adjusted prices for the ship hull only, excluding modules and cargo. A T1 destroyer hauling 2B in cargo scores 0; a Kronos scores high.
+
 ### Recipe: Freighter/Industrial Focus
 
 Prioritize hauler and industrial kills for gank intel:

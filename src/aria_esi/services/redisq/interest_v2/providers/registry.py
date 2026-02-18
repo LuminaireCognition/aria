@@ -404,6 +404,7 @@ def _register_builtin_signals(registry: ProviderRegistry) -> None:
         ActivitySignal,
         AssetSignal,
         GeographicSignal,
+        HullValueSignal,
         PoliticsSignal,
         RouteSignal,
         SecuritySignal,
@@ -419,6 +420,7 @@ def _register_builtin_signals(registry: ProviderRegistry) -> None:
 
     # Value category
     registry.register_signal("value", "value", lambda: ValueSignal())
+    registry.register_signal("value", "hull_value", lambda: HullValueSignal())
 
     # Politics category
     registry.register_signal("politics", "politics", lambda: PoliticsSignal())

@@ -94,6 +94,12 @@ interest:
     value:
       min: 500000000           # ISK value threshold (500M = hauler-class)
 
+    # Hull value filtering (hull price only, excluding modules/cargo)
+    # hull_value:
+    #   min: 1000000000        # 1B ISK hull (Marauders, Black Ops, capitals)
+    #   scale: sigmoid
+    #   pivot: 2000000000
+
     # Activity-based signals (spike detection, gatecamps)
     # See "Activity Signal Configuration" section below
     # activity:
@@ -179,7 +185,10 @@ interest:
             classification: "hunting"
 
     value:
-      min: 500000000           # ISK threshold
+      min: 500000000           # ISK threshold (total fitted value)
+
+    # hull_value:               # Hull price only (excludes modules/cargo)
+    #   min: 1000000000         # 1B ISK hull minimum
 
   rules:
     always_notify:

@@ -3,7 +3,7 @@ Signal Providers for Interest Engine v2.
 
 Signals compute interest scores for specific categories:
 - location: GeographicSignal, SecuritySignal
-- value: ValueSignal
+- value: ValueSignal, HullValueSignal
 - politics: PoliticsSignal
 - activity: ActivitySignal
 - time: TimeSignal
