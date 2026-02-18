@@ -43,6 +43,7 @@ class WorkerMetrics:
 
     kills_processed: int = 0
     kills_skipped_duplicate: int = 0
+    kills_skipped_stale: int = 0
     kills_skipped_filter: int = 0
     notifications_sent: int = 0
     notifications_failed: int = 0
@@ -352,6 +353,12 @@ class NotificationWorker:
                 self._metrics.kills_skipped_duplicate += 1
                 continue
 
+            # Age-gate: reject stale kills (no tactical value after restart)
+            if kill.kill_time and time.time() - kill.kill_time > 600:
+                self._metrics.kills_skipped_stale += 1
+                await self.store.mark_kill_processed(self.name, kill.kill_id)
+                continue
+
             # Evaluate triggers (if callback set)
             trigger_result = None
             if self._evaluate_triggers:
@@ -597,6 +604,7 @@ class NotificationWorker:
             "metrics": {
                 "kills_processed": self._metrics.kills_processed,
                 "kills_skipped_duplicate": self._metrics.kills_skipped_duplicate,
+                "kills_skipped_stale": self._metrics.kills_skipped_stale,
                 "kills_skipped_filter": self._metrics.kills_skipped_filter,
                 "notifications_sent": self._metrics.notifications_sent,
                 "notifications_failed": self._metrics.notifications_failed,
