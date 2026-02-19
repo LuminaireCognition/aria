@@ -1579,7 +1579,7 @@ class TestNotificationManagerForceRollup:
 
         queue = manager._queues.get("https://discord.com/api/webhooks/rollup-test/abc")
         msg = queue._queue[0].payload
-        assert "https://zkillboard.com/related/30000142/" in msg["content"]
+        assert "https://zkillboard.com/system/30000142/" in msg["content"]
 
     @pytest.mark.asyncio
     async def test_buffer_overflow_triggers_flush(self, temp_profiles_dir, mock_discord_client):
