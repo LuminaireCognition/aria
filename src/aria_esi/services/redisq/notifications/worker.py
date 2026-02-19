@@ -562,9 +562,7 @@ class NotificationWorker:
             else:
                 header = f"📊 {title} ({pod_count} {pod_label} rolled up)"
             content = (
-                f"{header}\n"
-                f"{system_name_line}"
-                f"🔗 https://zkillboard.com/related/{primary_system_id}/"
+                f"{header}\n{system_name_line}🔗 https://zkillboard.com/system/{primary_system_id}/"
             )
         else:
             title = rls.rollup_title or "Activity"
@@ -576,7 +574,7 @@ class NotificationWorker:
                 f"{header}\n"
                 f"💀 {value_str} ISK total\n"
                 f"{system_name_line}"
-                f"🔗 https://zkillboard.com/related/{primary_system_id}/"
+                f"🔗 https://zkillboard.com/system/{primary_system_id}/"
             )
 
         # Send via webhook

@@ -523,9 +523,7 @@ class NotificationManager:
             title = rls.rollup_title or "Pod spike"
             header = f"📊 {title} ({pod_count} {pod_label} / {window}m)"
             content = (
-                f"{header}\n"
-                f"{system_name_line}"
-                f"🔗 https://zkillboard.com/related/{primary_system_id}/"
+                f"{header}\n{system_name_line}🔗 https://zkillboard.com/system/{primary_system_id}/"
             )
         else:
             title = rls.rollup_title or "Activity"
@@ -534,7 +532,7 @@ class NotificationManager:
                 f"{header}\n"
                 f"💀 {value_str} ISK total\n"
                 f"{system_name_line}"
-                f"🔗 https://zkillboard.com/related/{primary_system_id}/"
+                f"🔗 https://zkillboard.com/system/{primary_system_id}/"
             )
 
         return {"content": content}
