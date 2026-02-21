@@ -1,0 +1,64 @@
+# Miasmos Hauler - Fast Variant
+#
+# Fast-align Miasmos with cloak and buffer shield tank.
+# Prioritizes warp speed and align time for quick hauling runs.
+
+archetype:
+  hull: Miasmos
+  skill_tier: t2
+  omega_required: true
+
+eft: |
+  [Miasmos, Hauler Operations - Fast Miasmos]
+  Inertial Stabilizers II
+  Inertial Stabilizers II
+  Inertial Stabilizers II
+  Damage Control II
+
+  Medium Shield Extender I
+  Medium Shield Extender I
+  Medium Shield Extender I
+  Medium Shield Extender I
+
+  Prototype Cloaking Device I
+
+  Medium Hyperspatial Velocity Optimizer I
+  Medium Hyperspatial Velocity Optimizer I
+  Medium Low Friction Nozzle Joints I
+
+skill_requirements:
+  required:
+    Gallente Industrial: 1
+    Cloaking: 1
+    Hull Upgrades: 4
+  recommended:
+    Gallente Industrial: 4
+    Evasive Maneuvering: 4
+    Spaceship Command: 4
+
+notes:
+  purpose: "Fast mineral hauler with cloak and agility"
+  engagement: "Warp station to station. Cloak if hostiles on grid"
+  warnings:
+    - "3x Inertial Stabilizers II for fast align"
+    - "4x Medium Shield Extenders for buffer tank"
+    - "Hyperspatial rigs increase warp speed"
+    - "Low Friction Nozzle Joints further improves agility"
+    - "No cargo expanders - mineral hold is dedicated"
+    - "Use MWD + Cloak trick if adding MWD variant"
+
+  mwd_cloak_trick:
+    - "After gate jump, hold gate cloak"
+    - "Align to destination"
+    - "Activate MWD (one cycle)"
+    - "Immediately activate cloak"
+    - "Before MWD ends, deactivate cloak"
+    - "Warp as soon as MWD cycle completes"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - ship: "Kryos"
+      notes: "Dedicated mineral hauler with larger ore hold"
+    - ship: "Blockade Runner (Occator)"
+      notes: "Deep Space Transport with fleet hangar and better tank"

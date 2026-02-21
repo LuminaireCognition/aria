@@ -1,0 +1,86 @@
+# Cormorant L1 Missions - iBeast HiSec PvE Shield Railgun
+#
+# Shield-tanked railgun Cormorant for L1 missions with probe launcher utility.
+# T2 magnetic field stabilizers for DPS, meta railguns for fitting.
+# Probe launcher in 8th high for exploration between missions.
+
+archetype:
+  hull: Cormorant
+  skill_tier: meta
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: HiSec PvE Community Fits
+  license: community
+
+eft: |
+  [Cormorant, iBeast-HiSec PvE-Cormorant]
+  Magnetic Field Stabilizer II
+  Magnetic Field Stabilizer II
+
+  1MN Monopropellant Enduring Afterburner
+  Medium Azeotropic Restrained Shield Extender
+  Enduring Multispectrum Shield Hardener
+
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  Core Probe Launcher I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+
+  Small Core Defense Field Extender I
+  Small EM Shield Reinforcer I
+  Small Ancillary Current Router I
+
+
+  Iridium Charge S x2000
+  Uranium Charge S x2000
+  Core Scanner Probe I x16
+  Antimatter Charge S x2560
+
+skill_requirements:
+  required:
+    Caldari Destroyer: 3
+    Small Hybrid Turret: 3
+    Shield Upgrades: 3
+    Weapon Upgrades: 4
+  recommended:
+    Controlled Bursts: 3
+    Motion Prediction: 3
+    Shield Management: 3
+    Astrometrics: 3
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+damage_tuning:
+  default_damage: kinetic_thermal
+  tank_profile: shield_buffer
+
+notes:
+  purpose: "L1 mission runner with probe launcher for opportunistic exploration"
+  engagement: "Orbit at 10-20km with railguns, swap ammo for range"
+  warnings:
+    - "Dual T2 MFS in lows for maximum turret DPS"
+    - "Probe launcher sacrifices 1 turret slot for scanning utility"
+    - "ACR rig needed for fitting - tight powergrid with T2 MFS"
+    - "EM shield reinforcer plugs the shield EM hole"
+    - "Carry Antimatter (close), Uranium (mid), Iridium (long range)"
+    - "Medium shield extender provides more buffer than small"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "125mm Compressed Coil Gun I"
+      upgrade_to: "125mm Railgun II"
+      skill_required: "Small Hybrid Turret 5"
+    - module: "Enduring Multispectrum Shield Hardener"
+      upgrade_to: "Multispectrum Shield Hardener II"
+      skill_required: "Tactical Shield Manipulation 4"
+    - ship: "Caracal"
+      notes: "Cruiser upgrade for L2 missions"

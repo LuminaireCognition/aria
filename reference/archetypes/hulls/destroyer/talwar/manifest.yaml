@@ -1,0 +1,59 @@
+# Talwar Hull Manifest
+#
+# The Talwar is a Minmatar T1 destroyer built around 7 missile launchers.
+# Fast missile platform with selectable damage. Shield tank with
+# limited mid slots. Excellent speed and agility.
+
+hull: Talwar
+class: destroyer
+faction: minmatar
+tech_level: 1
+
+# Slot layout
+slots:
+  high: 7  # 7 launcher hardpoints
+  mid: 3
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "10% bonus to Light Missile and Rocket damage per Minmatar Destroyer level"
+  - "10% bonus to Light Missile and Rocket max velocity per Minmatar Destroyer level"
+
+roles:
+  - missile_boat
+  - shield_tank
+
+fitting_rules:
+  tank_type: shield_buffer
+
+  weapons:
+    primary: missiles
+    secondary: null
+
+  notes:
+    - "7 launcher hardpoints - high missile DPS for a destroyer"
+    - "No utility high - all 7 for launchers"
+    - "Only 3 mid slots - limits tank and utility options"
+    - "3 low slots for damage mods, speed mods, or tank"
+    - "No drone bay - pure missile DPS"
+    - "Missiles allow selectable damage via ammo type"
+    - "Very fast hull - natural speed makes kiting viable"
+
+missile_recommendations:
+  brawling: "Rockets (short range, high DPS)"
+  general: "Light Missiles (medium range, good application)"
+  note: "Missiles allow full damage type selection. Match ammo to enemy weakness."
+
+capacitor:
+  stable_expected: true
+  notes: "Missiles don't use cap. Only propulsion and shield modules drain cap."
+
+engagement:
+  range: "0-5km (rockets), 30-50km (light missiles)"
+  speed: "Fast hull - excellent for kiting with light missiles or brawling with rockets"
+  notes: "Speed is the Talwar's best defense. Kite at range or rush in with rockets."

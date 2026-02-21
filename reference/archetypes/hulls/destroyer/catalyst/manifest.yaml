@@ -1,0 +1,62 @@
+# Catalyst Hull Manifest
+#
+# The Catalyst is a Gallente T1 destroyer built around 8 small hybrid turrets.
+# Maximum turret hardpoints for a destroyer - pure blaster/railgun DPS.
+# Armor tank preferred with 3 low slots.
+
+hull: Catalyst
+class: destroyer
+faction: gallente
+tech_level: 1
+
+# Slot layout
+slots:
+  high: 8  # 8 turret hardpoints, no utility
+  mid: 2
+  low: 3
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "10% bonus to Small Hybrid Turret damage per Gallente Destroyer level"
+  - "10% bonus to Small Hybrid Turret optimal range per Gallente Destroyer level"
+
+roles:
+  - turret_boat
+  - armor_tank
+
+fitting_rules:
+  tank_type: armor_active
+  tank_variants:
+    - armor_active
+    - shield_buffer
+
+  weapons:
+    primary: hybrids
+    secondary: null
+
+  notes:
+    - "8 turret hardpoints - highest turret count for any destroyer"
+    - "No utility high slots - all 8 for turrets"
+    - "Only 2 mid slots - severe mid slot limitation"
+    - "3 low slots allow armor tank + damage mods"
+    - "No drone bay - pure turret DPS"
+    - "Blasters for brawling (extreme DPS), railguns for range"
+
+ammo_recommendations:
+  brawling: "Antimatter Charge S (max DPS, short range)"
+  general: "Uranium Charge S (balanced range/DPS)"
+  sniping: "Iron Charge S (max range, reduced DPS)"
+  note: "Hybrids deal Kinetic + Thermal damage. Swap ammo for range, not damage type."
+
+capacitor:
+  stable_expected: false
+  notes: "8 blasters are cap-hungry. Active armor rep adds more drain. Cap management critical."
+
+engagement:
+  range: "1-3km (blasters), 10-30km (railguns)"
+  speed: "AB orbit for PvE, MWD approach for PvP"
+  notes: "Glass cannon. Highest destroyer DPS but limited tank. Kill fast or die."

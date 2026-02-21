@@ -1,0 +1,78 @@
+# Thrasher FW PvP - iBeast Faction Warfare Autocannon Brawler
+#
+# T2 autocannon brawler with scram, web, and energy neutralizer.
+# Hull-tanked via transverse bulkheads for maximum buffer.
+# MWD for dictating engagement range.
+
+archetype:
+  hull: Thrasher
+  skill_tier: t2
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Faction Warfare PvP Community Fits
+  license: community
+
+eft: |
+  [Thrasher, iBeast-Faction Warfare PvP-Thrasher]
+  Damage Control II
+  Gyrostabilizer II
+
+  5MN Quad LiF Restrained Microwarpdrive
+  Fleeting Compact Stasis Webifier
+  Faint Epsilon Scoped Warp Scrambler
+
+  200mm AutoCannon II
+  200mm AutoCannon II
+  200mm AutoCannon II
+  200mm AutoCannon II
+  Small Infectious Scoped Energy Neutralizer
+  200mm AutoCannon II
+  200mm AutoCannon II
+  200mm AutoCannon II
+
+  Small Transverse Bulkhead I
+  Small Transverse Bulkhead I
+  Small Transverse Bulkhead I
+
+
+  Hail S x1540
+  Barrage S x700
+  Republic Fleet Phased Plasma S x700
+
+skill_requirements:
+  required:
+    Minmatar Destroyer: 3
+    Small Projectile Turret: 5
+    Gunnery: 4
+    Hull Upgrades: 4
+  recommended:
+    Motion Prediction: 4
+    Rapid Firing: 4
+    Thermodynamics: 3
+    Navigation: 4
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+notes:
+  purpose: "Faction Warfare autocannon brawler with scram/web control"
+  engagement: "MWD into scram range, web target, shred with 7 autocannons"
+  warnings:
+    - "Hull tank via transverse bulkheads - maximum EHP in hull"
+    - "Energy neutralizer in utility high disrupts active-tanked targets"
+    - "Hail S for maximum DPS in scram range, Barrage S for targets pulling range"
+    - "Republic Fleet Phased Plasma for thermal damage against armor tankers"
+    - "MWD + scram + web - full tackle suite"
+    - "7 autocannons use no cap - all cap available for MWD"
+    - "Very short engagement window - fights should last under 30 seconds"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - ship: "Wolf (Assault Frigate)"
+      notes: "T2 Minmatar autocannon platform with much heavier tank"
+    - ship: "Svipul (Tactical Destroyer)"
+      notes: "T3 destroyer with mode switching for versatility"

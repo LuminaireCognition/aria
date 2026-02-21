@@ -1,0 +1,60 @@
+# Thrasher Hull Manifest
+#
+# The Thrasher is a Minmatar T1 destroyer built around 7 small projectile turrets.
+# Autocannons for brawling or artillery for alpha-strike sniping.
+# Shield tank with 3 mids. Selectable damage via projectile ammo.
+
+hull: Thrasher
+class: destroyer
+faction: minmatar
+tech_level: 1
+
+# Slot layout
+slots:
+  high: 8  # 7 turret hardpoints + 1 utility
+  mid: 3
+  low: 2
+  rig: 3
+
+drones:
+  bandwidth: 0
+  bay: 0
+
+bonuses:
+  - "10% bonus to Small Projectile Turret damage per Minmatar Destroyer level"
+  - "10% bonus to Small Projectile Turret optimal range per Minmatar Destroyer level"
+
+roles:
+  - turret_boat
+  - shield_tank
+
+fitting_rules:
+  tank_type: shield_buffer
+
+  weapons:
+    primary: projectiles
+    secondary: null
+
+  notes:
+    - "7 turret hardpoints + 1 utility high"
+    - "8th high slot for utility (probe launcher, neut, salvager, or 8th gun)"
+    - "Only 3 mid slots - limits tank and utility"
+    - "Only 2 low slots - damage mods or fitting mods"
+    - "No drone bay - pure turret DPS"
+    - "Autocannons for brawling, artillery for alpha-strike"
+    - "Projectiles use no cap and allow selectable damage via ammo"
+
+ammo_recommendations:
+  brawling: "Phased Plasma S (max DPS, Thermal + Kinetic)"
+  general: "Depleted Uranium S (balanced range/DPS)"
+  sniping: "Iron Charge S / Republic Fleet Titanium Sabot S (max range)"
+  note: "Projectile ammo selects damage profile. EMP S for EM, Fusion S for Explosive."
+
+capacitor:
+  stable_expected: true
+  notes: "Projectile turrets use no cap. Only propulsion and shield modules drain cap."
+
+engagement:
+  range: "1-5km (autocannons), 15-40km (artillery)"
+  speed: "Fast Minmatar hull - excellent for kiting or brawling"
+  notes: "Very versatile. Autocannons for sustained DPS, artillery for alpha strikes."

@@ -1,9 +1,9 @@
-# Epithal Hull Manifest
+# Miasmos Hull Manifest
 #
-# The Epithal is a Gallente specialized hauler for planetary commodities.
-# 67,500 m3 dedicated PI hold that cannot be modified.
+# The Miasmos is a Gallente specialized hauler for minerals.
+# 42,000 m3 dedicated ore hold (base) that scales with skill.
 
-hull: Epithal
+hull: Miasmos
 class: hauler
 faction: gallente
 tech_level: 1
@@ -23,7 +23,7 @@ bonuses:
   - "5% bonus to cargo capacity per Gallente Industrial level"
 
 roles:
-  - pi_hauling
+  - mineral_hauling
   - specialized_transport
 
 fitting_rules:
@@ -33,14 +33,12 @@ fitting_rules:
     secondary: none
 
   notes:
-    - "67,500 m3 dedicated PI hold - CANNOT be modified by cargo rigs"
-    - "Regular cargo hold is small (~1,500 m3 fitted)"
+    - "42,000 m3 dedicated mineral hold (base) - scales with skill"
+    - "Regular cargo hold is small when fitted"
     - "No drone bay - cannot defend itself"
-    - "Cheap hull - ~600K ISK"
-
-pi_hold: 67500
+    - "Cheap hull - disposable for hauling ops"
 
 engagement:
   range: "N/A - hauler"
-  speed: "~100 m/s (no prop), ~1,000 m/s (MWD)"
-  notes: "MWD + Cloak trick for escaping camps. Stay aligned at POCOs."
+  speed: "~100 m/s (no prop)"
+  notes: "Cloak for safety. Inertial stabs for fast align. Stay cheap."
