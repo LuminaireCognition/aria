@@ -28,10 +28,6 @@ import os
 import re
 import secrets
 import socket
-
-# When running inside a DevContainer, bind to 0.0.0.0 so Docker Desktop
-# port forwarding can reach the callback server.
-_BIND_ADDR = "0.0.0.0" if os.environ.get("DEVCONTAINER") == "true" else "localhost"
 import stat
 import sys
 import tempfile
@@ -70,6 +66,10 @@ except ImportError:
         return {"available": False, "reason": "keyring_backend not found"}
 
     KEYRING_BACKEND = None
+
+# When running inside a DevContainer, bind to 0.0.0.0 so Docker Desktop
+# port forwarding can reach the callback server.
+_BIND_ADDR = "0.0.0.0" if os.environ.get("DEVCONTAINER") == "true" else "localhost"
 
 # EVE SSO endpoints
 AUTH_URL = "https://login.eveonline.com/v2/oauth/authorize"
