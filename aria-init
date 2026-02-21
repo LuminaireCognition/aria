@@ -1937,6 +1937,102 @@ confirm_recovery_or_abort() {
     fi
 }
 
+run_seed_command() {
+    local label="$1"
+    local cmd="$2"
+    local description="$3"
+
+    echo -en "  > ${label}..."
+    set +e
+    local stderr_output
+    stderr_output=$(eval "$cmd" 2>&1 1>/dev/null)
+    local rc=$?
+    set -e
+    if [[ $rc -eq 0 ]]; then
+        echo -e " [${GREEN}OK${NC}]"
+        return 0
+    else
+        echo -e " [${RED}FAIL${NC}]"
+        local hint
+        hint=$(echo "$stderr_output" | grep -v '^$' | tail -n 1)
+        if [[ -n "$hint" ]]; then
+            print_warning "  Hint: ${hint}"
+        fi
+        print_warning "  Retry manually: ${cmd}"
+        return 1
+    fi
+}
+
+seed_game_data() {
+    local force_seed=0
+    if [[ "${1:-}" == "--force" ]]; then
+        force_seed=1
+    fi
+
+    if [[ "$SKIP_SEED" -eq 1 ]]; then
+        return 0
+    fi
+
+    print_header "GAME DATA SETUP"
+    echo ""
+    echo "ARIA needs game data caches to provide market prices, fitting stats,"
+    echo "item lookups, and territory analysis. This downloads ~100MB from public"
+    echo "EVE data sources (no login required)."
+    echo ""
+    echo "Data sources:"
+    echo "  SDE database    - Item/skill/blueprint lookups (Fuzzwork)"
+    echo "  Fitting engine  - Ship fitting calculations (Pyfa/GitHub)"
+    echo "  Market prices   - Current Jita/Amarr prices (Fuzzwork + ESI)"
+    echo "  Sovereignty     - Nullsec territory map (ESI)"
+    echo "  Persona context - Compile RP persona for your pilot (local)"
+    echo ""
+
+    if [[ "$force_seed" -eq 0 ]]; then
+        if ! prompt_yes_no "Download game data now?" "y"; then
+            echo ""
+            print_info "Skipped game data seeding. Run later with: ./aria-init --seed-only"
+            echo ""
+            print_footer
+            return 0
+        fi
+        echo ""
+    fi
+
+    local failures=0
+    local total=5
+
+    run_seed_command "SDE database (item/skill data)" \
+        "uv run aria-esi sde-seed" \
+        "Item/skill/blueprint database" || failures=$((failures + 1))
+
+    run_seed_command "Fitting engine (ship stats)" \
+        "uv run aria-esi eos-seed" \
+        "Fitting engine data" || failures=$((failures + 1))
+
+    run_seed_command "Market prices" \
+        "uv run aria-esi market-seed" \
+        "Market price cache" || failures=$((failures + 1))
+
+    run_seed_command "Sovereignty map" \
+        "uv run aria-esi sov-update" \
+        "Sovereignty data" || failures=$((failures + 1))
+
+    run_seed_command "Persona context" \
+        "uv run aria-esi persona-context" \
+        "Persona compilation" || failures=$((failures + 1))
+
+    echo ""
+    local succeeded=$((total - failures))
+    if [[ "$failures" -eq 0 ]]; then
+        print_success "All ${total} data sources seeded successfully"
+    else
+        print_warning "${succeeded}/${total} seeded (${failures} failed)"
+        print_info "Re-run failed seeds with: ./aria-init --seed-only"
+    fi
+
+    echo ""
+    print_footer
+}
 offer_esi_setup() {
     print_header "SETUP COMPLETE!"
     echo ""

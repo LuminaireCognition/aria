@@ -328,6 +328,57 @@ class TestGetPinnedEosCommit:
         assert result == "abc123def456"
 
 
+class TestGetPinnedEosTag:
+    """Tests for EOS tag retrieval."""
+
+    def test_get_pinned_eos_tag_none(self, tmp_path, monkeypatch):
+        """Test tag retrieval when not configured."""
+        from aria_esi.core import data_integrity
+
+        manifest_path = tmp_path / "data-sources.json"
+        manifest_content = {
+            "schema_version": 1,
+            "sources": {
+                "eos": {"pinned_commit": "abc123"},
+            },
+        }
+        manifest_path.write_text(json.dumps(manifest_content))
+        monkeypatch.setattr(data_integrity, "MANIFEST_PATH", manifest_path)
+
+        result = data_integrity.get_pinned_eos_tag()
+
+        assert result is None
+
+    def test_get_pinned_eos_tag_with_value(self, tmp_path, monkeypatch):
+        """Test tag retrieval when configured."""
+        from aria_esi.core import data_integrity
+
+        manifest_path = tmp_path / "data-sources.json"
+        manifest_content = {
+            "schema_version": 1,
+            "sources": {
+                "eos": {"pinned_tag": "v2.65.4", "pinned_commit": "abc123"},
+            },
+        }
+        manifest_path.write_text(json.dumps(manifest_content))
+        monkeypatch.setattr(data_integrity, "MANIFEST_PATH", manifest_path)
+
+        result = data_integrity.get_pinned_eos_tag()
+
+        assert result == "v2.65.4"
+
+    def test_get_pinned_eos_tag_missing_manifest(self, tmp_path, monkeypatch):
+        """Test tag retrieval when manifest is missing."""
+        from aria_esi.core import data_integrity
+
+        missing_path = tmp_path / "nonexistent.json"
+        monkeypatch.setattr(data_integrity, "MANIFEST_PATH", missing_path)
+
+        result = data_integrity.get_pinned_eos_tag()
+
+        assert result is None
+
+
 class TestIntegrityError:
     """Tests for IntegrityError exception."""
 
@@ -371,6 +422,7 @@ class TestGetIntegrityStatus:
                     "last_verified": "2025-01-01",
                 },
                 "eos": {
+                    "pinned_tag": "v2.65.4",
                     "pinned_commit": "def456",
                     "last_verified": "2025-01-02",
                 },
@@ -385,6 +437,7 @@ class TestGetIntegrityStatus:
         assert status["schema_version"] == 1
         assert status["sources"]["sde"]["pinned_version"] == "latest"
         assert status["sources"]["sde"]["has_checksum"] is True
+        assert status["sources"]["eos"]["pinned_tag"] == "v2.65.4"
         assert status["sources"]["eos"]["pinned_commit"] == "def456"
 
     def test_get_integrity_status_missing_manifest(self, tmp_path, monkeypatch):

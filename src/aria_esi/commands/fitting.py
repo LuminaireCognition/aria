@@ -9,13 +9,16 @@ import json
 import shutil
 import subprocess
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 from ..core import get_utc_timestamp
 from ..core.data_integrity import (
     get_eos_repository,
     get_pinned_eos_commit,
+    get_pinned_eos_tag,
     is_break_glass_enabled,
+    verify_eos_commit,
 )
 
 # =============================================================================
@@ -135,68 +138,18 @@ def prepare_eos_data(pyfa_staticdata: Path, output_dir: Path) -> dict:
     return stats
 
 
-def download_pyfa_staticdata(temp_dir: Path, break_glass: bool = False) -> tuple[Path, str | None]:
-    """
-    Download Pyfa staticdata using sparse checkout with optional commit pinning.
+@dataclass
+class DownloadResult:
+    """Result of downloading Pyfa staticdata."""
 
-    Args:
-        temp_dir: Temporary directory for cloning
-        break_glass: If True, skip commit pinning (use HEAD)
+    staticdata_path: Path
+    actual_commit: str | None
+    pin_status: str  # "tag_pinned", "commit_pinned", "head_fallback"
+    warning: str | None = None
 
-    Returns:
-        Tuple of (staticdata_path, commit_hash)
-    """
-    print("=== Downloading Pyfa staticdata ===")
-    print("  This may take a moment...")
 
-    repo_dir = temp_dir / "pyfa"
-    repo_url = get_eos_repository()
-    pinned_commit = get_pinned_eos_commit()
-
-    # Determine if we should use pinning
-    effective_break_glass = break_glass or is_break_glass_enabled()
-
-    if pinned_commit and not effective_break_glass:
-        print(f"  Using pinned commit: {pinned_commit[:12]}")
-        # Clone without depth to allow checkout of specific commit
-        subprocess.run(
-            ["git", "clone", "--filter=blob:none", "--sparse", repo_url, str(repo_dir)],
-            check=True,
-            capture_output=True,
-        )
-        # Checkout the specific commit
-        subprocess.run(
-            ["git", "-C", str(repo_dir), "checkout", pinned_commit],
-            check=True,
-            capture_output=True,
-        )
-    else:
-        if pinned_commit and effective_break_glass:
-            print("  WARNING: Break-glass mode, using HEAD instead of pinned commit")
-        elif not pinned_commit:
-            print("  No pinned commit configured, using HEAD")
-        # Standard shallow clone
-        subprocess.run(
-            [
-                "git",
-                "clone",
-                "--filter=blob:none",
-                "--sparse",
-                "--depth=1",
-                repo_url,
-                str(repo_dir),
-            ],
-            check=True,
-            capture_output=True,
-        )
-
-    subprocess.run(
-        ["git", "-C", str(repo_dir), "sparse-checkout", "set", "staticdata"],
-        check=True,
-        capture_output=True,
-    )
-
-    # Get actual commit hash
+def _get_head_commit(repo_dir: Path) -> str | None:
+    """Get the HEAD commit hash from a git repository."""
     try:
         result = subprocess.run(
             ["git", "-C", str(repo_dir), "rev-parse", "HEAD"],
@@ -204,19 +157,190 @@ def download_pyfa_staticdata(temp_dir: Path, break_glass: bool = False) -> tuple
             text=True,
             check=True,
         )
-        actual_commit = result.stdout.strip()
+        return result.stdout.strip()
     except subprocess.CalledProcessError:
-        actual_commit = None
+        return None
 
+
+def _sparse_checkout_staticdata(repo_dir: Path) -> Path:
+    """Set up sparse checkout for staticdata and return its path."""
+    subprocess.run(
+        ["git", "-C", str(repo_dir), "sparse-checkout", "set", "staticdata"],
+        check=True,
+        capture_output=True,
+    )
     staticdata_path = repo_dir / "staticdata"
     if not staticdata_path.exists():
         raise RuntimeError("Failed to download Pyfa staticdata")
+    return staticdata_path
+
+
+def download_pyfa_staticdata(
+    temp_dir: Path, break_glass: bool = False, strict_pin: bool = False
+) -> DownloadResult:
+    """
+    Download Pyfa staticdata with tag-first priority chain.
+
+    Priority: tag clone → commit checkout → HEAD fallback.
+
+    Args:
+        temp_dir: Temporary directory for cloning
+        break_glass: If True, skip pinning (use HEAD directly)
+        strict_pin: If True, fail instead of falling back to HEAD
+
+    Returns:
+        DownloadResult with staticdata path, commit, pin status, and optional warning
+    """
+    print("=== Downloading Pyfa staticdata ===")
+    print("  This may take a moment...")
+
+    repo_dir = temp_dir / "pyfa"
+    repo_url = get_eos_repository()
+    pinned_tag = get_pinned_eos_tag()
+    pinned_commit = get_pinned_eos_commit()
+
+    effective_break_glass = break_glass or is_break_glass_enabled()
+
+    # Break-glass: skip directly to HEAD
+    if effective_break_glass:
+        print("  WARNING: Break-glass mode, using HEAD instead of pinned tag/commit")
+        return _clone_head(repo_dir, repo_url)
+
+    # Strategy 1: Tag clone (fast, shallow, survives force-pushes)
+    if pinned_tag:
+        try:
+            print(f"  Cloning tag: {pinned_tag}")
+            subprocess.run(
+                [
+                    "git", "clone",
+                    "--branch", pinned_tag,
+                    "--depth=1",
+                    "--filter=blob:none",
+                    "--sparse",
+                    repo_url,
+                    str(repo_dir),
+                ],
+                check=True,
+                capture_output=True,
+            )
+            staticdata_path = _sparse_checkout_staticdata(repo_dir)
+            actual_commit = _get_head_commit(repo_dir)
+
+            # Verify commit matches if pinned_commit is set (warn-only)
+            warning = None
+            if pinned_commit and actual_commit:
+                match, _ = verify_eos_commit(repo_dir, pinned_commit)
+                if not match:
+                    warning = (
+                        f"Tag {pinned_tag} resolved to {actual_commit[:12]}, "
+                        f"expected {pinned_commit[:12]}. "
+                        f"Update pinned_commit in reference/data-sources.json."
+                    )
+                    print(f"  WARNING: {warning}")
+
+            print(f"  Downloaded to: {staticdata_path}")
+            if actual_commit:
+                print(f"  Commit: {actual_commit[:12]}")
+
+            return DownloadResult(
+                staticdata_path=staticdata_path,
+                actual_commit=actual_commit,
+                pin_status="tag_pinned",
+                warning=warning,
+            )
+        except subprocess.CalledProcessError:
+            print(f"  Tag clone failed for {pinned_tag}, trying commit checkout...")
+            # Clean up failed clone
+            if repo_dir.exists():
+                shutil.rmtree(repo_dir)
+
+    # Strategy 2: Commit checkout (existing logic)
+    if pinned_commit:
+        try:
+            print(f"  Using pinned commit: {pinned_commit[:12]}")
+            subprocess.run(
+                ["git", "clone", "--filter=blob:none", "--sparse", repo_url, str(repo_dir)],
+                check=True,
+                capture_output=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(repo_dir), "checkout", pinned_commit],
+                check=True,
+                capture_output=True,
+            )
+            staticdata_path = _sparse_checkout_staticdata(repo_dir)
+            actual_commit = _get_head_commit(repo_dir)
+
+            print(f"  Downloaded to: {staticdata_path}")
+            if actual_commit:
+                print(f"  Commit: {actual_commit[:12]}")
+
+            return DownloadResult(
+                staticdata_path=staticdata_path,
+                actual_commit=actual_commit,
+                pin_status="commit_pinned",
+            )
+        except subprocess.CalledProcessError:
+            print(f"  Commit checkout failed for {pinned_commit[:12]}, ", end="")
+            # Clean up failed clone
+            if repo_dir.exists():
+                shutil.rmtree(repo_dir)
+            if strict_pin:
+                raise RuntimeError(
+                    f"Pinned tag ({pinned_tag or 'none'}) and commit ({pinned_commit[:12]}) "
+                    f"are both unavailable. Cannot proceed with --strict-pin."
+                )
+            print("falling back to HEAD...")
+
+    elif strict_pin and pinned_tag:
+        # Tag was configured but failed, and no commit to fall back to
+        raise RuntimeError(
+            f"Pinned tag {pinned_tag} is unavailable and no pinned_commit configured. "
+            f"Cannot proceed with --strict-pin."
+        )
+
+    # Strategy 3: HEAD fallback
+    if strict_pin:
+        raise RuntimeError(
+            "No pinned tag or commit available. Cannot proceed with --strict-pin."
+        )
+
+    warning = (
+        "Both pinned tag and commit are unavailable. "
+        "Using HEAD — data may not match expected version. "
+        "Update reference/data-sources.json with current values."
+    )
+    print(f"  WARNING: {warning}")
+    return _clone_head(repo_dir, repo_url, warning=warning)
+
+
+def _clone_head(repo_dir: Path, repo_url: str, warning: str | None = None) -> DownloadResult:
+    """Clone HEAD as a last resort."""
+    subprocess.run(
+        [
+            "git", "clone",
+            "--filter=blob:none",
+            "--sparse",
+            "--depth=1",
+            repo_url,
+            str(repo_dir),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    staticdata_path = _sparse_checkout_staticdata(repo_dir)
+    actual_commit = _get_head_commit(repo_dir)
 
     print(f"  Downloaded to: {staticdata_path}")
     if actual_commit:
         print(f"  Commit: {actual_commit[:12]}")
 
-    return staticdata_path, actual_commit
+    return DownloadResult(
+        staticdata_path=staticdata_path,
+        actual_commit=actual_commit,
+        pin_status="head_fallback",
+        warning=warning,
+    )
 
 
 # =============================================================================
@@ -237,6 +361,7 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
     force = getattr(args, "force", False)
     check_only = getattr(args, "check", False)
     break_glass = getattr(args, "break_glass_latest", False)
+    strict_pin = getattr(args, "strict_pin", False)
 
     data_manager = get_eos_data_manager()
     output_dir = data_manager.data_path
@@ -283,8 +408,8 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
     # Download and prepare data
     with tempfile.TemporaryDirectory() as temp_dir:
         try:
-            staticdata_path, source_commit = download_pyfa_staticdata(
-                Path(temp_dir), break_glass=break_glass
+            dl_result = download_pyfa_staticdata(
+                Path(temp_dir), break_glass=break_glass, strict_pin=strict_pin
             )
 
             # Clean output directory if it exists
@@ -293,7 +418,7 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
                 shutil.rmtree(output_dir)
 
             # Prepare EOS data
-            stats = prepare_eos_data(staticdata_path, output_dir)
+            stats = prepare_eos_data(dl_result.staticdata_path, output_dir)
 
             print("\n" + "=" * 60)
             print("SUMMARY")
@@ -301,8 +426,17 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
             print(f"Files created: {stats['files']}")
             print(f"Total records: {stats['records']:,}")
             print(f"Output directory: {output_dir}")
-            if source_commit:
-                print(f"Source commit: {source_commit}")
+            print(f"Pin status: {dl_result.pin_status}")
+            if dl_result.actual_commit:
+                print(f"Source commit: {dl_result.actual_commit}")
+
+            # Show prominent warning for HEAD fallback
+            if dl_result.pin_status == "head_fallback":
+                print("\n" + "=" * 60)
+                print("  WARNING: Data was cloned from HEAD (unpinned)")
+                print("  The pinned tag/commit were unavailable.")
+                print("  Update reference/data-sources.json with current values.")
+                print("=" * 60)
 
             # Invalidate cache and verify
             data_manager.invalidate_cache()
@@ -317,10 +451,13 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
                     "version": final_status.version,
                     "files_created": stats["files"],
                     "total_records": stats["records"],
+                    "pin_status": dl_result.pin_status,
                     "query_timestamp": query_ts,
                 }
-                if source_commit:
-                    response["source_commit"] = source_commit
+                if dl_result.actual_commit:
+                    response["source_commit"] = dl_result.actual_commit
+                if dl_result.warning:
+                    response["warning"] = dl_result.warning
                 return response
             else:
                 print(f"\n Validation failed: {final_status.error_message}")
@@ -332,14 +469,32 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
                     "query_timestamp": query_ts,
                 }
 
-        except subprocess.CalledProcessError:
-            error_msg = (
-                "Git operation failed. Make sure git is installed and you have internet access"
-            )
+        except subprocess.CalledProcessError as e:
+            stderr_text = e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
+            if "not our ref" in stderr_text:
+                error_msg = (
+                    f"Pinned commit is no longer available in the remote repository. "
+                    f"The commit may have been force-pushed away. "
+                    f"Update the pinned_commit in reference/data-sources.json, "
+                    f"or run with --break-glass-latest to use HEAD."
+                )
+            else:
+                error_msg = (
+                    "Git operation failed. Make sure git is installed and you have internet access"
+                )
+            if stderr_text:
+                error_msg += f"\n  git stderr: {stderr_text.strip()}"
             print(f"\n✗ {error_msg}")
             return {
                 "error": "git_error",
                 "message": error_msg,
+                "query_timestamp": query_ts,
+            }
+        except RuntimeError as e:
+            print(f"\n✗ {e}")
+            return {
+                "error": "pin_error",
+                "message": str(e),
                 "query_timestamp": query_ts,
             }
         except Exception as e:
@@ -430,6 +585,12 @@ def register_parsers(subparsers) -> None:
         action="store_true",
         dest="break_glass_latest",
         help="Skip commit pinning (use HEAD)",
+    )
+    seed_parser.add_argument(
+        "--strict-pin",
+        action="store_true",
+        dest="strict_pin",
+        help="Fail if pinned tag/commit is unavailable (no auto-fallback)",
     )
     seed_parser.set_defaults(func=cmd_eos_seed)
 

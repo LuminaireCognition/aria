@@ -1,0 +1,82 @@
+name: Data Health Check
+
+on:
+  schedule:
+    - cron: '0 6 * * 3'  # Wednesday 06:00 UTC
+  workflow_dispatch:
+
+jobs:
+  check-data-sources:
+    name: Verify Data Sources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read data sources manifest
+        id: manifest
+        run: |
+          PINNED_TAG=$(jq -r '.sources.eos.pinned_tag // empty' reference/data-sources.json)
+          REPO_URL=$(jq -r '.sources.eos.repository' reference/data-sources.json)
+          SDE_URL=$(jq -r '.sources.sde.url_latest // empty' reference/data-sources.json)
+          echo "pinned_tag=${PINNED_TAG}" >> "$GITHUB_OUTPUT"
+          echo "repo_url=${REPO_URL}" >> "$GITHUB_OUTPUT"
+          echo "sde_url=${SDE_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify EOS tag exists
+        id: eos_check
+        run: |
+          TAG="${{ steps.manifest.outputs.pinned_tag }}"
+          REPO="${{ steps.manifest.outputs.repo_url }}"
+          if [[ -z "$TAG" ]]; then
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+            echo "::warning::No pinned_tag configured in data-sources.json"
+            exit 0
+          fi
+          if git ls-remote --tags "$REPO" "refs/tags/$TAG" | grep -q "$TAG"; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            echo "::error::Pinned tag $TAG not found in $REPO"
+            exit 1
+          fi
+
+      - name: Verify SDE URL is reachable
+        id: sde_check
+        run: |
+          URL="${{ steps.manifest.outputs.sde_url }}"
+          if [[ -z "$URL" ]]; then
+            echo "status=skipped" >> "$GITHUB_OUTPUT"
+            echo "::warning::No SDE URL configured"
+            exit 0
+          fi
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --head --max-time 30 "$URL")
+          if [[ "$HTTP_CODE" -ge 200 && "$HTTP_CODE" -lt 400 ]]; then
+            echo "status=ok" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+            echo "::error::SDE URL returned HTTP $HTTP_CODE: $URL"
+            exit 1
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Data Health Check Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Check | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
+
+          EOS="${{ steps.eos_check.outputs.status }}"
+          SDE="${{ steps.sde_check.outputs.status }}"
+
+          case "$EOS" in
+            ok)      echo "| EOS tag (\`${{ steps.manifest.outputs.pinned_tag }}\`) | :white_check_mark: Available |" >> "$GITHUB_STEP_SUMMARY" ;;
+            failed)  echo "| EOS tag (\`${{ steps.manifest.outputs.pinned_tag }}\`) | :x: Not found |" >> "$GITHUB_STEP_SUMMARY" ;;
+            *)       echo "| EOS tag | :warning: Skipped (not configured) |" >> "$GITHUB_STEP_SUMMARY" ;;
+          esac
+
+          case "$SDE" in
+            ok)      echo "| SDE URL | :white_check_mark: Reachable |" >> "$GITHUB_STEP_SUMMARY" ;;
+            failed)  echo "| SDE URL | :x: Unreachable |" >> "$GITHUB_STEP_SUMMARY" ;;
+            *)       echo "| SDE URL | :warning: Skipped (not configured) |" >> "$GITHUB_STEP_SUMMARY" ;;
+          esac
