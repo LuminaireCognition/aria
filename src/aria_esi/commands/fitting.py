@@ -473,10 +473,10 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
             stderr_text = e.stderr.decode() if isinstance(e.stderr, bytes) else (e.stderr or "")
             if "not our ref" in stderr_text:
                 error_msg = (
-                    f"Pinned commit is no longer available in the remote repository. "
-                    f"The commit may have been force-pushed away. "
-                    f"Update the pinned_commit in reference/data-sources.json, "
-                    f"or run with --break-glass-latest to use HEAD."
+                    "Pinned commit is no longer available in the remote repository. "
+                    "The commit may have been force-pushed away. "
+                    "Update the pinned_commit in reference/data-sources.json, "
+                    "or run with --break-glass-latest to use HEAD."
                 )
             else:
                 error_msg = (
