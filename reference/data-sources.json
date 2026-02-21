@@ -10,8 +10,9 @@
     },
     "eos": {
       "repository": "https://github.com/pyfa-org/Pyfa.git",
-      "pinned_commit": "c2cc80fd3b1951ac44be3702d59e5047cc7fa494",
-      "last_verified": "2026-02-01T00:00:00+00:00"
+      "pinned_tag": "v2.65.4",
+      "pinned_commit": "074048890cce1388cd86450fd01c3c4c481a6835",
+      "last_verified": "2026-02-21T00:00:00+00:00"
     },
     "universe_graph": {
       "description": "Pre-built universe navigation graph (safe .universe format)",

@@ -294,6 +294,24 @@ def get_pinned_eos_commit() -> str | None:
     return eos_config.get("pinned_commit")
 
 
+def get_pinned_eos_tag() -> str | None:
+    """
+    Get the pinned EOS/Pyfa release tag.
+
+    Tags survive force-pushes and are the preferred pinning mechanism.
+
+    Returns:
+        Tag string (e.g. "v2.65.4") if configured, None otherwise
+    """
+    manifest = _get_manifest_safe()
+
+    if manifest is None:
+        return None
+
+    eos_config = manifest.get("sources", {}).get("eos", {})
+    return eos_config.get("pinned_tag")
+
+
 def get_eos_repository() -> str:
     """
     Get the EOS/Pyfa repository URL.
@@ -526,6 +544,7 @@ def get_integrity_status() -> dict[str, Any]:
 
         eos = manifest.get("sources", {}).get("eos", {})
         status["sources"]["eos"] = {
+            "pinned_tag": eos.get("pinned_tag"),
             "pinned_commit": eos.get("pinned_commit"),
             "last_verified": eos.get("last_verified"),
         }
