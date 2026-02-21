@@ -1,0 +1,85 @@
+# Catalyst SOE Epic Arc - T1 Armor Blaster
+#
+# T1 fit for the Sisters of EVE Epic Arc (The Blood-Stained Stars).
+# Armor buffer tank with explosive/kinetic resist rigs for mixed encounters.
+# Compact magnetic field stabilizers and meta electron blasters.
+# MWD for fast travel, cap booster for sustainability.
+
+archetype:
+  hull: Catalyst
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Catalyst, Tech 1 SOE Epic Arc]
+  Vortex Compact Magnetic Field Stabilizer
+  Vortex Compact Magnetic Field Stabilizer
+  Small ACM Compact Armor Repairer
+
+  5MN Cold-Gas Enduring Microwarpdrive
+  Small F-RX Compact Capacitor Booster
+
+  Anode Light Electron Particle Cannon I
+  Anode Light Electron Particle Cannon I
+  Anode Light Electron Particle Cannon I
+  Anode Light Electron Particle Cannon I
+  Anode Light Electron Particle Cannon I
+  Anode Light Electron Particle Cannon I
+  Anode Light Electron Particle Cannon I
+  Anode Light Electron Particle Cannon I
+
+  Small Explosive Armor Reinforcer I
+  Small Explosive Armor Reinforcer I
+  Small Kinetic Armor Reinforcer I
+
+
+  Cap Booster 200 x31
+  Antimatter Charge S x6600
+  Iron Charge S x5000
+
+skill_requirements:
+  required:
+    Gallente Destroyer: 1
+    Small Hybrid Turret: 2
+    Repair Systems: 2
+    Hull Upgrades: 1
+  recommended:
+    Gallente Destroyer: 3
+    Small Hybrid Turret: 3
+    Controlled Bursts: 2
+    Capacitor Management: 3
+    Mechanic: 3
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+damage_tuning:
+  default_damage: kinetic_thermal
+  tank_profile: armor_active
+
+notes:
+  purpose: "SOE Epic Arc (The Blood-Stained Stars) - faces multiple factions"
+  engagement: "MWD to engagement range, orbit at 1-5km with blasters for maximum DPS"
+  warnings:
+    - "8 blasters for extreme close-range DPS"
+    - "Armor resist rigs cover Explosive and Kinetic holes"
+    - "Cap booster sustains MWD and armor repairer"
+    - "Carry Cap Booster 200 charges - essential for cap stability"
+    - "SOE Arc has mixed factions - armor resist rigs chosen for worst-case"
+    - "MWD for fast mission travel but watch cap drain"
+    - "Carry Antimatter (close range), Iron (long range)"
+    - "T1/compact modules throughout - alpha-clone friendly"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Vortex Compact Magnetic Field Stabilizer"
+      upgrade_to: "Magnetic Field Stabilizer II"
+      skill_required: "Weapon Upgrades 4"
+    - module: "Anode Light Electron Particle Cannon I"
+      upgrade_to: "Light Ion Blaster II"
+      skill_required: "Small Hybrid Turret 5"
+    - module: "Small ACM Compact Armor Repairer"
+      upgrade_to: "Small Armor Repairer II"
+      skill_required: "Repair Systems 4"

@@ -1,0 +1,87 @@
+# Caracal FW PvP - Faction Warfare RLML Kite
+#
+# T2 Rapid Light Missile Launcher fit for Faction Warfare.
+# Shield buffer tank with MWD, web, and long point for kiting.
+# Selectable damage via missile types.
+
+archetype:
+  hull: Caracal
+  skill_tier: t2
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Faction Warfare PvP Community Fits
+  license: community
+
+eft: |
+  [Caracal, iBeast-Faction Warfare PvP-Caracal]
+  IFFA Compact Damage Control
+  Ballistic Control System II
+  Ballistic Control System II
+  Ballistic Control System II
+
+  50MN Quad LiF Restrained Microwarpdrive
+  Large F-S9 Regolith Compact Shield Extender
+  Fleeting Compact Stasis Webifier
+  Large F-S9 Regolith Compact Shield Extender
+  Warp Disruptor II
+
+  Rapid Light Missile Launcher II
+  Rapid Light Missile Launcher II
+  Rapid Light Missile Launcher II
+  Rapid Light Missile Launcher II
+  Rapid Light Missile Launcher II
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+
+  Caldari Navy Hornet x2
+
+  Caldari Navy Inferno Light Missile x400
+  Nova Fury Light Missile x400
+  Inferno Fury Light Missile x500
+  Caldari Navy Nova Light Missile x400
+  Caldari Navy Mjolnir Light Missile x400
+  Mjolnir Fury Light Missile x400
+  Agency 'Overclocker' SB3 Dose I x1
+
+skill_requirements:
+  required:
+    Caldari Cruiser: 3
+    Missile Launcher Operation: 5
+    Light Missiles: 5
+    Rapid Launch: 4
+    Shield Upgrades: 3
+    Weapon Upgrades: 4
+  recommended:
+    Warhead Upgrades: 4
+    Guided Missile Precision: 4
+    Target Navigation Prediction: 4
+    Navigation: 4
+    Acceleration Control: 3
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+notes:
+  purpose: "Faction Warfare kite cruiser - engage at range with selectable damage"
+  engagement: "Maintain 20-30km with MWD, web to control range, point to hold target"
+  warnings:
+    - "Kite fit - do not brawl, maintain range at all times"
+    - "Carry Fury missiles for cruiser targets, Navy for frigates"
+    - "Web is defensive - slow tacklers chasing you"
+    - "RLML reload takes 35 seconds - disengage during reload if needed"
+    - "Faction drones and ammo increase cost significantly"
+    - "Agency booster provides speed/agility edge"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - ship: "Caracal Navy Issue"
+      notes: "Faction upgrade with more tank and DPS"
+    - ship: "Osprey Navy Issue"
+      notes: "Alternative Caldari missile cruiser with better tank"

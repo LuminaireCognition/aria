@@ -1,0 +1,83 @@
+# Algos L1 Missions - Gallente Enforcer Shield Drone
+#
+# Shield-tanked drone Algos with signal amplifier for drone control range.
+# Compact DDAs and mixed drone bay for versatility.
+# Drone Link Augmentor extends drone control to match engagement range.
+
+archetype:
+  hull: Algos
+  skill_tier: meta
+  omega_required: true
+
+eft: |
+  [Algos, Gallente Enforcer]
+  AE-K Compact Drone Damage Amplifier
+  AE-K Compact Drone Damage Amplifier
+  F-89 Compact Signal Amplifier
+
+  1MN Monopropellant Enduring Afterburner
+  Medium Shield Extender II
+  Compact Multispectrum Shield Hardener
+
+  75mm Compressed Coil Gun I
+  75mm Compressed Coil Gun I
+  75mm Compressed Coil Gun I
+  75mm Compressed Coil Gun I
+  75mm Compressed Coil Gun I
+  Drone Link Augmentor I
+
+  Small Core Defense Field Purger I
+  Small Core Defense Field Purger I
+  Small Processor Overclocking Unit I
+
+
+  Acolyte I x5
+  Valkyrie I x2
+  Hobgoblin I x3
+
+  Antimatter Charge S x3000
+
+skill_requirements:
+  required:
+    Gallente Destroyer: 3
+    Drones: 5
+    Light Drone Operation: 3
+    Small Hybrid Turret: 2
+    Shield Upgrades: 4
+  recommended:
+    Drone Sharpshooting: 3
+    Drone Durability: 3
+    Medium Drone Operation: 1
+    Controlled Bursts: 2
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: shield_buffer
+
+notes:
+  purpose: "L1 mission runner with extended drone control range via signal amplifier and drone link"
+  engagement: "Orbit at 15-20km, Drone Link Augmentor extends drone control range"
+  warnings:
+    - "Compact DDAs - good DPS without T2 skill requirements"
+    - "Signal amplifier extends targeting range to match drone control"
+    - "Drone Link Augmentor in utility high extends drone operating range"
+    - "Mixed drone bay: Acolytes (EM), Valkyries (Explosive), Hobgoblins (Thermal)"
+    - "Shield defense purger rigs improve passive shield regen"
+    - "Processor overclocking unit rig needed for CPU - tight fit"
+    - "75mm railguns for supplemental DPS at range"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "AE-K Compact Drone Damage Amplifier"
+      upgrade_to: "Drone Damage Amplifier II"
+      skill_required: "Weapon Upgrades 4"
+    - module: "75mm Compressed Coil Gun I"
+      upgrade_to: "75mm Gatling Rail II"
+      skill_required: "Small Hybrid Turret 5"
+    - ship: "Vexor"
+      notes: "Cruiser upgrade for L2 missions with 75 Mbit drone bandwidth"

@@ -1,0 +1,109 @@
+# Thrasher L1 Missions - iBeast HiSec PvE Shield Artillery
+#
+# Shield-tanked artillery Thrasher for L1 missions with probe launcher.
+# T2 gyrostabilizers for DPS, meta artillery for alpha-strike damage.
+# Probe launcher in utility high for exploration between missions.
+
+archetype:
+  hull: Thrasher
+  skill_tier: meta
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: HiSec PvE Community Fits
+  license: community
+
+eft: |
+  [Thrasher, iBeast-HiSec PvE-Thrasher]
+  Gyrostabilizer II
+  Gyrostabilizer II
+
+  1MN Y-S8 Compact Afterburner
+  Medium Azeotropic Restrained Shield Extender
+  Compact Multispectrum Shield Hardener
+
+  250mm Light Prototype Siege Cannon
+  250mm Light Prototype Siege Cannon
+  250mm Light Prototype Siege Cannon
+  250mm Light Prototype Siege Cannon
+  Core Probe Launcher I
+  250mm Light Prototype Siege Cannon
+  250mm Light Prototype Siege Cannon
+  250mm Light Prototype Siege Cannon
+
+  Small EM Shield Reinforcer I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+
+  Phased Plasma S x1780
+  EMP S x1500
+  Core Scanner Probe I x16
+  Depleted Uranium S x1500
+  Fusion S x1500
+
+skill_requirements:
+  required:
+    Minmatar Destroyer: 3
+    Small Projectile Turret: 3
+    Shield Upgrades: 3
+    Weapon Upgrades: 4
+  recommended:
+    Sharpshooter: 3
+    Motion Prediction: 3
+    Shield Management: 3
+    Astrometrics: 3
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+damage_tuning:
+  default_damage: thermal_kinetic
+  tank_profile: shield_buffer
+
+  overrides:
+    serpentis:
+      ammo: "Phased Plasma S"
+      notes: "Serpentis weak to Thermal - default ammo works"
+
+    angel_cartel:
+      ammo: "Fusion S"
+      notes: "Angels weak to Explosive"
+
+    blood_raiders:
+      ammo: "EMP S"
+      notes: "Blood Raiders weak to EM"
+
+    guristas:
+      ammo: "Phased Plasma S"
+      notes: "Guristas weak to Kinetic - Phased Plasma has Kinetic component"
+
+    rogue_drones:
+      ammo: "EMP S"
+      notes: "Drones weak to EM"
+
+notes:
+  purpose: "L1 mission runner with probe launcher for opportunistic exploration"
+  engagement: "Orbit at 10-20km with artillery, swap ammo for damage type"
+  warnings:
+    - "Dual T2 Gyrostabilizers for maximum turret DPS"
+    - "Artillery cannons for high alpha-strike - one-shot L1 frigates"
+    - "Probe launcher sacrifices 1 turret slot for scanning utility"
+    - "EM shield reinforcer plugs the shield EM hole"
+    - "Carry Phased Plasma (thermal), EMP (EM), Fusion (explosive), Depleted Uranium (balanced)"
+    - "Artillery has slow rate of fire but high alpha - overkill on small targets"
+    - "Medium shield extender provides more buffer than small"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "250mm Light Prototype Siege Cannon"
+      upgrade_to: "250mm Light Artillery Cannon II"
+      skill_required: "Small Projectile Turret 5"
+    - module: "Compact Multispectrum Shield Hardener"
+      upgrade_to: "Multispectrum Shield Hardener II"
+      skill_required: "Tactical Shield Manipulation 4"
+    - ship: "Rupture"
+      notes: "Cruiser upgrade for L2 missions"

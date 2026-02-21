@@ -1,0 +1,67 @@
+# Nereus Hauler - Max Cargo with Cloak
+#
+# Maximum cargo capacity Nereus with expanded cargoholds and cargo rigs.
+# Cloak for safety, shield buffer for gank deterrence.
+
+archetype:
+  hull: Nereus
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Nereus, Hauler Operations - Nereus]
+  Damage Control I
+  Expanded Cargohold II
+  Expanded Cargohold II
+  Expanded Cargohold II
+  Expanded Cargohold II
+
+  10MN Afterburner I
+  Large Shield Extender I
+  EM Shield Amplifier I
+  Medium Shield Extender I
+  Medium Shield Extender I
+
+  Prototype Cloaking Device I
+
+  Medium Cargohold Optimization I
+  Medium Cargohold Optimization I
+  Medium Cargohold Optimization I
+
+skill_requirements:
+  required:
+    Gallente Industrial: 1
+    Hull Upgrades: 5
+    Cloaking: 1
+    Shield Upgrades: 1
+  recommended:
+    Gallente Industrial: 4
+    Evasive Maneuvering: 4
+    Shield Management: 3
+
+notes:
+  purpose: "Maximum cargo capacity hauler with cloak and shield tank"
+  engagement: "Warp station to station. MWD + Cloak trick if needed"
+  warnings:
+    - "4x Expanded Cargohold II sacrifices structure HP"
+    - "Prototype Cloaking Device for safety"
+    - "EM Shield Amplifier plugs worst shield hole"
+    - "Triple cargo rigs maximize hold size"
+    - "Never autopilot with valuable cargo"
+    - "Keep total cargo value under 100M to avoid gankers"
+
+  mwd_cloak_trick:
+    - "After gate jump, hold gate cloak"
+    - "Align to destination"
+    - "Activate AB or overheat"
+    - "Immediately activate cloak"
+    - "Before AB ends, deactivate cloak"
+    - "Warp when able"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - module: "Expanded Cargohold II"
+      upgrade_to: "Keep - already T2"
+    - ship: "Occator (Deep Space Transport)"
+      notes: "Fleet hangar, much better tank, can't be cargo scanned"

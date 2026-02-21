@@ -1,0 +1,82 @@
+# Talwar FW PvP - Faction Warfare Rocket Brawler
+#
+# T2 rocket launcher fit for Faction Warfare.
+# Armor ancillary repairer with hull buffer via transverse bulkheads.
+# MWD for dictating range, scram and web for tackle control.
+
+archetype:
+  hull: Talwar
+  skill_tier: t2
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Faction Warfare PvP Community Fits
+  license: community
+
+eft: |
+  [Talwar, iBeast-Faction Warfare PvP-Talwar]
+  IFFA Compact Damage Control
+  Ballistic Control System II
+  Small Ancillary Armor Repairer
+
+  5MN Quad LiF Restrained Microwarpdrive
+  Fleeting Compact Stasis Webifier
+  Faint Epsilon Scoped Warp Scrambler
+
+  Rocket Launcher II
+  Rocket Launcher II
+  Rocket Launcher II
+  Rocket Launcher II
+  Rocket Launcher II
+  Rocket Launcher II
+  Rocket Launcher II
+
+  Small Transverse Bulkhead I
+  Small Transverse Bulkhead I
+  Small Transverse Bulkhead I
+
+
+  Nova Rage Rocket x1050
+  Nanite Repair Paste x28
+  Nova Javelin Rocket x700
+  Caldari Navy Nova Rocket x700
+
+skill_requirements:
+  required:
+    Minmatar Destroyer: 3
+    Missile Launcher Operation: 5
+    Rockets: 5
+    Hull Upgrades: 4
+    Repair Systems: 3
+  recommended:
+    Warhead Upgrades: 4
+    Guided Missile Precision: 4
+    Target Navigation Prediction: 4
+    Thermodynamics: 3
+    Navigation: 4
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+notes:
+  purpose: "Faction Warfare rocket brawler with full tackle suite"
+  engagement: "MWD into scram range, web target, unleash 7 rocket launchers"
+  warnings:
+    - "Hull tank via transverse bulkheads - armor is active repair layer"
+    - "Small Ancillary Armor Repairer for burst repair (carry Nanite Repair Paste)"
+    - "Rage rockets for maximum DPS against cruisers/destroyers"
+    - "Javelin rockets for range extension against kiters"
+    - "Navy Nova for general use with good application"
+    - "MWD + scram + web - full tackle suite for holding targets"
+    - "Very fast with MWD - can dictate engagements"
+    - "Rockets have short range - must get close to apply damage"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - ship: "Breacher"
+      notes: "Frigate alternative with active shield tank for small plexes"
+    - ship: "Jaguar (Assault Frigate)"
+      notes: "T2 Minmatar brawler with much heavier tank"
