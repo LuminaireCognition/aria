@@ -25,6 +25,7 @@ Partially. These work offline:
 - Fitting advice (general)
 
 These need internet:
+- Initial setup game data seeding (`./aria-init`); use `--skip-seed` to defer
 - Live market prices
 - System activity/kills
 - Current location (ESI)
@@ -51,6 +52,15 @@ Yes. All features work regardless of clone state. ARIA doesn't check or restrict
 ### Can I use multiple characters?
 
 Yes. ARIA supports multiple pilots with separate profiles and credentials. See [MULTI_PILOT_ARCHITECTURE.md](MULTI_PILOT_ARCHITECTURE.md).
+
+### How do I update game data caches?
+
+Re-run just the seeding step:
+```bash
+./aria-init --seed-only
+```
+
+This refreshes the SDE database, fitting engine, market prices, sovereignty map, and persona context.
 
 ### How do I switch characters?
 

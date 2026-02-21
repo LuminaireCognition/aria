@@ -37,6 +37,22 @@ Run the setup wizard again — it creates all required directories and templates
 ./aria-init
 ```
 
+### Game data seeding failed
+
+If seeds failed during `./aria-init`, retry just the seeding step:
+```bash
+./aria-init --seed-only
+```
+
+Or retry individual commands:
+```bash
+uv run aria-esi sde-seed       # SDE database
+uv run aria-esi eos-seed       # Fitting engine
+uv run aria-esi market-seed    # Market prices
+uv run aria-esi sov-update     # Sovereignty map
+uv run aria-esi persona-context # Persona compilation
+```
+
 ---
 
 ## Boot & Session
@@ -153,7 +169,7 @@ crontab -e
 
 ARIA verifies data against the SDE and trusted sources, but mistakes can happen:
 
-1. **Recent game change?** SDE updates lag patches by days/weeks.
+1. **Recent game change?** SDE updates lag patches by days/weeks. Refresh with `uv run aria-esi sde-seed --force`.
 2. **Mission-specific?** Wiki data may be outdated for rarely-run missions.
 
 Report issues at the [GitHub repository](https://github.com/LuminaireCognition/aria/issues).

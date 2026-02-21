@@ -57,6 +57,9 @@ This will:
 2. Create your pilot profile directory
 3. Configure your character identity and faction
 4. Generate all required data files
+5. Download game data caches (~100MB, requires internet) — SDE database, fitting engine, market prices, sovereignty map, persona context
+
+Use `--skip-seed` to defer the download, or `--seed-only` to run just the seeding step later.
 
 For detailed first-run guidance, see [FIRST_RUN.md](FIRST_RUN.md).
 
@@ -112,6 +115,11 @@ Configure in `.mcp.json`:
 cd aria
 git pull
 uv sync
+```
+
+After major updates (especially SDE schema changes), re-seed game data:
+```bash
+./aria-init --seed-only
 ```
 
 ## Uninstalling
