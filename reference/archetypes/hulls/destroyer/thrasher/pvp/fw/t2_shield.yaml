@@ -1,0 +1,71 @@
+# Thrasher FW PvP - Shield Buffer Autocannon Brawler
+#
+# Alternative T2 Thrasher for Faction Warfare with shield buffer tank.
+# All T2 modules throughout - pure T2 fit. Medium Shield Extender II
+# provides solid buffer. Warp Scrambler II for tackle.
+
+archetype:
+  hull: Thrasher
+  skill_tier: t2
+  omega_required: true
+
+eft: |
+  [Thrasher, Faction Warfare - PvP Thrasher]
+  Damage Control II
+  Gyrostabilizer II
+
+  5MN Y-T8 Compact Microwarpdrive
+  Medium Shield Extender II
+  Warp Scrambler II
+
+  Small Energy Neutralizer II
+  200mm AutoCannon II
+  200mm AutoCannon II
+  200mm AutoCannon II
+  200mm AutoCannon II
+  200mm AutoCannon II
+  200mm AutoCannon II
+  200mm AutoCannon II
+
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+  Small Projectile Burst Aerator II
+
+
+  Republic Fleet EMP S x3000
+
+skill_requirements:
+  required:
+    Minmatar Destroyer: 3
+    Small Projectile Turret: 5
+    Gunnery: 4
+    Shield Upgrades: 4
+  recommended:
+    Motion Prediction: 4
+    Rapid Firing: 4
+    Thermodynamics: 3
+    Navigation: 4
+    Shield Management: 4
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+notes:
+  purpose: "Faction Warfare shield-tanked autocannon brawler"
+  engagement: "MWD into scram range, neut active tanks, melt with autocannons"
+  warnings:
+    - "Shield buffer tank - more EHP than hull tank variant but less utility"
+    - "T2 Energy Neutralizer in utility high for cap warfare"
+    - "T2 Warp Scrambler for reliable tackle"
+    - "Projectile Burst Aerator II rig boosts turret DPS"
+    - "Shield extender rigs plug shield buffer"
+    - "All T2 modules - higher skill requirements but more performance"
+    - "No web - less range control than hull-tank variant"
+    - "EMP S ammo for EM damage against shield-tanked targets"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - ship: "Wolf (Assault Frigate)"
+      notes: "T2 Minmatar autocannon platform with much heavier tank"

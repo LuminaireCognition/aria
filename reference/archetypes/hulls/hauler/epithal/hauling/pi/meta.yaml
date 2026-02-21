@@ -1,0 +1,53 @@
+# Epithal PI Runner - Meta Variant
+#
+# Fast-align PI hauler with passive shield tank and warp stability.
+# Prioritizes speed and evasion over cargo or cloak.
+
+archetype:
+  hull: Epithal
+  skill_tier: meta
+  omega_required: false
+
+eft: |
+  [Epithal, PI Runner]
+  Warp Core Stabilizer I
+  Type-D Restrained Inertial Stabilizers
+  Type-D Restrained Inertial Stabilizers
+  Type-D Restrained Inertial Stabilizers
+
+  Compact Thermal Shield Amplifier
+  Compact EM Shield Amplifier
+  Compact EM Shield Amplifier
+  Large F-S9 Regolith Compact Shield Extender
+
+  Medium Hyperspatial Velocity Optimizer I
+  Medium Hyperspatial Velocity Optimizer I
+  Medium Hyperspatial Velocity Optimizer I
+
+skill_requirements:
+  required:
+    Gallente Industrial: 1
+    Navigation: 3
+  recommended:
+    Gallente Industrial: 4
+    Evasive Maneuvering: 4
+    Warp Drive Operation: 3
+
+notes:
+  purpose: "Fast-align PI hauler with warp core stability"
+  engagement: "Warp to POCO, transfer PI, warp to next planet or station"
+  warnings:
+    - "No cloak - relies on fast align and warp stability"
+    - "Triple hyperspatial rigs maximize warp speed"
+    - "Warp Core Stabilizer reduces scan resolution"
+    - "Passive shield tank only - no active repair"
+    - "Empty high slots - could fit cloak if preferred"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - module: "Warp Core Stabilizer I"
+      upgrade_to: "Prototype Cloaking Device I"
+      notes: "Trade warp stability for MWD + Cloak trick"
+    - ship: "Blockade Runner (Viator)"
+      notes: "Covert cloak, faster, but only ~5,000 m3 cargo"

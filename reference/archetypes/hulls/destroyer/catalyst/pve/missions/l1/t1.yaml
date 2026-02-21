@@ -1,0 +1,75 @@
+# Catalyst L1 Missions - T1 Combat Fit
+#
+# Entry-level railgun Catalyst for L1 security missions.
+# Armor tank with repairer and compact magnetic field stabilizer.
+# All T1/compact modules - alpha-clone compatible.
+
+archetype:
+  hull: Catalyst
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Catalyst, Combat Catalyst]
+  Damage Control I
+  Small ACM Compact Armor Repairer
+  Vortex Compact Magnetic Field Stabilizer
+
+  1MN Monopropellant Enduring Afterburner
+  Small Compact Pb-Acid Cap Battery
+
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+
+
+  Antimatter Charge S x1000
+
+skill_requirements:
+  required:
+    Gallente Destroyer: 1
+    Small Hybrid Turret: 2
+    Repair Systems: 2
+    Hull Upgrades: 1
+  recommended:
+    Gallente Destroyer: 3
+    Small Hybrid Turret: 3
+    Controlled Bursts: 2
+    Motion Prediction: 2
+    Mechanic: 3
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+damage_tuning:
+  default_damage: kinetic_thermal
+  tank_profile: armor_active
+
+notes:
+  purpose: "Entry-level L1 mission runner for new Gallente pilots"
+  engagement: "Orbit at 5-10km with antimatter for maximum DPS, or 15-20km with longer-range ammo"
+  warnings:
+    - "8 turrets provide excellent DPS for a destroyer"
+    - "No rigs fitted - add armor rigs when available"
+    - "Cap battery helps sustain armor repairer"
+    - "Only 2 mid slots - AB and cap battery, no room for utility"
+    - "Carry Antimatter (close), Uranium (mid), Iron (long range)"
+    - "Active armor repair requires cap management"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "125mm Compressed Coil Gun I"
+      upgrade_to: "125mm Railgun II"
+      skill_required: "Small Hybrid Turret 5"
+    - module: "Vortex Compact Magnetic Field Stabilizer"
+      upgrade_to: "Magnetic Field Stabilizer II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Vexor"
+      notes: "Cruiser upgrade for L2 missions"

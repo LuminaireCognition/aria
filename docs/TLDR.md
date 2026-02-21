@@ -26,7 +26,7 @@ Use either setup path depending on context:
 /setup
 ```
 
-ARIA asks your name, faction, and experience level. Done.
+ARIA asks your name, faction, and experience level, then downloads game data (~100MB).
 
 **Optional:** ESI integration for live game data (~5 min):
 ```bash
@@ -76,6 +76,7 @@ Edit `userdata/pilots/{your_pilot}/profile.md` and add/change:
 ## Quick Reference
 
 - **Enable RP:** Set `rp_level` in profile (see above)
+- **Re-seed game data:** `./aria-init --seed-only`
 - **Check token:** `.claude/scripts/aria-refresh --check`
 - **Main README:** [../README.md](../README.md)
 - **Docs index:** [README.md](README.md)

@@ -65,7 +65,7 @@ git clone git@github.com:LuminaireCognition/aria.git
 git clone https://github.com/LuminaireCognition/aria.git
 cd aria
 
-# 2. Run the setup wizard
+# 2. Run the setup wizard (downloads ~100MB of game data)
 ./aria-init
 
 # 3. Launch ARIA
@@ -84,7 +84,7 @@ claude
 
 Setup paths:
 
-- From your shell, run `./aria-init` for first-time bootstrap and local file generation.
+- From your shell, run `./aria-init` for first-time bootstrap, local file generation, and game data seeding.
 - Inside Claude Code, run `/setup` to configure or update your pilot profile conversationally.
 
 You can also run the CLI directly for data lookups and utilities:

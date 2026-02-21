@@ -30,3 +30,9 @@ Quick reference for faction damage profiles and EWAR. Applies to agent missions,
 
 ## Mercenaries
 - [The Seven's Prison Facility L3](cache/the_sevens_prison_facility_l3.md) - Kin/Therm, deal Kin/Therm
+
+## Komni Corporation (Guristas Arc)
+- [Kidnappers Strike - Incriminating Evidence (Part 5/10)](cache/kidnappers_strike_incriminating_evidence_guristas_l3.md) - Thermal damage, deal Thermal
+
+## Maru Forces (Sansha's Nation Arc)
+- [Kidnappers Strike - Incriminating Evidence (Part 5/10)](cache/kidnappers_strike_incriminating_evidence_sansha_l3.md) - EM/Therm damage, deal EM

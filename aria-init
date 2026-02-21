@@ -10,6 +10,9 @@
 #   --version     Show version information
 #   --test        Run in non-interactive test mode (generates sample files)
 #   --force       Skip destructive confirmation prompts
+#   --skip-seed   Skip game data seeding during wizard
+#   --no-seed     Alias for --skip-seed
+#   --seed-only   Run only game data seeding (no wizard)
 #
 
 set -e
@@ -31,6 +34,7 @@ DATA_DIR=""
 INDUSTRY_DIR=""
 
 FORCE=0
+SKIP_SEED=0
 PILOT_CHAR_ID=""
 PILOT_DIR=""
 PILOT_DIRNAME=""
@@ -2033,6 +2037,7 @@ seed_game_data() {
     echo ""
     print_footer
 }
+
 offer_esi_setup() {
     print_header "SETUP COMPLETE!"
     echo ""
@@ -2166,6 +2171,9 @@ Options:
   --version     Show version information
   --test        Run in non-interactive test mode (generates sample files)
   --force       Skip confirmation prompts
+  --skip-seed   Skip game data seeding during wizard
+  --no-seed     Alias for --skip-seed
+  --seed-only   Run only game data seeding (no wizard)
 
 Description:
   Interactive wizard to configure ARIA, the tactical advisor AI for Eve Online.
@@ -2272,6 +2280,14 @@ main() {
             --force)
                 FORCE=1
                 ;;
+            --skip-seed|--no-seed)
+                SKIP_SEED=1
+                ;;
+            --seed-only)
+                check_prerequisites || exit 1
+                seed_game_data --force
+                exit $?
+                ;;
             *)
                 echo "Unknown option: $1"
                 echo "Use --help for usage information"
@@ -2323,6 +2339,9 @@ main() {
         print_info "Note: Found legacy data/ directory. This is no longer used by ARIA."
         echo "If you have no custom data there, you can delete it: rm -rf data/"
     fi
+
+    # Seed game data caches
+    seed_game_data
 
     # Offer ESI setup
     offer_esi_setup

@@ -1,0 +1,85 @@
+# Catalyst L1 Missions - iBeast HiSec PvE Shield Railgun
+#
+# Shield-tanked railgun Catalyst for L1 missions.
+# T2 magnetic field stabilizers in lows for DPS, shield buffer in mids.
+# Unusual shield tank for a Gallente hull - works due to only 2 mid slots.
+
+archetype:
+  hull: Catalyst
+  skill_tier: meta
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: HiSec PvE Community Fits
+  license: community
+
+eft: |
+  [Catalyst, iBeast-HiSec PvE-Catalyst]
+  Magnetic Field Stabilizer II
+  Magnetic Field Stabilizer II
+  IFFA Compact Damage Control
+
+  1MN Y-S8 Compact Afterburner
+  Medium Azeotropic Restrained Shield Extender
+
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+
+  Small Core Defense Field Extender I
+  Small EM Shield Reinforcer I
+  Small Ancillary Current Router I
+
+
+  Iridium Charge S x2000
+  Uranium Charge S x2000
+  Antimatter Charge S x2640
+
+skill_requirements:
+  required:
+    Gallente Destroyer: 3
+    Small Hybrid Turret: 3
+    Shield Upgrades: 3
+    Weapon Upgrades: 4
+  recommended:
+    Controlled Bursts: 3
+    Motion Prediction: 3
+    Shield Management: 3
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+damage_tuning:
+  default_damage: kinetic_thermal
+  tank_profile: shield_buffer
+
+notes:
+  purpose: "L1 mission runner maximizing turret DPS with shield buffer tank"
+  engagement: "Orbit at 5-15km with railguns, swap ammo for range"
+  warnings:
+    - "Dual T2 MFS + 8 turrets for maximum hybrid DPS"
+    - "Shield buffer in the 2 mids - no active repair"
+    - "All 3 lows used for damage/tank - no fitting flexibility"
+    - "ACR rig needed for fitting - tight powergrid with T2 MFS"
+    - "EM shield reinforcer plugs the shield EM hole"
+    - "Carry Antimatter (close), Uranium (mid), Iridium (long range)"
+    - "Medium shield extender provides more buffer than small"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "125mm Compressed Coil Gun I"
+      upgrade_to: "125mm Railgun II"
+      skill_required: "Small Hybrid Turret 5"
+    - module: "Medium Azeotropic Restrained Shield Extender"
+      upgrade_to: "Medium Shield Extender II"
+      skill_required: "Shield Upgrades 4"
+    - ship: "Vexor"
+      notes: "Cruiser upgrade for L2 missions"

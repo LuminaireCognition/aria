@@ -1,0 +1,81 @@
+# Algos FW PvP - Faction Warfare MWD Drone Brawler
+#
+# T2 drone damage amplifier fit for Faction Warfare.
+# MWD for dictating range, scram to hold target, shield buffer.
+# Autocannons for secondary DPS, faction drones for primary damage.
+
+archetype:
+  hull: Algos
+  skill_tier: t2
+  omega_required: true
+
+attribution:
+  author: iBeast
+  source: Faction Warfare PvP Community Fits
+  license: community
+
+eft: |
+  [Algos, iBeast-Faction Warfare PvP-Algos]
+  IFFA Compact Damage Control
+  Drone Damage Amplifier II
+  Drone Damage Amplifier II
+
+  5MN Quad LiF Restrained Microwarpdrive
+  Medium Azeotropic Restrained Shield Extender
+  Faint Epsilon Scoped Warp Scrambler
+
+  150mm Light Prototype Automatic Cannon
+  150mm Light Prototype Automatic Cannon
+  150mm Light Prototype Automatic Cannon
+  Small Gremlin Compact Energy Neutralizer
+  150mm Light Prototype Automatic Cannon
+  150mm Light Prototype Automatic Cannon
+
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+
+  Federation Navy Hobgoblin x5
+  Caldari Navy Hornet x7
+
+  Republic Fleet EMP S x600
+  Republic Fleet Phased Plasma S x1400
+  Republic Fleet Fusion S x600
+
+skill_requirements:
+  required:
+    Gallente Destroyer: 3
+    Drones: 5
+    Light Drone Operation: 4
+    Drone Avionics: 4
+    Weapon Upgrades: 4
+  recommended:
+    Drone Sharpshooting: 4
+    Drone Durability: 3
+    Navigation: 4
+    Thermodynamics: 3
+
+stats:
+  # Pending EOS validation - run 'aria-esi eos-seed' then recalculate
+  validated_date: null
+
+notes:
+  purpose: "Faction Warfare drone brawler with MWD and scram control"
+  engagement: "MWD into scram range, deploy drones, neut active-tanked targets"
+  warnings:
+    - "Primary DPS from faction drones - keep them alive"
+    - "Energy neutralizer in utility high disrupts active-tanked targets"
+    - "Carry spare Hornets (7 in bay) for drone losses"
+    - "Faction ammo for autocannons - EMP S for EM, Phased Plasma for Thermal"
+    - "MWD + scram - can dictate range on AB ships"
+    - "Shield buffer only - no active repair, disengage if breaking"
+    - "Hobgoblins for thermal DPS, Hornets for kinetic as backup"
+
+upgrade_path:
+  next_tier: null
+  key_upgrades:
+    - ship: "Ishkur (Assault Frigate)"
+      notes: "T2 Gallente drone platform with much heavier tank"
+    - ship: "Vexor"
+      notes: "Cruiser-class drone boat for medium plexes"
