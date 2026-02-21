@@ -15,6 +15,7 @@ Quick navigation for ARIA documentation.
 **New to ARIA?**
 → Read [TLDR.md](TLDR.md) (1-page overview)
 → Then [FIRST_RUN.md](FIRST_RUN.md) (setup guide)
+→ Or use [DevContainer](DEPLOYMENT.md#option-a-devcontainer-zero-host-setup) for zero-install setup
 
 **Setting up ESI?**
 → [ESI.md](ESI.md) (authentication guide)

@@ -4,10 +4,14 @@
 
 ## Install
 
+**Option A: DevContainer** (Docker Desktop + VS Code — zero host setup):
 ```bash
-# Clone the repository
-git clone git@github.com:LuminaireCognition/aria.git
-# or (HTTPS)
+git clone https://github.com/LuminaireCognition/aria.git
+code aria    # "Reopen in Container" → wait ~3 min → ./aria-init → claude
+```
+
+**Option B: Local** (uv + Python 3.11+):
+```bash
 git clone https://github.com/LuminaireCognition/aria.git
 cd aria
 ```

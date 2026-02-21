@@ -11,6 +11,8 @@ Clone-to-first-test-run guide for ARIA contributors.
 | Claude Code | Latest | [docs.anthropic.com](https://docs.anthropic.com/en/docs/claude-code) |
 | git | 2.x+ | Your package manager |
 
+**Alternative: DevContainer.** If you have Docker Desktop, you can skip local setup entirely. Open the repo in VS Code, click "Reopen in Container", and you get Python 3.13, uv, and all dev tools pre-installed. See [DEPLOYMENT.md](../../docs/DEPLOYMENT.md) for details.
+
 ## Setup
 
 ```bash
