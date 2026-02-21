@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+#### aria-init: Automated Game Data Seeding
+- New game data seeding step in the `aria-init` wizard downloads ~100MB of public EVE data (no login required)
+- Seeds: SDE database (`sde-seed`), fitting engine (`eos-seed`), market prices (`market-seed`), sovereignty map (`sov-update`), persona context (`persona-context`)
+- New flags: `--skip-seed`/`--no-seed` to defer seeding, `--seed-only` to run seeding without the full wizard
+- Partial failure recovery: failed seeds can be retried with `./aria-init --seed-only`
+
 #### Industry Feature Enhancements
 - **Profit Per Hour calculation** for `/build-cost` skill
   - New `calculate_profit_per_hour()` function in `industry_costs.py`

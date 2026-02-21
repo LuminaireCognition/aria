@@ -24,8 +24,11 @@ The wizard will:
 2. Configure ARIA's personality to match your faction
 3. Set up your home region and playstyle
 4. Generate all required data files
+5. Download game data caches (~100MB) — SDE database, fitting engine, market prices, sovereignty map, persona context
 
 That's all you need! ARIA is fully functional after this step.
+
+> **Tip:** Use `./aria-init --skip-seed` to defer the download. Run `./aria-init --seed-only` later to seed game data without re-running the full wizard.
 ESI integration is optional and can be added anytime later.
 
 After the wizard completes:
@@ -239,6 +242,22 @@ chmod +x .claude/hooks/aria-boot.sh
 Run the wizard again or ensure all templates were copied:
 ```bash
 ./aria-init
+```
+
+### Game data seeding failed
+
+If one or more seeds failed during setup, retry just the seeding step:
+```bash
+./aria-init --seed-only
+```
+
+Or retry individual commands:
+```bash
+uv run aria-esi sde-seed       # SDE database
+uv run aria-esi eos-seed       # Fitting engine
+uv run aria-esi market-seed    # Market prices
+uv run aria-esi sov-update     # Sovereignty map
+uv run aria-esi persona-context # Persona compilation
 ```
 
 ### ESI token expired
