@@ -212,8 +212,10 @@ def download_pyfa_staticdata(
             print(f"  Cloning tag: {pinned_tag}")
             subprocess.run(
                 [
-                    "git", "clone",
-                    "--branch", pinned_tag,
+                    "git",
+                    "clone",
+                    "--branch",
+                    pinned_tag,
                     "--depth=1",
                     "--filter=blob:none",
                     "--sparse",
@@ -301,9 +303,7 @@ def download_pyfa_staticdata(
 
     # Strategy 3: HEAD fallback
     if strict_pin:
-        raise RuntimeError(
-            "No pinned tag or commit available. Cannot proceed with --strict-pin."
-        )
+        raise RuntimeError("No pinned tag or commit available. Cannot proceed with --strict-pin.")
 
     warning = (
         "Both pinned tag and commit are unavailable. "
@@ -318,7 +318,8 @@ def _clone_head(repo_dir: Path, repo_url: str, warning: str | None = None) -> Do
     """Clone HEAD as a last resort."""
     subprocess.run(
         [
-            "git", "clone",
+            "git",
+            "clone",
             "--filter=blob:none",
             "--sparse",
             "--depth=1",
