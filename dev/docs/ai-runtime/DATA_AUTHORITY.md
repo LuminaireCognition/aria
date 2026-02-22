@@ -69,6 +69,83 @@ Data from **training data** or "made up" MUST be validated against an authoritat
 | Market prices | ESI `/markets/` | N/A (live query) |
 | Pilot data | ESI (authenticated) | N/A (live query) |
 
+## Data Source Characteristics
+
+Beyond authority level, data sources differ in **completeness**, **timeliness**, and **failure modes**. Understanding these characteristics prevents misinterpreting absence of data as absence of activity.
+
+### ESI Activity Endpoints
+
+**Endpoints:** `/universe/system_kills/`, `/universe/system_jumps/`
+
+| Property | Value |
+|----------|-------|
+| Authority | Authoritative (CCP server-side) |
+| Completeness | **100%** — every kill and jump counted |
+| Data window | Rolling 1-hour aggregate |
+| Refresh rate | ~1 hour (Cache-Control: 3600s) |
+| ARIA cache TTL | 10 minutes |
+| Max staleness | ~1h 10m from in-game event |
+
+**Strengths:** Complete census. If ESI says 0 kills, there were 0 kills.
+
+**Limitations:** Hourly granularity cannot detect transient threats like gatecamps that form and dissolve within minutes. A camp that killed 5 ships 45 minutes ago and disbanded looks identical to one that's still active.
+
+### zKillboard / RedisQ (Real-Time Intel)
+
+**Source:** Player-submitted killmails streamed via RedisQ websocket.
+
+| Property | Value |
+|----------|-------|
+| Authority | Player-contributed (not CCP-authoritative) |
+| Completeness | **Variable** — depends on participant uploaders |
+| Timeliness | Seconds to minutes from kill |
+| ARIA cache TTL | 10-minute sliding window |
+| Coverage bias | High in active regions (FW, trade pipes, null blocs); sparse in quiet space |
+
+**Strengths:** Near-real-time. Kill clustering analysis can detect active gatecamps, fleet fights, and other threats as they happen. What does appear is **confirmed real** — high precision.
+
+**Limitations:** Uncertain recall. Missing kills are silent — there is no way to distinguish "no kills happened" from "kills happened but nobody uploaded them." Coverage correlates with population density: busy systems approach completeness, quiet backwaters may have significant gaps.
+
+### Precision vs Recall by Source
+
+| Source | Precision | Recall | Interpretation of "0 kills" |
+|--------|-----------|--------|----------------------------|
+| ESI hourly | Perfect | Perfect | No kills occurred (within the hour window) |
+| RedisQ real-time | Perfect | Uncertain | No kills **reported** — not the same as no kills occurred |
+
+**ARIA behavior rule:** When real-time data shows zero activity, do not present this as confirmed safety. Phrase as "no recent kills reported" rather than "system is clear." When ESI hourly data shows zero, this can be stated as fact within the staleness window.
+
+### Combined Use
+
+ESI and RedisQ serve complementary roles:
+
+| Question | Best source | Why |
+|----------|------------|-----|
+| "Is this region generally active?" | ESI hourly | Complete picture, no gaps |
+| "Is there a gatecamp right now?" | RedisQ real-time | Minute-level granularity needed |
+| "Was this system busy today?" | ESI hourly | Comprehensive count |
+| "Is it safe to jump this gate?" | Both | ESI for baseline + RedisQ for immediate threats |
+
+### Poller Health vs Regional Quiet
+
+When `realtime_healthy=false`, ARIA falls back to ESI hourly data silently. When `realtime_healthy=true` but data is sparse, two explanations exist:
+
+1. **Region is genuinely quiet** — no kills are happening
+2. **Low uploader coverage** — kills are happening but not being reported
+
+ARIA cannot distinguish between these. In null-sec regions with known sovereignty (major blocs with many pilots running uploaders), sparse data more likely indicates genuine quiet. In NPC null-sec or isolated pockets, sparse data is less conclusive.
+
+### FW Contested Status
+
+**Endpoint:** ESI `/fw/systems/`
+
+| Property | Value |
+|----------|-------|
+| Authority | Authoritative |
+| Completeness | 100% for FW systems |
+| Refresh rate | ~30 minutes (Cache-Control: 1800s) |
+| ARIA cache TTL | 30 minutes |
+
 ## Validation Requirements
 
 ### Before Caching Community Data
