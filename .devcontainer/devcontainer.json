@@ -31,7 +31,7 @@
   "remoteUser": "aria",
   "mounts": [
     "source=aria-bashhistory-${devcontainerId},target=/commandhistory,type=volume",
-    "source=aria-claude-config-${devcontainerId},target=/home/aria/.claude,type=volume",
+    "source=${localEnv:HOME}/.claude,target=/home/aria/.claude,type=bind",
     "source=aria-userdata-${devcontainerId},target=/workspace/userdata,type=volume"
   ],
   "containerEnv": {
