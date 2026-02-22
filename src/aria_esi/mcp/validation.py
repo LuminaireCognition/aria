@@ -31,6 +31,7 @@ UNIVERSE_ACTION_PARAMS: dict[str, set[str]] = {
         "region",
         "is_border",
         "limit",
+        "coalition",
     },
     "loop": {
         "origin",

@@ -202,11 +202,42 @@ Response includes:
 }
 ```
 
+## Faction Warfare Context
+
+When `fw_systems` is present and non-empty in the `local_area` response, include FW warzone intel:
+
+### FW Status Interpretation
+
+| Status | Meaning | Tactical Implication |
+|--------|---------|---------------------|
+| `uncontested` | Stable ownership | Normal militia patrols |
+| `contested` | Active plexing | Militia fleets likely, small gang PvP |
+| `vulnerable` | Near system flip | Heavy militia activity, large fleets possible |
+
+### Example FW Output Block
+
+```
+FACTION WARFARE WARZONE
+│ System   │ Jumps │ Owner    │ Occupier  │ Status      │ Contested │
+│ Tama     │ 0     │ Caldari  │ Gallente  │ contested   │ 45%       │
+│ Kedama   │ 1     │ Caldari  │ Caldari   │ uncontested │ 12%       │
+│ Enaluri  │ 2     │ Caldari  │ Gallente  │ vulnerable  │ 92%       │
+
+⚠️ 1 vulnerable system nearby - expect heavy militia activity
+```
+
+### When to Show FW Data
+
+- Always show when `fw_systems` contains entries
+- Prioritize vulnerable and contested systems
+- Include total FW system count if many are in range
+
 ## Response Priority
 
 When presenting results, prioritize:
 1. **Immediate threats** - Active camps, extreme activity
 2. **Sovereignty context** - Whose space you're in (null-sec only)
-3. **Escape routes** - How to get to safer space
-4. **Tactical opportunities** - Quiet zones, ratting banks
-5. **Context** - Regional info, border systems
+3. **Faction Warfare** - FW warzone status (low-sec FW systems)
+4. **Escape routes** - How to get to safer space
+5. **Tactical opportunities** - Quiet zones, ratting banks
+6. **Context** - Regional info, border systems

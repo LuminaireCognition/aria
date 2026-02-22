@@ -282,6 +282,27 @@ This provides:
 
 **Integration Note:** Real-time gatecamp detection is automatic when the RedisQ poller is healthy. The activity call with `include_realtime=True` includes gatecamp data in the response. For deeper analysis (attacker details, kill timeline), use the dedicated `gatecamp_risk` action.
 
+## Faction Warfare Warzone Warnings
+
+Route results may include FW-related warnings when the route passes through Faction Warfare warzone systems. These appear in the `warnings` list of the route result.
+
+### Warning Types
+
+| Warning | Meaning |
+|---------|---------|
+| "Route passes through N FW warzone system(s)" | General FW presence on route |
+| "Vulnerable FW system(s): ..." | Systems near ownership flip - high militia activity |
+| "Contested FW system(s): ..." | Systems with active plexing - militia fleets likely |
+
+### Notes Column for FW Systems
+
+When FW warnings are present, add FW context to the route table Notes column:
+
+| System | Sec | Ships | Pods | Jumps | Notes |
+|--------|-----|------:|-----:|------:|-------|
+| Tama | 0.30 | 8 | 3 | 456 | FW warzone (contested) |
+| Enaluri | 0.35 | 12 | 5 | 234 | FW warzone (vulnerable) |
+
 ## Error Handling
 
 ### System Not Found

@@ -368,7 +368,8 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
 
             case "search":
                 result = await _search(
-                    origin, max_jumps, security_min, security_max, region, is_border, limit
+                    origin, max_jumps, security_min, security_max, region, is_border, limit,
+                    coalition,
                 )
 
             case "loop":
@@ -504,6 +505,16 @@ async def _route(
             }
         )
 
+    # Add FW warzone warnings
+    fw_warnings = await _generate_fw_route_warnings(universe, path)
+    if fw_warnings:
+        result = RouteResult(
+            **{
+                **result.model_dump(),
+                "warnings": result.warnings + fw_warnings,
+            }
+        )
+
     return summarize_route(
         result.model_dump(),
         systems_key="systems",
@@ -593,6 +604,7 @@ async def _search(
     region: str | None,
     is_border: bool | None,
     limit: int,
+    coalition: str | None = None,
 ) -> dict:
     """Search action."""
     universe = get_universe()
@@ -639,8 +651,38 @@ async def _search(
                 security_max,
                 region,
                 is_border,
+                coalition,
             ),
             "warning": f"Unknown region: '{region}'",
+            "corrections": corrections,
+        }
+
+    # Resolve coalition filter to system IDs
+    coalition_system_ids: set[int] | None = None
+    coalition_warning: str | None = None
+    if coalition:
+        from aria_esi.services.sovereignty import get_systems_by_coalition
+
+        coalition_systems = get_systems_by_coalition(coalition)
+        if coalition_systems:
+            coalition_system_ids = set(coalition_systems)
+        else:
+            coalition_warning = f"Unknown or empty coalition: '{coalition}'"
+
+    if coalition_warning and coalition_system_ids is None:
+        return {
+            "systems": [],
+            "total_found": 0,
+            "filters_applied": _summarize_filters(
+                origin_canonical or origin,
+                max_jumps,
+                security_min,
+                security_max,
+                region,
+                is_border,
+                coalition,
+            ),
+            "warning": coalition_warning,
             "corrections": corrections,
         }
 
@@ -653,6 +695,7 @@ async def _search(
         region_id=region_id,
         is_border=is_border,
         limit=limit,
+        coalition_system_ids=coalition_system_ids,
     )
 
     return wrap_output(
@@ -660,7 +703,13 @@ async def _search(
             "systems": [r.model_dump() for r in results],
             "total_found": len(results),
             "filters_applied": _summarize_filters(
-                origin_canonical or origin, max_jumps, security_min, security_max, region, is_border
+                origin_canonical or origin,
+                max_jumps,
+                security_min,
+                security_max,
+                region,
+                is_border,
+                coalition,
             ),
             "corrections": corrections,
         },
@@ -1435,6 +1484,7 @@ async def _local_area(
         raise InvalidParameterError("origin", origin, "Required for action='local_area'")
 
     from ..models import (
+        FWLocalStatus,
         LocalAreaResult,
         LocalSystemActivity,
         SecurityBorder,
@@ -1595,6 +1645,39 @@ async def _local_area(
                         )
                     )
 
+    # Collect FW system data
+    fw_systems_list: list[FWLocalStatus] = []
+    fw_data = await cache.get_all_fw()
+    if fw_data:
+        # Check origin
+        origin_system_id = int(universe.system_ids[origin_idx])
+        all_local_ids = [(origin_idx, 0)] + systems_in_range
+        for idx, distance in all_local_ids:
+            system_id = int(universe.system_ids[idx])
+            fw_entry = fw_data.get(system_id)
+            if fw_entry is None:
+                continue
+            if fw_entry.victory_points_threshold > 0:
+                contested_pct = fw_entry.victory_points / fw_entry.victory_points_threshold * 100
+            else:
+                contested_pct = 0.0
+            fw_systems_list.append(
+                FWLocalStatus(
+                    system=universe.idx_to_name[idx],
+                    system_id=system_id,
+                    security=float(universe.security[idx]),
+                    jumps=distance,
+                    owner_faction=get_faction_name(fw_entry.owner_faction_id),
+                    occupier_faction=get_faction_name(fw_entry.occupier_faction_id),
+                    contested=fw_entry.contested,
+                    contested_percentage=min(contested_pct, 100.0),
+                )
+            )
+        # Sort: vulnerable first, then contested, then uncontested; within each by distance
+        status_order = {"vulnerable": 0, "contested": 1, "uncontested": 2}
+        fw_systems_list.sort(key=lambda s: (status_order.get(s.contested, 3), s.jumps))
+        fw_systems_list = fw_systems_list[:10]
+
     # Sort results
     hotspots.sort(key=lambda s: (s.ship_kills + s.pod_kills), reverse=True)
     quiet_zones.sort(key=lambda s: s.jumps)  # Nearest first
@@ -1636,6 +1719,7 @@ async def _local_area(
         ratting_banks=ratting_banks,
         escape_routes=escape_routes,
         borders=borders,
+        fw_systems=fw_systems_list,
         systems_scanned=len(systems_in_range),
         search_radius=effective_max_jumps,
         cache_age_seconds=cache.get_kills_cache_age(),
@@ -1651,6 +1735,7 @@ async def _local_area(
             ("ratting_banks", 10),
             ("escape_routes", 5),
             ("borders", 10),
+            ("fw_systems", 10),
         ],
     )
 
@@ -1817,6 +1902,48 @@ def _calculate_route(
     return service.calculate_route(origin_idx, dest_idx, mode, avoid_systems)  # type: ignore[arg-type]
 
 
+async def _generate_fw_route_warnings(
+    universe: UniverseGraph, path: list[int]
+) -> list[str]:
+    """Generate warnings for FW warzone systems on route."""
+    cache = get_activity_cache()
+    fw_data = await cache.get_all_fw()
+    if not fw_data:
+        return []
+
+    fw_on_route = 0
+    contested_systems: list[str] = []
+    vulnerable_systems: list[str] = []
+
+    for idx in path:
+        system_id = int(universe.system_ids[idx])
+        fw_entry = fw_data.get(system_id)
+        if fw_entry is None:
+            continue
+        fw_on_route += 1
+        name = universe.idx_to_name[idx]
+        if fw_entry.contested == "vulnerable":
+            vulnerable_systems.append(name)
+        elif fw_entry.contested == "contested":
+            contested_systems.append(name)
+
+    warnings: list[str] = []
+    if fw_on_route > 0:
+        warnings.append(
+            f"Route passes through {fw_on_route} Faction Warfare warzone system(s) - expect militia activity"
+        )
+    if vulnerable_systems:
+        warnings.append(
+            f"Vulnerable FW system(s): {', '.join(vulnerable_systems)} - high militia activity likely"
+        )
+    if contested_systems:
+        warnings.append(
+            f"Contested FW system(s): {', '.join(contested_systems)}"
+        )
+
+    return warnings
+
+
 def _build_route_result(
     universe: UniverseGraph,
     path: list[int],
@@ -1961,12 +2088,20 @@ def _search_systems(
     region_id: int | None,
     is_border: bool | None,
     limit: int,
+    coalition_system_ids: set[int] | None = None,
 ) -> list[SystemSearchResult]:
     """Execute system search with filters."""
     results: list[SystemSearchResult] = []
     distances: dict[int, int] = {}
 
-    if origin_idx is not None and max_jumps is not None:
+    if coalition_system_ids is not None:
+        # Start with coalition systems as candidates
+        candidates = {universe.id_to_idx[sid] for sid in coalition_system_ids if sid in universe.id_to_idx}
+        # If also filtering by BFS range, intersect
+        if origin_idx is not None and max_jumps is not None:
+            bfs_candidates, distances = _bfs_within_range(universe, origin_idx, max_jumps)
+            candidates = candidates & bfs_candidates
+    elif origin_idx is not None and max_jumps is not None:
         candidates, distances = _bfs_within_range(universe, origin_idx, max_jumps)
     elif region_id is not None:
         candidates = set(universe.region_systems.get(region_id, []))
@@ -2045,6 +2180,7 @@ def _summarize_filters(
     security_max: float | None,
     region: str | None,
     is_border: bool | None,
+    coalition: str | None = None,
 ) -> dict[str, Any]:
     """Summarize applied filters for response."""
     filters: dict[str, Any] = {}
@@ -2060,6 +2196,8 @@ def _summarize_filters(
         filters["region"] = region
     if is_border is not None:
         filters["is_border"] = is_border
+    if coalition:
+        filters["coalition"] = coalition
     return filters
 
 

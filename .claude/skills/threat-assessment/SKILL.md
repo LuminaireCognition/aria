@@ -347,6 +347,44 @@ High NPC kills and ship jumps in a system suggest:
 - Higher ADM (harder to entosis)
 - Likely inhabitants who will respond to threats
 
+## Faction Warfare Threat Factors
+
+When assessing systems in or near FW warzones, use `local_area` or `fw_frontlines` to get FW context.
+
+### FW Contested Status Threat Implications
+
+| FW Status | Threat Implication |
+|-----------|-------------------|
+| `uncontested` | Normal militia patrols, lower risk |
+| `contested` | Active plexing, small gang PvP, militia fleets roaming |
+| `vulnerable` | System near flip, heavy militia activity, large fleet engagements likely |
+
+### How to Get FW Data
+
+```
+universe(action="local_area", origin="Tama", max_jumps=5)
+```
+
+Check `fw_systems` in the response for FW warzone context.
+
+Alternatively, for a broader view:
+```
+universe(action="fw_frontlines", faction="caldari")
+```
+
+### FW Threat Block Format
+
+When FW data is relevant, include in threat assessment:
+
+```
+───────────────────────────────────────────
+FACTION WARFARE: Active Warzone
+  Owner: Caldari State → Occupier: Gallente Federation
+  Status: Contested (45%)
+  Expect: Militia fleets, plex fights, gate camps at FW gates
+───────────────────────────────────────────
+```
+
 ## Threat Level Definitions
 
 **MINIMAL:** Standard high-sec operations, normal NPC threats only

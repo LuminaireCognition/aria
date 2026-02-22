@@ -15,8 +15,10 @@ import pytest
 
 from aria_esi.mcp.activity import ActivityCache, ActivityData
 from aria_esi.mcp.errors import InvalidParameterError
+from aria_esi.mcp.activity import FWSystemData
 from aria_esi.mcp.models import (
     EscapeRoute,
+    FWLocalStatus,
     LocalAreaResult,
     LocalSystemActivity,
     SecurityBorder,
@@ -321,7 +323,11 @@ class TestLocalAreaDispatcher:
         async def get_all_activity():
             return activity_data
 
+        async def get_all_fw():
+            return {}
+
         cache.get_all_activity = get_all_activity
+        cache.get_all_fw = get_all_fw
         return cache
 
     @pytest.mark.asyncio
@@ -1049,3 +1055,230 @@ class TestActivityClassification:
         from aria_esi.mcp.activity import classify_activity
 
         assert classify_activity(100, "kills") == "extreme"
+
+
+# =============================================================================
+# FW Local Status Tests
+# =============================================================================
+
+
+class TestFWLocalStatus:
+    """Tests for FWLocalStatus model."""
+
+    def test_basic_fw_status(self):
+        """FW status with all fields."""
+        status = FWLocalStatus(
+            system="Tama",
+            system_id=30002813,
+            security=0.35,
+            jumps=3,
+            owner_faction="Caldari State",
+            occupier_faction="Gallente Federation",
+            contested="contested",
+            contested_percentage=45.0,
+        )
+        assert status.system == "Tama"
+        assert status.contested == "contested"
+        assert status.contested_percentage == 45.0
+        assert status.owner_faction == "Caldari State"
+
+    def test_vulnerable_fw_status(self):
+        """Vulnerable FW system."""
+        status = FWLocalStatus(
+            system="Enaluri",
+            system_id=30002814,
+            security=0.30,
+            jumps=5,
+            owner_faction="Caldari State",
+            occupier_faction="Gallente Federation",
+            contested="vulnerable",
+            contested_percentage=92.0,
+        )
+        assert status.contested == "vulnerable"
+
+    def test_uncontested_fw_status(self):
+        """Uncontested FW system."""
+        status = FWLocalStatus(
+            system="Ichoriya",
+            system_id=30002815,
+            security=0.40,
+            jumps=2,
+            owner_faction="Caldari State",
+            occupier_faction="Caldari State",
+            contested="uncontested",
+            contested_percentage=5.0,
+        )
+        assert status.contested == "uncontested"
+
+
+class TestLocalAreaFWIntegration:
+    """Tests for FW data in local_area action."""
+
+    @pytest.fixture
+    def standard_universe(self):
+        """Standard 6-system test universe."""
+        return create_mock_universe(STANDARD_SYSTEMS, STANDARD_EDGES)
+
+    @pytest.fixture
+    def mock_activity_cache_with_fw(self):
+        """Mock activity cache with FW data."""
+        cache = MagicMock(spec=ActivityCache)
+        cache.get_kills_cache_age.return_value = 120
+
+        activity_data = {
+            30000142: ActivityData(system_id=30000142, ship_kills=5, pod_kills=2, npc_kills=50),
+            30000144: ActivityData(system_id=30000144, ship_kills=1, pod_kills=0, npc_kills=10),
+            30000140: ActivityData(system_id=30000140, ship_kills=0, pod_kills=0, npc_kills=0),
+            30000138: ActivityData(system_id=30000138, ship_kills=0, pod_kills=0, npc_kills=5),
+            30000160: ActivityData(system_id=30000160, ship_kills=15, pod_kills=5, npc_kills=200),
+            30000161: ActivityData(system_id=30000161, ship_kills=2, pod_kills=1, npc_kills=500),
+        }
+
+        fw_data = {
+            30000160: FWSystemData(
+                system_id=30000160,
+                owner_faction_id=500001,
+                occupier_faction_id=500004,
+                contested="contested",
+                victory_points=12000,
+                victory_points_threshold=27000,
+            ),
+            30000140: FWSystemData(
+                system_id=30000140,
+                owner_faction_id=500001,
+                occupier_faction_id=500001,
+                contested="uncontested",
+                victory_points=1000,
+                victory_points_threshold=27000,
+            ),
+        }
+
+        async def get_all_activity():
+            return activity_data
+
+        async def get_all_fw():
+            return fw_data
+
+        cache.get_all_activity = get_all_activity
+        cache.get_all_fw = get_all_fw
+        return cache
+
+    @pytest.mark.asyncio
+    async def test_local_area_includes_fw_systems(self, standard_universe, mock_activity_cache_with_fw):
+        """local_area includes fw_systems when FW data is available."""
+        from aria_esi.mcp.dispatchers.universe import _local_area
+
+        with patch("aria_esi.mcp.tools._universe", standard_universe):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache_with_fw):
+                result = await _local_area(
+                    origin="Jita",
+                    max_jumps=5,
+                    include_realtime=False,
+                    hotspot_threshold=5,
+                    quiet_threshold=0,
+                    ratting_threshold=100,
+                )
+
+        assert "fw_systems" in result
+        fw_systems = result["fw_systems"]
+        assert len(fw_systems) >= 1
+
+        # Check that Sivala (contested FW system) is included
+        fw_names = [s["system"] for s in fw_systems]
+        assert "Sivala" in fw_names
+
+    @pytest.mark.asyncio
+    async def test_local_area_no_fw_data(self, standard_universe):
+        """local_area returns empty fw_systems when no FW data available."""
+        from aria_esi.mcp.dispatchers.universe import _local_area
+
+        cache = MagicMock(spec=ActivityCache)
+        cache.get_kills_cache_age.return_value = 60
+
+        async def get_all_activity():
+            return {}
+
+        async def get_all_fw():
+            return {}
+
+        cache.get_all_activity = get_all_activity
+        cache.get_all_fw = get_all_fw
+
+        with patch("aria_esi.mcp.tools._universe", standard_universe):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=cache):
+                result = await _local_area(
+                    origin="Jita",
+                    max_jumps=5,
+                    include_realtime=False,
+                    hotspot_threshold=5,
+                    quiet_threshold=0,
+                    ratting_threshold=100,
+                )
+
+        assert "fw_systems" in result
+        assert result["fw_systems"] == []
+
+    @pytest.mark.asyncio
+    async def test_local_area_fw_sorting(self, standard_universe):
+        """FW systems are sorted: vulnerable first, then contested, then uncontested."""
+        from aria_esi.mcp.dispatchers.universe import _local_area
+
+        cache = MagicMock(spec=ActivityCache)
+        cache.get_kills_cache_age.return_value = 60
+
+        async def get_all_activity():
+            return {}
+
+        fw_data = {
+            30000160: FWSystemData(
+                system_id=30000160,
+                owner_faction_id=500001,
+                occupier_faction_id=500004,
+                contested="contested",
+                victory_points=12000,
+                victory_points_threshold=27000,
+            ),
+            30000140: FWSystemData(
+                system_id=30000140,
+                owner_faction_id=500001,
+                occupier_faction_id=500004,
+                contested="vulnerable",
+                victory_points=25000,
+                victory_points_threshold=27000,
+            ),
+            30000138: FWSystemData(
+                system_id=30000138,
+                owner_faction_id=500001,
+                occupier_faction_id=500001,
+                contested="uncontested",
+                victory_points=500,
+                victory_points_threshold=27000,
+            ),
+        }
+
+        async def get_all_fw():
+            return fw_data
+
+        cache.get_all_activity = get_all_activity
+        cache.get_all_fw = get_all_fw
+
+        with patch("aria_esi.mcp.tools._universe", standard_universe):
+            with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=cache):
+                result = await _local_area(
+                    origin="Jita",
+                    max_jumps=5,
+                    include_realtime=False,
+                    hotspot_threshold=5,
+                    quiet_threshold=0,
+                    ratting_threshold=100,
+                )
+
+        fw_systems = result["fw_systems"]
+        assert len(fw_systems) >= 2
+
+        # Vulnerable should sort before contested
+        statuses = [s["contested"] for s in fw_systems]
+        if "vulnerable" in statuses and "contested" in statuses:
+            vulnerable_idx = statuses.index("vulnerable")
+            contested_idx = statuses.index("contested")
+            assert vulnerable_idx < contested_idx
