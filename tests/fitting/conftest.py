@@ -684,6 +684,7 @@ def mock_eos_module():
     mock_eos.Drone = MagicMock()
     mock_eos.Rig = MagicMock()
     mock_eos.Subsystem = MagicMock()
+    mock_eos.Charge = MagicMock()
 
     # SourceManager
     mock_eos.SourceManager = MagicMock()

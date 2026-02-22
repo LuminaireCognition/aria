@@ -354,6 +354,7 @@ class EOSBridge:
         try:
             # Import EOS modules
             from aria_esi._vendor.eos import (
+                Charge,
                 DmgProfile,
                 Drone,
                 Fit,
@@ -391,28 +392,26 @@ class EOSBridge:
 
             # Add modules - low slots
             for module in parsed_fit.low_slots:
-                state = State.offline if module.is_offline else State.online
+                state = State.offline if module.is_offline else State.active
                 mod = ModuleLow(module.type_id, state=state)
                 if module.charge_type_id:
-                    mod.charge = module.charge_type_id
+                    mod.charge = Charge(module.charge_type_id)
                 fit.modules.low.equip(mod)
 
             # Add modules - mid slots
             for module in parsed_fit.mid_slots:
-                state = State.offline if module.is_offline else State.online
-                # For active modules like afterburners, we might want State.active
-                # For now, default to online (passive effects apply)
+                state = State.offline if module.is_offline else State.active
                 mid_mod = ModuleMid(module.type_id, state=state)
                 if module.charge_type_id:
-                    mid_mod.charge = module.charge_type_id
+                    mid_mod.charge = Charge(module.charge_type_id)
                 fit.modules.mid.equip(mid_mod)
 
             # Add modules - high slots
             for module in parsed_fit.high_slots:
-                state = State.offline if module.is_offline else State.online
+                state = State.offline if module.is_offline else State.active
                 high_mod = ModuleHigh(module.type_id, state=state)
                 if module.charge_type_id:
-                    high_mod.charge = module.charge_type_id
+                    high_mod.charge = Charge(module.charge_type_id)
                 fit.modules.high.equip(high_mod)
 
             # Add rigs (rigs use .add() not .equip())
