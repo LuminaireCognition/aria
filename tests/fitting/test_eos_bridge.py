@@ -350,6 +350,94 @@ class TestFitConstruction:
                     # Vexor has 10 drones total (5 Hammerhead + 5 Hobgoblin)
                     assert mock_eos_module.Drone.call_count == 10
 
+    def test_non_offline_modules_use_active_state(
+        self, vexor_parsed_fit, mock_eos_module, mock_eos_data_path
+    ):
+        """Test that non-offline modules use State.active (not State.online)."""
+        EOSBridge.reset_instance()
+
+        with patch.dict("sys.modules", {"aria_esi._vendor.eos": mock_eos_module}):
+            with patch(
+                "aria_esi.fitting.eos_bridge.get_eos_data_manager"
+            ) as mock_get_manager:
+                mock_manager = MagicMock()
+                mock_manager.ensure_valid = MagicMock()
+                mock_manager.data_path = mock_eos_data_path
+                mock_manager.cache_path = mock_eos_data_path / "cache.json.bz2"
+                mock_get_manager.return_value = mock_manager
+
+                with patch(
+                    "aria_esi.fitting.skills.extract_skills_for_fit"
+                ) as mock_extract:
+                    mock_extract.return_value = {3332: 5}
+
+                    bridge = EOSBridge.get_instance()
+                    bridge.calculate_stats(vexor_parsed_fit)
+
+                    # All non-offline modules should use State.active
+                    for call in mock_eos_module.ModuleLow.call_args_list:
+                        assert call.kwargs["state"] == mock_eos_module.State.active
+
+                    for call in mock_eos_module.ModuleMid.call_args_list:
+                        assert call.kwargs["state"] == mock_eos_module.State.active
+
+                    for call in mock_eos_module.ModuleHigh.call_args_list:
+                        assert call.kwargs["state"] == mock_eos_module.State.active
+
+    def test_charges_assigned_as_charge_instances(
+        self, fit_with_charges, mock_eos_module, mock_eos_data_path
+    ):
+        """Test that charges are assigned as Charge(type_id) instances."""
+        EOSBridge.reset_instance()
+
+        with patch.dict("sys.modules", {"aria_esi._vendor.eos": mock_eos_module}):
+            with patch(
+                "aria_esi.fitting.eos_bridge.get_eos_data_manager"
+            ) as mock_get_manager:
+                mock_manager = MagicMock()
+                mock_manager.ensure_valid = MagicMock()
+                mock_manager.data_path = mock_eos_data_path
+                mock_manager.cache_path = mock_eos_data_path / "cache.json.bz2"
+                mock_get_manager.return_value = mock_manager
+
+                with patch(
+                    "aria_esi.fitting.skills.extract_skills_for_fit"
+                ) as mock_extract:
+                    mock_extract.return_value = {}
+
+                    bridge = EOSBridge.get_instance()
+                    bridge.calculate_stats(fit_with_charges)
+
+                    # Charge() should have been called with the charge type ID
+                    mock_eos_module.Charge.assert_called_once_with(27361)
+
+    def test_module_without_charge_skips_charge_assignment(
+        self, vexor_parsed_fit, mock_eos_module, mock_eos_data_path
+    ):
+        """Test that modules without charges don't trigger Charge()."""
+        EOSBridge.reset_instance()
+
+        with patch.dict("sys.modules", {"aria_esi._vendor.eos": mock_eos_module}):
+            with patch(
+                "aria_esi.fitting.eos_bridge.get_eos_data_manager"
+            ) as mock_get_manager:
+                mock_manager = MagicMock()
+                mock_manager.ensure_valid = MagicMock()
+                mock_manager.data_path = mock_eos_data_path
+                mock_manager.cache_path = mock_eos_data_path / "cache.json.bz2"
+                mock_get_manager.return_value = mock_manager
+
+                with patch(
+                    "aria_esi.fitting.skills.extract_skills_for_fit"
+                ) as mock_extract:
+                    mock_extract.return_value = {3332: 5}
+
+                    bridge = EOSBridge.get_instance()
+                    bridge.calculate_stats(vexor_parsed_fit)
+
+                    # No modules in vexor_parsed_fit have charges
+                    mock_eos_module.Charge.assert_not_called()
+
 
 # =============================================================================
 # Module-level Function Tests
