@@ -96,7 +96,7 @@ async def invoke_via_api(
     skill_name: str,
     skill_args: str,
     mock_tools: dict[str, Any] | None = None,
-    model: str = "claude-3-5-haiku-20241022",
+    model: str = "claude-haiku-4-5-20251001",
     max_tokens: int = 4096,
 ) -> dict[str, Any]:
     """

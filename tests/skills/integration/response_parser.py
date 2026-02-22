@@ -227,7 +227,7 @@ Response to analyze:
 Return valid JSON only, no explanation."""
 
     try:
-        model = "claude-3-5-haiku-20241022" if use_haiku else "claude-sonnet-4-20250514"
+        model = "claude-haiku-4-5-20251001" if use_haiku else "claude-sonnet-4-6"
         message = client.messages.create(
             model=model,
             max_tokens=1024,
