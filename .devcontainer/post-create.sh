@@ -31,6 +31,7 @@ uv run aria-esi sov-update || echo "  ⚠ Sov update failed (can retry with: uv 
 # -- Ensure userdata structure -------------------------------------------------
 echo ""
 echo "Ensuring userdata directory structure..."
+sudo chown "$(id -u):$(id -g)" /workspace/userdata
 mkdir -p /workspace/userdata/pilots /workspace/userdata/credentials /workspace/userdata/sessions
 
 # -- Hook permissions ----------------------------------------------------------
