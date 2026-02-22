@@ -55,6 +55,51 @@ uv run aria-esi persona-context # Persona compilation
 
 ---
 
+## DevContainer
+
+### Container build fails
+
+Check Docker Desktop is running and has sufficient resources (at least 4GB RAM recommended).
+
+If the build fails during game data seeding, the container is still usable — retry with:
+```bash
+./aria-init --seed-only
+```
+
+### ESI OAuth not working in container
+
+Port 8421 must be forwarded. Verify in the VS Code **Ports** panel that port 8421 shows as forwarded.
+
+The OAuth script auto-detects the container environment and binds to `0.0.0.0`. If using manual mode (`--manual`), the callback URL is still `http://localhost:8421/callback` (Docker Desktop forwards from host).
+
+### Firewall blocking a needed service
+
+The container firewall restricts outbound traffic to an allowlist. If a new service is needed:
+
+1. Check `.devcontainer/init-firewall.sh` for the allowed domains
+2. Add the domain to the `ALLOWED_DOMAINS` array
+3. Rebuild the container: `Dev Containers: Rebuild Container`
+
+### userdata lost after rebuild
+
+`userdata/` is mounted as a Docker volume and should persist. If data is missing:
+```bash
+docker volume ls | grep aria-userdata
+```
+
+If the volume exists but appears empty inside the container, check the mount in `.devcontainer/devcontainer.json`.
+
+### "Permission denied" errors
+
+The container runs as user `aria` (UID 1000). If you see permission errors on mounted files:
+```bash
+ls -la /workspace/userdata/
+```
+
+Ensure files are owned by `aria:aria` (UID/GID 1000).
+
+---
+
 ## Boot & Session
 
 ### Boot sequence doesn't appear

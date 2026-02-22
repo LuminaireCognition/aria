@@ -2,14 +2,37 @@
 
 This guide covers installing ARIA.
 
-## Prerequisites
+## Option A: DevContainer (Zero Host Setup)
+
+If you have **Docker Desktop** and **VS Code**, everything runs inside a container — no Python, uv, or Claude Code install needed on your machine.
+
+**Prerequisites:** [Docker Desktop](https://www.docker.com/products/docker-desktop/), VS Code with [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension, an [Anthropic API key](https://console.anthropic.com/).
+
+```bash
+git clone https://github.com/LuminaireCognition/aria.git
+code aria
+# VS Code prompt: "Reopen in Container" → click yes
+# Wait ~3 minutes (first build), then in the container terminal:
+./aria-init
+claude
+```
+
+The container includes Python 3.13, uv, Claude Code CLI, and all game data. Your `userdata/` persists across container rebuilds via a Docker volume.
+
+For ESI OAuth inside the container, port 8421 is forwarded automatically. Run `uv run python .claude/scripts/aria-oauth-setup.py` as normal — the script detects the container and binds correctly.
+
+Set your `ANTHROPIC_API_KEY` environment variable on the host before opening the container, or configure it inside the container terminal.
+
+## Option B: Local Setup
+
+### Prerequisites
 
 - **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** with an active [Anthropic API plan](https://console.anthropic.com/)
 - **[uv](https://docs.astral.sh/uv/)** (Python package manager)
 - **Python 3.11+**
 - **An EVE Online account** (any faction, Alpha or Omega)
 
-## Install
+### Install
 
 ```bash
 # Install uv if you don't have it
@@ -181,6 +204,22 @@ ARIA stores ESI credentials using a two-tier model:
 On headless servers, set `ARIA_NO_KEYRING=1` to suppress warnings.
 
 For full details on keyring backends and migration, see [dev/docs/PYTHON_ENVIRONMENT.md](../dev/docs/PYTHON_ENVIRONMENT.md).
+
+## DevContainer Details
+
+The DevContainer (`.devcontainer/`) provides:
+
+| Component | Description |
+|-----------|-------------|
+| `Dockerfile` | Debian bookworm-slim with Python 3.13, uv, Claude Code CLI, zsh |
+| `devcontainer.json` | VS Code extensions, volume mounts, port forwarding, environment |
+| `init-firewall.sh` | Network allowlist restricting outbound to ARIA-needed domains only |
+| `post-create.sh` | One-time: `uv sync --dev`, game data seeding (~100MB) |
+| `post-start.sh` | Per-start: environment validation |
+
+**Persisted volumes:** Shell history, Claude Code config (`~/.claude`), and `userdata/` (pilot profiles, credentials) survive container rebuilds.
+
+**Network security:** The firewall restricts outbound traffic to Anthropic API, EVE ESI, Fuzzwork, GitHub, and other domains ARIA needs. All other outbound connections are blocked.
 
 ## Related Documentation
 

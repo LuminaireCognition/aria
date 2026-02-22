@@ -58,6 +58,21 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 
 ## Quick Start
 
+### Option A: DevContainer (zero host setup)
+
+Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) and VS Code with the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension.
+
+```bash
+git clone https://github.com/LuminaireCognition/aria.git
+code aria
+# VS Code prompt: "Reopen in Container" → click yes
+# Wait ~3 minutes (first build), then in the container terminal:
+./aria-init
+claude
+```
+
+### Option B: Local Setup
+
 ```bash
 # 1. Clone the repository
 git clone git@github.com:LuminaireCognition/aria.git

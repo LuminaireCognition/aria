@@ -41,6 +41,10 @@ No. ARIA is an independent fan project. It is not affiliated with, endorsed by, 
 
 ## Setup & Configuration
 
+### Can I use Docker instead of installing locally?
+
+Yes. ARIA ships a DevContainer configuration for Docker Desktop. Clone the repo, open in VS Code, click "Reopen in Container", and you have a fully functional environment — Python, uv, Claude Code, and game data included. No host installation required beyond Docker Desktop. See [DEPLOYMENT.md](DEPLOYMENT.md) for setup instructions.
+
 ### Do I need ESI?
 
 No. ARIA works fully without ESI. All tactical features, mission briefs, fitting assistance, and reference data work out of the box. ESI is an optional upgrade for automatic data sync.

@@ -11,6 +11,30 @@ Welcome, Capsuleer! This guide will help you configure ARIA for your character.
 
 All commands below should be run from the repository root (`cd aria`).
 
+## DevContainer Setup (Docker Desktop)
+
+If you have **Docker Desktop** and **VS Code**, you can skip all local installation:
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and the [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) VS Code extension
+2. Clone the repo and open it in VS Code:
+   ```bash
+   git clone https://github.com/LuminaireCognition/aria.git
+   code aria
+   ```
+3. When prompted, click **"Reopen in Container"** (or run `Dev Containers: Reopen in Container` from the command palette)
+4. Wait ~3 minutes for the first build (installs Python, Claude Code, and seeds game data)
+5. In the container terminal:
+   ```bash
+   ./aria-init    # Configure your pilot
+   claude         # Start ARIA
+   ```
+
+The container includes Python 3.13, uv, Claude Code CLI, and all game data — nothing to install on your machine. Your `userdata/` (pilot profiles, credentials) persists across container rebuilds via a Docker volume.
+
+For ESI OAuth inside the container, port 8421 is forwarded automatically. Run `uv run python .claude/scripts/aria-oauth-setup.py` as normal.
+
+---
+
 ## Quick Setup (Recommended)
 
 Run the interactive setup wizard:

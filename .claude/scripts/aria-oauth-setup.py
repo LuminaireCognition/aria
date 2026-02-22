@@ -67,6 +67,10 @@ except ImportError:
 
     KEYRING_BACKEND = None
 
+# When running inside a DevContainer, bind to 0.0.0.0 so Docker Desktop
+# port forwarding can reach the callback server.
+_BIND_ADDR = "0.0.0.0" if os.environ.get("DEVCONTAINER") == "true" else "localhost"
+
 # EVE SSO endpoints
 AUTH_URL = "https://login.eveonline.com/v2/oauth/authorize"
 TOKEN_URL = "https://login.eveonline.com/v2/oauth/token"
@@ -312,7 +316,7 @@ def find_available_port(start_port: int = DEFAULT_PORT) -> int:
     for port in range(start_port, start_port + 100):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.bind(("localhost", port))
+                s.bind((_BIND_ADDR, port))
                 return port
         except OSError:
             continue
@@ -321,7 +325,7 @@ def find_available_port(start_port: int = DEFAULT_PORT) -> int:
 
 def run_callback_server(port: int):
     """Run the OAuth callback server."""
-    server = HTTPServer(("localhost", port), OAuthCallbackHandler)
+    server = HTTPServer((_BIND_ADDR, port), OAuthCallbackHandler)
     server.timeout = 1  # Check for shutdown every second
 
     server_ready.set()
