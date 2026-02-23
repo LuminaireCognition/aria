@@ -467,6 +467,19 @@ class SecurityBorder(MCPModel):
     adjacent_security: float = Field(ge=-1.0, le=1.0)
 
 
+class FWLocalStatus(MCPModel):
+    """Faction Warfare status for a system in the local area."""
+
+    system: str
+    system_id: int
+    security: float = Field(ge=-1.0, le=1.0)
+    jumps: int = Field(ge=0, description="Distance from origin")
+    owner_faction: str
+    occupier_faction: str
+    contested: FWContestedStatus
+    contested_percentage: float = Field(ge=0.0, le=100.0)
+
+
 class LocalAreaResult(MCPModel):
     """Complete local area intelligence for orient command."""
 
@@ -492,6 +505,9 @@ class LocalAreaResult(MCPModel):
     )
     borders: list[SecurityBorder] = Field(
         default_factory=list, description="Security transition points"
+    )
+    fw_systems: list[FWLocalStatus] = Field(
+        default_factory=list, description="Faction Warfare systems in range"
     )
 
     systems_scanned: int = Field(ge=0)

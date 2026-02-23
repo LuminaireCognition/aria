@@ -1,6 +1,6 @@
 # Sovereignty & Territory Data Proposal
 
-**Status:** PROPOSED (2026-02-04)
+**Status:** IMPLEMENTED (2026-02-22)
 **Related:** `/hunting-grounds`, `/threat-assessment`, `/orient`, `universe()` MCP dispatcher
 
 ---
@@ -456,9 +456,9 @@ resolve_coalition_alias("PanFam")       # → "panfam"
 
 ### Deliverables
 
-- [ ] `/fw-frontlines` skill (or integrate with `/orient` for FW space)
-- [ ] FW system highlighting in `/route` when traveling through warzone
-- [ ] Contested system warnings in `/threat-assessment`
+- [x] `/fw-frontlines` skill (or integrate with `/orient` for FW space)
+- [x] FW system highlighting in `/route` when traveling through warzone
+- [x] Contested system warnings in `/threat-assessment`
 
 ### Output Example
 
@@ -572,12 +572,12 @@ ARIA: ## Imperium Hunting Grounds Analysis
 
 ### Deliverables
 
-- [ ] `universe(action="search")` supports `coalition` filter
+- [x] `universe(action="search")` supports `coalition` filter
 - [ ] `universe(action="route")` supports `prefer_territory` / `avoid_territory`
-- [ ] New action: `universe(action="territory_analysis", coalition="imperium")`
+- [x] New action: `universe(action="territory_analysis", coalition="imperium")`
 - [ ] `/hunting-grounds` skill enhancement (PARIA-exclusive)
-- [ ] `/orient` skill enhancement with sovereignty context
-- [ ] `/threat-assessment` skill enhancement with territorial context
+- [x] `/orient` skill enhancement with sovereignty context
+- [x] `/threat-assessment` skill enhancement with territorial context
 
 ### MCP Action: Territory Analysis
 

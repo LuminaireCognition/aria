@@ -24,6 +24,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from aria_esi.mcp.activity import FWSystemData
 from aria_esi.mcp.errors import InvalidParameterError
 
 
@@ -938,3 +939,123 @@ class TestInvalidActions:
             asyncio.run(universe_dispatcher(action=""))
 
         assert "action" in str(exc.value)
+
+
+# =============================================================================
+# Route FW Warnings Tests
+# =============================================================================
+
+
+class TestRouteFWWarnings:
+    """Tests for FW warzone warnings in route results."""
+
+    def test_route_fw_warnings(self, universe_dispatcher, mock_activity_cache):
+        """Route through FW systems includes FW warnings."""
+        fw_data = {
+            30000160: FWSystemData(
+                system_id=30000160,
+                owner_faction_id=500001,
+                occupier_faction_id=500004,
+                contested="contested",
+                victory_points=12000,
+                victory_points_threshold=27000,
+            ),
+        }
+        mock_activity_cache.get_all_fw = AsyncMock(return_value=fw_data)
+
+        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="route",
+                    origin="Maurasi",
+                    destination="Ala",
+                )
+            )
+
+        warnings = result.get("warnings", [])
+        fw_warnings = [w for w in warnings if "Faction Warfare" in w or "FW" in w]
+        assert len(fw_warnings) >= 1
+        assert any("warzone" in w.lower() for w in fw_warnings)
+
+    def test_route_no_fw_warnings(self, universe_dispatcher, mock_activity_cache):
+        """Route not through FW systems has no FW warnings."""
+        mock_activity_cache.get_all_fw = AsyncMock(return_value={})
+
+        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="route",
+                    origin="Jita",
+                    destination="Perimeter",
+                )
+            )
+
+        warnings = result.get("warnings", [])
+        fw_warnings = [w for w in warnings if "Faction Warfare" in w or "FW" in w]
+        assert len(fw_warnings) == 0
+
+
+# =============================================================================
+# Search Coalition Filter Tests
+# =============================================================================
+
+
+class TestSearchCoalitionFilter:
+    """Tests for coalition filter in search action."""
+
+    def test_search_coalition_filter(self, universe_dispatcher):
+        """Search with coalition filter returns only coalition systems."""
+        # Mock get_systems_by_coalition to return Ala's system ID
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_systems_by_coalition",
+            return_value=[30000161],  # Ala
+        ):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="search",
+                    coalition="imperium",
+                    limit=10,
+                )
+            )
+
+        assert "systems" in result
+        assert result["total_found"] == 1
+        system_names = [s["name"] for s in result["systems"]]
+        assert "Ala" in system_names
+        assert result["filters_applied"]["coalition"] == "imperium"
+
+    def test_search_coalition_unknown(self, universe_dispatcher):
+        """Unknown coalition returns warning and empty results."""
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_systems_by_coalition",
+            return_value=[],
+        ):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="search",
+                    coalition="nonexistent",
+                    limit=10,
+                )
+            )
+
+        assert result["total_found"] == 0
+        assert "warning" in result
+        assert "nonexistent" in result["warning"]
+
+    def test_search_coalition_with_region(self, universe_dispatcher):
+        """Coalition filter works with region filter."""
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_systems_by_coalition",
+            return_value=[30000161, 30000142],  # Ala (Outer Region) and Jita (The Forge)
+        ):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="search",
+                    coalition="imperium",
+                    region="The Forge",
+                    limit=10,
+                )
+            )
+
+        # Only Jita should match (in The Forge AND in coalition)
+        assert "systems" in result
