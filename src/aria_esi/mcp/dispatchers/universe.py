@@ -1649,8 +1649,6 @@ async def _local_area(
     fw_systems_list: list[FWLocalStatus] = []
     fw_data = await cache.get_all_fw()
     if fw_data:
-        # Check origin
-        origin_system_id = int(universe.system_ids[origin_idx])
         all_local_ids = [(origin_idx, 0)] + systems_in_range
         for idx, distance in all_local_ids:
             system_id = int(universe.system_ids[idx])
