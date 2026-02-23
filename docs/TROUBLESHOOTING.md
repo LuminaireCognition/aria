@@ -68,9 +68,11 @@ If the build fails during game data seeding, the container is still usable — r
 
 ### ESI OAuth not working in container
 
-Port 8421 must be forwarded. Verify in the VS Code **Ports** panel that port 8421 shows as forwarded.
+The OAuth wizard auto-detects containers and headless environments (SSH, no DISPLAY) and defaults to copy-paste mode — no local browser needed. You authorize in a browser on any machine and paste the callback URL back into the terminal.
 
-The OAuth script auto-detects the container environment and binds to `0.0.0.0`. If using manual mode (`--manual`), the callback URL is still `http://localhost:8421/callback` (Docker Desktop forwards from host).
+If you want to use the automatic browser flow instead (e.g., with VS Code port forwarding), pass `--auto`. Port 8421 must be forwarded — verify in the VS Code **Ports** panel.
+
+The script also binds to `0.0.0.0` in container environments so Docker Desktop port forwarding can reach the callback server.
 
 ### Firewall blocking a needed service
 

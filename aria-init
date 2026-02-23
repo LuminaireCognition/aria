@@ -1694,7 +1694,7 @@ collect_character_info() {
     echo ""
 
     # Faction Selection
-    echo "Select your primary faction. This determines ARIA's personality:"
+    echo "Select your primary faction:"
     echo ""
     local faction_choice
     faction_choice=$(select_option "Select faction" \
@@ -1712,61 +1712,21 @@ collect_character_info() {
 
     AI_NAME="${FACTION_AI_NAME[$FACTION]}"
 
+    # Auto-apply defaults from faction
+    CORPORATION="${FACTION_STARTER_CORP[$FACTION]}"
+    HOME_REGION="${FACTION_HOME_REGION[$FACTION]}"
+    PLAYSTYLE="4"  # Mixed
+    SELF_SUFFICIENT="false"
+
     echo ""
     print_success "Faction: ${FACTION_FULL_NAME[$FACTION]}"
     print_success "AI Persona: ${AI_NAME}"
     echo ""
-
-    # Corporation
-    local default_corp="${FACTION_STARTER_CORP[$FACTION]}"
-    CORPORATION=$(prompt "Corporation" "$default_corp")
-
-    echo ""
     print_footer
 }
 
-collect_operational_info() {
-    print_header "OPERATIONAL PARAMETERS"
-    echo ""
 
-    # Home Region
-    local default_region="${FACTION_HOME_REGION[$FACTION]}"
-    echo "Your home region determines where ARIA assumes you operate."
-    HOME_REGION=$(prompt "Home region" "$default_region")
-
-    echo ""
-
-    # Primary Activity
-    echo "What is your primary focus in Eve?"
-    local activity_choice
-    activity_choice=$(select_option "Select activity" \
-        "Mission Running - Build standings, earn ISK through combat" \
-        "Mining/Industry - Gather resources, manufacture items" \
-        "Exploration     - Scan signatures, hack sites, discover loot" \
-        "Mixed           - A bit of everything")
-
-    PLAYSTYLE="$activity_choice"
-
-    echo ""
-
-    # Self-sufficiency Mode
-    echo "Self-sufficiency mode restricts you from using the player market."
-    echo "All equipment must be manufactured, looted, or purchased from NPCs."
-    echo ""
-
-    if prompt_yes_no "Enable self-sufficiency mode?"; then
-        SELF_SUFFICIENT="true"
-        print_info "Self-sufficiency mode enabled - no player market"
-    else
-        SELF_SUFFICIENT="false"
-        print_info "Standard mode - full market access"
-    fi
-
-    echo ""
-    print_footer
-}
-
-confirm_settings() {
+show_settings_summary() {
     print_header "CONFIGURATION SUMMARY"
     echo ""
     echo -e "  ${BOLD}Character:${NC}    ${CHAR_NAME}"
@@ -1774,18 +1734,8 @@ confirm_settings() {
     echo -e "  ${BOLD}Faction:${NC}      ${FACTION_FULL_NAME[$FACTION]}"
     echo -e "  ${BOLD}AI Persona:${NC}   ${AI_NAME}"
     echo -e "  ${BOLD}Home Region:${NC}  ${HOME_REGION}"
-    echo -e "  ${BOLD}Focus:${NC}        $(case $PLAYSTYLE in 1) echo "Mission Running";; 2) echo "Mining/Industry";; 3) echo "Exploration";; 4) echo "Mixed";; esac)"
-    echo -e "  ${BOLD}Self-Suff:${NC}    $(if [[ $SELF_SUFFICIENT == "true" ]]; then echo "Enabled"; else echo "Disabled"; fi)"
-    echo ""
-    print_box_div
-    echo ""
-
-    if ! prompt_yes_no "Proceed with this configuration?" "y"; then
-        echo ""
-        print_warning "Configuration cancelled"
-        exit 0
-    fi
-
+    echo -e "  ${BOLD}Focus:${NC}        Mixed"
+    echo -e "  ${BOLD}Self-Suff:${NC}    Disabled"
     echo ""
     print_footer
 }
@@ -1968,39 +1918,14 @@ run_seed_command() {
 }
 
 seed_game_data() {
-    local force_seed=0
-    if [[ "${1:-}" == "--force" ]]; then
-        force_seed=1
-    fi
-
     if [[ "$SKIP_SEED" -eq 1 ]]; then
         return 0
     fi
 
     print_header "GAME DATA SETUP"
     echo ""
-    echo "ARIA needs game data caches to provide market prices, fitting stats,"
-    echo "item lookups, and territory analysis. This downloads ~100MB from public"
-    echo "EVE data sources (no login required)."
+    echo "Downloading game data caches (~100MB from public EVE data sources)..."
     echo ""
-    echo "Data sources:"
-    echo "  SDE database    - Item/skill/blueprint lookups (Fuzzwork)"
-    echo "  Fitting engine  - Ship fitting calculations (Pyfa/GitHub)"
-    echo "  Market prices   - Current Jita/Amarr prices (Fuzzwork + ESI)"
-    echo "  Sovereignty     - Nullsec territory map (ESI)"
-    echo "  Persona context - Compile RP persona for your pilot (local)"
-    echo ""
-
-    if [[ "$force_seed" -eq 0 ]]; then
-        if ! prompt_yes_no "Download game data now?" "y"; then
-            echo ""
-            print_info "Skipped game data seeding. Run later with: ./aria-init --seed-only"
-            echo ""
-            print_footer
-            return 0
-        fi
-        echo ""
-    fi
 
     local failures=0
     local total=5
@@ -2038,44 +1963,15 @@ seed_game_data() {
     print_footer
 }
 
-offer_esi_setup() {
-    print_header "SETUP COMPLETE!"
+show_esi_info() {
     echo ""
-    print_success "ARIA is fully configured and ready to use."
+    echo -e "${BOLD}Optional: ESI Integration${NC}"
     echo ""
-    print_box_div
+    echo "ESI adds live data sync (location, standings, wallet, skills)."
+    echo "When you're ready, run:"
     echo ""
-    echo -e "${BOLD}Optional Enhancement: ESI Integration${NC}"
+    echo -e "  ${CYAN}uv run python .claude/scripts/aria-oauth-setup.py${NC}"
     echo ""
-    echo "ARIA works fully without ESI. All tactical features are ready now."
-    echo ""
-    echo "ESI adds convenience features (automatic data sync):"
-    echo "  - Location/ship detection (instead of telling ARIA)"
-    echo "  - Live standings sync (instead of updating files)"
-    echo "  - Wallet and skill tracking"
-    echo ""
-    print_info "Recommendation: Try ARIA first, add ESI later when comfortable."
-    echo ""
-
-    if prompt_yes_no "Set up ESI now? (You can always do this later)"; then
-        echo ""
-        print_info "Launching ESI setup wizard..."
-        echo ""
-
-        if [[ -f "$SCRIPT_DIR/.claude/scripts/aria-oauth-setup.py" ]]; then
-            uv run python "$SCRIPT_DIR/.claude/scripts/aria-oauth-setup.py"
-        else
-            print_warning "ESI setup script not found"
-            echo "Run manually later: uv run python .claude/scripts/aria-oauth-setup.py"
-        fi
-    else
-        echo ""
-        print_success "Great choice! You can add ESI anytime with:"
-        echo "  uv run python .claude/scripts/aria-oauth-setup.py"
-    fi
-
-    echo ""
-    print_footer
 }
 
 show_completion() {
@@ -2285,7 +2181,7 @@ main() {
                 ;;
             --seed-only)
                 check_prerequisites || exit 1
-                seed_game_data --force
+                seed_game_data
                 exit $?
                 ;;
             *)
@@ -2310,23 +2206,13 @@ main() {
     show_runtime_advisory
     echo ""
 
-    # Prompt to continue
-    if ! prompt_yes_no "Ready to configure ARIA?" "y"; then
-        echo ""
-        print_info "Setup cancelled"
-        exit 0
-    fi
-
-    echo ""
-
     # Collect information
     collect_character_info
     resolve_pilot_context
     if check_existing_installation; then
         handle_existing_installation
     fi
-    collect_operational_info
-    confirm_settings
+    show_settings_summary
 
     # Generate files
     generate_files
@@ -2343,10 +2229,8 @@ main() {
     # Seed game data caches
     seed_game_data
 
-    # Offer ESI setup
-    offer_esi_setup
-
-    # Show completion
+    # Show completion with ESI info
+    show_esi_info
     show_completion
 }
 

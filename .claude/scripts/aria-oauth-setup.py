@@ -12,8 +12,9 @@ This script:
 5. Saves credentials to credentials/{character_id}.json (V2 multi-pilot structure)
 
 Usage:
-    python aria-oauth-setup.py           # Automatic mode (recommended)
-    python aria-oauth-setup.py --manual  # Manual copy-paste mode
+    python aria-oauth-setup.py           # Auto-detects environment
+    python aria-oauth-setup.py --manual  # Force copy-paste mode
+    python aria-oauth-setup.py --auto    # Force browser mode
 
 No external dependencies - uses only Python standard library.
 ═══════════════════════════════════════════════════════════════════
@@ -932,29 +933,31 @@ After you authorize, you'll be redirected back automatically.
 
 def run_manual_flow(client_id: str, scopes: list[str]) -> dict:
     """Run the OAuth flow with manual copy-paste."""
-    callback_url = "http://localhost/callback"
+    callback_url = f"http://localhost:{DEFAULT_PORT}/callback"
 
     state = secrets.token_urlsafe(16)
     code_verifier, code_challenge = generate_pkce_pair()
 
     auth_url = build_auth_url(client_id, scopes, state, code_challenge, callback_url)
 
-    print_section("AUTHORIZATION (Manual Mode)")
+    print_section("AUTHORIZATION")
     print(f"""
-Open this URL in your browser:
+  Step 1: Copy this URL and open it in a browser (any machine):
 
-{auth_url}
+    {auth_url}
 
-After authorizing, you'll be redirected to a page that won't load.
-Copy the ENTIRE URL from your browser's address bar and paste it below.
+  Step 2: Log in and authorize the application.
+
+  Step 3: Your browser will redirect to a page that DOES NOT LOAD.
+          This is expected. Copy the URL from your browser's address bar.
+
+          It will look like:
+          http://localhost:{DEFAULT_PORT}/callback?code=...&state=...
+
+  Step 4: Paste that URL below.
 """)
 
-    open_browser = input("Open URL in browser automatically? [Y/n]: ").strip().lower()
-    if open_browser != "n":
-        webbrowser.open(auth_url)
-
-    print()
-    callback_input = input("Paste the callback URL (or just the code): ").strip()
+    callback_input = input("Callback URL: ").strip()
 
     if not callback_input:
         raise RuntimeError("No callback URL provided")
@@ -971,8 +974,12 @@ Copy the ENTIRE URL from your browser's address bar and paste it below.
 def main():
     """Main setup wizard."""
     parser = argparse.ArgumentParser(description="ARIA OAuth Setup Wizard")
-    parser.add_argument(
-        "--manual", action="store_true", help="Use manual copy-paste mode instead of local server"
+    mode_group = parser.add_mutually_exclusive_group()
+    mode_group.add_argument(
+        "--manual", action="store_true", help="Force copy-paste mode (no local server)"
+    )
+    mode_group.add_argument(
+        "--auto", action="store_true", help="Force browser mode (local callback server)"
     )
     parser.add_argument(
         "--no-keyring", action="store_true", help="Disable keyring storage, use file storage only"
@@ -984,6 +991,25 @@ def main():
     )
     args = parser.parse_args()
 
+    # Detect headless environment
+    is_headless = (
+        os.environ.get("DEVCONTAINER") == "true"
+        or bool(os.environ.get("SSH_CONNECTION"))
+        or (
+            not os.environ.get("DISPLAY")
+            and not os.environ.get("WAYLAND_DISPLAY")
+            and sys.platform not in ("darwin", "win32")
+        )
+    )
+
+    # Resolve mode: explicit flags > auto-detection
+    if args.manual:
+        use_manual = True
+    elif args.auto:
+        use_manual = False
+    else:
+        use_manual = is_headless
+
     # Respect ARIA_NO_KEYRING environment variable
     use_keyring = not args.no_keyring and os.environ.get("ARIA_NO_KEYRING", "").lower() not in (
         "1",
@@ -992,6 +1018,16 @@ def main():
     )
 
     print_header("ARIA GALNET AUTHENTICATION SETUP WIZARD")
+
+    # Show mode selection
+    if args.manual:
+        print_aria("Using copy-paste mode.")
+    elif args.auto:
+        print_aria("Using browser mode.")
+    elif use_manual:
+        print_aria("No local browser detected — using copy-paste mode.")
+        print("      (Use --auto to force browser mode if you have one.)")
+    # else: automatic mode, no message needed
 
     print_aria("Initiating EVE SSO integration sequence.")
     print_aria("This wizard will connect ARIA to your EVE Online character data.")
@@ -1016,9 +1052,10 @@ If you haven't created one yet:
   6. Copy your Client ID
 """)
 
-    open_browser = input("Open EVE Developers website? [Y/n]: ").strip().lower()
-    if open_browser != "n":
-        webbrowser.open("https://developers.eveonline.com/")
+    if not use_manual:
+        open_browser = input("Open EVE Developers website? [Y/n]: ").strip().lower()
+        if open_browser != "n":
+            webbrowser.open("https://developers.eveonline.com/")
 
     print()
     client_id = input("Enter your Client ID: ").strip()
@@ -1039,7 +1076,7 @@ If you haven't created one yet:
 
     # Step 3: OAuth flow
     try:
-        if args.manual:
+        if use_manual:
             token_response = run_manual_flow(client_id, scopes)
         else:
             token_response = run_automatic_flow(client_id, scopes)
