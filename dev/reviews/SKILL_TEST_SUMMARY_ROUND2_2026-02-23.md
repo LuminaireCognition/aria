@@ -107,6 +107,27 @@
 
 6. **MCP-primary skills are the most efficient.** Skills using MCP dispatchers average 100% efficiency vs 89% for CLI-primary skills. The structured MCP interface eliminates trial-and-error command discovery.
 
+## Retest 2: Commit e7c06618 Fixes (6 skills)
+
+After the Round 2 findings, commit e7c06618 addressed all 5 recommended actions. A second retest validated the fixes:
+
+| Skill | Previous Issue | Retest Outcome | Fix Verified? |
+|-------|---------------|----------------|:-------------:|
+| agents-research | Generic agent/corp names | Names resolved correctly | **YES** |
+| mission-brief | Wrong INDEX.md path (2 wasted calls) | Correct path first try, 100% eff | **YES** |
+| arbitrage | 0 results at default 5% filter | Doc caveat in place | **YES** |
+| killmail | No MCP path | MCP `killmails(analyze)` works end-to-end | **YES** (post-restart) |
+| mail | No MCP fallback | `pilot(mail_list)` correctly RESTRICTED by policy | **YES** (by design) |
+| mining | No MCP fallback | `pilot(mining_ledger)` works at AUTHENTICATED level | **YES** (post-restart) |
+
+**MCP server restart required:** The initial sub-agent run could not see the new dispatchers because the MCP server predated commit e7c06618. After restart via `/mcp`, all 8 dispatchers were exposed and validated.
+
+**Remaining low-priority issues:**
+- Kill ID 124578923 in test queries is synthetic (doesn't exist on zKillboard)
+- killmail skill prompt references wrong CLI command (`killmail` vs `analyze-killmail`)
+
+Full results: `SKILL_TEST_RESULTS_RETEST2_2026-02-23.md`
+
 ## File Index
 
 | File | Contents |
@@ -118,4 +139,5 @@
 | `SKILL_TEST_RESULTS_RETEST_2026-02-23.md` | Doc-fix retest (3 skills) |
 | `SKILL_TEST_COMPARISON_2026-02-23.md` | Before/after comparison |
 | `SKILL_TEST_RESULTS_ROUND2_2026-02-23.md` | Round 2 (27 skills) |
+| `SKILL_TEST_RESULTS_RETEST2_2026-02-23.md` | Commit e7c06618 retest (6 skills) |
 | `SKILL_TEST_SUMMARY_ROUND2_2026-02-23.md` | This file (all-rounds summary) |

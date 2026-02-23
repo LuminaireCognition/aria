@@ -124,7 +124,7 @@ A comprehensive catalog of natural language queries designed to exercise each AR
 ### killmail
 - **ESI:** NONE
 - **Queries:**
-  1. "Analyze this killmail: https://zkillboard.com/kill/124578923/"
+  1. "Analyze this killmail: https://zkillboard.com/kill/133484996/"
 
 ### killmails
 - **ESI:** LOW
