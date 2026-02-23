@@ -244,17 +244,25 @@ After unlocking, re-run OAuth setup to migrate credentials to the keyring:
 uv run python .claude/scripts/aria-oauth-setup.py
 ```
 
-**Permanent fix — enable PAM auto-unlock for TTY sessions:**
+**Permanent fix — enable PAM auto-unlock:**
 
-Add these two lines to `/etc/pam.d/login`:
+The `libpam-gnome-keyring` package must be installed (check with `dpkg -l libpam-gnome-keyring`). Then add these two lines to the PAM configuration for your login method:
+
 ```
 auth     optional  pam_gnome_keyring.so
 session  optional  pam_gnome_keyring.so auto_start
 ```
 
-The `libpam-gnome-keyring` package must be installed (check with `dpkg -l libpam-gnome-keyring`). After this change, every TTY login unlocks the keyring automatically, matching the behavior of GDM graphical logins.
+**Which PAM file to edit depends on how you log in:**
 
-**Note for other display managers:** If you use SDDM, LightDM, or another display manager, check whether `/etc/pam.d/<your-dm>` includes the `pam_gnome_keyring.so` lines. Many display managers omit them by default.
+| Login method | PAM file | Notes |
+|-------------|----------|-------|
+| SSH (password auth) | `/etc/pam.d/sshd` | Most common for remote/headless servers |
+| TTY console | `/etc/pam.d/login` | Local terminal logins |
+| GDM (GNOME) | Usually pre-configured | Check `/etc/pam.d/gdm-password` |
+| SDDM, LightDM | `/etc/pam.d/<your-dm>` | Often omitted by default |
+
+**Important:** If you access the machine via SSH, you must update `/etc/pam.d/sshd` — updating only `/etc/pam.d/login` is not sufficient for SSH sessions. You may want to update both files if you use both login methods.
 
 ### How to verify the keyring is working
 
