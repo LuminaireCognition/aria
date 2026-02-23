@@ -368,7 +368,13 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
 
             case "search":
                 result = await _search(
-                    origin, max_jumps, security_min, security_max, region, is_border, limit,
+                    origin,
+                    max_jumps,
+                    security_min,
+                    security_max,
+                    region,
+                    is_border,
+                    limit,
                     coalition,
                 )
 
@@ -1900,9 +1906,7 @@ def _calculate_route(
     return service.calculate_route(origin_idx, dest_idx, mode, avoid_systems)  # type: ignore[arg-type]
 
 
-async def _generate_fw_route_warnings(
-    universe: UniverseGraph, path: list[int]
-) -> list[str]:
+async def _generate_fw_route_warnings(universe: UniverseGraph, path: list[int]) -> list[str]:
     """Generate warnings for FW warzone systems on route."""
     cache = get_activity_cache()
     fw_data = await cache.get_all_fw()
@@ -1935,9 +1939,7 @@ async def _generate_fw_route_warnings(
             f"Vulnerable FW system(s): {', '.join(vulnerable_systems)} - high militia activity likely"
         )
     if contested_systems:
-        warnings.append(
-            f"Contested FW system(s): {', '.join(contested_systems)}"
-        )
+        warnings.append(f"Contested FW system(s): {', '.join(contested_systems)}")
 
     return warnings
 
@@ -2094,7 +2096,9 @@ def _search_systems(
 
     if coalition_system_ids is not None:
         # Start with coalition systems as candidates
-        candidates = {universe.id_to_idx[sid] for sid in coalition_system_ids if sid in universe.id_to_idx}
+        candidates = {
+            universe.id_to_idx[sid] for sid in coalition_system_ids if sid in universe.id_to_idx
+        }
         # If also filtering by BFS range, intersect
         if origin_idx is not None and max_jumps is not None:
             bfs_candidates, distances = _bfs_within_range(universe, origin_idx, max_jumps)
