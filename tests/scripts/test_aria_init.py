@@ -257,3 +257,74 @@ def test_heredoc_targets_exist_in_script() -> None:
 
     # ships.md uses a quoted heredoc (no variable expansion)
     assert "cat > \"$DATA_DIR/ships.md\" << 'EOF'" in script
+
+
+def test_persona_context_stub_appended_to_profile(tmp_path: Path) -> None:
+    """Verify --test mode appends persona_context stub to profile.md."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    profile = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "profile.md").read_text(
+        encoding="utf-8"
+    )
+    assert "## Persona Context" in profile
+    assert "persona_context:" in profile
+    assert 'rp_level: "off"' in profile
+    assert "files: []" in profile
+    # Gallente faction maps to aria-mk4
+    assert 'persona: "aria-mk4"' in profile
+    assert 'branch: "empire"' in profile
+
+
+def test_ships_md_is_minimal_placeholder(tmp_path: Path) -> None:
+    """Verify ships.md is a minimal ESI placeholder without hardcoded ship names."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    ships = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "ships.md").read_text(
+        encoding="utf-8"
+    )
+    assert "ESI sync" in ships
+    # Should NOT contain specific ship names from the old elaborate scaffolding
+    assert "Venture" not in ships
+    assert "Miner I" not in ships
+    assert "Future Acquisitions" not in ships
+
+
+def test_missions_md_references_index_instead_of_inline_profiles(tmp_path: Path) -> None:
+    """Verify missions.md points to reference/pve-intel/INDEX.md instead of inline damage profiles."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    missions = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "missions.md").read_text(
+        encoding="utf-8"
+    )
+    assert "reference/pve-intel/INDEX.md" in missions
+    # Should NOT contain inline faction damage profiles
+    assert "Damage Dealt:" not in missions
+    assert "Damage to Deal:" not in missions
+
+
+def test_operations_md_references_profile_and_ships(tmp_path: Path) -> None:
+    """Verify operations.md doesn't duplicate faction alignment or ship roster data."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    ops = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "operations.md").read_text(
+        encoding="utf-8"
+    )
+    # Faction alignment should reference profile.md
+    assert "See `profile.md` for faction alignment" in ops
+    # Ship roster should reference ships.md
+    assert "See `ships.md`" in ops
+    # Should NOT duplicate faction data
+    assert "Primary Alignment:" not in ops
+    assert "Hostile Factions:" not in ops

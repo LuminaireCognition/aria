@@ -1085,7 +1085,6 @@ generate_operational_profile() {
     local self_sufficient="$5"
 
     local mission_corp="${FACTION_MISSION_CORP[$faction]}"
-    local explore_ship="${FACTION_EXPLORATION_SHIP[$faction]}"
 
     # Build activity list based on playstyle
     local activity1 activity2 activity3
@@ -1148,11 +1147,7 @@ Self-imposed rules that define this capsuleer's playstyle:
 
 ## Ship Roster
 
-| Ship | Hull Class | Role | Home Station |
-|------|------------|------|--------------|
-| Rookie Ship | Corvette | Emergency backup | Home station |
-| Venture | Mining Frigate | Mining operations | Home station |
-| ${explore_ship} | Exploration Frigate | Scanning & hacking | Home station |
+See \`ships.md\` for current ship roster (updated by ESI sync).
 
 ## Primary Activities
 
@@ -1930,8 +1925,8 @@ Options:
 
 Description:
   Interactive wizard to configure ARIA, the tactical advisor AI for Eve Online.
-  Creates all necessary data files from templates based on your character
-  information, faction choice, and playstyle preferences.
+  Creates all necessary data files based on your character information,
+  faction choice, and playstyle preferences.
 
 Examples:
   ./aria-init              Run the interactive wizard

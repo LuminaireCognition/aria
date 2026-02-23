@@ -1,6 +1,6 @@
 # Init Information Space Cleanup
 
-**Status:** PROPOSED (2026-02-22)
+**Status:** IMPLEMENTED (2026-02-22)
 **Related:** `aria-init`, `.claude/scripts/aria-oauth-setup.py`, boot hook, `aria-esi persona-context`
 
 ---
