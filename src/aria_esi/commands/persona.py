@@ -1151,9 +1151,17 @@ def cmd_verify_persona_context(args: argparse.Namespace) -> dict:
             "verification": result.to_dict(),
         }
 
+    # Distinguish "missing artifact" (fresh install) from actual integrity failure
+    if result.valid:
+        status = "valid"
+    elif not result.artifact_exists:
+        status = "missing"
+    else:
+        status = "integrity_failed"
+
     return {
         "query_timestamp": query_ts,
-        "status": "valid" if result.valid else "integrity_failed",
+        "status": status,
         "verification": result.to_dict(),
     }
 
