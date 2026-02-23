@@ -370,8 +370,8 @@ Mission-Related Question
      │
      ▼
 ┌──────────────────────────────────┐
-│ Check reference/pve-intel/INDEX.md│
-│ for cached PvE intel             │
+│ Check reference/pve-intel/cache/  │
+│ INDEX.md for cached PvE intel    │
 └──────────────────────────────────┘
      │
      ├── Cached → Read local file

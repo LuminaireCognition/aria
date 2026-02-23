@@ -439,7 +439,7 @@ When a request involves **mission context** (fitting for a mission, mission inte
 **Lookup sequence (cache-first pattern):**
 
 ```
-1. Check reference/pve-intel/INDEX.md
+1. Check reference/pve-intel/cache/INDEX.md
    ├─ Intel cached? → Read from cache file → Present to user
    └─ Not cached? → Continue to step 2
 
@@ -448,7 +448,7 @@ When a request involves **mission context** (fitting for a mission, mission inte
 
 3. Write cache file BEFORE presenting:
    ├─ Create: reference/pve-intel/cache/{site_name}_{suffix}.md
-   └─ Update: reference/pve-intel/INDEX.md
+   └─ Update: reference/pve-intel/cache/INDEX.md
 
 4. Read from cache file → Present to user
 ```
@@ -464,7 +464,8 @@ All intel must be read from local cache. This ensures caching is a
 prerequisite for presentation, not an afterthought.
 
 **Quick reference available without fetch:**
-- `reference/pve-intel/INDEX.md` has damage profiles for all factions (tracked in git)
+- `reference/pve-intel/INDEX.md` has static damage profiles for all factions (tracked in git)
+- `reference/pve-intel/cache/INDEX.md` has the cache index of fetched missions (gitignored)
 - Rogue Drones: Omni damage → weak to EM > Thermal
 - Serpentis: Kin/Therm → weak to Thermal
 - (See INDEX.md for complete table)

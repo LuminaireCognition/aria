@@ -19,7 +19,7 @@ Last Updated: YC128.01.13
 | What damage to deal/tank? | [mechanics/npc_damage_types.md](mechanics/npc_damage_types.md) |
 | Drone damage types | [mechanics/drones.json](mechanics/drones.json) |
 | Hacking help | [mechanics/hacking_guide.md](mechanics/hacking_guide.md) |
-| Mission intel | [pve-intel/INDEX.md](pve-intel/INDEX.md) |
+| Mission intel (static) | [pve-intel/INDEX.md](pve-intel/INDEX.md) |
 | Ship fitting | [fittings/MODULE_NAMES.md](fittings/MODULE_NAMES.md) |
 
 ---
@@ -45,8 +45,9 @@ Personal operational files are stored in `userdata/pilots/{active_pilot}/`:
 |------|----------|
 | [mechanics/npc_damage_types.md](mechanics/npc_damage_types.md) | Faction damage tables, EWAR types, tank priorities |
 | [mechanics/drones.json](mechanics/drones.json) | **Drone damage types**, faction recommendations, bandwidth |
-| [pve-intel/INDEX.md](pve-intel/INDEX.md) | Mission & PvE intel index by faction/level |
-| `pve-intel/cache/` | Cached mission briefings (auto-populated by `/mission-brief`, gitignored) |
+| [pve-intel/INDEX.md](pve-intel/INDEX.md) | Static damage/EWAR quick reference by faction |
+| `pve-intel/cache/INDEX.md` | Cached mission intel index (auto-populated by `/mission-brief`, gitignored) |
+| `pve-intel/cache/*.md` | Individual cached mission briefings (gitignored) |
 
 ### Exploration
 

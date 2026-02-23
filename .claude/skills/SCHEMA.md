@@ -51,7 +51,7 @@ requires_pilot: true
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
-  - reference/pve-intel/INDEX.md
+  - reference/pve-intel/cache/INDEX.md
   - reference/mechanics/npc_damage_types.md
 external_sources:
   - wiki.eveuniversity.org
