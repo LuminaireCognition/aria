@@ -170,6 +170,8 @@ SDE_ACTION_PARAMS: dict[str, set[str]] = {
     },
     "agent_divisions": set(),
     "cache_status": set(),
+    "meta_variants": {"item"},
+    "resolve_names": {"names"},
 }
 
 

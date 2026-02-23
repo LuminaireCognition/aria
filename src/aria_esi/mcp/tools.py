@@ -46,15 +46,17 @@ def register_tools(server: FastMCP, universe: UniverseGraph) -> None:
     """
     Register all MCP tools with server using domain dispatchers.
 
-    This consolidates ~45 individual tools into 6 domain dispatchers
+    This consolidates ~45 individual tools into 8 domain dispatchers
     plus 1 unified status tool to reduce LLM attention degradation.
 
     Dispatchers:
     - universe(): Navigation, routing, borders, activity (14 actions)
     - market(): Prices, orders, arbitrage, scopes (19 actions)
-    - sde(): Item info, blueprints, corporations, agents (8 actions)
+    - sde(): Item info, blueprints, corporations, agents, name resolution (10 actions)
     - skills(): Training time, easy 80%, activities (9 actions)
     - fitting(): Fit statistics calculation (1 action)
+    - killmails(): Query, stats, and analysis of killmails (4 actions)
+    - pilot(): Authenticated pilot data - mail, mining (3 actions)
     - status(): Unified status across all domains
 
     Args:
@@ -67,7 +69,9 @@ def register_tools(server: FastMCP, universe: UniverseGraph) -> None:
     # Import dispatchers
     from .dispatchers import (
         register_fitting_dispatcher,
+        register_killmails_dispatcher,
         register_market_dispatcher,
+        register_pilot_dispatcher,
         register_sde_dispatcher,
         register_skills_dispatcher,
         register_status_tool,
@@ -80,6 +84,8 @@ def register_tools(server: FastMCP, universe: UniverseGraph) -> None:
     register_sde_dispatcher(server, universe)
     register_skills_dispatcher(server, universe)
     register_fitting_dispatcher(server, universe)
+    register_killmails_dispatcher(server)
+    register_pilot_dispatcher(server)
     register_status_tool(server)
 
 

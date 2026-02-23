@@ -187,15 +187,17 @@ For EVE Online system topology, routes, borders, and loop planning, use these ap
 
 ### Option 1: MCP Tools (if available)
 
-If the `aria-universe` MCP server is connected, 6 domain dispatchers appear in your tool list:
+If the `aria-universe` MCP server is connected, 8 domain dispatchers appear in your tool list:
 
 | Dispatcher | Actions | Description |
 |------------|---------|-------------|
 | `universe(action, ...)` | route, systems, borders, search, loop, analyze, nearest, optimize_waypoints, activity, hotspots, gatecamp_risk, fw_frontlines, local_area | Navigation, routing, activity data |
 | `market(action, ...)` | prices, orders, valuation, spread, history, find_nearby, npc_sources, arbitrage_scan, arbitrage_detail, route_value, watchlist_*, scope_* | Market prices, arbitrage, ad-hoc scopes |
-| `sde(action, ...)` | item_info, blueprint_info, search, skill_requirements, corporation_info, agent_search, agent_divisions | Static Data Export queries |
+| `sde(action, ...)` | item_info, blueprint_info, search, skill_requirements, corporation_info, agent_search, agent_divisions, cache_status, meta_variants, resolve_names | Static Data Export queries, name resolution |
 | `skills(action, ...)` | training_time, easy_80_plan, minmax_plan, get_multipliers, get_breakpoints, t2_requirements, activity_* | Skill planning and training time |
 | `fitting(action, ...)` | calculate_stats | Ship fitting statistics |
+| `killmails(action, ...)` | query, stats, recent, analyze | Killmail queries and individual analysis |
+| `pilot(action, ...)` | mail_list, mail_read, mining_ledger | Authenticated pilot data (mail, mining) |
 | `status()` | (none) | Unified system status |
 
 **Tool name mapping:** The shorthand names above (e.g., `sde(...)`) correspond to MCP tools prefixed with `mcp__aria-universe__` (e.g., `mcp__aria-universe__sde`). Use whichever form appears in your tool list.
@@ -275,6 +277,9 @@ uv run aria-esi loop Jita --avoid Uedama Niarja --security highsec
 | `/orient` | `universe(action="local_area", ...)` | `aria-esi orient` |
 | (gatecamp analysis) | `universe(action="gatecamp_risk", ...)` | `aria-esi gatecamp-risk` |
 | (system info) | `universe(action="systems", systems=[...])` | `aria-esi sysinfo <system>` |
+| `/killmail` | `killmails(action="analyze", killmail_input=...)` | `aria-esi analyze-killmail` |
+| `/mail` | `pilot(action="mail_list", ...)` | `aria-esi mail` |
+| `/mining` | `pilot(action="mining_ledger", ...)` | `aria-esi mining` |
 
 ### Common Parameters
 
@@ -434,7 +439,7 @@ When a request involves **mission context** (fitting for a mission, mission inte
 **Lookup sequence (cache-first pattern):**
 
 ```
-1. Check reference/pve-intel/cache/INDEX.md
+1. Check reference/pve-intel/INDEX.md
    ├─ Intel cached? → Read from cache file → Present to user
    └─ Not cached? → Continue to step 2
 
@@ -443,7 +448,7 @@ When a request involves **mission context** (fitting for a mission, mission inte
 
 3. Write cache file BEFORE presenting:
    ├─ Create: reference/pve-intel/cache/{site_name}_{suffix}.md
-   └─ Update: reference/pve-intel/cache/INDEX.md
+   └─ Update: reference/pve-intel/INDEX.md
 
 4. Read from cache file → Present to user
 ```

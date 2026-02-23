@@ -5,6 +5,7 @@ Provides query and statistics access to the killmail store:
 - query: Query killmails with filters
 - stats: Get killmail statistics
 - recent: Get most recent killmails
+- analyze: Analyze individual killmail from zKillboard URL or kill ID
 """
 
 from __future__ import annotations
@@ -12,8 +13,9 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import re
 from datetime import datetime, timedelta
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from ..context import log_context, wrap_output
 from ..policy import check_capability
@@ -24,9 +26,9 @@ if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
 
 
-KillmailsAction = Literal["query", "stats", "recent"]
+KillmailsAction = Literal["query", "stats", "recent", "analyze"]
 
-VALID_ACTIONS: set[str] = {"query", "stats", "recent"}
+VALID_ACTIONS: set[str] = {"query", "stats", "recent", "analyze"}
 
 
 def _encode_cursor(kill_time: int, kill_id: int) -> str:
@@ -75,6 +77,8 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
         cursor: str | None = None,
         # stats params
         group_by: str | None = None,  # "system", "hour", "corporation"
+        # analyze params
+        killmail_input: str | None = None,
     ) -> dict:
         """
         Unified killmail query interface.
@@ -83,6 +87,7 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
         - query: Query killmails with filters
         - stats: Get killmail statistics
         - recent: Get most recent killmails (shorthand for query with defaults)
+        - analyze: Analyze individual killmail from zKillboard URL or kill ID
 
         Args:
             action: The operation to perform (see Actions above)
@@ -99,6 +104,10 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
                 hours: Time window in hours
                 group_by: Grouping mode - "system", "hour", or "corporation"
 
+            Analyze params (action="analyze"):
+                killmail_input: zKillboard URL, short URL, or raw kill ID
+                    Examples: "https://zkillboard.com/kill/12345678/", "12345678"
+
         Returns:
             For query/recent:
             - kills: List of killmail records
@@ -112,16 +121,28 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
             - groups: Breakdown by group_by field
             - time_window: Query time window
 
+            For analyze:
+            - killmail_id, killmail_time, zkillboard_url
+            - system: {id, name, security}
+            - victim: {character, corporation, ship, damage}
+            - attackers: {count, primary_group, ships, final_blow}
+            - total_value, total_value_formatted
+
         Examples:
             killmails(action="query", systems=["Jita"], hours=1)
             killmails(action="recent", limit=10)
             killmails(action="stats", systems=["Uedama", "Niarja"], group_by="system")
+            killmails(action="analyze", killmail_input="https://zkillboard.com/kill/12345678/")
         """
         # Policy check
         check_capability("killmails", action)
 
         if action not in VALID_ACTIONS:
             return {"error": f"Invalid action: {action}", "valid_actions": list(VALID_ACTIONS)}
+
+        # Analyze action doesn't need the killmail store
+        if action == "analyze":
+            return await _handle_analyze(killmail_input)
 
         # Get store
         store = _get_store()
@@ -327,3 +348,286 @@ async def _resolve_systems(system_names: list[str]) -> list[int] | None:
     except Exception as e:
         logger.warning("Failed to resolve system names: %s", e)
         return None
+
+
+# =============================================================================
+# Analyze Action
+# =============================================================================
+
+
+def _parse_killmail_input(input_str: str) -> int | None:
+    """Extract kill ID from URL or raw ID string."""
+    input_str = input_str.strip()
+    if input_str.isdigit():
+        return int(input_str)
+    match = re.search(r"kill/(\d+)", input_str)
+    if match:
+        return int(match.group(1))
+    return None
+
+
+def _format_isk(value: float) -> str:
+    """Format ISK value in human-readable format."""
+    if value >= 1_000_000_000:
+        return f"{value / 1_000_000_000:.1f}B ISK"
+    elif value >= 1_000_000:
+        return f"{value / 1_000_000:.1f}M ISK"
+    elif value >= 1_000:
+        return f"{value / 1_000:.1f}K ISK"
+    else:
+        return f"{value:.0f} ISK"
+
+
+async def _handle_analyze(killmail_input: str | None) -> dict:
+    """Analyze an individual killmail from zKillboard URL or kill ID."""
+    if not killmail_input:
+        return {
+            "error": "missing_parameter",
+            "message": "killmail_input is required for action='analyze'",
+            "hint": "Use a zKillboard URL or numeric kill ID",
+            "examples": [
+                "https://zkillboard.com/kill/12345678/",
+                "12345678",
+            ],
+        }
+
+    kill_id = _parse_killmail_input(killmail_input)
+    if not kill_id:
+        return {
+            "error": "invalid_input",
+            "message": f"Could not parse kill ID from: {killmail_input}",
+            "hint": "Use a zKillboard URL or numeric kill ID",
+        }
+
+    import httpx
+
+    from ..esi_client import get_async_esi_client
+
+    # Fetch from zKillboard API
+    zkb_data = None
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as http_client:
+            response = await http_client.get(
+                f"https://zkillboard.com/api/killID/{kill_id}/",
+                headers={
+                    "User-Agent": "ARIA-ESI/1.0 (EVE Online Assistant)",
+                    "Accept": "application/json",
+                },
+            )
+            if response.status_code == 200:
+                data = response.json()
+                if isinstance(data, list) and len(data) > 0:
+                    zkb_data = data[0]
+    except (httpx.RequestError, httpx.TimeoutException) as e:
+        logger.warning("Failed to fetch from zKillboard: %s", e)
+
+    if not zkb_data:
+        return {
+            "error": "kill_not_found",
+            "message": f"Kill {kill_id} not found on zKillboard",
+            "hints": [
+                "Invalid kill ID",
+                "Kill hasn't synced yet (wait a few minutes)",
+            ],
+        }
+
+    zkb_meta = zkb_data.get("zkb", {})
+    kill_hash = zkb_meta.get("hash", "")
+    if not kill_hash:
+        return {
+            "error": "missing_hash",
+            "message": f"Kill {kill_id} has no hash in zKillboard response",
+        }
+
+    # Fetch full killmail from ESI (public endpoint, no auth)
+    esi_client = await get_async_esi_client()
+    esi_data = await esi_client.get_safe(f"/killmails/{kill_id}/{kill_hash}/")
+
+    if not esi_data or not isinstance(esi_data, dict):
+        return {
+            "error": "esi_fetch_failed",
+            "message": f"Could not fetch killmail {kill_id} from ESI",
+            "zkb_url": f"https://zkillboard.com/kill/{kill_id}/",
+        }
+
+    # Extract data
+    victim = esi_data.get("victim", {})
+    attackers = esi_data.get("attackers", [])
+    system_id = esi_data.get("solar_system_id")
+    kill_time = esi_data.get("killmail_time")
+
+    # Collect IDs for name resolution
+    type_ids: set[int] = set()
+    char_ids: set[int] = set()
+    corp_ids: set[int] = set()
+    alliance_ids: set[int] = set()
+
+    if victim.get("ship_type_id"):
+        type_ids.add(victim["ship_type_id"])
+    if victim.get("character_id"):
+        char_ids.add(victim["character_id"])
+    if victim.get("corporation_id"):
+        corp_ids.add(victim["corporation_id"])
+    if victim.get("alliance_id"):
+        alliance_ids.add(victim["alliance_id"])
+
+    for attacker in attackers:
+        if attacker.get("ship_type_id"):
+            type_ids.add(attacker["ship_type_id"])
+        if attacker.get("weapon_type_id"):
+            type_ids.add(attacker["weapon_type_id"])
+        if attacker.get("character_id"):
+            char_ids.add(attacker["character_id"])
+        if attacker.get("corporation_id"):
+            corp_ids.add(attacker["corporation_id"])
+        if attacker.get("alliance_id"):
+            alliance_ids.add(attacker["alliance_id"])
+
+    # Resolve names via ESI
+    names = await _resolve_names_async(esi_client, type_ids, char_ids, corp_ids, alliance_ids)
+
+    # Get system info
+    system_name = None
+    system_security = None
+    if system_id:
+        sys_info = await esi_client.get_safe(f"/universe/systems/{system_id}/")
+        if isinstance(sys_info, dict):
+            system_name = sys_info.get("name")
+            system_security = sys_info.get("security_status")
+
+    # Analyze attackers
+    attacker_analysis = _analyze_attackers(attackers, names)
+
+    # Build victim info
+    victim_char_id = victim.get("character_id")
+    victim_corp_id = victim.get("corporation_id")
+    victim_alliance_id = victim.get("alliance_id")
+    victim_ship_id = victim.get("ship_type_id")
+    victim_info = {
+        "character_id": victim_char_id,
+        "character_name": names["characters"].get(victim_char_id, "Unknown")
+        if victim_char_id
+        else "Unknown",
+        "corporation_id": victim_corp_id,
+        "corporation_name": names["corporations"].get(victim_corp_id, "Unknown")
+        if victim_corp_id
+        else "Unknown",
+        "alliance_id": victim_alliance_id,
+        "alliance_name": names["alliances"].get(victim_alliance_id) if victim_alliance_id else None,
+        "ship_type_id": victim_ship_id,
+        "ship_name": names["types"].get(victim_ship_id, "Unknown") if victim_ship_id else "Unknown",
+        "damage_taken": victim.get("damage_taken", 0),
+    }
+
+    total_value = zkb_meta.get("totalValue", 0)
+
+    return {
+        "killmail_id": kill_id,
+        "killmail_time": kill_time,
+        "zkillboard_url": f"https://zkillboard.com/kill/{kill_id}/",
+        "system": {
+            "id": system_id,
+            "name": system_name or f"System {system_id}",
+            "security": round(float(system_security), 2) if system_security is not None else None,
+        },
+        "victim": victim_info,
+        "total_value": total_value,
+        "total_value_formatted": _format_isk(total_value),
+        "is_npc_kill": zkb_meta.get("npc", False),
+        "attackers": attacker_analysis,
+    }
+
+
+async def _resolve_names_async(
+    client: Any,
+    type_ids: set[int],
+    char_ids: set[int],
+    corp_ids: set[int],
+    alliance_ids: set[int],
+) -> dict[str, dict[int, str]]:
+    """Resolve IDs to names via async ESI client."""
+    result: dict[str, dict[int, str]] = {
+        "types": {},
+        "characters": {},
+        "corporations": {},
+        "alliances": {},
+    }
+
+    for tid in list(type_ids)[:100]:
+        if tid:
+            info = await client.get_safe(f"/universe/types/{tid}/")
+            if isinstance(info, dict):
+                result["types"][tid] = info.get("name", f"Unknown ({tid})")
+
+    for cid in list(char_ids)[:50]:
+        if cid:
+            info = await client.get_safe(f"/characters/{cid}/")
+            if isinstance(info, dict):
+                result["characters"][cid] = info.get("name", f"Unknown ({cid})")
+
+    for cid in list(corp_ids)[:50]:
+        if cid:
+            info = await client.get_safe(f"/corporations/{cid}/")
+            if isinstance(info, dict):
+                result["corporations"][cid] = info.get("name", f"Unknown ({cid})")
+
+    for aid in list(alliance_ids)[:20]:
+        if aid:
+            info = await client.get_safe(f"/alliances/{aid}/")
+            if isinstance(info, dict):
+                result["alliances"][aid] = info.get("name", f"Unknown ({aid})")
+
+    return result
+
+
+def _analyze_attackers(attackers: list[dict], names: dict[str, dict[int, str]]) -> dict[str, Any]:
+    """Analyze attacker composition."""
+    corps: dict[int, int] = {}
+    alliances: dict[int, int] = {}
+    ships: dict[str, int] = {}
+    final_blow: dict[str, Any] | None = None
+
+    for attacker in attackers:
+        corp_id = attacker.get("corporation_id")
+        if corp_id:
+            corps[corp_id] = corps.get(corp_id, 0) + 1
+
+        alliance_id = attacker.get("alliance_id")
+        if alliance_id:
+            alliances[alliance_id] = alliances.get(alliance_id, 0) + 1
+
+        ship_id = attacker.get("ship_type_id")
+        if ship_id:
+            ship_name = names["types"].get(ship_id, f"Unknown ({ship_id})")
+            ships[ship_name] = ships.get(ship_name, 0) + 1
+
+        if attacker.get("final_blow"):
+            char_id = attacker.get("character_id")
+            final_blow = {
+                "character_id": char_id,
+                "character_name": names["characters"].get(char_id, "Unknown")
+                if char_id
+                else "Unknown",
+                "ship": names["types"].get(ship_id, "Unknown") if ship_id else "Unknown",
+                "damage_done": attacker.get("damage_done", 0),
+            }
+
+    primary_corp = max(corps.items(), key=lambda x: x[1])[0] if corps else None
+    primary_alliance = max(alliances.items(), key=lambda x: x[1])[0] if alliances else None
+
+    primary_group = None
+    primary_group_count = 0
+    if primary_alliance:
+        primary_group = names["alliances"].get(primary_alliance, f"Alliance {primary_alliance}")
+        primary_group_count = alliances[primary_alliance]
+    elif primary_corp:
+        primary_group = names["corporations"].get(primary_corp, f"Corp {primary_corp}")
+        primary_group_count = corps[primary_corp]
+
+    return {
+        "count": len(attackers),
+        "primary_group": primary_group,
+        "primary_group_count": primary_group_count,
+        "ships": dict(sorted(ships.items(), key=lambda x: x[1], reverse=True)[:10]),
+        "final_blow": final_blow,
+    }

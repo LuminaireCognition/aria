@@ -82,17 +82,37 @@ def cmd_agents_research(args: argparse.Namespace) -> dict:
             agent_ids.add(agent.get("agent_id", 0))
             skill_type_ids.add(agent.get("skill_type_id", 0))
 
-    # Resolve agent names (agents are NPCs, lookup via /universe/agents/)
-    # Note: ESI doesn't have a direct agent name endpoint, but we can try characters
-    # For NPC agents, we'll use a fallback
+    # Resolve agent names via SDE database (agents table)
     agent_names = {}
     agent_corps = {}
-    for aid in agent_ids:
-        if aid:
-            # Try to get agent info - NPC agents may not have public endpoints
-            # We'll provide agent ID as fallback
-            agent_names[aid] = f"Agent-{aid}"
-            agent_corps[aid] = "Unknown Corp"
+    try:
+        from ..mcp.market.database import get_market_database
+
+        db = get_market_database()
+        conn = db._get_connection()
+        for aid in agent_ids:
+            if aid:
+                row = conn.execute(
+                    """
+                    SELECT a.agent_name, c.corporation_name
+                    FROM agents a
+                    LEFT JOIN npc_corporations c ON a.corporation_id = c.corporation_id
+                    WHERE a.agent_id = ?
+                    """,
+                    (aid,),
+                ).fetchone()
+                if row:
+                    agent_names[aid] = row[0]
+                    agent_corps[aid] = row[1] or "Unknown Corp"
+                else:
+                    agent_names[aid] = f"Agent-{aid}"
+                    agent_corps[aid] = "Unknown Corp"
+    except Exception:
+        # Graceful fallback when SDE not seeded or DB unavailable
+        for aid in agent_ids:
+            if aid:
+                agent_names.setdefault(aid, f"Agent-{aid}")
+                agent_corps.setdefault(aid, "Unknown Corp")
 
     # Resolve skill type names
     skill_names = {}

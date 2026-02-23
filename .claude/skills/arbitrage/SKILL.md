@@ -58,6 +58,8 @@ Scan for cross-region arbitrage opportunities across EVE's major trade hubs. Ide
 | `--scopes` | `names` | Ad-hoc scope names to include (comma-separated) |
 | `--include-scopes` | (flag) | Enable ad-hoc scope data in scan |
 
+**Note on default filters:** The default `--min-profit 5` (5% minimum margin) often returns 0 results during low-volatility periods when trade hub prices are closely aligned. If the scan returns no opportunities, retry with a lower threshold: `--min-profit 2` or `--min-profit 1`.
+
 ### Trade Modes & Fees
 
 Affects how net profit is calculated:

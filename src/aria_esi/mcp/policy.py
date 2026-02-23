@@ -94,6 +94,8 @@ DEFAULT_ACTION_SENSITIVITY: dict[str, dict[str, SensitivityLevel]] = {
         "agent_search": SensitivityLevel.PUBLIC,
         "agent_divisions": SensitivityLevel.PUBLIC,
         "cache_status": SensitivityLevel.PUBLIC,
+        "meta_variants": SensitivityLevel.PUBLIC,
+        "resolve_names": SensitivityLevel.PUBLIC,
     },
     "skills": {
         "training_time": SensitivityLevel.PUBLIC,
@@ -119,6 +121,14 @@ DEFAULT_ACTION_SENSITIVITY: dict[str, dict[str, SensitivityLevel]] = {
         "query": SensitivityLevel.AGGREGATE,
         "stats": SensitivityLevel.AGGREGATE,
         "recent": SensitivityLevel.AGGREGATE,
+        "analyze": SensitivityLevel.PUBLIC,
+    },
+    "pilot": {
+        # Mail is RESTRICTED - requires opt-in via mcp-policy.json
+        "mail_list": SensitivityLevel.RESTRICTED,
+        "mail_read": SensitivityLevel.RESTRICTED,
+        # Mining ledger is AUTHENTICATED - works with default policy
+        "mining_ledger": SensitivityLevel.AUTHENTICATED,
     },
 }
 
@@ -202,6 +212,7 @@ class PolicyConfig:
             SensitivityLevel.PUBLIC,
             SensitivityLevel.AGGREGATE,
             SensitivityLevel.MARKET,
+            SensitivityLevel.AUTHENTICATED,
         }
     )
 
@@ -227,7 +238,9 @@ class PolicyConfig:
         return cls(
             allowed_levels={
                 SensitivityLevel(level)
-                for level in data.get("allowed_levels", ["public", "aggregate", "market"])
+                for level in data.get(
+                    "allowed_levels", ["public", "aggregate", "market", "authenticated"]
+                )
             },
             require_confirmation={
                 SensitivityLevel(level) for level in data.get("require_confirmation", [])

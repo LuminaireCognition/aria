@@ -73,6 +73,8 @@ class TestParameterSchemas:
             "agent_search",
             "agent_divisions",
             "cache_status",
+            "meta_variants",
+            "resolve_names",
         }
         assert set(SDE_ACTION_PARAMS.keys()) == expected_actions
 
