@@ -27,6 +27,7 @@ Quick reference for faction damage profiles and EWAR. Applies to agent missions,
 
 ## Serpentis
 - [Unauthorized Military Presence L3](cache/unauthorized_military_presence_serpentis_l3.md) - Kin/Therm damage, deal Thermal
+- [The Blockade L4](cache/the_blockade_serpentis_l4.md) - Kin/Therm damage, deal Thermal; severe sensor damps
 
 ## Mercenaries
 - [The Seven's Prison Facility L3](cache/the_sevens_prison_facility_l3.md) - Kin/Therm, deal Kin/Therm
