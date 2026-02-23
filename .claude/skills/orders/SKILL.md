@@ -106,9 +106,10 @@ PYTHONPATH=.claude/scripts uv run python -m aria_esi orders [options]
 |--------|-------------|---------|
 | `--buy` | Show only buy orders | - |
 | `--sell` | Show only sell orders | - |
-| `--active` | Show only active orders | (default) |
 | `--history` | Include expired/cancelled orders | - |
 | `--limit N` | Limit results | 50 |
+
+> **Note:** Active orders are shown by default. Use `--history` to include expired/cancelled orders.
 
 ### JSON Response Structure
 

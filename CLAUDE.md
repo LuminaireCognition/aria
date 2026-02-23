@@ -274,6 +274,7 @@ uv run aria-esi loop Jita --avoid Uedama Niarja --security highsec
 | `/fw-frontlines` | `universe(action="fw_frontlines", ...)` | `aria-esi fw-frontlines` |
 | `/orient` | `universe(action="local_area", ...)` | `aria-esi orient` |
 | (gatecamp analysis) | `universe(action="gatecamp_risk", ...)` | `aria-esi gatecamp-risk` |
+| (system info) | `universe(action="systems", systems=[...])` | `aria-esi sysinfo <system>` |
 
 ### Common Parameters
 
@@ -519,6 +520,8 @@ When a skill is invoked:
    - Check `{persona_context.skill_overlay_path}/{name}.md`
    - If not found and `overlay_fallback_path` is set, check that path
    - If found → append to skill context
+
+5. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
 
 ### Runtime Path Validation (SEC-001/SEC-002)
 
