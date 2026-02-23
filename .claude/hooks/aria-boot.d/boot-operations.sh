@@ -123,7 +123,7 @@ with open('$REGISTRY_FILE') as f:
         for cred_file in "$CREDENTIALS_DIR"/*.json; do
             [ -f "$cred_file" ] || continue
             local perms
-            perms=$(stat -f "%OLp" "$cred_file" 2>/dev/null || stat -c "%a" "$cred_file" 2>/dev/null || echo "unknown")
+            perms=$(stat -c "%a" "$cred_file" 2>/dev/null || stat -f "%OLp" "$cred_file" 2>/dev/null || echo "unknown")
             if [ "$perms" != "600" ] && [ "$perms" != "unknown" ]; then
                 local basename
                 basename=$(basename "$cred_file")
@@ -221,6 +221,9 @@ verification = data.get('verification', {})
 
 if status == 'valid':
     print('OK')
+elif status == 'missing':
+    # Missing artifact (fresh install) - not a security issue
+    print('MISSING')
 elif status == 'error':
     # Could be missing artifact (fresh install) - not a security issue
     msg = data.get('message', 'Unknown error')
@@ -230,15 +233,19 @@ elif status == 'error':
         print(f'ERROR:{msg}')
 elif status == 'integrity_failed':
     # Tampering detected - this is a security issue
-    issues = verification.get('issues', [])
-    mismatched = verification.get('mismatched_files', [])
-
-    if mismatched:
-        print('TAMPERED:' + '|'.join(issues[:5]))  # Limit to 5 issues
-    elif not verification.get('artifact_hash_valid', True):
-        print('TAMPERED:Artifact integrity hash mismatch')
+    # But also check artifact_exists as a safety net
+    if not verification.get('artifact_exists', True):
+        print('MISSING')
     else:
-        print('TAMPERED:' + '|'.join(issues[:5]) if issues else 'Unknown integrity issue')
+        issues = verification.get('issues', [])
+        mismatched = verification.get('mismatched_files', [])
+
+        if mismatched:
+            print('TAMPERED:' + '|'.join(issues[:5]))  # Limit to 5 issues
+        elif not verification.get('artifact_hash_valid', True):
+            print('TAMPERED:Artifact integrity hash mismatch')
+        else:
+            print('TAMPERED:' + '|'.join(issues[:5]) if issues else 'Unknown integrity issue')
 else:
     print(f'ERROR:{status}')
 " 2>/dev/null || echo "parse_error")

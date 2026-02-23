@@ -45,6 +45,8 @@ If valid credentials exist (`userdata/credentials/{id}.json`), ESI enables:
 
 **Setup:** `uv run python .claude/scripts/aria-oauth-setup.py` (takes ~5 minutes)
 
+The wizard auto-detects headless environments (SSH, containers, no display) and defaults to copy-paste mode where you authorize in a browser on any machine and paste the callback URL back into the terminal. Use `--auto` to force browser mode if you have a local browser available.
+
 ---
 
 ## ESI Documentation Security Policy
@@ -239,9 +241,9 @@ Native Windows shell is not supported. Use WSL2 and configure cron inside your W
 > Documentation has moved to `developers.eveonline.com`. The API endpoint
 > remains at `esi.evetech.net`. The old `docs.esi.evetech.net` is deprecated.
 
-### Manual Setup (Alternative to Wizard)
+### Manual Setup (Reference)
 
-If you prefer manual setup or want to understand the OAuth flow:
+The wizard handles all of this automatically (defaulting to copy-paste mode in VMs/containers). This section documents the underlying OAuth flow for reference:
 
 #### Step 1: Create an EVE Developer Application
 
