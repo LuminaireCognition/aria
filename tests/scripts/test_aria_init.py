@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -16,7 +15,6 @@ def _stage_workspace(tmp_path: Path) -> Path:
     workspace.mkdir()
     shutil.copy2(REPO_ROOT / "aria-init", workspace / "aria-init")
     (workspace / "aria-init").chmod(0o755)
-    shutil.copytree(REPO_ROOT / "templates", workspace / "templates")
     (workspace / "userdata" / "pilots").mkdir(parents=True)
     (workspace / "userdata" / "credentials").mkdir(parents=True)
     return workspace
@@ -242,37 +240,20 @@ def test_missing_jq_is_non_fatal_with_python_fallback(tmp_path: Path) -> None:
     assert "jq not found on PATH; using uv run python stdlib fallback for JSON operations." in output
 
 
-def test_template_heredoc_structure_stays_consistent() -> None:
-    templates_root = REPO_ROOT / "templates"
+def test_heredoc_targets_exist_in_script() -> None:
+    """Verify aria-init generates all expected data files via heredocs."""
     script = (REPO_ROOT / "aria-init").read_text(encoding="utf-8")
-    template_paths = sorted(
-        str(path.relative_to(templates_root).as_posix())
-        for path in templates_root.rglob("*.template.md")
-    )
-    required_templates = sorted(re.findall(r'"([^"]+\.template\.md)"', script))
-    expected_templates = sorted(
-        [
-            "profile.template.md",
-            "operations.template.md",
-            "ships.template.md",
-            "missions.template.md",
-            "exploration.template.md",
-            "goals.template.md",
-            "industry/blueprints.template.md",
-        ]
-    )
-    assert "industry/blueprints.template.md" in template_paths
-    assert required_templates == expected_templates
-    assert required_templates == template_paths
 
     expected_targets = [
         '$DATA_DIR/profile.md',
         '$DATA_DIR/operations.md',
-        '$DATA_DIR/ships.md',
         '$DATA_DIR/missions.md',
         '$DATA_DIR/exploration.md',
         '$DATA_DIR/goals.md',
         '$INDUSTRY_DIR/blueprints.md',
     ]
     for target in expected_targets:
-        assert f'cat > "{target}" << EOF' in script
+        assert f'cat > "{target}" << EOF' in script or f"cat > \"{target}\" << 'EOF'" in script
+
+    # ships.md uses a quoted heredoc (no variable expansion)
+    assert "cat > \"$DATA_DIR/ships.md\" << 'EOF'" in script

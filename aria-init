@@ -24,7 +24,6 @@ VERSION="1.0.0"
 # ============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATES_DIR="$SCRIPT_DIR/templates"
 USERDATA_DIR="$SCRIPT_DIR/userdata"
 PILOTS_ROOT="$USERDATA_DIR/pilots"
 CREDENTIALS_DIR="$USERDATA_DIR/credentials"
@@ -299,30 +298,6 @@ check_prerequisites() {
         print_warning "jq not found on PATH; using uv run python stdlib fallback for JSON operations."
         print_info "Install jq for faster JSON processing: https://jqlang.org/download/"
     fi
-
-    # Check templates directory
-    if [[ ! -d "$TEMPLATES_DIR" ]]; then
-        print_error "Templates directory not found: $TEMPLATES_DIR"
-        errors=$((errors + 1))
-    fi
-
-    # Check required template files
-    local required_templates=(
-        "profile.template.md"
-        "operations.template.md"
-        "ships.template.md"
-        "missions.template.md"
-        "exploration.template.md"
-        "goals.template.md"
-        "industry/blueprints.template.md"
-    )
-
-    for template in "${required_templates[@]}"; do
-        if [[ ! -f "$TEMPLATES_DIR/$template" ]]; then
-            print_error "Missing template: $template"
-            errors=$((errors + 1))
-        fi
-    done
 
     return $errors
 }
@@ -1110,11 +1085,7 @@ generate_operational_profile() {
     local self_sufficient="$5"
 
     local mission_corp="${FACTION_MISSION_CORP[$faction]}"
-    local enemy_pirates="${FACTION_ENEMY_PIRATES[$faction]}"
-    local hostile_empire="${FACTION_HOSTILE_EMPIRE[$faction]}"
     local explore_ship="${FACTION_EXPLORATION_SHIP[$faction]}"
-    local combat_cruiser="${FACTION_COMBAT_CRUISER[$faction]}"
-    local faction_full="${FACTION_FULL_NAME[$faction]}"
 
     # Build activity list based on playstyle
     local activity1 activity2 activity3
@@ -1200,24 +1171,14 @@ Self-imposed rules that define this capsuleer's playstyle:
 
 ## Faction Alignment
 
-- **Primary Alignment:** ${faction_full}
-- **Mission Provider:** ${mission_corp}
-- **Hostile Factions:** ${hostile_empire}
-- **Target Pirates:** ${enemy_pirates}
+See \`profile.md\` for faction alignment and standings.
 
 ${restrictions_section}
 EOF
 }
 
 generate_ship_status() {
-    local faction="$1"
-    local home_region="$2"
-
-    local explore_ship="${FACTION_EXPLORATION_SHIP[$faction]}"
-    local combat_frigate="${FACTION_COMBAT_FRIGATE[$faction]}"
-    local combat_cruiser="${FACTION_COMBAT_CRUISER[$faction]}"
-
-    cat > "$DATA_DIR/ships.md" << EOF
+    cat > "$DATA_DIR/ships.md" << 'EOF'
 # Ship Status
 
 <!--
@@ -1228,111 +1189,15 @@ generate_ship_status() {
 
 ## Ship Roster
 
-### Mining Frigate
-
-- **Hull:** Venture
-- **Name:** -
-- **Role:** Mining operations
-- **Home Station:** Home station, ${home_region}
-
-#### Fitting
-
-\`\`\`
-[Venture - Basic Mining]
-
-[High Slots]
-Miner I
-Miner I
-
-[Mid Slots]
-Survey Scanner I
-1MN Afterburner I
-
-[Low Slots]
-Mining Laser Upgrade I
-
-[Rigs]
-Small Cargohold Optimization I
-Small Cargohold Optimization I
-\`\`\`
-
-#### Notes
-
-- Standard starter mining fit
-- 5000m3 ore hold
-- Use Survey Scanner to find best rocks
-
----
-
-### Exploration Frigate
-
-- **Hull:** ${explore_ship}
-- **Name:** -
-- **Role:** Scanning and hacking
-- **Home Station:** Home station, ${home_region}
-
-#### Fitting
-
-\`\`\`
-[${explore_ship} - Basic Exploration]
-
-[High Slots]
-Core Probe Launcher I
-[Empty]
-
-[Mid Slots]
-Data Analyzer I
-Relic Analyzer I
-5MN Microwarpdrive I
-
-[Low Slots]
-Nanofiber Internal Structure I
-Nanofiber Internal Structure I
-
-[Rigs]
-Small Gravity Capacitor Upgrade I
-Small Gravity Capacitor Upgrade I
-
-[Cargo]
-Core Scanner Probe I x16
-\`\`\`
-
-#### Notes
-
-- Probes in cargo, load into launcher before scanning
-- Use MWD to move quickly between containers
-- Cloak recommended when skills allow
-
----
-
-## Hangar Summary
+*Updated automatically by ESI sync. Run `/esi-query` to refresh.*
 
 | Ship | Class | Role | Station |
 |------|-------|------|---------|
-| Venture | Mining Frigate | Mining | Home station |
-| ${explore_ship} | Exploration Frigate | Exploration | Home station |
-
-## Future Acquisitions
-
-Ships to work toward:
-
-| Ship | Class | Role | Prerequisites |
-|------|-------|------|---------------|
-| ${combat_cruiser} | Cruiser | L2 Missions | Cruiser skill, weapons |
-| Procurer | Mining Barge | Mining | Mining Barge skill |
-
-## Manufacturing Queue
-
-| Item | Status | Notes |
-|------|--------|-------|
-| - | - | - |
 EOF
 }
 
 generate_mission_log() {
     local faction="$1"
-    local mission_corp="${FACTION_MISSION_CORP[$faction]}"
-    local faction_full="${FACTION_FULL_NAME[$faction]}"
 
     cat > "$DATA_DIR/missions.md" << EOF
 # Mission Log
@@ -1364,57 +1229,14 @@ Track for storyline mission triggers (every 16 missions of same level):
 
 ## Standing Progress
 
-### ${mission_corp}
-
-| Date | Standing | Change | Source |
-|------|----------|--------|--------|
-| | 0.00 | - | Starting |
-
-### ${faction_full}
-
-| Date | Standing | Change | Source |
-|------|----------|--------|--------|
-| | 0.00 | - | Starting |
+See \`profile.md\` for current standings. Track standing changes via \`/esi-query standings\`.
 
 ---
 
 ## Mission Notes by Faction
 
-### Serpentis
-
-- Damage Dealt: Kinetic/Thermal
-- Damage to Deal: Kinetic (best), Thermal
-- Notes from experience:
-
-### Guristas
-
-- Damage Dealt: Kinetic/Thermal
-- Damage to Deal: Kinetic (best), Thermal
-- Notes from experience:
-
-### Angel Cartel
-
-- Damage Dealt: Explosive/Kinetic
-- Damage to Deal: Explosive (best), Kinetic
-- Notes from experience:
-
-### Blood Raiders
-
-- Damage Dealt: EM/Thermal
-- Damage to Deal: EM (best), Thermal
-- Notes from experience:
-
-### Sansha's Nation
-
-- Damage Dealt: EM/Thermal
-- Damage to Deal: EM (best), Thermal
-- Notes from experience:
-
-### Rogue Drones
-
-- Damage Dealt: All types (EM/Therm/Kin/Exp)
-- Damage to Deal: EM (best)
-- Notes from experience:
+See \`reference/pve-intel/INDEX.md\` for faction damage profiles and EWAR.
+Use \`/mission-brief\` for detailed mission intel.
 
 ---
 
@@ -1541,6 +1363,37 @@ generate_goals() {
 ## Notes
 
 - Add constraints, dependencies, and review checkpoints.
+EOF
+}
+
+inject_persona_context_stub() {
+    local faction="$1"
+    local profile_path="$2"
+
+    # Map faction to persona name (mirrors FACTION_PERSONA_MAP in persona.py)
+    local persona branch
+    case "${faction^^}" in
+        GALLENTE)  persona="aria-mk4"; branch="empire" ;;
+        CALDARI)   persona="aura-c";   branch="empire" ;;
+        MINMATAR)  persona="vind";     branch="empire" ;;
+        AMARR)     persona="throne";   branch="empire" ;;
+        *)         persona="aria-mk4"; branch="empire" ;;
+    esac
+
+    cat >> "$profile_path" << EOF
+
+## Persona Context
+
+\`\`\`yaml
+persona_context:
+  branch: "${branch}"
+  persona: "${persona}"
+  fallback: null
+  rp_level: "off"
+  files: []
+  skill_overlay_path: "personas/${persona}/skill-overlays"
+  overlay_fallback_path: null
+\`\`\`
 EOF
 }
 
@@ -1758,7 +1611,7 @@ generate_files() {
     echo -e "[${GREEN}OK${NC}]"
 
     echo -n "Ship status          "
-    generate_ship_status "$FACTION" "$HOME_REGION"
+    generate_ship_status
     echo -e "[${GREEN}OK${NC}]"
 
     echo -n "Mission log          "
@@ -1775,6 +1628,10 @@ generate_files() {
 
     echo -n "Blueprint library    "
     generate_blueprint_library
+    echo -e "[${GREEN}OK${NC}]"
+
+    echo -n "Persona context stub "
+    inject_persona_context_stub "$FACTION" "$DATA_DIR/profile.md"
     echo -e "[${GREEN}OK${NC}]"
 
     echo ""
@@ -2124,7 +1981,7 @@ run_test_mode() {
     generate_operational_profile "$CHAR_NAME" "$FACTION" "$HOME_REGION" "$PLAYSTYLE" "$SELF_SUFFICIENT"
     echo "  Created: userdata/pilots/${PILOT_DIRNAME}/operations.md"
 
-    generate_ship_status "$FACTION" "$HOME_REGION"
+    generate_ship_status
     echo "  Created: userdata/pilots/${PILOT_DIRNAME}/ships.md"
 
     generate_mission_log "$FACTION"
@@ -2138,6 +1995,9 @@ run_test_mode() {
 
     generate_blueprint_library
     echo "  Created: userdata/pilots/${PILOT_DIRNAME}/industry/blueprints.md"
+
+    inject_persona_context_stub "$FACTION" "$DATA_DIR/profile.md"
+    echo "  Appended: persona_context stub to profile.md"
 
     echo ""
     echo "Test files generated successfully!"

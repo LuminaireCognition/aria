@@ -101,7 +101,6 @@ def _stage_workspace(tmp_path: Path) -> Path:
     workspace.mkdir()
     shutil.copy2(REPO_ROOT / "aria-init", workspace / "aria-init")
     (workspace / "aria-init").chmod(0o755)
-    shutil.copytree(REPO_ROOT / "templates", workspace / "templates")
     (workspace / "userdata" / "pilots").mkdir(parents=True)
     (workspace / "userdata" / "credentials").mkdir(parents=True)
     return workspace
