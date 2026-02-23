@@ -7,6 +7,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+import yaml
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -16,7 +18,6 @@ def _stage_workspace(tmp_path: Path) -> Path:
     workspace.mkdir()
     shutil.copy2(REPO_ROOT / "aria-init", workspace / "aria-init")
     (workspace / "aria-init").chmod(0o755)
-    shutil.copytree(REPO_ROOT / "templates", workspace / "templates")
     (workspace / "userdata" / "pilots").mkdir(parents=True)
     (workspace / "userdata" / "credentials").mkdir(parents=True)
     return workspace
@@ -242,37 +243,204 @@ def test_missing_jq_is_non_fatal_with_python_fallback(tmp_path: Path) -> None:
     assert "jq not found on PATH; using uv run python stdlib fallback for JSON operations." in output
 
 
-def test_template_heredoc_structure_stays_consistent() -> None:
-    templates_root = REPO_ROOT / "templates"
+def test_heredoc_targets_exist_in_script() -> None:
+    """Verify aria-init generates all expected data files via heredocs."""
     script = (REPO_ROOT / "aria-init").read_text(encoding="utf-8")
-    template_paths = sorted(
-        str(path.relative_to(templates_root).as_posix())
-        for path in templates_root.rglob("*.template.md")
-    )
-    required_templates = sorted(re.findall(r'"([^"]+\.template\.md)"', script))
-    expected_templates = sorted(
-        [
-            "profile.template.md",
-            "operations.template.md",
-            "ships.template.md",
-            "missions.template.md",
-            "exploration.template.md",
-            "goals.template.md",
-            "industry/blueprints.template.md",
-        ]
-    )
-    assert "industry/blueprints.template.md" in template_paths
-    assert required_templates == expected_templates
-    assert required_templates == template_paths
 
     expected_targets = [
         '$DATA_DIR/profile.md',
         '$DATA_DIR/operations.md',
-        '$DATA_DIR/ships.md',
         '$DATA_DIR/missions.md',
         '$DATA_DIR/exploration.md',
         '$DATA_DIR/goals.md',
         '$INDUSTRY_DIR/blueprints.md',
     ]
     for target in expected_targets:
-        assert f'cat > "{target}" << EOF' in script
+        assert f'cat > "{target}" << EOF' in script or f"cat > \"{target}\" << 'EOF'" in script
+
+    # ships.md uses a quoted heredoc (no variable expansion)
+    assert "cat > \"$DATA_DIR/ships.md\" << 'EOF'" in script
+
+
+def test_persona_context_stub_appended_to_profile(tmp_path: Path) -> None:
+    """Verify --test mode appends persona_context stub to profile.md."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    profile = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "profile.md").read_text(
+        encoding="utf-8"
+    )
+    assert "## Persona Context" in profile
+    assert "persona_context:" in profile
+    assert 'rp_level: "off"' in profile
+    assert "files: []" in profile
+    # Gallente faction maps to aria-mk4
+    assert 'persona: "aria-mk4"' in profile
+    assert 'branch: "empire"' in profile
+
+
+def test_ships_md_is_minimal_placeholder(tmp_path: Path) -> None:
+    """Verify ships.md is a minimal ESI placeholder without hardcoded ship names."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    ships = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "ships.md").read_text(
+        encoding="utf-8"
+    )
+    assert "ESI sync" in ships
+    # Should NOT contain specific ship names from the old elaborate scaffolding
+    assert "Venture" not in ships
+    assert "Miner I" not in ships
+    assert "Future Acquisitions" not in ships
+
+
+def test_missions_md_references_index_instead_of_inline_profiles(tmp_path: Path) -> None:
+    """Verify missions.md points to reference/pve-intel/INDEX.md instead of inline damage profiles."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    missions = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "missions.md").read_text(
+        encoding="utf-8"
+    )
+    assert "reference/pve-intel/INDEX.md" in missions
+    # Should NOT contain inline faction damage profiles
+    assert "Damage Dealt:" not in missions
+    assert "Damage to Deal:" not in missions
+
+
+def test_operations_md_references_profile_and_ships(tmp_path: Path) -> None:
+    """Verify operations.md doesn't duplicate faction alignment or ship roster data."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    ops = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "operations.md").read_text(
+        encoding="utf-8"
+    )
+    # Faction alignment should reference profile.md
+    assert "See `profile.md` for faction alignment" in ops
+    # Ship roster should reference ships.md
+    assert "See `ships.md`" in ops
+    # Should NOT duplicate faction data
+    assert "Primary Alignment:" not in ops
+    assert "Hostile Factions:" not in ops
+
+
+def test_all_canonical_files_created_in_test_mode(tmp_path: Path) -> None:
+    """Verify --test creates exactly the expected set of pilot files."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    pilot_dir = workspace / "userdata" / "pilots" / "0_test_capsuleer"
+    expected_files = [
+        "profile.md",
+        "operations.md",
+        "ships.md",
+        "missions.md",
+        "exploration.md",
+        "goals.md",
+        "industry/blueprints.md",
+    ]
+    for rel in expected_files:
+        assert (pilot_dir / rel).exists(), f"Missing: {rel}"
+
+    # Negative: no blueprints.md at pilot root (only in industry/)
+    assert not (pilot_dir / "blueprints.md").exists(), "Orphan blueprints.md at pilot root"
+
+
+def test_persona_context_stub_is_valid_yaml(tmp_path: Path) -> None:
+    """Verify the persona_context stub injected into profile.md is parseable YAML."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    profile = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "profile.md").read_text(
+        encoding="utf-8"
+    )
+    # Extract YAML block from fenced code block
+    match = re.search(r"```yaml\n(.*?)```", profile, re.DOTALL)
+    assert match, "No YAML code block found in profile.md"
+
+    parsed = yaml.safe_load(match.group(1))
+    ctx = parsed["persona_context"]
+    assert ctx["branch"] == "empire"
+    assert ctx["persona"] == "aria-mk4"
+    assert ctx["rp_level"] == "off"
+    assert ctx["files"] == []
+    assert ctx["fallback"] is None
+    assert "skill-overlays" in ctx["skill_overlay_path"]
+
+
+def test_persona_stub_mapping_matches_python_faction_map() -> None:
+    """Verify bash inject_persona_context_stub covers all empire factions
+    and maps consistently with Python FACTION_PERSONA_MAP."""
+    # Load the Python-side mapping
+    from aria_esi.commands.persona import FACTION_PERSONA_MAP
+
+    script = (REPO_ROOT / "aria-init").read_text(encoding="utf-8")
+
+    # Extract all faction→persona mappings from the bash case statement
+    # Pattern: FACTION)  persona="name"; branch="branch" ;;
+    bash_mappings: dict[str, dict[str, str]] = {}
+    for match in re.finditer(
+        r'(\w+)\)\s+persona="([^"]+)";\s+branch="([^"]+)"',
+        script,
+    ):
+        faction, persona, branch = match.groups()
+        bash_mappings[faction.lower()] = {"persona": persona, "branch": branch}
+
+    # All four empire factions must be present in bash
+    for faction in ("gallente", "caldari", "minmatar", "amarr"):
+        assert faction in bash_mappings, f"Missing bash mapping for {faction}"
+        py = FACTION_PERSONA_MAP[faction]
+        assert bash_mappings[faction]["persona"] == py["persona"], (
+            f"{faction}: bash persona={bash_mappings[faction]['persona']} != python persona={py['persona']}"
+        )
+        assert bash_mappings[faction]["branch"] == py["branch"], (
+            f"{faction}: bash branch={bash_mappings[faction]['branch']} != python branch={py['branch']}"
+        )
+
+
+def test_no_templates_directory_required(tmp_path: Path) -> None:
+    """Verify aria-init works without a templates/ directory.
+
+    This is the primary regression test for Phase 1c: the templates/
+    prerequisite check was removed and the directory deleted.
+    """
+    workspace = _stage_workspace(tmp_path)
+    # Explicitly ensure no templates directory exists
+    assert not (workspace / "templates").exists()
+
+    result = _run_init(workspace, ["--test"])
+    output = _combined_output(result)
+
+    assert result.returncode == 0, output
+    # Must not complain about missing templates
+    assert "Templates directory not found" not in output
+    assert "Missing template" not in output
+
+
+def test_missions_md_standings_not_duplicated(tmp_path: Path) -> None:
+    """Verify missions.md doesn't contain inline standing tables (deduplication)."""
+    workspace = _stage_workspace(tmp_path)
+
+    result = _run_init(workspace, ["--test"])
+    assert result.returncode == 0, _combined_output(result)
+
+    missions = (workspace / "userdata" / "pilots" / "0_test_capsuleer" / "missions.md").read_text(
+        encoding="utf-8"
+    )
+    # Standing Progress should be a pointer, not inline tables
+    assert "See `profile.md`" in missions
+    # Should NOT contain per-corporation standing tables
+    assert "| Date | Standing | Change | Source |" not in missions

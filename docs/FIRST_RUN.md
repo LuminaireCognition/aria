@@ -121,8 +121,8 @@ Set any self-imposed restrictions or focus areas in the Playstyle section.
 Edit `userdata/pilots/{your_pilot}/operations.md`:
 
 1. Set your **Home Region** and **Primary Station**
-2. Add your **Ship Roster** with designated roles
-3. Define your **Primary Activities**
+2. Define your **Primary Activities**
+3. Ship roster is managed in `ships.md` (populated by ESI sync)
 
 ### Step 4: Launch ARIA
 
@@ -143,7 +143,7 @@ ARIA is fully functional without ESI. All tactical features work immediately.
 | Data | How to Update |
 |------|---------------|
 | Standings | Edit `userdata/pilots/{your_pilot}/profile.md` periodically |
-| Ship fittings | Edit `userdata/pilots/{your_pilot}/ships.md` when you refit |
+| Ship roster | Edit `userdata/pilots/{your_pilot}/ships.md` when you acquire ships |
 | Location | Tell ARIA: "I'm heading to Dodixie" |
 
 All mission briefs, threat assessments, fitting help, and reference data work fully.
@@ -174,7 +174,7 @@ Fill these files in as you play:
 
 | File | Purpose | When to Update |
 |------|---------|----------------|
-| `userdata/pilots/{your_pilot}/ships.md` | Ship fittings | When you change fits |
+| `userdata/pilots/{your_pilot}/ships.md` | Ship roster | Updated by ESI sync |
 | `userdata/pilots/{your_pilot}/missions.md` | Mission history | After completing missions |
 | `userdata/pilots/{your_pilot}/exploration.md` | Site discoveries | After exploration runs |
 | `userdata/pilots/{your_pilot}/industry/blueprints.md` | BPO inventory | After purchases (or ESI sync) |
@@ -263,7 +263,7 @@ chmod +x .claude/hooks/aria-boot.sh
 
 ### "File not found" errors
 
-Run the wizard again or ensure all templates were copied:
+Run the wizard again to regenerate data files:
 ```bash
 ./aria-init
 ```

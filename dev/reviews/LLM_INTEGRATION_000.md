@@ -7,7 +7,7 @@
     universe graph and registers dispatchers. pyproject.toml:L13-L15, src/aria_esi/mcp/server.py:L1-L115
   - Personas/overlays: persona context and overlay resolution are defined in docs and persona shared guidance, including untrusted-
     data delimiter rules. docs/PERSONA_LOADING.md:L11-L196, personas/_shared/skill-loading.md:L149-L198
-  - Data and templates: pilot data lives under userdata/, templates in templates/, and static reference in reference/.
+  - Data and reference: pilot data lives under userdata/ and static reference in reference/.
     README.md:L189-L231
   - Protocol docs: context budget/provenance, data verification, and volatility protocols are centralized in docs/. docs/
     CONTEXT_POLICY.md:L1-L198, docs/DATA_VERIFICATION.md:L1-L200, docs/PROTOCOLS.md:L1-L159

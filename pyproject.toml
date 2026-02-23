@@ -84,7 +84,7 @@ addopts = [
     "-v",
     "--tb=short",
     "--strict-markers",
-    "-m", "not benchmark and not semantic",
+    "-m", "not benchmark and not semantic and not tier3",
     "--cov=src/aria_esi",
     "--cov-report=term-missing:skip-covered",
 ]
