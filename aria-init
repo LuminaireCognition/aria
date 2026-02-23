@@ -1192,8 +1192,6 @@ EOF
 }
 
 generate_mission_log() {
-    local faction="$1"
-
     cat > "$DATA_DIR/missions.md" << EOF
 # Mission Log
 
@@ -1610,7 +1608,7 @@ generate_files() {
     echo -e "[${GREEN}OK${NC}]"
 
     echo -n "Mission log          "
-    generate_mission_log "$FACTION"
+    generate_mission_log
     echo -e "[${GREEN}OK${NC}]"
 
     echo -n "Exploration catalog  "
@@ -1979,7 +1977,7 @@ run_test_mode() {
     generate_ship_status
     echo "  Created: userdata/pilots/${PILOT_DIRNAME}/ships.md"
 
-    generate_mission_log "$FACTION"
+    generate_mission_log
     echo "  Created: userdata/pilots/${PILOT_DIRNAME}/missions.md"
 
     generate_exploration_catalog
