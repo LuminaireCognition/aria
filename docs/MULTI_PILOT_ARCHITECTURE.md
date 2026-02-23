@@ -23,12 +23,11 @@ ARIA supports multiple pilots per EVE account and multiple accounts. Each pilot 
 │           ├── missions.md
 │           ├── exploration.md
 │           └── industry/blueprints.md
-├── reference/                  # Shared reference (committed)
-│   ├── mechanics/
-│   ├── lore/
-│   ├── ships/
-│   └── missions/
-└── templates/                  # Profile templates
+└── reference/                  # Shared reference (committed)
+    ├── mechanics/
+    ├── lore/
+    ├── ships/
+    └── missions/
 ```
 
 ---
@@ -105,7 +104,7 @@ ARIA_PILOT=9876543210 claude
 | Type | Location | Scope |
 |------|----------|-------|
 | Identity, standings | `userdata/pilots/{id}/profile.md` | Per-pilot |
-| Ships, fittings | `userdata/pilots/{id}/ships.md` | Per-pilot |
+| Ship roster | `userdata/pilots/{id}/ships.md` | Per-pilot |
 | Mission/exploration logs | `userdata/pilots/{id}/*.md` | Per-pilot |
 | Blueprints | `userdata/pilots/{id}/industry/` | Per-pilot |
 | Game mechanics | `reference/mechanics/` | Shared |
@@ -124,8 +123,8 @@ ARIA_PILOT=9876543210 claude
 **Manual setup:**
 ```bash
 mkdir -p userdata/pilots/9876543210_my_alt
-cp templates/*.template.md userdata/pilots/9876543210_my_alt/
-# Rename .template.md → .md, edit files
+# Run the wizard targeting this pilot, or create profile.md manually
+./aria-init
 ```
 
 ---

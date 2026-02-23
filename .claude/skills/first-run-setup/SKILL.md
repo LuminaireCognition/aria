@@ -258,7 +258,7 @@ On confirmation:
 
 1. Create pilot directory: `userdata/pilots/{character_id}_{slug}/`
 2. Create subdirectories: `industry/`
-3. Generate profile from template (see Profile Template section)
+3. Generate profile (see Profile Template section)
 4. Update `userdata/pilots/_registry.json`
 5. Update `userdata/config.json` with active_pilot
 6. Run `uv run aria-esi persona-context` to generate persona context
@@ -434,7 +434,7 @@ I couldn't save your profile. Please check:
   • userdata/pilots/ directory exists
   • File permissions allow writing
 
-Or create the profile manually from the template.
+Or create the profile manually (run ./aria-init to regenerate).
 ```
 
 ## Behavior Notes

@@ -84,9 +84,7 @@ This domain concerns how static and dynamic data is organized, validated, and st
     *   `reference/` (Static game data)
     *   `userdata/` (User profile structure)
     *   `cache/`
-    *   `templates/`
 *   **Review Focus**:
     *   **Data Integrity**: Validation of JSON/YAML schemas.
     *   **Isolation**: ensuring user data is properly separated from application logic.
     *   **Caching**: Strategy for caching ESI data and cache invalidation.
-    *   **Templates**: Correctness and usability of file templates.

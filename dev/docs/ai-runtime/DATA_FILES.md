@@ -9,8 +9,8 @@ All paths use `{active_pilot}` = resolved directory from pilot resolution algori
 | File Type | Path | Purpose |
 |-----------|------|---------|
 | Pilot Profile | `userdata/pilots/{active_pilot}/profile.md` | Identity, standings, RP config |
-| Operational Profile | `userdata/pilots/{active_pilot}/operations.md` | Home base, ship roster, activities (context only) |
-| Ship Status | `userdata/pilots/{active_pilot}/ships.md` | Fittings, designations |
+| Operational Profile | `userdata/pilots/{active_pilot}/operations.md` | Home base, activities, operational range (context only) |
+| Ship Status | `userdata/pilots/{active_pilot}/ships.md` | Ship roster (ESI-synced placeholder) |
 | Blueprint Library | `userdata/pilots/{active_pilot}/industry/blueprints.md` | BPO/BPC inventory |
 | Mission Log | `userdata/pilots/{active_pilot}/missions.md` | Historical mission record |
 | Exploration Catalog | `userdata/pilots/{active_pilot}/exploration.md` | Discovered sites, loot |
@@ -25,8 +25,8 @@ All paths use `{active_pilot}` = resolved directory from pilot resolution algori
 
 **IMPORTANT: This file is NOT parsed as structured data.** ARIA reads it as natural language context to understand your:
 - Home base and staging systems
-- Ship roster and roles
 - Primary activities and operational range
+- References to `ships.md` (ship roster) and `profile.md` (faction alignment, standings)
 
 This information helps ARIA provide contextually relevant advice but is **not used for automated configuration**.
 
