@@ -128,6 +128,35 @@ After the Round 2 findings, commit e7c06618 addressed all 5 recommended actions.
 
 Full results: `SKILL_TEST_RESULTS_RETEST2_2026-02-23.md`
 
+## Final Run: All 37 Skills (Post-Fix Validation)
+
+After all fixes applied and MCP server restarted, a clean run of all 37 NONE/LOW skills against the final codebase (commit a6c1f934):
+
+| Metric | Value |
+|--------|------:|
+| Skills tested | 37 |
+| SUCCESS | 29 |
+| STUB (expected) | 5 |
+| PARTIAL | 2 (lp-offers timeout, gatecamp Pochven) |
+| BLOCKED | 1 (assets ESI timeout, transient) |
+| Avg calls per skill | 1.6 |
+| Aggregate efficiency | 93% |
+
+### Key Improvements vs Original Runs
+
+| Metric | Original/Round 2 | Final Run |
+|--------|:-----------------:|:---------:|
+| Avg calls per skill | 3.7 | 1.6 |
+| Aggregate efficiency | 90% | 93% |
+| Stub verification cascading | 27 calls across 5 stubs | 2 calls across 5 stubs |
+| Previously-blocked skills now working | 0/4 | 4/4 (killmail, mail, mining via MCP) |
+
+### New Issue Found
+
+`lp-offers` CLI hangs on large LP stores (300+ items) due to sequential ESI type ID resolution. LP balance query works fine. Needs batch type lookup optimization.
+
+Full results: `SKILL_TEST_RESULTS_FINAL_2026-02-23.md`
+
 ## File Index
 
 | File | Contents |
@@ -140,4 +169,5 @@ Full results: `SKILL_TEST_RESULTS_RETEST2_2026-02-23.md`
 | `SKILL_TEST_COMPARISON_2026-02-23.md` | Before/after comparison |
 | `SKILL_TEST_RESULTS_ROUND2_2026-02-23.md` | Round 2 (27 skills) |
 | `SKILL_TEST_RESULTS_RETEST2_2026-02-23.md` | Commit e7c06618 retest (6 skills) |
+| `SKILL_TEST_RESULTS_FINAL_2026-02-23.md` | Final clean run (37 skills, all fixes) |
 | `SKILL_TEST_SUMMARY_ROUND2_2026-02-23.md` | This file (all-rounds summary) |
