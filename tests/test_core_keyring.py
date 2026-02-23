@@ -140,6 +140,41 @@ class TestGetKeyringStore:
         assert store1 is store2
 
 
+class TestKeyringProbeDetection:
+    """Tests for functional probe detection at import time."""
+
+    def test_locked_keyring_detected_as_unavailable(self):
+        """A locked keyring should be detected as unavailable by the probe."""
+        # On this system the Login collection is locked, so the module-level
+        # probe should have marked keyring as unavailable.
+        # If keyring IS available (unlocked), this test still passes by
+        # verifying consistency between status and actual operations.
+        status = get_keyring_status()
+
+        if not status["available"]:
+            assert "locked" in (status["reason"] or "").lower() or "probe failed" in (
+                status["reason"] or ""
+            ).lower()
+            assert status["backend"] is None
+        else:
+            # Keyring is genuinely available — verify it actually works
+            import keyring as _kr
+
+            _kr.set_password("aria-test-probe", "test", "value")
+            assert _kr.get_password("aria-test-probe", "test") == "value"
+            _kr.delete_password("aria-test-probe", "test")
+
+    def test_probe_key_constant_defined(self):
+        """Probe sentinel key should be defined."""
+        assert keyring_backend._PROBE_KEY == "aria-keyring-probe"
+
+    def test_status_reason_includes_unlock_hint_when_locked(self):
+        """When locked, the reason should tell the user how to unlock."""
+        status = get_keyring_status()
+        if not status["available"] and status["reason"] and "locked" in status["reason"].lower():
+            assert "gnome-keyring-daemon --unlock" in status["reason"]
+
+
 class TestKeyringConstants:
     """Tests for module constants."""
 

@@ -210,6 +210,85 @@ crontab -e
 
 ---
 
+## Credential Storage (Keyring)
+
+ARIA stores ESI credentials in the system keyring when available (GNOME Keyring, KWallet, macOS Keychain). If the keyring is unavailable, credentials fall back to plaintext JSON files with `0600` permissions in `userdata/credentials/`.
+
+### Credentials stored in plaintext despite keyring being installed
+
+**Symptom:** After OAuth setup, credentials are in `userdata/credentials/*.json` instead of the system keyring, even though `gnome-keyring` is installed.
+
+**Diagnosis:** Run the keyring status check:
+```bash
+uv run python -c "
+from aria_esi.core.keyring_backend import get_keyring_status
+import json
+print(json.dumps(get_keyring_status(), indent=2))
+"
+```
+
+If the output shows `"available": false` with a reason mentioning "locked", the keyring collection exists but is locked. This is the most common cause on Linux.
+
+### Keyring collection is locked (Linux / GNOME Keyring)
+
+**Cause:** The GNOME Keyring Login collection is unlocked at login by PAM. If PAM integration is not configured for your login method (TTY, SSH, non-GDM display manager), the collection stays locked and all keyring operations fail silently.
+
+**Quick fix — unlock for this session:**
+```bash
+read -s -p "Password: " PASS && echo -n "$PASS" | gnome-keyring-daemon --unlock && unset PASS
+```
+This prompts for your login password without displaying it. The unlock lasts until logout.
+
+After unlocking, re-run OAuth setup to migrate credentials to the keyring:
+```bash
+uv run python .claude/scripts/aria-oauth-setup.py
+```
+
+**Permanent fix — enable PAM auto-unlock for TTY sessions:**
+
+Add these two lines to `/etc/pam.d/login`:
+```
+auth     optional  pam_gnome_keyring.so
+session  optional  pam_gnome_keyring.so auto_start
+```
+
+The `libpam-gnome-keyring` package must be installed (check with `dpkg -l libpam-gnome-keyring`). After this change, every TTY login unlocks the keyring automatically, matching the behavior of GDM graphical logins.
+
+**Note for other display managers:** If you use SDDM, LightDM, or another display manager, check whether `/etc/pam.d/<your-dm>` includes the `pam_gnome_keyring.so` lines. Many display managers omit them by default.
+
+### How to verify the keyring is working
+
+After unlocking or configuring PAM, verify with:
+```bash
+uv run python -c "
+from aria_esi.core.keyring_backend import get_keyring_status
+import json
+print(json.dumps(get_keyring_status(), indent=2))
+"
+```
+
+Expected output when working:
+```json
+{
+  "available": true,
+  "backend": "Keyring",
+  "reason": null,
+  "enabled": true,
+  "env_disabled": false
+}
+```
+
+### Intentionally disabling keyring
+
+If you prefer plaintext storage (e.g., headless server with no keyring daemon), suppress the security warnings:
+```bash
+export ARIA_NO_KEYRING=1
+```
+
+Add to your shell profile to make it permanent.
+
+---
+
 ## Data & Accuracy
 
 ### ARIA gives wrong information about game mechanics
