@@ -24,6 +24,23 @@
 
 **MED ESI aggregate:** 7/7 SUCCESS, 112 calls, 88% efficiency
 
+### MED ESI Retest: ship-next + isk-compare (2026-02-24)
+
+After fixes in commit 7efb959c, retested both skills with same queries:
+
+| Skill | Metric | Before | After | Fix Verified? |
+|-------|--------|--------|-------|:-------------:|
+| ship-next | Q2 `item_info` calls | 4 wasteful | 0 | **YES** |
+| ship-next | Q2 efficiency | 73% | 100% | **YES** |
+| ship-next | Aggregate efficiency | 87% | 100% | **YES** |
+| isk-compare | Q1 L3 accessible | NO (incorrect) | YES (correct) | **YES** |
+| isk-compare | Q1 efficiency | 86% | 100% | **YES** |
+| isk-compare | Aggregate efficiency | 93% | 100% | **YES** |
+
+**Retest aggregate:** 4/4 SUCCESS, 35 calls, 100% efficiency (was 44 calls, 90%)
+
+Full results: `SKILL_TEST_RESULTS_RETEST_SHIP_NEXT_ISK_COMPARE_2026-02-24.md`
+
 ### Untested (3 skills)
 
 | Skill | ESI Flag | Reason |
@@ -109,11 +126,13 @@
 
 3. **Doc fixes validated.** The 3 retested skills improved from 23% to 94% average efficiency, confirming documentation precision directly impacts agent performance.
 
-4. **One new doc fix identified.** CLAUDE.md references wrong path for pve-intel INDEX.md (`cache/INDEX.md` instead of `INDEX.md`). Low severity, affects mission-brief only.
+4. **MED ESI fixes validated (2026-02-24).** ship-next `item_info` avoidance note eliminated all 4 wasteful calls (73%→100% eff). isk-compare `access_requirements`/`recommended_skills` YAML restructure fixed L3 mission accessibility error (both queries now correct, 93%→100% eff).
 
-5. **Persona-exclusive stubs work correctly** but trigger verification cascading in ~60% of cases. This is agent behavior, not a skill architecture issue. mark-assessment demonstrated the ideal 1-call pattern.
+5. **One new doc fix identified.** CLAUDE.md references wrong path for pve-intel INDEX.md (`cache/INDEX.md` instead of `INDEX.md`). Low severity, affects mission-brief only.
 
-6. **MCP-primary skills are the most efficient.** Skills using MCP dispatchers average 100% efficiency vs 89% for CLI-primary skills. The structured MCP interface eliminates trial-and-error command discovery.
+6. **Persona-exclusive stubs work correctly** but trigger verification cascading in ~60% of cases. This is agent behavior, not a skill architecture issue. mark-assessment demonstrated the ideal 1-call pattern.
+
+7. **MCP-primary skills are the most efficient.** Skills using MCP dispatchers average 100% efficiency vs 89% for CLI-primary skills. The structured MCP interface eliminates trial-and-error command discovery.
 
 ## Retest 2: Commit e7c06618 Fixes (6 skills)
 
@@ -186,4 +205,5 @@ Full results: `SKILL_TEST_RESULTS_FINAL_2026-02-23.md`
 | `SKILL_TEST_RESULTS_FIT_BUDGET_2026-02-23.md` | MED ESI: fit-budget |
 | `SKILL_TEST_RESULTS_MED_SHIP_NEXT_2026-02-23.md` | MED ESI: ship-next |
 | `SKILL_TEST_RESULTS_MED_ISK_COMPARE_2026-02-23.md` | MED ESI: isk-compare |
+| `SKILL_TEST_RESULTS_RETEST_SHIP_NEXT_ISK_COMPARE_2026-02-24.md` | Retest: ship-next + isk-compare post-fix |
 | `SKILL_TEST_SUMMARY_ROUND2_2026-02-23.md` | This file (all-rounds summary) |
