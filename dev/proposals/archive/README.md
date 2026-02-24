@@ -28,6 +28,8 @@ Proposals that have been implemented, superseded, or consolidated.
 | FRESHNESS_GATED_AUTO_SYNC_LIBRARY.md | Implemented | 2026-02-13 | All 4 phases: core library, enhanced markers, consolidation, skill integration |
 | MINMAX_SKILL_PLANNING_PROPOSAL.md | Implemented | 2026-02-15 | Phases A-C: core algorithm, dispatcher, SKILL.md, hauler role |
 | MULTI_LLM_SERVICE_FOR_NOTIFICATIONS.md | Implemented | 2026-02-16 | Provider abstraction (Anthropic/OpenAI/Gemini), per-profile config |
+| INIT_INFORMATION_SPACE_CLEANUP.md | Implemented | 2026-02-22 | Phase 1: duplicate files, persona context stubs, dead templates |
+| SKILL_ROUND2_REMAINING_ISSUES.md | Implemented | 2026-02-24 | Doc-only fixes: watchlist name resolution, stub termination guards |
 
 ## Archive Policy
 
