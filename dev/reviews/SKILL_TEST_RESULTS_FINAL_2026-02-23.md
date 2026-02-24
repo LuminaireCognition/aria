@@ -97,7 +97,7 @@ Verification cascading on persona-exclusive stubs has been virtually eliminated.
 
 | Priority | Issue | Affected | New? |
 |----------|-------|----------|:----:|
-| Medium | `lp-offers` CLI hangs on large stores (sequential type ID resolution) | lp-store | **YES** |
+| Medium | `lp-offers` CLI very slow on large stores (sequential type ID resolution, ~2min for 319 offers); some items return "Unknown Item" due to SDE gaps | lp-store | **YES** |
 | Low | `assets --value` ESI timeout (token refresh) | assets | **YES** (transient?) |
 | Low | gatecamp skill doesn't handle Pochven systems specially | gatecamp | No (known) |
 
@@ -113,13 +113,13 @@ Verification cascading on persona-exclusive stubs has been virtually eliminated.
 | agents-research generic IDs | **FIXED** — "Masalle Ambrette" / "CreoDron" |
 | Stub verification cascading | **FIXED** — 2 total calls vs 27 |
 
-### lp-offers Timeout (New)
+### lp-offers Slow Resolution (New)
 
-The `uv run aria-esi lp-offers "Federation Navy"` command hangs when resolving 300+ item type IDs sequentially via ESI. The LP balance query (`lp`) succeeds quickly but store browsing is blocked by the sequential resolution.
+The `uv run aria-esi lp-offers "Federation Navy"` command completes but is very slow (~2 minutes) when resolving 300+ item type IDs sequentially via ESI. The LP balance query (`lp`) succeeds quickly. The store query does return all 319 offers but some items appear as "Unknown Item (XXXXX)" where SDE type resolution fails.
 
-**Root cause:** Each type ID requires a separate ESI call during name resolution, creating O(n) latency for large stores.
+**Root cause:** Each type ID requires a separate ESI call during name resolution, creating O(n) latency for large stores. Additionally, some type IDs are not in the local SDE cache.
 
-**Recommendation:** Batch type lookups via POST `/universe/names/` or cache resolved type names in the SDE database.
+**Recommendation:** Batch type lookups via POST `/universe/names/` or cache resolved type names in the SDE database. Both fixes would address speed and coverage.
 
 ## Test Environment Notes
 

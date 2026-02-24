@@ -153,7 +153,7 @@ After all fixes applied and MCP server restarted, a clean run of all 37 NONE/LOW
 
 ### New Issue Found
 
-`lp-offers` CLI hangs on large LP stores (300+ items) due to sequential ESI type ID resolution. LP balance query works fine. Needs batch type lookup optimization.
+`lp-offers` CLI is very slow on large LP stores (319 offers in ~2min) due to sequential ESI type ID resolution. Some items return as "Unknown Item" where SDE lookup fails. LP balance query works fine. Needs batch type lookup optimization.
 
 Full results: `SKILL_TEST_RESULTS_FINAL_2026-02-23.md`
 
