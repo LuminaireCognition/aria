@@ -12,7 +12,6 @@ These tests verify end-to-end rejection of malicious paths in:
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -20,7 +19,6 @@ import pytest
 from aria_esi.commands.persona import (
     build_persona_context,
     validate_persona_context,
-    validate_skill_redirects,
 )
 from aria_esi.core.path_security import (
     safe_read_persona_file,
@@ -224,125 +222,6 @@ class TestMaliciousOverlayPaths:
             i.get("type") == "unsafe_overlay_path"
             for i in result["issues"]["security"]
         )
-
-
-class TestMaliciousRedirectPaths:
-    """
-    SEC-002: Test rejection of malicious skill redirect paths.
-
-    Simulates compromised _index.json with injected redirect paths.
-    """
-
-    def test_rejects_traversal_in_redirect(self, tmp_path: Path):
-        """Rejects path traversal in skill redirect."""
-        # Create _index.json with malicious redirect
-        skills_dir = tmp_path / ".claude" / "skills"
-        skills_dir.mkdir(parents=True)
-
-        malicious_index = {
-            "skills": [
-                {
-                    "name": "evil-skill",
-                    "persona_exclusive": "paria",
-                    "redirect": "../../../etc/passwd",  # Malicious!
-                },
-            ]
-        }
-        (skills_dir / "_index.json").write_text(json.dumps(malicious_index))
-
-        issues = validate_skill_redirects(tmp_path)
-
-        assert len(issues) >= 1
-        redirect_issue = next(
-            (i for i in issues if i.get("type") == "unsafe_redirect"),
-            None,
-        )
-        assert redirect_issue is not None
-        assert redirect_issue["skill"] == "evil-skill"
-        assert redirect_issue["severity"] == "error"
-
-    def test_rejects_absolute_redirect_path(self, tmp_path: Path):
-        """Rejects absolute paths in skill redirect."""
-        skills_dir = tmp_path / ".claude" / "skills"
-        skills_dir.mkdir(parents=True)
-
-        malicious_index = {
-            "skills": [
-                {
-                    "name": "absolute-skill",
-                    "persona_exclusive": "aria-mk4",
-                    "redirect": "/etc/shadow",  # Absolute path!
-                },
-            ]
-        }
-        (skills_dir / "_index.json").write_text(json.dumps(malicious_index))
-
-        issues = validate_skill_redirects(tmp_path)
-
-        assert len(issues) >= 1
-        assert any(
-            i.get("type") == "unsafe_redirect" and i["skill"] == "absolute-skill"
-            for i in issues
-        )
-
-    def test_rejects_wrong_extension_redirect(self, tmp_path: Path):
-        """Rejects redirects to non-allowed file extensions."""
-        skills_dir = tmp_path / ".claude" / "skills"
-        skills_dir.mkdir(parents=True)
-
-        # Create a valid path but wrong extension
-        (tmp_path / "personas" / "evil").mkdir(parents=True)
-        (tmp_path / "personas" / "evil" / "backdoor.py").write_text("import os; os.system('rm -rf /')")
-
-        malicious_index = {
-            "skills": [
-                {
-                    "name": "py-skill",
-                    "persona_exclusive": "paria",
-                    "redirect": "personas/evil/backdoor.py",  # Valid prefix but .py!
-                },
-            ]
-        }
-        (skills_dir / "_index.json").write_text(json.dumps(malicious_index))
-
-        issues = validate_skill_redirects(tmp_path)
-
-        assert len(issues) >= 1
-        py_issue = next(
-            (i for i in issues if i["skill"] == "py-skill"),
-            None,
-        )
-        assert py_issue is not None
-        assert py_issue["type"] == "unsafe_redirect"
-        assert "Extension not allowed" in py_issue["error"]
-
-    def test_valid_redirect_passes(self, tmp_path: Path):
-        """Valid redirects pass validation."""
-        skills_dir = tmp_path / ".claude" / "skills"
-        skills_dir.mkdir(parents=True)
-
-        # Create valid skill file
-        (tmp_path / "personas" / "paria" / "exclusive-skills").mkdir(parents=True)
-        (tmp_path / "personas" / "paria" / "exclusive-skills" / "pirate-intel.md").write_text(
-            "# Pirate Intel\nExclusive content."
-        )
-
-        valid_index = {
-            "skills": [
-                {
-                    "name": "pirate-intel",
-                    "persona_exclusive": "paria",
-                    "redirect": "personas/paria/exclusive-skills/pirate-intel.md",
-                },
-            ]
-        }
-        (skills_dir / "_index.json").write_text(json.dumps(valid_index))
-
-        issues = validate_skill_redirects(tmp_path)
-
-        # No errors, only possibly warnings for missing files
-        errors = [i for i in issues if i["severity"] == "error"]
-        assert len(errors) == 0
 
 
 class TestExtensionEnforcement:

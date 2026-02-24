@@ -515,26 +515,18 @@ When a skill is invoked:
    - If `ok: false`, warn user about missing requirements before proceeding
    - Skip preflight for quick lookups (price, route) that don't require pilot
 
-2. **Check `_index.json` for `persona_exclusive`**
-   - If set, check if it matches `persona_context.persona` OR `persona_context.fallback`
-   - Match → load from `redirect` path
-   - No match → skill unavailable. Display the stub from `.claude/skills/{name}/SKILL.md`.
-     **STOP HERE. Do not continue to steps 3-5. The stub is the final output.**
+2. **Load base skill** from `.claude/skills/{name}/SKILL.md`
 
-**Stub behavior:** When a persona-exclusive skill returns a stub, accept it at face value. Do not re-read `_index.json`, the redirect path, or the persona manifest to verify the exclusivity decision. The Skill tool has already performed the check.
-
-3. **Load base skill** from `.claude/skills/{name}/SKILL.md`
-
-4. **Check for overlay** if `has_persona_overlay: true`:
+3. **Check for overlay** if `has_persona_overlay: true`:
    - Check `{persona_context.skill_overlay_path}/{name}.md`
    - If not found and `overlay_fallback_path` is set, check that path
    - If found → append to skill context
 
-5. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
+4. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
 
 ### Runtime Path Validation (SEC-001/SEC-002)
 
-**CRITICAL:** All persona file, overlay, and redirect paths MUST pass security validation before loading:
+**CRITICAL:** All persona file and overlay paths MUST pass security validation before loading:
 
 | Rule | Description | Example Rejection |
 |------|-------------|-------------------|

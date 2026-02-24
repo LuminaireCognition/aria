@@ -47,9 +47,6 @@ address:
 greeting:
   "on": "Online and ready."
   "full": "Systems nominal. Awaiting directives, Capsuleer."
-
-# Optional flags
-unrestricted_skills: false           # true = bypass persona_exclusive checks (debug only)
 ```
 
 ### Key Fields
@@ -234,8 +231,8 @@ This generates `userdata/pilots/{active_pilot}/.persona-context-compiled.json` w
 | Persona | Complexity | Notable Features |
 |---------|-----------|------------------|
 | `aria-mk4` | Minimal empire | Basic manifest + voice, no overlays |
-| `paria` | Full pirate | 5 overlays, 5 exclusive skills, pirate branch |
-| `forge` | Manual selection | `unrestricted_skills: true`, empty factions |
+| `paria` | Full pirate | 5 overlays, pirate branch |
+| `forge` | Manual selection | Empty factions, manual persona override |
 
 ## Related Documentation
 
