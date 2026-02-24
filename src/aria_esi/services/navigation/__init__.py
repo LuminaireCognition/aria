@@ -24,6 +24,7 @@ __all__ = [
     "RouteNotFoundError",
     "SystemNotFoundError",
     # Weight computation
+    "apply_territory_preference",
     "compute_avoid_weights",
     "compute_safe_weights",
     "compute_unsafe_weights",
@@ -38,6 +39,7 @@ __all__ = [
     "WEIGHT_UNSAFE_LOWSEC",
     "WEIGHT_UNSAFE_HIGHSEC",
     "WEIGHT_AVOID",
+    "WEIGHT_TERRITORY_PENALTY",
     # Result utilities
     "SecuritySummary",
     "compute_security_summary",
@@ -66,6 +68,7 @@ def __getattr__(name: str):
 
     # Weights
     if name in (
+        "apply_territory_preference",
         "compute_avoid_weights",
         "compute_safe_weights",
         "compute_unsafe_weights",
@@ -79,6 +82,7 @@ def __getattr__(name: str):
         "WEIGHT_UNSAFE_LOWSEC",
         "WEIGHT_UNSAFE_HIGHSEC",
         "WEIGHT_AVOID",
+        "WEIGHT_TERRITORY_PENALTY",
     ):
         from . import weights
 

@@ -55,7 +55,7 @@ The single most likely blocker is verifying that `aria-init` works correctly wit
 | ASSET_AUDIT | Asset inventory and net worth tracking via ESI |
 | PI_HELPER | Production chains, math, market integration, colony planning |
 | EXPAND_SDE_INJEST | T2/Faction variant lookups via `sde(action="meta_variants")` |
-| MARKET_WATCHLIST | Backend watchlist engine (skill layer not yet built) |
+| MARKET_WATCHLIST | Backend watchlist engine + `/watchlist` skill |
 
 ### Persona & Notifications (all complete)
 
@@ -104,18 +104,22 @@ All items were marked done on 2026-02-02. Spot-check results:
 - [x] README contains a real ARIA response example (sample output block) — confirmed
 - [x] CI badge is present and green — confirmed
 - [x] "What This Is NOT" section exists (not a bot, not an overlay, not CCP-affiliated) — added in `cleanup/pre-release-tier1`
-- [ ] CHANGELOG.md has meaningful content (not just a stub)
+- [x] CHANGELOG.md has meaningful content (not just a stub) — confirmed (209 lines, proper Keep a Changelog format)
 - [x] Recovery / "Starting Fresh" section in troubleshooting docs — added in `cleanup/pre-release-tier1`
 
 ### Tier 2 — Should-Do (high-impact polish)
 
-#### 2.1 README first-run improvements
+#### 2.1 README first-run improvements — DONE
 
 **Source:** README_FIRST_RUN_IMPROVEMENTS_PROPOSAL (archived, proposed, not implemented)
 
-Targets a "clone to first useful response in under 5 minutes" experience. Converts 10 high-level documentation suggestions into implementation-ready README edits to reduce first-run drop-off.
-
-**Action:** Review and cherry-pick the highest-impact items from this proposal.
+Targets a "clone to first useful response in under 5 minutes" experience. Cherry-picked highest-impact items:
+- Added "Get Value in 60 Seconds" section with copy-paste first prompt
+- Added "Verify It Worked" block after Quick Start
+- Expanded troubleshooting with `Permission denied` and missing game data fixes
+- Added SECURITY.md link to Data Freshness section
+- Tightened disclaimer to professional copy
+- Collapsed Route Planning and Fit Recommendation examples behind `<details>`
 
 #### 2.2 Test coverage push toward 75%
 
@@ -125,15 +129,12 @@ Currently at 60.3% (up from 52.9% baseline). The proposal tracks a phased approa
 
 **Action:** Continue opportunistic coverage gains. Prioritize modules with high blast radius (core services, ESI integration).
 
-#### 2.3 Finish sovereignty remaining items
+#### 2.3 Finish sovereignty remaining items — PARTIALLY DONE
 
 **Source:** SOVEREIGNTY_TERRITORY_DATA_PROPOSAL (active, mostly implemented)
 
-Two items remain unchecked:
-- Territory-preferring routing (route through friendly space)
-- Hunting-grounds skill enhancement (territory-aware target analysis)
-
-**Action:** Implement or defer explicitly. The core sovereignty features work — these are enhancements.
+- Territory-preferring routing — **DONE**: Added `prefer_territory` and `avoid_territory` params to `universe(action="route")`. Expands coalition aliases to system sets via `get_systems_by_coalition()`. Weight-based preference (3x penalty for non-territory systems).
+- Hunting-grounds skill enhancement — **DEFERRED**: The `/hunting-grounds` skill already has a full "Coalition Intelligence (Null-Sec Hunting)" section (lines 158-225 in SKILL.md). The proposal marks additional work as PARIA-exclusive persona overlay, which is cosmetic/persona work.
 
 #### 2.4 DevContainer end-to-end validation
 
@@ -143,13 +144,11 @@ The Docker onboarding path is implemented but should be validated on a clean Doc
 
 **Action:** Run through the DevContainer flow on a clean machine before advertising it in release notes.
 
-#### 2.5 Market watchlist user-facing skill
+#### 2.5 Market watchlist user-facing skill — ALREADY DONE
 
 **Source:** MARKET_WATCHLIST_PROPOSAL (archived, backend complete)
 
-The MCP watchlist backend works, but there is no `/price-watch` skill exposing it to users. The backend is invisible without the skill layer.
-
-**Action:** Build the skill or document watchlist usage via direct MCP calls. Not a release blocker but a gap in the user experience.
+The `/watchlist` skill already exists (`.claude/skills/watchlist/SKILL.md`) and exposes the full MCP watchlist backend to users. No additional work needed.
 
 ### Tier 3 — Not Needed for Release (future enhancements)
 

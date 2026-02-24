@@ -46,6 +46,9 @@ WEIGHT_UNSAFE_HIGHSEC = 10.0  # Avoided: high-sec
 # System avoidance
 WEIGHT_AVOID = float("inf")  # Effectively blocks the edge
 
+# Territory preference (multiplier applied to non-territory edges)
+WEIGHT_TERRITORY_PENALTY = 3.0  # Non-territory systems cost 3x more
+
 
 # =============================================================================
 # Weight Computation Functions
@@ -177,3 +180,37 @@ def compute_unsafe_weights(
             weights.append(WEIGHT_UNSAFE_HIGHSEC)  # Avoid high-sec
 
     return weights
+
+
+def apply_territory_preference(
+    weights: list[float],
+    universe: UniverseGraph,
+    preferred_systems: set[int],
+) -> list[float]:
+    """
+    Apply territory preference to existing edge weights.
+
+    Multiplies weights for edges leading to non-territory systems,
+    making the pathfinder prefer routes through territory.
+
+    Args:
+        weights: Pre-computed edge weights to modify
+        universe: UniverseGraph for edge iteration
+        preferred_systems: Set of vertex indices to prefer
+
+    Returns:
+        New list of modified edge weights
+    """
+    g = universe.graph
+    result = []
+
+    for i, edge in enumerate(g.es):
+        w = weights[i]
+        if w == WEIGHT_AVOID:
+            result.append(w)
+        elif edge.target not in preferred_systems:
+            result.append(w * WEIGHT_TERRITORY_PENALTY)
+        else:
+            result.append(w)
+
+    return result

@@ -1059,3 +1059,154 @@ class TestSearchCoalitionFilter:
 
         # Only Jita should match (in The Forge AND in coalition)
         assert "systems" in result
+
+
+# =============================================================================
+# Territory Routing Tests
+# =============================================================================
+
+
+class TestRouteTerritoryPreference:
+    """Tests for prefer_territory and avoid_territory route parameters."""
+
+    def test_avoid_territory_excludes_systems(self, universe_dispatcher):
+        """avoid_territory expands coalition to avoid set, excluding those systems."""
+        # Mock coalition returns Perimeter's system ID — forces route to avoid it
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_systems_by_coalition",
+            return_value=[30000144],  # Perimeter
+        ):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="route",
+                    origin="Jita",
+                    destination="Urlen",
+                    avoid_territory="hostile_coalition",
+                )
+            )
+
+        system_names = [s["name"] for s in result["systems"]]
+        assert "Perimeter" not in system_names
+        assert any("Avoiding hostile_coalition territory" in w for w in result.get("warnings", []))
+
+    def test_avoid_territory_unknown_coalition(self, universe_dispatcher):
+        """Unknown coalition in avoid_territory produces a warning."""
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_systems_by_coalition",
+            return_value=[],
+        ):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="route",
+                    origin="Jita",
+                    destination="Perimeter",
+                    avoid_territory="nonexistent",
+                )
+            )
+
+        assert any("Unknown coalition" in w for w in result.get("warnings", []))
+        # Route should still work (no avoidance applied)
+        assert result["jumps"] == 1
+
+    def test_prefer_territory_adds_warning(self, universe_dispatcher):
+        """prefer_territory adds informational warning about territory preference."""
+        # Mock coalition returns Jita + Perimeter system IDs
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_systems_by_coalition",
+            return_value=[30000142, 30000144],  # Jita, Perimeter
+        ):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="route",
+                    origin="Jita",
+                    destination="Urlen",
+                    prefer_territory="friendly_coalition",
+                )
+            )
+
+        assert any("Preferring friendly_coalition territory" in w for w in result.get("warnings", []))
+        assert result["jumps"] >= 1
+
+    def test_prefer_territory_unknown_coalition(self, universe_dispatcher):
+        """Unknown coalition in prefer_territory produces a warning."""
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_systems_by_coalition",
+            return_value=[],
+        ):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="route",
+                    origin="Jita",
+                    destination="Perimeter",
+                    prefer_territory="nonexistent",
+                )
+            )
+
+        assert any("Unknown coalition" in w for w in result.get("warnings", []))
+
+    def test_avoid_territory_with_explicit_avoid_systems(self, universe_dispatcher):
+        """avoid_territory merges with explicit avoid_systems."""
+        # Avoid Maurasi explicitly + avoid Perimeter via territory
+        # Both paths Jita->Perimeter->Urlen and Jita->Maurasi->Urlen are penalized
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_systems_by_coalition",
+            return_value=[30000144],  # Perimeter
+        ):
+            result = asyncio.run(
+                universe_dispatcher(
+                    action="route",
+                    origin="Jita",
+                    destination="Urlen",
+                    avoid_systems=["Sivala"],
+                    avoid_territory="hostile",
+                )
+            )
+
+        # Perimeter should be avoided (via territory), route goes through Maurasi
+        system_names = [s["name"] for s in result["systems"]]
+        assert "Perimeter" not in system_names
+        assert "Sivala" not in system_names
+        assert any("Avoiding hostile territory" in w for w in result.get("warnings", []))
+
+
+# =============================================================================
+# Territory Weight Unit Tests
+# =============================================================================
+
+
+class TestTerritoryWeights:
+    """Unit tests for apply_territory_preference weight computation."""
+
+    def test_apply_territory_preference_penalizes_non_territory(self, standard_universe):
+        """Non-territory edges get multiplied by WEIGHT_TERRITORY_PENALTY."""
+        from aria_esi.services.navigation.weights import (
+            WEIGHT_TERRITORY_PENALTY,
+            apply_territory_preference,
+        )
+
+        base_weights = [1.0] * standard_universe.graph.ecount()
+        # Only Jita (idx=0) is in territory
+        preferred = {0}
+        result = apply_territory_preference(base_weights, standard_universe, preferred)
+
+        # Edges going TO Jita should stay 1.0
+        # Edges going to other systems should be multiplied
+        for i, edge in enumerate(standard_universe.graph.es):
+            if edge.target in preferred:
+                assert result[i] == 1.0
+            else:
+                assert result[i] == WEIGHT_TERRITORY_PENALTY
+
+    def test_apply_territory_preference_preserves_avoid(self, standard_universe):
+        """Infinity weights (avoided systems) are not modified."""
+        from aria_esi.services.navigation.weights import (
+            WEIGHT_AVOID,
+            apply_territory_preference,
+        )
+
+        base_weights = [WEIGHT_AVOID if i == 0 else 1.0
+                        for i in range(standard_universe.graph.ecount())]
+        preferred = {0}
+        result = apply_territory_preference(base_weights, standard_universe, preferred)
+
+        assert result[0] == WEIGHT_AVOID  # Infinity preserved

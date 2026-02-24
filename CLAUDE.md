@@ -207,6 +207,12 @@ If the `aria-universe` MCP server is connected, 8 domain dispatchers appear in y
 # Route planning
 universe(action="route", origin="Jita", destination="Amarr", mode="safe")
 
+# Route through friendly territory
+universe(action="route", origin="Jita", destination="1DQ1-A", prefer_territory="imperium")
+
+# Route avoiding hostile territory
+universe(action="route", origin="Jita", destination="Amarr", avoid_territory="panfam")
+
 # Market prices
 market(action="prices", items=["Tritanium", "Pyerite"])
 

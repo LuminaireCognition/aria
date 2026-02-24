@@ -181,6 +181,9 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
         # territory_analysis params
         coalition: str | None = None,
         alliance_id: int | None = None,
+        # territory routing params
+        prefer_territory: str | None = None,
+        avoid_territory: str | None = None,
     ) -> dict:
         """
         Unified universe navigation interface.
@@ -209,6 +212,8 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 destination: Target system
                 mode: "shortest", "safe", or "unsafe"
                 avoid_systems: Systems to avoid
+                prefer_territory: Coalition alias to prefer (e.g., "imperium")
+                avoid_territory: Coalition alias to avoid (e.g., "panfam")
 
             Systems params (action="systems"):
                 systems: List of system names to look up
@@ -352,13 +357,22 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 "ratting_threshold": ratting_threshold,
                 "coalition": coalition,
                 "alliance_id": alliance_id,
+                "prefer_territory": prefer_territory,
+                "avoid_territory": avoid_territory,
             },
         )
 
         # Execute action and add any validation warnings to result
         match action:
             case "route":
-                result = await _route(origin, destination, mode, avoid_systems)
+                result = await _route(
+                    origin,
+                    destination,
+                    mode,
+                    avoid_systems,
+                    prefer_territory,
+                    avoid_territory,
+                )
 
             case "systems":
                 result = await _systems(systems)
@@ -457,6 +471,8 @@ async def _route(
     destination: str | None,
     mode: str,
     avoid_systems: list[str] | None,
+    prefer_territory: str | None = None,
+    avoid_territory: str | None = None,
 ) -> dict:
     """Route action."""
     if not origin:
@@ -486,7 +502,55 @@ async def _route(
             else:
                 unresolved_avoids.append(name)
 
-    path = _calculate_route(universe, origin_resolved.idx, dest_resolved.idx, mode, avoid_indices)
+    # Expand avoid_territory to system indices and merge into avoid set
+    territory_warnings: list[str] = []
+    if avoid_territory:
+        from ...services.sovereignty.coalition_service import get_systems_by_coalition
+
+        territory_system_ids = get_systems_by_coalition(avoid_territory)
+        if territory_system_ids:
+            if avoid_indices is None:
+                avoid_indices = set()
+            for sys_id in territory_system_ids:
+                idx = universe.id_to_idx.get(sys_id)
+                if idx is not None:
+                    avoid_indices.add(idx)
+            territory_warnings.append(
+                f"Avoiding {avoid_territory} territory ({len(territory_system_ids)} systems)"
+            )
+        else:
+            territory_warnings.append(
+                f"Unknown coalition '{avoid_territory}' — territory avoidance not applied"
+            )
+
+    # Expand prefer_territory to system indices
+    preferred_indices: set[int] | None = None
+    if prefer_territory:
+        from ...services.sovereignty.coalition_service import get_systems_by_coalition
+
+        territory_system_ids = get_systems_by_coalition(prefer_territory)
+        if territory_system_ids:
+            preferred_indices = set()
+            for sys_id in territory_system_ids:
+                idx = universe.id_to_idx.get(sys_id)
+                if idx is not None:
+                    preferred_indices.add(idx)
+            territory_warnings.append(
+                f"Preferring {prefer_territory} territory ({len(territory_system_ids)} systems)"
+            )
+        else:
+            territory_warnings.append(
+                f"Unknown coalition '{prefer_territory}' — territory preference not applied"
+            )
+
+    path = _calculate_route(
+        universe,
+        origin_resolved.idx,
+        dest_resolved.idx,
+        mode,
+        avoid_indices,
+        preferred_indices,
+    )
 
     if not path:
         from ..errors import RouteNotFoundError
@@ -508,6 +572,15 @@ async def _route(
                 **result.model_dump(),
                 "warnings": result.warnings
                 + [f"Unknown systems in avoid_systems: {', '.join(unresolved_avoids)}"],
+            }
+        )
+
+    # Add territory warnings
+    if territory_warnings:
+        result = RouteResult(
+            **{
+                **result.model_dump(),
+                "warnings": result.warnings + territory_warnings,
             }
         )
 
@@ -1886,6 +1959,7 @@ def _calculate_route(
     dest_idx: int,
     mode: str,
     avoid_systems: set[int] | None = None,
+    preferred_systems: set[int] | None = None,
 ) -> list[int]:
     """
     Calculate route using NavigationService.
@@ -1896,6 +1970,7 @@ def _calculate_route(
         dest_idx: Destination vertex index
         mode: Routing mode (shortest, safe, unsafe)
         avoid_systems: Set of vertex indices to avoid
+        preferred_systems: Set of vertex indices to prefer (territory routing)
 
     Returns:
         List of vertex indices from origin to destination
@@ -1903,7 +1978,7 @@ def _calculate_route(
     from ...services.navigation import NavigationService
 
     service = NavigationService(universe)
-    return service.calculate_route(origin_idx, dest_idx, mode, avoid_systems)  # type: ignore[arg-type]
+    return service.calculate_route(origin_idx, dest_idx, mode, avoid_systems, preferred_systems)  # type: ignore[arg-type]
 
 
 async def _generate_fw_route_warnings(universe: UniverseGraph, path: list[int]) -> list[str]:
