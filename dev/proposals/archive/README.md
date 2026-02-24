@@ -30,6 +30,8 @@ Proposals that have been implemented, superseded, or consolidated.
 | MULTI_LLM_SERVICE_FOR_NOTIFICATIONS.md | Implemented | 2026-02-16 | Provider abstraction (Anthropic/OpenAI/Gemini), per-profile config |
 | INIT_INFORMATION_SPACE_CLEANUP.md | Implemented | 2026-02-22 | Phase 1: duplicate files, persona context stubs, dead templates |
 | SKILL_ROUND2_REMAINING_ISSUES.md | Implemented | 2026-02-24 | Doc-only fixes: watchlist name resolution, stub termination guards |
+| LINUX_VM_DOCKER_RUNTIME_PROPOSAL.md | Complete | 2026-02-24 | `aria-init` already uses correct paths and `uv run python`; proposal outdated |
+| ship-hull-value-signal.md | Implemented | 2026-02-24 | Notification filtering by hull price |
 
 ## Archive Policy
 

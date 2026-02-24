@@ -38,6 +38,13 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 - **Faction personas** — optional roleplay mode with 5 faction-specific AI personalities
 - **40+ slash commands** — or just ask naturally: *"is Uedama safe"*, *"fit my Vexor for L2s"*, *"what should I mine"*
 
+### What ARIA Is Not
+
+- **Not a bot** — ARIA cannot control your ship or automate gameplay
+- **Not a game overlay** — it runs in your terminal via Claude Code
+- **Not affiliated with CCP** — this is a fan project using public ESI/SDE APIs
+- **Not required for EVE** — it enhances your experience with tactical advice
+
 ---
 
 ## Requirements

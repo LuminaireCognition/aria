@@ -362,6 +362,41 @@ See [ADHOC_MARKETS.md](ADHOC_MARKETS.md) for full market scope documentation.
 
 ---
 
+## Recovery / Starting Fresh
+
+If your setup is in a broken state and you want to start over, these reset commands target specific subsystems without affecting the rest.
+
+### Reset pilot data
+
+Removes all pilot profiles, registry, and active-pilot config. You'll re-run setup afterward.
+
+```bash
+rm -rf userdata/pilots/*/
+rm -f userdata/pilots/_registry.json
+rm -f userdata/config.json
+./aria-init
+```
+
+### Reset ESI credentials
+
+Removes OAuth tokens. You'll need to re-authorize through the browser flow.
+
+```bash
+rm -rf userdata/credentials/
+```
+
+Then follow the ESI setup steps in [ESI.md](ESI.md) to re-authorize.
+
+### Reset game data caches
+
+Re-seeds universe graph and SDE data without touching pilot profiles or credentials.
+
+```bash
+./aria-init --seed-only
+```
+
+---
+
 ## Still stuck?
 
 - **Ask ARIA:** Just describe the problem in conversation — ARIA can diagnose many issues.
