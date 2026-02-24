@@ -24,11 +24,13 @@ missions:
       min: 1_000_000
       max: 2_000_000
       typical: 1_500_000
-    requirements:
-      skills:
-        - name: "Spaceship Command"
-          level: 1
+    access_requirements:
       standings: null
+      note: "No access gate — any pilot can accept L1 missions"
+    recommended_skills:
+      - name: "Spaceship Command"
+        level: 1
+        note: "Any ship works for L1 content"
     ships_recommended:
       - "Starter frigate"
       - "Faction frigate (career agent reward)"
@@ -42,13 +44,15 @@ missions:
       min: 4_000_000
       max: 8_000_000
       typical: 5_000_000
-    requirements:
-      skills:
-        - name: "Cruiser skill (any race)"
-          level: 3
+    access_requirements:
       standings:
         type: corporation
         value: 1.0
+      note: "Mission level gated by standings, not ship class"
+    recommended_skills:
+      - name: "Cruiser skill (any race)"
+        level: 3
+        note: "Optimal efficiency. Destroyers can run L2s at reduced speed."
     ships_recommended:
       - "Vexor"
       - "Caracal"
@@ -64,13 +68,15 @@ missions:
       min: 8_000_000
       max: 15_000_000
       typical: 10_000_000
-    requirements:
-      skills:
-        - name: "Battlecruisers"
-          level: 3
+    access_requirements:
       standings:
         type: corporation
         value: 3.0
+      note: "Mission level gated by standings, not ship class"
+    recommended_skills:
+      - name: "Battlecruisers"
+        level: 3
+        note: "Optimal efficiency. Cruisers (e.g. Vexor) work at reduced DPS."
     ships_recommended:
       - "Drake"
       - "Myrmidon"
@@ -86,13 +92,15 @@ missions:
       min: 15_000_000
       max: 30_000_000
       typical: 20_000_000
-    requirements:
-      skills:
-        - name: "Battleship skill (any race)"
-          level: 3
+    access_requirements:
       standings:
         type: corporation
         value: 5.0
+      note: "Mission level gated by standings, not ship class"
+    recommended_skills:
+      - name: "Battleship skill (any race)"
+        level: 3
+        note: "Optimal efficiency. Battlecruisers can work slowly."
     ships_recommended:
       - "Dominix"
       - "Raven"
@@ -108,15 +116,18 @@ missions:
       min: 40_000_000
       max: 80_000_000
       typical: 60_000_000
-    requirements:
-      skills:
-        - name: "Assault Frigates"
-          level: 4
-        - name: "Specialization skills"
-          level: 4
+    access_requirements:
       standings:
         type: corporation
         value: 5.0
+      note: "Offered as L4 variants — same standing gate as regular L4s"
+    recommended_skills:
+      - name: "Assault Frigates"
+        level: 4
+        note: "Required for optimal burner ships"
+      - name: "Specialization skills"
+        level: 4
+        note: "Weapon specialization for DPS threshold"
     ships_recommended:
       - "Daredevil"
       - "Worm"

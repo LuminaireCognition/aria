@@ -7,22 +7,30 @@
 | Original | 11 | NONE/LOW, single-query | `SKILL_TEST_RESULTS_2026-02-23.md` |
 | Retest | 3 | Doc-fix regression | `SKILL_TEST_RESULTS_RETEST_2026-02-23.md` |
 | Round 2 | 27 | Remaining NONE/LOW | `SKILL_TEST_RESULTS_ROUND2_2026-02-23.md` |
-| **Total unique** | **38** | | |
+| MED ESI | 7 | All MED ESI skills | Individual per-skill results (see below) |
+| **Total unique** | **45** | | |
 
-### Untested (10 skills)
+### MED ESI Test Results
+
+| Skill | Queries | Calls | Eff% | Outcome | Document |
+|-------|--------:|------:|-----:|---------|----------|
+| pilot | 2 | 2 | 100 | SUCCESS | `SKILL_TEST_RESULTS_MED_PILOT_2026-02-23.md` |
+| standings | 3 | 3 | 100 | SUCCESS | `SKILL_TEST_RESULTS_STANDINGS_2026-02-23.md` |
+| clones | 2 | 3 | 100 | SUCCESS | `SKILL_TEST_RESULTS_CLONES_2026-02-23.md` |
+| fit-check | 1 | 14 | 79 | SUCCESS | `SKILL_TEST_RESULTS_FIT_CHECK_2026-02-23.md` |
+| fit-budget | 2 | 46 | 80 | SUCCESS | `SKILL_TEST_RESULTS_FIT_BUDGET_2026-02-23.md` |
+| ship-next | 2 | 30 | 87 | SUCCESS | `SKILL_TEST_RESULTS_MED_SHIP_NEXT_2026-02-23.md` |
+| isk-compare | 2 | 14 | 93 | SUCCESS | `SKILL_TEST_RESULTS_MED_ISK_COMPARE_2026-02-23.md` |
+
+**MED ESI aggregate:** 7/7 SUCCESS, 112 calls, 88% efficiency
+
+### Untested (3 skills)
 
 | Skill | ESI Flag | Reason |
 |-------|----------|--------|
 | first-run-setup | NONE | Interactive wizard, not single-query testable |
 | esi-query | HEAVY | Out of scope (HEAVY ESI) |
-| pilot | MED | Out of scope (MED ESI) |
 | corp | HEAVY | Out of scope (HEAVY ESI) |
-| standings | MED | Out of scope (MED ESI) |
-| clones | MED | Out of scope (MED ESI) |
-| fit-check | MED | Out of scope (MED ESI) |
-| fit-budget | MED | Out of scope (MED ESI) |
-| ship-next | MED | Out of scope (MED ESI) |
-| isk-compare | MED | Out of scope (MED ESI) |
 
 ## Aggregate Results
 
@@ -95,7 +103,7 @@
 
 ## Conclusions
 
-1. **38/48 skills tested (79% coverage).** Remaining 10 are MED/HEAVY ESI or interactive.
+1. **45/48 skills tested (94% coverage).** Remaining 3: first-run-setup (interactive wizard), esi-query (HEAVY ESI), corp (HEAVY ESI).
 
 2. **90% aggregate efficiency across Round 2.** Most skills execute in 1-5 tool calls with zero waste. The skill architecture is sound.
 
@@ -170,4 +178,12 @@ Full results: `SKILL_TEST_RESULTS_FINAL_2026-02-23.md`
 | `SKILL_TEST_RESULTS_ROUND2_2026-02-23.md` | Round 2 (27 skills) |
 | `SKILL_TEST_RESULTS_RETEST2_2026-02-23.md` | Commit e7c06618 retest (6 skills) |
 | `SKILL_TEST_RESULTS_FINAL_2026-02-23.md` | Final clean run (37 skills, all fixes) |
+| `SKILL_TEST_RESULTS_MED_PILOT_2026-02-23.md` | MED ESI: pilot |
+| `SKILL_TEST_RESULTS_MED_STANDINGS_2026-02-23.md` | MED ESI: standings (initial) |
+| `SKILL_TEST_RESULTS_STANDINGS_2026-02-23.md` | MED ESI: standings (clean retest) |
+| `SKILL_TEST_RESULTS_CLONES_2026-02-23.md` | MED ESI: clones |
+| `SKILL_TEST_RESULTS_FIT_CHECK_2026-02-23.md` | MED ESI: fit-check |
+| `SKILL_TEST_RESULTS_FIT_BUDGET_2026-02-23.md` | MED ESI: fit-budget |
+| `SKILL_TEST_RESULTS_MED_SHIP_NEXT_2026-02-23.md` | MED ESI: ship-next |
+| `SKILL_TEST_RESULTS_MED_ISK_COMPARE_2026-02-23.md` | MED ESI: isk-compare |
 | `SKILL_TEST_SUMMARY_ROUND2_2026-02-23.md` | This file (all-rounds summary) |

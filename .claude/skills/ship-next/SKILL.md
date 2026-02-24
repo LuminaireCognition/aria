@@ -59,7 +59,7 @@ This skill provides personalized ship recommendations based on:
 | `sde(action="skill_requirements")` | Get skills needed for ships |
 | `skills(action="training_time")` | Calculate training time |
 | `market(action="prices")` | Get hull and fit costs |
-| `sde(action="item_info")` | Get ship attributes and bonuses |
+> **Note:** Do NOT call `sde(action="item_info")` for ship bonuses — it returns only flavor text and classification. Use the Ship Database section below for attributes, bonuses, and role descriptions.
 
 **ESI queries (when available):**
 - Skills: `uv run aria-esi skills`

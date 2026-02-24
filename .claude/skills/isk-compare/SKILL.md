@@ -113,20 +113,26 @@ uv run aria-esi standings
 
 For each activity, check requirements:
 
-| Activity | Skill Requirements | Other Requirements |
-|----------|-------------------|-------------------|
-| L1 Security Missions | Frigate III | None |
-| L2 Security Missions | Cruiser III | 1.0 corp standing |
-| L3 Security Missions | Battlecruiser III | 3.0 corp standing |
-| L4 Security Missions | Battleship III | 5.0 corp standing |
-| Highsec Data/Relic | Astrometrics III, Hacking I | Exploration frigate |
-| Lowsec Exploration | Same + cloak recommended | Risk tolerance |
-| Venture Mining | Mining III | Venture |
-| Barge Mining | Mining Barge I | Procurer/Retriever |
-| Gas Huffing | Gas Cloud Harvesting I | Venture |
-| Planetary Interaction | Command Center Upgrades I | Setup time |
-| Abyssal T1-2 | Cruiser IV, tank skills | ~50M fit |
-| Hauling | Industrial I | Capital for goods |
+| Activity | Access Gate | Recommended Skills | Notes |
+|----------|------------|-------------------|-------|
+| L1 Security Missions | None | Frigate III | Any ship works |
+| L2 Security Missions | 1.0 corp standing | Cruiser III | Can run in destroyer |
+| L3 Security Missions | 3.0 corp standing | Battlecruiser III | Cruiser works at lower DPS |
+| L4 Security Missions | 5.0 corp standing | Battleship III | BC can work slowly |
+| L4 Burners | 5.0 corp standing | Assault Frigates IV | Specialized fits required |
+| Highsec Data/Relic | None | Astrometrics III, Hacking I | Exploration frigate |
+| Lowsec Exploration | None | Same + cloak recommended | Risk tolerance |
+| Venture Mining | None | Mining III | Venture |
+| Barge Mining | None | Mining Barge I | Procurer/Retriever |
+| Gas Huffing | None | Gas Cloud Harvesting I | Venture |
+| Planetary Interaction | None | Command Center Upgrades I | Setup time |
+| Abyssal T1-2 | None | Cruiser IV, tank skills | ~50M fit |
+| Hauling | None | Industrial I | Capital for goods |
+
+**Mission access is gated by standings, not ship class.** A pilot with 3.0+ corp standing
+can accept L3 missions regardless of what ship they fly. The recommended skills indicate
+the ship class for *efficient* completion. Always check standings first, then recommend
+the best ship the pilot can actually fly — even if it's a class below the recommended tier.
 
 ### Step 3: Calculate Estimated ISK/Hour
 
@@ -236,7 +242,7 @@ ISK/HOUR COMPARISON (Your Skills)
 
 MISSION RUNNING:
   L2 Security (Vexor)         4-8M/hr     [You can do this]
-  L3 Security (Drake)         8-15M/hr    [Needs: Battlecruisers III - 8d]
+  L3 Security (Vexor*)        8-15M/hr    [You can do this - slower in cruiser]
   L4 Security (Dominix)       15-30M/hr   [Needs: BS III + 5.0 standing]
 
 EXPLORATION:
