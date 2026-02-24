@@ -61,6 +61,12 @@ PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-analyze "Federation Navy
 
 Identifies offers that require **only LP + ISK** (no market items needed) - ideal for self-sufficient gameplay.
 
+## Data Locality
+
+LP balance data is fetched **live from ESI** on every query. There is no local cache or offline fallback — if ESI or CLI execution is unavailable, report the limitation immediately rather than searching for cached files.
+
+LP store offers are fetched from the public ESI endpoint (no auth required).
+
 ## Corporation Shortcuts
 
 Common corporation names have shortcuts for convenience:

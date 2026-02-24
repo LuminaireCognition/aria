@@ -101,11 +101,11 @@ ATTR_HULL_EXPLOSIVE_RESIST = 977
 ARMOR_MODULE_PATTERNS = (
     "Armor Repairer",
     "Armor Hardener",
-    "Energized Adaptive Nano Membrane",
-    "Energized Kinetic Membrane",
-    "Energized Thermal Membrane",
-    "Energized EM Membrane",
-    "Energized Explosive Membrane",
+    "Multispectrum Energized Membrane",
+    "Kinetic Energized Membrane",
+    "Thermal Energized Membrane",
+    "EM Energized Membrane",
+    "Explosive Energized Membrane",
     "Reactive Armor Hardener",
 )
 

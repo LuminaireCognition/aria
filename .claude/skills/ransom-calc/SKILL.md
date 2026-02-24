@@ -1,14 +1,11 @@
 ---
 name: ransom-calc
 persona_exclusive: paria
-redirect: personas/paria-exclusive/ransom-calc.md
 ---
 
 # Ransom Calculator
 
 This skill is exclusive to **PARIA** (pirate persona).
-
-**Skill definition:** `personas/paria-exclusive/ransom-calc.md`
 
 ## Availability
 

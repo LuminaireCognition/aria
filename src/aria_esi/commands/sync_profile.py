@@ -170,9 +170,9 @@ def add_markers_to_section(content: str, section_header: str, section_key: str) 
     if start_marker in content or re.search(r"<!--\s*" + re.escape(tag) + r"[\s>]", content):
         return content
 
-    # Find the section header
+    # Find the section header (allow optional blank line between header and table)
     header_pattern = re.compile(
-        rf"(### {re.escape(section_header)}\n)"
+        rf"(### {re.escape(section_header)}\n\n?)"
         r"(\|[^\n]+\|\n"  # Header row
         r"\|[-| ]+\|\n"  # Separator row
         r"(?:\|[^\n]+\|\n)*)"  # Data rows

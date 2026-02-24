@@ -62,11 +62,11 @@ upgrade_paths:
     faction: "Corpus C-Type Large Armor Repairer"
 
   # Armor Hardeners
-  energized_adaptive_nano_membrane:
-    compact: "Compact Energized Adaptive Nano Membrane"
-    t1: "Energized Adaptive Nano Membrane I"
-    t2: "Energized Adaptive Nano Membrane II"
-    faction: "Imperial Navy Energized Adaptive Nano Membrane"
+  multispectrum_energized_membrane:
+    compact: "Compact Multispectrum Energized Membrane"
+    t1: "Multispectrum Energized Membrane I"
+    t2: "Multispectrum Energized Membrane II"
+    faction: "Imperial Navy Multispectrum Energized Membrane"
 
   reactive_armor_hardener:
     t1: "Reactive Armor Hardener"

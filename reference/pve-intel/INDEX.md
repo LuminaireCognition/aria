@@ -1,6 +1,8 @@
 # PvE Combat Reference
 
-Quick reference for faction damage profiles and EWAR. Applies to agent missions, DED sites, and other PvE combat content. For cached intel, see `cache/INDEX.md`.
+Quick reference for faction damage profiles and EWAR. Applies to agent missions, DED sites, and other PvE combat content.
+
+For cached mission intel, see [`cache/INDEX.md`](cache/INDEX.md) (auto-generated, gitignored).
 
 ## Damage Quick Reference
 
@@ -25,14 +27,3 @@ Quick reference for faction damage profiles and EWAR. Applies to agent missions,
 | Angel Cartel | Target Painter | Speed tank |
 | Rogue Drones | None typical | - |
 
-## Serpentis
-- [Unauthorized Military Presence L3](cache/unauthorized_military_presence_serpentis_l3.md) - Kin/Therm damage, deal Thermal
-
-## Mercenaries
-- [The Seven's Prison Facility L3](cache/the_sevens_prison_facility_l3.md) - Kin/Therm, deal Kin/Therm
-
-## Komni Corporation (Guristas Arc)
-- [Kidnappers Strike - Incriminating Evidence (Part 5/10)](cache/kidnappers_strike_incriminating_evidence_guristas_l3.md) - Thermal damage, deal Thermal
-
-## Maru Forces (Sansha's Nation Arc)
-- [Kidnappers Strike - Incriminating Evidence (Part 5/10)](cache/kidnappers_strike_incriminating_evidence_sansha_l3.md) - EM/Therm damage, deal EM

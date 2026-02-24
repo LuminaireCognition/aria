@@ -6,15 +6,15 @@ Tactical intelligence for PvE combat content including agent missions, DED compl
 
 ```
 reference/pve-intel/
-├── INDEX.md          # Static damage/EWAR reference (tracked)
+├── INDEX.md          # Static damage/EWAR quick reference (tracked in git)
 ├── README.md         # This file (tracked)
 ├── LICENSE           # CC-BY-SA 4.0 (tracked)
 └── cache/            # Fetched intel data (gitignored)
-    ├── INDEX.md      # Auto-generated cache index
-    └── *.md          # Individual intel files
+    ├── INDEX.md      # Cache index by faction (auto-maintained by /mission-brief)
+    └── *.md          # Individual mission intel files
 ```
 
-**Cache is ephemeral:** `rm -rf reference/pve-intel/cache/*` is always safe.
+**Cache is ephemeral:** `rm -rf reference/pve-intel/cache/` is always safe.
 
 ## Content Types
 

@@ -1,14 +1,11 @@
 ---
 name: sec-status
 persona_exclusive: paria
-redirect: personas/paria-exclusive/sec-status.md
 ---
 
 # Security Status
 
 This skill is exclusive to **PARIA** (pirate persona).
-
-**Skill definition:** `personas/paria-exclusive/sec-status.md`
 
 ## Availability
 

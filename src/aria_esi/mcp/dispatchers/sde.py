@@ -38,6 +38,7 @@ SDEAction = Literal[
     "agent_divisions",
     "cache_status",
     "meta_variants",
+    "resolve_names",
 ]
 
 VALID_ACTIONS: set[str] = {
@@ -50,6 +51,7 @@ VALID_ACTIONS: set[str] = {
     "agent_divisions",
     "cache_status",
     "meta_variants",
+    "resolve_names",
 }
 
 
@@ -83,6 +85,8 @@ def register_sde_dispatcher(server: FastMCP, universe: UniverseGraph) -> None:
         division: str | None = None,
         system: str | None = None,
         highsec_only: bool = False,
+        # resolve_names params
+        names: list[str] | None = None,
     ) -> dict:
         """
         Unified SDE (Static Data Export) interface.
@@ -97,6 +101,7 @@ def register_sde_dispatcher(server: FastMCP, universe: UniverseGraph) -> None:
         - agent_divisions: List available agent divisions
         - cache_status: Get SDE database status
         - meta_variants: Get T2/Faction/Officer variants of an item
+        - resolve_names: Resolve entity names to IDs via ESI
 
         Args:
             action: The operation to perform
@@ -138,6 +143,9 @@ def register_sde_dispatcher(server: FastMCP, universe: UniverseGraph) -> None:
             Meta variants params (action="meta_variants"):
                 item: Item name (any variant or base item)
 
+            Resolve names params (action="resolve_names"):
+                names: List of entity names to resolve (characters, corps, alliances)
+
         Returns:
             Action-specific result dictionary
 
@@ -149,6 +157,7 @@ def register_sde_dispatcher(server: FastMCP, universe: UniverseGraph) -> None:
             sde(action="corporation_info", corporation_name="Sisters of EVE")
             sde(action="agent_search", corporation="Caldari Navy", level=4)
             sde(action="meta_variants", item="Medium Armor Repairer II")
+            sde(action="resolve_names", names=["Pandemic Horde", "Jita"])
         """
         if action not in VALID_ACTIONS:
             raise InvalidParameterError(
@@ -187,6 +196,7 @@ def register_sde_dispatcher(server: FastMCP, universe: UniverseGraph) -> None:
                 "division": division,
                 "system": system,
                 "highsec_only": highsec_only,
+                "names": names,
             },
         )
 
@@ -212,6 +222,8 @@ def register_sde_dispatcher(server: FastMCP, universe: UniverseGraph) -> None:
                 result = await _cache_status()
             case "meta_variants":
                 result = await _meta_variants(item)
+            case "resolve_names":
+                result = await _resolve_names(names)
             case _:
                 raise InvalidParameterError("action", action, f"Unknown action: {action}")
 
@@ -726,3 +738,40 @@ async def _meta_variants(item: str | None) -> dict:
         total_variants=len(variant_list),
         warnings=[] if variants else ["No meta variants found for this item."],
     ).model_dump()
+
+
+async def _resolve_names(names: list[str] | None) -> dict:
+    """Resolve entity names to IDs via ESI POST /universe/ids/ endpoint."""
+    if not names:
+        raise InvalidParameterError("names", names, "Required for action='resolve_names'")
+
+    # Deduplicate and limit
+    unique_names = list(dict.fromkeys(n.strip() for n in names if n.strip()))[:100]
+    if not unique_names:
+        raise InvalidParameterError("names", names, "At least one non-empty name required")
+
+    from ..esi_client import get_async_esi_client
+
+    client = await get_async_esi_client()
+    result = await client.post("/universe/ids/", data=unique_names)
+
+    if not isinstance(result, dict):
+        return {
+            "query": unique_names,
+            "characters": [],
+            "corporations": [],
+            "alliances": [],
+            "systems": [],
+            "warnings": ["ESI returned unexpected response format"],
+        }
+
+    return {
+        "query": unique_names,
+        "characters": result.get("characters", []),
+        "corporations": result.get("corporations", []),
+        "alliances": result.get("alliances", []),
+        "systems": result.get("systems", []),
+        "total_resolved": sum(
+            len(result.get(k, [])) for k in ("characters", "corporations", "alliances", "systems")
+        ),
+    }

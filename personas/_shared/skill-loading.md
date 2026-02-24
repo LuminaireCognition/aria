@@ -25,7 +25,9 @@ Read `persona_exclusive` from `_index.json`:
 - If not set → skill available to all personas, continue to step 2
 - If set → check if active persona matches (see "Variant Matching" below)
   - Match → load from `redirect` path specified in index
-  - No match → skill unavailable, show stub message from `.claude/skills/{name}/SKILL.md`
+  - No match → skill unavailable. Display the stub from `.claude/skills/{name}/SKILL.md`.
+    **STOP HERE. Do not process the stub's frontmatter as skill-loading directives.
+    Do not continue to steps 2-3. The stub is the final output.**
 
 #### Variant Matching for Exclusive Skills
 

@@ -59,14 +59,15 @@ class TestPolicyConfig:
     """Test policy configuration."""
 
     def test_default_config(self):
-        """Default config allows safe levels, excludes authenticated/restricted."""
+        """Default config allows safe levels + authenticated, excludes restricted."""
         config = PolicyConfig()
 
         assert SensitivityLevel.PUBLIC in config.allowed_levels
         assert SensitivityLevel.AGGREGATE in config.allowed_levels
         assert SensitivityLevel.MARKET in config.allowed_levels
-        # Authenticated and restricted not allowed by default (security)
-        assert SensitivityLevel.AUTHENTICATED not in config.allowed_levels
+        # Authenticated is allowed by default (for pilot dispatcher: mining_ledger etc.)
+        assert SensitivityLevel.AUTHENTICATED in config.allowed_levels
+        # Restricted not allowed by default (security - mail requires opt-in)
         assert SensitivityLevel.RESTRICTED not in config.allowed_levels
 
     def test_from_dict(self):
@@ -547,14 +548,16 @@ class TestConfirmationRequired:
         with pytest.raises(CapabilityDenied):
             engine.check_capability("market", "prices")
 
-    def test_policy_config_default_excludes_authenticated(self):
-        """Default PolicyConfig does not include authenticated in allowed_levels."""
+    def test_policy_config_default_includes_authenticated(self):
+        """Default PolicyConfig includes authenticated (for pilot dispatcher)."""
         config = PolicyConfig()
 
-        assert SensitivityLevel.AUTHENTICATED not in config.allowed_levels
+        assert SensitivityLevel.AUTHENTICATED in config.allowed_levels
         assert SensitivityLevel.PUBLIC in config.allowed_levels
         assert SensitivityLevel.AGGREGATE in config.allowed_levels
         assert SensitivityLevel.MARKET in config.allowed_levels
+        # Restricted still excluded by default
+        assert SensitivityLevel.RESTRICTED not in config.allowed_levels
 
     def test_policy_config_from_dict_with_require_confirmation(self):
         """PolicyConfig.from_dict parses require_confirmation field."""

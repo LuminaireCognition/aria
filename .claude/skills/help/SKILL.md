@@ -302,7 +302,7 @@ Provides tactical briefings including:
 TRIGGERS: "mission brief", "prepare for mission", "what should I
           know about [faction]"
 
-CACHED INTEL: reference/pve-intel/INDEX.md
+CACHED INTEL: reference/pve-intel/cache/INDEX.md
 DAMAGE TYPES: reference/mechanics/npc_damage_types.md
 ═══════════════════════════════════════════════════════════════════
 ```
@@ -576,7 +576,7 @@ ARIA HELP: Reference Database
 ARIA maintains local intelligence files for offline access.
 
 QUICK ACCESS:
-• PvE intel ............ reference/pve-intel/INDEX.md
+• PvE intel ............ reference/pve-intel/cache/INDEX.md
 • Ship fittings ........ reference/ships/fittings/README.md
 • NPC damage types ..... reference/mechanics/npc_damage_types.md
 • Hacking guide ........ reference/mechanics/hacking_guide.md

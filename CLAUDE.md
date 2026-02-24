@@ -187,15 +187,17 @@ For EVE Online system topology, routes, borders, and loop planning, use these ap
 
 ### Option 1: MCP Tools (if available)
 
-If the `aria-universe` MCP server is connected, 6 domain dispatchers appear in your tool list:
+If the `aria-universe` MCP server is connected, 8 domain dispatchers appear in your tool list:
 
 | Dispatcher | Actions | Description |
 |------------|---------|-------------|
 | `universe(action, ...)` | route, systems, borders, search, loop, analyze, nearest, optimize_waypoints, activity, hotspots, gatecamp_risk, fw_frontlines, local_area | Navigation, routing, activity data |
 | `market(action, ...)` | prices, orders, valuation, spread, history, find_nearby, npc_sources, arbitrage_scan, arbitrage_detail, route_value, watchlist_*, scope_* | Market prices, arbitrage, ad-hoc scopes |
-| `sde(action, ...)` | item_info, blueprint_info, search, skill_requirements, corporation_info, agent_search, agent_divisions | Static Data Export queries |
+| `sde(action, ...)` | item_info, blueprint_info, search, skill_requirements, corporation_info, agent_search, agent_divisions, cache_status, meta_variants, resolve_names | Static Data Export queries, name resolution |
 | `skills(action, ...)` | training_time, easy_80_plan, minmax_plan, get_multipliers, get_breakpoints, t2_requirements, activity_* | Skill planning and training time |
 | `fitting(action, ...)` | calculate_stats | Ship fitting statistics |
+| `killmails(action, ...)` | query, stats, recent, analyze | Killmail queries and individual analysis |
+| `pilot(action, ...)` | mail_list, mail_read, mining_ledger | Authenticated pilot data (mail, mining) |
 | `status()` | (none) | Unified system status |
 
 **Tool name mapping:** The shorthand names above (e.g., `sde(...)`) correspond to MCP tools prefixed with `mcp__aria-universe__` (e.g., `mcp__aria-universe__sde`). Use whichever form appears in your tool list.
@@ -274,6 +276,10 @@ uv run aria-esi loop Jita --avoid Uedama Niarja --security highsec
 | `/fw-frontlines` | `universe(action="fw_frontlines", ...)` | `aria-esi fw-frontlines` |
 | `/orient` | `universe(action="local_area", ...)` | `aria-esi orient` |
 | (gatecamp analysis) | `universe(action="gatecamp_risk", ...)` | `aria-esi gatecamp-risk` |
+| (system info) | `universe(action="systems", systems=[...])` | `aria-esi sysinfo <system>` |
+| `/killmail` | `killmails(action="analyze", killmail_input=...)` | `aria-esi analyze-killmail` |
+| `/mail` | `pilot(action="mail_list", ...)` | `aria-esi mail` |
+| `/mining` | `pilot(action="mining_ledger", ...)` | `aria-esi mining` |
 
 ### Common Parameters
 
@@ -458,7 +464,8 @@ All intel must be read from local cache. This ensures caching is a
 prerequisite for presentation, not an afterthought.
 
 **Quick reference available without fetch:**
-- `reference/pve-intel/INDEX.md` has damage profiles for all factions (tracked in git)
+- `reference/pve-intel/INDEX.md` has static damage profiles for all factions (tracked in git)
+- `reference/pve-intel/cache/INDEX.md` has the cache index of fetched missions (gitignored)
 - Rogue Drones: Omni damage → weak to EM > Thermal
 - Serpentis: Kin/Therm → weak to Thermal
 - (See INDEX.md for complete table)
@@ -511,7 +518,10 @@ When a skill is invoked:
 2. **Check `_index.json` for `persona_exclusive`**
    - If set, check if it matches `persona_context.persona` OR `persona_context.fallback`
    - Match → load from `redirect` path
-   - No match → skill unavailable, show stub
+   - No match → skill unavailable. Display the stub from `.claude/skills/{name}/SKILL.md`.
+     **STOP HERE. Do not continue to steps 3-5. The stub is the final output.**
+
+**Stub behavior:** When a persona-exclusive skill returns a stub, accept it at face value. Do not re-read `_index.json`, the redirect path, or the persona manifest to verify the exclusivity decision. The Skill tool has already performed the check.
 
 3. **Load base skill** from `.claude/skills/{name}/SKILL.md`
 
@@ -519,6 +529,8 @@ When a skill is invoked:
    - Check `{persona_context.skill_overlay_path}/{name}.md`
    - If not found and `overlay_fallback_path` is set, check that path
    - If found → append to skill context
+
+5. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
 
 ### Runtime Path Validation (SEC-001/SEC-002)
 

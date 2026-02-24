@@ -47,8 +47,10 @@ Accept these formats:
 ## CLI Command
 
 ```bash
-uv run aria-esi killmail https://zkillboard.com/kill/12345678/
-uv run aria-esi killmail 12345678
+uv run aria-esi analyze-killmail https://zkillboard.com/kill/12345678/
+uv run aria-esi analyze-killmail 12345678
+# Short alias:
+uv run aria-esi akm 12345678
 ```
 
 ## Response Format

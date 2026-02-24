@@ -53,11 +53,14 @@ Take any EFT fit (typically T2/expensive) and generate a budget version that:
 
 | Tool | Purpose |
 |------|---------|
-| `fitting(action="check_requirements")` | Check which modules pilot can use |
-| `fitting(action="calculate_stats")` | Compare performance |
-| `sde(action="meta_variants")` | Find downgrade options |
-| `sde(action="skill_requirements")` | Check variant requirements |
-| `market(action="valuation")` | Price comparison |
+| `fitting(action="extract_requirements")` | Batch-extract all skill requirements from fit (preferred) |
+| `fitting(action="check_requirements")` | Check pilot can fly fit (alternative to extract) |
+| `fitting(action="calculate_stats")` | Compare performance (original vs budget) |
+| `sde(action="meta_variants")` | Find downgrade options per module |
+| `market(action="prices")` | Batch price all original + substitute items |
+| `market(action="valuation")` | Price entire fit (alternative to batch prices) |
+
+**Avoid:** `sde(action="skill_requirements")` per module — use batch fitting calls instead.
 
 **ESI queries (when available):**
 - Skills: `uv run aria-esi skills`
@@ -97,6 +100,12 @@ When ESI unavailable, use profile's `module_tier`:
 
 **Rationale:** A budget fit based on tier assumption is still useful. The pilot can verify in-game.
 
+## Efficiency Target
+
+A typical T2 fit budget conversion should complete in **12-15 MCP calls**. If approaching 20+, you are likely checking items individually instead of in batch. Use the batch patterns described below.
+
+**Session context note:** The pilot profile is already loaded at session start. Do not re-read it.
+
 ## Execution Flow
 
 ### Step 1: Parse Original Fit
@@ -109,12 +118,19 @@ Accept EFT format, extract:
 
 ### Step 2: Identify Unflyable Modules
 
-For each module, check if pilot meets requirements:
+**Use batch extraction — do NOT check modules individually.**
+
+Extract all skill requirements in one call:
+```
+fitting(action="extract_requirements", eft="...")
+```
+
+Then compare against pilot skills (from `uv run aria-esi skills`) to identify which modules need substitution. Alternatively, use `check_requirements` with pilot skills dict to get a direct can/can't-fly verdict:
 ```
 fitting(action="check_requirements", eft="...", pilot_skills={...})
 ```
 
-Create list of modules that need substitution.
+**Do NOT** call `sde(action="skill_requirements")` per module — this wastes 5-10 calls that one batch call replaces.
 
 ### Step 3: Find Substitutes
 
@@ -136,10 +152,18 @@ Returns variants from lowest to highest tier:
 3. Prefer Compact variants for CPU-constrained fits
 4. Prefer Enduring variants for cap-constrained fits
 
+**T1/Meta skill check shortcut:** T1 and named meta modules almost never require skills above level 1-2. After identifying T1 alternatives via `meta_variants`, assume they are flyable unless unusual (faction, storyline, or specialized). Only spot-check skill requirements for edge cases — do not re-verify every T1 substitute individually.
+
 ### Step 4: Apply Budget Constraint
 
+**Price all items in a single batch call.** Collect every unique item name from both the original fit and all candidate substitutes, then make one call:
+```
+market(action="prices", items=["Item A", "Item B", "Item C", ...])
+```
+Do NOT make separate price calls per module — gather the full list upfront to avoid supplemental calls.
+
 If `--target` specified:
-1. Price the current working fit
+1. Price the current working fit (from the batch above)
 2. If over budget, find cheaper alternatives for expensive items
 3. Iterate until under budget
 
@@ -219,54 +243,56 @@ BUDGET FIT (copy to clipboard):
 
 ## Substitution Database
 
+**These are category hints for common downgrade paths, NOT ground truth.** Always use `sde(action="meta_variants")` to find actual alternatives and `fitting(action="calculate_stats")` for real performance numbers. Never cite the percentages below as fact — they are rough approximations.
+
 ### Common T2 → Budget Substitutions
 
 #### Weapons
 
-| T2 Module | Budget Alternative | Stat Difference |
-|-----------|-------------------|-----------------|
-| Heavy Missile Launcher II | 'Arbalest' Heavy Missile Launcher | -5% DPS |
-| 200mm AutoCannon II | 200mm Carbine Repeating Cannon | -8% DPS |
-| Dual Light Beam Laser II | Dual Anode Light Beam Laser I | -12% DPS |
-| Light Neutron Blaster II | Modal Light Neutron Particle Accelerator I | -10% DPS |
+| T2 Module | Typical Budget Alternative |
+|-----------|---------------------------|
+| Heavy Missile Launcher II | 'Arbalest' Heavy Missile Launcher |
+| 200mm AutoCannon II | 200mm Carbine Repeating Cannon |
+| Dual Light Beam Laser II | Dual Anode Light Beam Laser I |
+| Light Neutron Blaster II | Modal Light Neutron Particle Accelerator I |
 
 #### Tank (Armor)
 
-| T2 Module | Budget Alternative | Stat Difference |
-|-----------|-------------------|-----------------|
-| Medium Armor Repairer II | 'Meditation' Medium Armor Repairer I | -12% rep |
-| Energized Adaptive Nano Membrane II | Adaptive Nano Plating II | -15% resists |
-| Armor Hardener II | Armor Hardener I | -10% resist |
-| 1600mm Steel Plates II | 1600mm Crystalline Carbonide Restrained Plates | -8% HP |
+| T2 Module | Typical Budget Alternative |
+|-----------|---------------------------|
+| Medium Armor Repairer II | 'Meditation' Medium Armor Repairer I |
+| Multispectrum Energized Membrane II | Multispectrum Coating II |
+| Armor Hardener II | Armor Hardener I |
+| 1600mm Steel Plates II | 1600mm Crystalline Carbonide Restrained Plates |
 
 #### Tank (Shield)
 
-| T2 Module | Budget Alternative | Stat Difference |
-|-----------|-------------------|-----------------|
-| Large Shield Extender II | Large Azeotropic Shield Extender | -5% HP |
-| Adaptive Invulnerability Field II | Adaptive Invulnerability Shield Hardener I | -15% resists |
-| Shield Boost Amplifier II | Shield Boost Amplifier I | -20% boost |
+| T2 Module | Typical Budget Alternative |
+|-----------|---------------------------|
+| Large Shield Extender II | Large Azeotropic Shield Extender |
+| Adaptive Invulnerability Field II | Adaptive Invulnerability Shield Hardener I |
+| Shield Boost Amplifier II | Shield Boost Amplifier I |
 
 #### Drones
 
-| T2 Drone | Budget Alternative | Stat Difference |
-|----------|-------------------|-----------------|
-| Hammerhead II | Hammerhead I | -15% DPS |
-| Hobgoblin II | Hobgoblin I | -15% DPS |
-| Warrior II | Warrior I | -15% DPS |
-| Ogre II | Ogre I | -15% DPS |
-| Salvage Drone II | Salvage Drone I | Same cycle time |
+| T2 Drone | Typical Budget Alternative |
+|----------|---------------------------|
+| Hammerhead II | Hammerhead I |
+| Hobgoblin II | Hobgoblin I |
+| Warrior II | Warrior I |
+| Ogre II | Ogre I |
+| Salvage Drone II | Salvage Drone I |
 
 #### Support Modules
 
-| T2 Module | Budget Alternative | Stat Difference |
-|-----------|-------------------|-----------------|
-| Drone Damage Amplifier II | 'Basic' Drone Damage Amplifier | -8% damage bonus |
-| Ballistic Control System II | Ballistic Control System I | -8% damage bonus |
-| Heat Sink II | Heat Sink I | -8% damage bonus |
-| Cap Recharger II | Cap Recharger I | -10% recharge |
-| 10MN Afterburner II | 10MN Monopropellant Enduring Afterburner | Same speed, worse cap |
-| 10MN Microwarpdrive II | 10MN Y-S8 Compact Microwarpdrive | -3% speed, better fitting |
+| T2 Module | Typical Budget Alternative |
+|-----------|---------------------------|
+| Drone Damage Amplifier II | 'Basic' Drone Damage Amplifier |
+| Ballistic Control System II | Ballistic Control System I |
+| Heat Sink II | Heat Sink I |
+| Cap Recharger II | Cap Recharger I |
+| 10MN Afterburner II | 10MN Monopropellant Enduring Afterburner |
+| 10MN Microwarpdrive II | 10MN Y-S8 Compact Microwarpdrive |
 
 ## Fit Purpose Preservation
 

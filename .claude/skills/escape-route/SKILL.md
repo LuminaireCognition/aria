@@ -1,14 +1,11 @@
 ---
 name: escape-route
 persona_exclusive: paria
-redirect: personas/paria-exclusive/escape-route.md
 ---
 
 # Escape Route
 
 This skill is exclusive to **PARIA** (pirate persona).
-
-**Skill definition:** `personas/paria-exclusive/escape-route.md`
 
 ## Availability
 

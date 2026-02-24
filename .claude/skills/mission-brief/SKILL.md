@@ -17,7 +17,7 @@ requires_pilot: true
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
-  - reference/pve-intel/INDEX.md
+  - reference/pve-intel/cache/INDEX.md
   - reference/mechanics/npc_damage_types.md
   - reference/mechanics/drones.json
   - reference/mechanics/missiles.json
@@ -174,7 +174,7 @@ This skill file has `reference/mechanics/npc_damage_types.md` listed in `data_so
 ## Data Sources
 - **Primary:** Check `reference/pve-intel/` for cached intel (authoritative)
 - **Secondary:** Fetch from wiki.eveuniversity.org using protocol below
-- **Index:** See `reference/pve-intel/INDEX.md` for available intel
+- **Index:** See `reference/pve-intel/cache/INDEX.md` for cached intel
 - **Fitting Format:** See `.claude/skills/fitting/EFT-FORMAT.md` for EFT spec
 
 ## Mission Disambiguation Protocol
@@ -384,7 +384,7 @@ cached, populate the cache first, then read from cache to present.
 │ A. Fetch mission page from wiki.eveuniversity.org               │
 │ B. Extract intel using WebFetch prompt (see below)              │
 │ C. Write cache file: reference/pve-intel/cache/{name}_l{N}.md   │
-│ D. Update INDEX.md with new entry under appropriate faction     │
+│ D. Update reference/pve-intel/cache/INDEX.md under faction       │
 │ E. Confirm cache file exists before proceeding                  │
 └─────────────────────────────────────────────────────────────────┘
                               ↓

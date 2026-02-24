@@ -153,14 +153,26 @@ CURRENT WAR TARGETS:
 
 ## Entity Resolution
 
-When adding entities by name, use ESI to resolve to ID:
+Before adding an entity by name, resolve it to a numeric ID:
 
-```bash
-# Resolve corporation name to ID
-# Use /pilot command or ESI search
+1. Call `sde(action="resolve_names", names=["Entity Name"])` via MCP
+2. Extract the corporation or alliance ID from the response
+3. Pass the numeric ID to the CLI: `watchlist-add "list" <id> --type corporation --entity-name "Entity Name"`
+
+**Example:** Adding "Pandemic Horde" to a watchlist:
+```
+sde(action="resolve_names", names=["Pandemic Horde"])
+→ {"alliances": [{"id": 99003214, "name": "Pandemic Horde"}]}
+
+uv run aria-esi watchlist-add "Hostiles" 99003214 --type alliance --entity-name "Pandemic Horde"
 ```
 
-For now, entities must be added by ID. Future enhancement will support name resolution.
+**MCP unavailable fallback:**
+```bash
+uv run aria-esi resolve-names "Pandemic Horde"
+```
+
+**Note:** The SDE `corporation_info` action only indexes NPC corporations. Player corps and alliances must be resolved via `resolve_names` (which calls ESI `POST /universe/ids/`).
 
 ## Integration with Threat Assessment
 

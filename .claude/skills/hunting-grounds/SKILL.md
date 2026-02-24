@@ -1,14 +1,11 @@
 ---
 name: hunting-grounds
 persona_exclusive: paria
-redirect: personas/paria-exclusive/hunting-grounds.md
 ---
 
 # Hunting Grounds
 
 This skill is exclusive to **PARIA** (pirate persona).
-
-**Skill definition:** `personas/paria-exclusive/hunting-grounds.md`
 
 ## Availability
 

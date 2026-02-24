@@ -110,7 +110,7 @@ Medium Hyperspatial Velocity Optimizer I
 Drone Damage Amplifier I
 Drone Damage Amplifier I
 Armor Repairer I
-Energized Adaptive Nano Membrane I
+Multispectrum Energized Membrane I
 
 50MN Microwarpdrive I
 Large Compact Pb-Acid Cap Battery

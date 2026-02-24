@@ -133,7 +133,7 @@ Medium Cargohold Optimization I
 
 Heat Sink II
 Heat Sink II
-Energized Adaptive Nano Membrane II
+Multispectrum Energized Membrane II
 Medium Armor Repairer II
 Damage Control II
 
