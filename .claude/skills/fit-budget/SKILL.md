@@ -235,7 +235,7 @@ BUDGET FIT (copy to clipboard):
 | T2 Module | Budget Alternative | Stat Difference |
 |-----------|-------------------|-----------------|
 | Medium Armor Repairer II | 'Meditation' Medium Armor Repairer I | -12% rep |
-| Energized Adaptive Nano Membrane II | Adaptive Nano Plating II | -15% resists |
+| Multispectrum Energized Membrane II | Multispectrum Coating II | -15% resists |
 | Armor Hardener II | Armor Hardener I | -10% resist |
 | 1600mm Steel Plates II | 1600mm Crystalline Carbonide Restrained Plates | -8% HP |
 

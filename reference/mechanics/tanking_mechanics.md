@@ -88,7 +88,7 @@ Armor is your second layer and does not regenerate naturally.
 |-------------|--------|---------|------|
 | Armor Repairer | Active repair | Yes | Low |
 | Armor Plate | +Max HP | No | Low |
-| Energized Adaptive Nano Membrane | +All resists | No | Low |
+| Multispectrum Energized Membrane | +All resists | No | Low |
 | Reactive Armor Hardener | +Adaptive resists | Yes | Low |
 | EM/Therm/Kin/Exp Hardener | +Specific resist | Yes | Low |
 | EM/Therm/Kin/Exp Membrane | +Specific resist | No | Low |
@@ -330,7 +330,7 @@ Examples: Armor EM Hardener II, Adaptive Invulnerability Field II
 | **Skill Bonus** | Boosted by Compensation skills |
 | **Best For** | Cap-tight fits, neut-heavy environments |
 
-Examples: Energized EM Membrane II, EANM (Energized Adaptive Nano Membrane)
+Examples: EM Energized Membrane II, Multispectrum Energized Membrane II
 
 ### Coatings/Amplifiers (Passive, Weak)
 

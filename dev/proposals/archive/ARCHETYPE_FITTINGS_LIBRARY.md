@@ -203,7 +203,7 @@ eft: |
   Drone Damage Amplifier I
   Drone Damage Amplifier I
   Medium Armor Repairer I
-  Energized Adaptive Nano Membrane I
+  Multispectrum Energized Membrane I
   Reactive Armor Hardener
 
   50MN Microwarpdrive I
@@ -283,7 +283,7 @@ damage_tuning:
 armor_active:
   serpentis:
     modules:
-      - from: "Energized Adaptive Nano Membrane I"
+      - from: "Multispectrum Energized Membrane I"
         to: "Armor Kinetic Hardener I"
       - from: "Reactive Armor Hardener"
         to: "Armor Thermal Hardener I"
@@ -293,7 +293,7 @@ armor_active:
 
   guristas:
     modules:
-      - from: "Energized Adaptive Nano Membrane I"
+      - from: "Multispectrum Energized Membrane I"
         to: "Armor Kinetic Hardener I"
       - from: "Reactive Armor Hardener"
         to: "Armor Thermal Hardener I"
@@ -303,7 +303,7 @@ armor_active:
 
   blood_raiders:
     modules:
-      - from: "Energized Adaptive Nano Membrane I"
+      - from: "Multispectrum Energized Membrane I"
         to: "Armor EM Hardener I"
       - from: "Reactive Armor Hardener"
         to: "Armor Thermal Hardener I"
@@ -317,7 +317,7 @@ armor_active:
 
   angel_cartel:
     modules:
-      - from: "Energized Adaptive Nano Membrane I"
+      - from: "Multispectrum Energized Membrane I"
         to: "Armor Explosive Hardener I"
       - from: "Reactive Armor Hardener"
         to: "Armor Kinetic Hardener I"
@@ -996,7 +996,7 @@ eft: |
   Drone Damage Amplifier I
   Drone Damage Amplifier I
   Medium Armor Repairer I
-  Energized Adaptive Nano Membrane I
+  Multispectrum Energized Membrane I
   Reactive Armor Hardener
 
   50MN Microwarpdrive I

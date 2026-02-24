@@ -158,7 +158,7 @@ Mid Slots:
 ```
 Low Slots:
 - Large Armor Repairer
-- Energized Adaptive Nano Membrane
+- Multispectrum Energized Membrane
 - [Specific resist hardener based on enemy]
 - Damage Control
 ```

@@ -127,7 +127,7 @@ class TestClassifyTank:
         from aria_esi.fitting.tank_classifier import classify_tank
 
         fit = make_fit(
-            low_slots=["1600mm Rolled Tungsten Compact Armor Plate", "Energized Adaptive Nano Membrane II"],
+            low_slots=["1600mm Rolled Tungsten Compact Armor Plate", "Multispectrum Energized Membrane II"],
         )
 
         assert classify_tank(fit) == "buffer"

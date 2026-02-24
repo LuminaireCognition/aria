@@ -281,7 +281,7 @@ EOS will fail to place module or produce validation error.
 ```
 sde(action="item_info", item="Data Analyzer I") → Valid
 sde(action="item_info", item="Reactive Armor Hardener") → Valid (no "I")
-sde(action="item_info", item="Energized Adaptive Nano Membrane I") → Valid
+sde(action="item_info", item="Multispectrum Energized Membrane I") → Valid
 ```
 
 **Step 3 - Build and Validate:**

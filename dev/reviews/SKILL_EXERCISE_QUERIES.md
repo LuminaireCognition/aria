@@ -100,12 +100,12 @@ A comprehensive catalog of natural language queries designed to exercise each AR
 ### fit-check
 - **ESI:** MED
 - **Queries:**
-  1. "Can I fly this fit and afford it? [Vexor, L2 Mission Runner]\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nMedium Armor Repairer II\nEnergized Adaptive Nano Membrane II\n\n10MN Afterburner II\nCap Recharger II\nCap Recharger II\nLarge Cap Battery II\n\nDrone Link Augmentor I\n\nMedium Auxiliary Nano Pump I\nMedium Auxiliary Nano Pump I\nMedium Nanobot Accelerator I\n\nHammerhead II x5\nHobgoblin II x5"
+  1. "Can I fly this fit and afford it? [Vexor, L2 Mission Runner]\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nMedium Armor Repairer II\nMultispectrum Energized Membrane II\n\n10MN Afterburner II\nCap Recharger II\nCap Recharger II\nLarge Cap Battery II\n\nDrone Link Augmentor I\n\nMedium Auxiliary Nano Pump I\nMedium Auxiliary Nano Pump I\nMedium Nanobot Accelerator I\n\nHammerhead II x5\nHobgoblin II x5"
 
 ### fit-budget
 - **ESI:** MED
 - **Queries:**
-  1. "Make this fit cheaper: [Vexor, L3 Runner]\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nMedium Armor Repairer II\nEnergized Adaptive Nano Membrane II\n\n10MN Afterburner II\nCap Recharger II\nCap Recharger II\nLarge Cap Battery II\n\nDrone Link Augmentor I\n\nMedium Auxiliary Nano Pump I\nMedium Auxiliary Nano Pump I\nMedium Nanobot Accelerator I\n\nHammerhead II x5\nHobgoblin II x5"
+  1. "Make this fit cheaper: [Vexor, L3 Runner]\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nDrone Damage Amplifier II\nMedium Armor Repairer II\nMultispectrum Energized Membrane II\n\n10MN Afterburner II\nCap Recharger II\nCap Recharger II\nLarge Cap Battery II\n\nDrone Link Augmentor I\n\nMedium Auxiliary Nano Pump I\nMedium Auxiliary Nano Pump I\nMedium Nanobot Accelerator I\n\nHammerhead II x5\nHobgoblin II x5"
   2. "Budget version of this fit with a 20M ISK target"
 
 ### gatecamp
