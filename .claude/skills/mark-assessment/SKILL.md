@@ -1,14 +1,11 @@
 ---
 name: mark-assessment
 persona_exclusive: paria
-redirect: personas/paria-exclusive/mark-assessment.md
 ---
 
 # Mark Assessment
 
 This skill is exclusive to **PARIA** (pirate persona).
-
-**Skill definition:** `personas/paria-exclusive/mark-assessment.md`
 
 ## Availability
 

@@ -518,7 +518,10 @@ When a skill is invoked:
 2. **Check `_index.json` for `persona_exclusive`**
    - If set, check if it matches `persona_context.persona` OR `persona_context.fallback`
    - Match → load from `redirect` path
-   - No match → skill unavailable, show stub
+   - No match → skill unavailable. Display the stub from `.claude/skills/{name}/SKILL.md`.
+     **STOP HERE. Do not continue to steps 3-5. The stub is the final output.**
+
+**Stub behavior:** When a persona-exclusive skill returns a stub, accept it at face value. Do not re-read `_index.json`, the redirect path, or the persona manifest to verify the exclusivity decision. The Skill tool has already performed the check.
 
 3. **Load base skill** from `.claude/skills/{name}/SKILL.md`
 

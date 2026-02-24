@@ -1,6 +1,6 @@
 # Skill Round 2 Remaining Issues — Resolution Proposal
 
-**Status:** PROPOSED
+**Status:** IMPLEMENTED (2026-02-24) — doc-only fixes (Changes 1-5)
 **Date:** 2026-02-23
 **Related:** `dev/reviews/SKILL_TEST_RESULTS_ROUND2_2026-02-23.md`, `dev/reviews/SKILL_TEST_SUMMARY_ROUND2_2026-02-23.md`
 
