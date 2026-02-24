@@ -80,11 +80,11 @@ These commands are only available when using the PARIA persona (pirate faction a
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `/escape-route` | PARIA escape route planning for Eve Online pirates. Find fastest routes to safe harbor from current position. | "escape route" |
-| `/hunting-grounds` | PARIA hunting ground analysis for Eve Online pirates. Analyze systems for target availability, traffic patterns, and competition. | "hunting grounds" |
-| `/mark-assessment` | PARIA target evaluation for Eve Online pirates. Assess potential marks based on ship type, likely cargo, and engagement viability. | "mark assessment" |
-| `/ransom-calc` | PARIA ransom calculation for Eve Online pirates. Calculate appropriate ransom amounts based on ship value, cargo, and implants. | "ransom calc" |
-| `/sec-status` | PARIA security status tracking for Eve Online pirates. Monitor sec status, calculate tag costs, and track empire access restrictions. | "sec status" |
+| `/escape-route` |  |  |
+| `/hunting-grounds` |  |  |
+| `/mark-assessment` |  |  |
+| `/ransom-calc` |  |  |
+| `/sec-status` |  |  |
 
 ---
 
