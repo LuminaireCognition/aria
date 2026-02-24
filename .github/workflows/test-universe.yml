@@ -71,42 +71,40 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras
 
-      - name: Check for universe cache
-        id: cache-check
+      - name: Check for universe graph
+        id: graph-check
         run: |
-          if [ -f "src/aria_esi/data/universe_cache.json" ]; then
-            echo "cache_exists=true" >> $GITHUB_OUTPUT
+          if [ -f "src/aria_esi/data/universe.universe" ]; then
+            echo "graph_exists=true" >> $GITHUB_OUTPUT
           else
-            echo "cache_exists=false" >> $GITHUB_OUTPUT
+            echo "graph_exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build universe graph
-        if: steps.cache-check.outputs.cache_exists == 'true'
-        run: |
-          uv run aria-esi graph-build --force
-          uv run aria-esi graph-verify
+      - name: Verify universe graph
+        if: steps.graph-check.outputs.graph_exists == 'true'
+        run: uv run aria-esi graph-verify
 
       - name: Run benchmarks
-        if: steps.cache-check.outputs.cache_exists == 'true'
+        if: steps.graph-check.outputs.graph_exists == 'true'
         run: |
           uv run pytest tests/benchmarks/ -v -m "benchmark" --benchmark-enable --benchmark-json=benchmark.json
 
       - name: Upload benchmark results
-        if: steps.cache-check.outputs.cache_exists == 'true'
+        if: steps.graph-check.outputs.graph_exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
           path: benchmark.json
 
       - name: Skip benchmarks notice
-        if: steps.cache-check.outputs.cache_exists == 'false'
-        run: echo "Benchmarks skipped - universe cache not available"
+        if: steps.graph-check.outputs.graph_exists == 'false'
+        run: echo "Benchmarks skipped - universe graph not available"
 
-  build-graph:
-    name: Build Universe Graph
+  verify-graph:
+    name: Verify Universe Graph
     runs-on: ubuntu-latest
     needs: test
-    # Only build on main branch
+    # Only verify on main branch
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
@@ -122,28 +120,19 @@ jobs:
       - name: Install dependencies
         run: uv sync --all-extras
 
-      - name: Check for universe cache
-        id: cache-check
+      - name: Check for universe graph
+        id: graph-check
         run: |
-          if [ -f "src/aria_esi/data/universe_cache.json" ]; then
-            echo "cache_exists=true" >> $GITHUB_OUTPUT
+          if [ -f "src/aria_esi/data/universe.universe" ]; then
+            echo "graph_exists=true" >> $GITHUB_OUTPUT
           else
-            echo "cache_exists=false" >> $GITHUB_OUTPUT
+            echo "graph_exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build graph
-        if: steps.cache-check.outputs.cache_exists == 'true'
-        run: |
-          uv run aria-esi graph-build --force
-          uv run aria-esi graph-verify
+      - name: Verify graph integrity
+        if: steps.graph-check.outputs.graph_exists == 'true'
+        run: uv run aria-esi graph-verify
 
-      - name: Upload graph artifact
-        if: steps.cache-check.outputs.cache_exists == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: universe-graph
-          path: src/aria_esi/data/universe.universe
-
-      - name: Skip build notice
-        if: steps.cache-check.outputs.cache_exists == 'false'
-        run: echo "Graph build skipped - universe cache not available"
+      - name: Skip verify notice
+        if: steps.graph-check.outputs.graph_exists == 'false'
+        run: echo "Graph verification skipped - universe graph not committed"
