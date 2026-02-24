@@ -14,7 +14,7 @@ import base64
 import json
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Literal
 
 from ..context import log_context, wrap_output
@@ -212,7 +212,7 @@ async def _handle_query(
     limit = min(max(1, limit), 100)
 
     # Calculate time window
-    since = datetime.utcnow() - timedelta(hours=hours)
+    since = datetime.now(UTC) - timedelta(hours=hours)
 
     # Query store
     kills = await store.query_kills(
@@ -238,7 +238,7 @@ async def _handle_query(
     formatted_kills = [
         {
             "kill_id": k.kill_id,
-            "kill_time": datetime.fromtimestamp(k.kill_time).isoformat(),
+            "kill_time": datetime.fromtimestamp(k.kill_time, tz=UTC).isoformat(),
             "system_id": k.solar_system_id,
             "value": k.zkb_total_value,
             "victim_ship_type_id": k.victim_ship_type_id,
@@ -280,7 +280,7 @@ async def _handle_stats(
 
     # Validate parameters
     hours = min(max(1, hours), 168)
-    since = datetime.utcnow() - timedelta(hours=hours)
+    since = datetime.now(UTC) - timedelta(hours=hours)
 
     # Query all kills in window
     kills = await store.query_kills(
@@ -304,7 +304,7 @@ async def _handle_stats(
             groups[sid]["value"] += k.zkb_total_value or 0
     elif group_by == "hour":
         for k in kills:
-            hour = datetime.fromtimestamp(k.kill_time).strftime("%Y-%m-%d %H:00")
+            hour = datetime.fromtimestamp(k.kill_time, tz=UTC).strftime("%Y-%m-%d %H:00")
             if hour not in groups:
                 groups[hour] = {"count": 0, "value": 0}
             groups[hour]["count"] += 1

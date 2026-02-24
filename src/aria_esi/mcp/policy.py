@@ -100,6 +100,7 @@ DEFAULT_ACTION_SENSITIVITY: dict[str, dict[str, SensitivityLevel]] = {
     "skills": {
         "training_time": SensitivityLevel.PUBLIC,
         "easy_80_plan": SensitivityLevel.PUBLIC,
+        "minmax_plan": SensitivityLevel.PUBLIC,
         "get_multipliers": SensitivityLevel.PUBLIC,
         "get_breakpoints": SensitivityLevel.PUBLIC,
         "t2_requirements": SensitivityLevel.PUBLIC,
