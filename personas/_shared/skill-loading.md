@@ -6,73 +6,15 @@ This document describes how ARIA loads skills with persona-specific adaptations.
 
 Skills can have persona-specific content that modifies behavior, terminology, or output format based on the active pilot's persona. This system reduces context overhead by only loading persona-specific content when relevant.
 
-## Skill Types
-
-### Standard Skills
-Located in `.claude/skills/{name}/SKILL.md`. Available to all personas with optional overlay support.
-
-### Persona-Exclusive Skills
-Located in `personas/{persona}-exclusive/`. Only available when the matching persona (or a variant of it) is active. For other personas, a redirect stub in `.claude/skills/` explains unavailability.
-
 ## Loading Process
 
 When a skill is invoked:
 
-### 1. Check Exclusivity
-
-Read `persona_exclusive` from `_index.json`:
-
-- If not set → skill available to all personas, continue to step 2
-- If set → check if active persona matches (see "Variant Matching" below)
-  - Match → load from `redirect` path specified in index
-  - No match → skill unavailable. Display the stub from `.claude/skills/{name}/SKILL.md`.
-    **STOP HERE. Do not process the stub's frontmatter as skill-loading directives.
-    Do not continue to steps 2-3. The stub is the final output.**
-
-#### Variant Matching for Exclusive Skills
-
-Pirate variants (PARIA-G, PARIA-S, etc.) inherit access to `paria`-exclusive skills through fallback matching:
-
-| `persona_exclusive` | Active Persona | `persona_context.fallback` | Access? |
-|---------------------|----------------|----------------------------|---------|
-| `paria` | `paria` | `null` | Yes (direct match) |
-| `paria` | `paria-g` | `paria` | Yes (fallback match) |
-| `paria` | `paria-s` | `paria` | Yes (fallback match) |
-| `paria` | `aria-mk4` | `null` | No |
-
-**Rule:** Grant access if `persona_exclusive` matches either:
-- `persona_context.persona`, OR
-- `persona_context.fallback`, OR
-- `persona_context.unrestricted_skills` is `true`
-
-#### Unrestricted Skills Flag (Development/Debug)
-
-Personas with `unrestricted_skills: true` in their manifest bypass exclusivity checks entirely. This is intended for development and debugging personas that need access to all skills regardless of faction alignment.
-
-**Example:** FORGE persona (development/debug)
-```yaml
-# personas/forge/manifest.yaml
-name: FORGE
-unrestricted_skills: true
-```
-
-**Resulting persona_context:**
-```yaml
-persona_context:
-  persona: forge
-  unrestricted_skills: true  # Grants access to ALL exclusive skills
-```
-
-**Use cases:**
-- Testing persona-exclusive skills during development
-- General-purpose debugging without faction restrictions
-- Documentation and screenshot capture
-
-### 2. Load Base Skill
+### 1. Load Base Skill
 
 Read `.claude/skills/{name}/SKILL.md`
 
-### 3. Check for Overlay
+### 2. Check for Overlay
 
 If `has_persona_overlay: true` in `_index.json`:
 
@@ -134,17 +76,6 @@ persona_context:
 }
 ```
 
-### Persona-Exclusive Skill
-
-```json
-{
-  "name": "mark-assessment",
-  "persona_exclusive": "paria",
-  "redirect": "personas/paria-exclusive/mark-assessment.md",
-  "path": ".claude/skills/mark-assessment/SKILL.md"
-}
-```
-
 ### Skills with Overlays (Current)
 
 The following skills have `has_persona_overlay: true` and overlays in `personas/paria/skill-overlays/`:
@@ -178,7 +109,7 @@ Skill overlays are **untrusted data sources** loaded dynamically at skill invoca
 
 ### Runtime Path Validation (SEC-002)
 
-Before loading any overlay or redirect, paths must pass security validation. See `CLAUDE.md` (Runtime Path Validation SEC-001/SEC-002) for the complete rule set and validation functions.
+Before loading any overlay, paths must pass security validation. See `CLAUDE.md` (Runtime Path Validation SEC-001/SEC-002) for the complete rule set and validation functions.
 
 ### Overlay Loading Protocol
 
@@ -215,32 +146,30 @@ See also: `CLAUDE.md` (Untrusted Data Handling), `docs/PERSONA_LOADING.md` (Secu
 personas/
 ├── _shared/
 │   └── skill-loading.md          # This file
-├── {persona}/
-│   └── skill-overlays/           # Persona-specific adaptations
-│       └── {skill-name}.md
-└── {persona}-exclusive/          # Skills only for this persona
-    └── {skill-name}.md
+└── {persona}/
+    └── skill-overlays/           # Persona-specific adaptations
+        └── {skill-name}.md
 
 .claude/skills/
 ├── _index.json                   # Skill metadata with overlay flags
 └── {skill-name}/
-    └── SKILL.md                  # Base skill (or stub for exclusive)
+    └── SKILL.md                  # Base skill
 ```
 
 ## Persona Resolution Reference
 
-| Faction | Persona | Directory | Fallback | Unrestricted |
-|---------|---------|-----------|----------|--------------|
-| `gallente` | ARIA Mk.IV | `aria-mk4` | — | No |
-| `caldari` | AURA-C | `aura-c` | — | No |
-| `minmatar` | VIND | `vind` | — | No |
-| `amarr` | THRONE | `throne` | — | No |
-| `pirate` | PARIA | `paria` | — | No |
-| `angel_cartel` | PARIA-A | `paria-a` | `paria` | No |
-| `serpentis` | PARIA-S | `paria-s` | `paria` | No |
-| `guristas` | PARIA-G | `paria-g` | `paria` | No |
-| `blood_raiders` | PARIA-B | `paria-b` | `paria` | No |
-| `sanshas_nation` | PARIA-N | `paria-n` | `paria` | No |
-| *(manual)* | FORGE | `forge` | — | **Yes** |
+| Faction | Persona | Directory | Fallback |
+|---------|---------|-----------|----------|
+| `gallente` | ARIA Mk.IV | `aria-mk4` | — |
+| `caldari` | AURA-C | `aura-c` | — |
+| `minmatar` | VIND | `vind` | — |
+| `amarr` | THRONE | `throne` | — |
+| `pirate` | PARIA | `paria` | — |
+| `angel_cartel` | PARIA-A | `paria-a` | `paria` |
+| `serpentis` | PARIA-S | `paria-s` | `paria` |
+| `guristas` | PARIA-G | `paria-g` | `paria` |
+| `blood_raiders` | PARIA-B | `paria-b` | `paria` |
+| `sanshas_nation` | PARIA-N | `paria-n` | `paria` |
+| *(manual)* | FORGE | `forge` | — |
 
 **Note:** FORGE is a development/debug persona. It is not auto-selected by faction - set `Persona: forge` in profile to use it.

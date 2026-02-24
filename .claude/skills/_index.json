@@ -206,15 +206,27 @@
     },
     {
       "name": "escape-route",
-      "persona_exclusive": "paria",
+      "description": "Escape route planning for Eve Online. Find fastest routes to safe harbor from current position.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/escape-route",
+        "escape route",
+        "get me out",
+        "nearest safe",
+        "route to safety",
+        "where can I dock"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-location.read_location.v1"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
       "path": ".claude/skills/escape-route/SKILL.md",
       "directory": "escape-route",
-      "triggers": [],
-      "requires_pilot": false,
-      "data_sources": [],
-      "external_sources": [],
-      "esi_scopes": [],
-      "category": "general"
+      "external_sources": []
     },
     {
       "name": "esi-query",
@@ -464,15 +476,25 @@
     },
     {
       "name": "hunting-grounds",
-      "persona_exclusive": "paria",
+      "description": "Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/hunting-grounds",
+        "hunting grounds",
+        "where should I hunt",
+        "good systems for piracy",
+        "find targets",
+        "busy systems"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
       "path": ".claude/skills/hunting-grounds/SKILL.md",
       "directory": "hunting-grounds",
-      "triggers": [],
-      "requires_pilot": false,
-      "data_sources": [],
       "external_sources": [],
-      "esi_scopes": [],
-      "category": "general"
+      "esi_scopes": []
     },
     {
       "name": "industry-jobs",
@@ -636,15 +658,26 @@
     },
     {
       "name": "mark-assessment",
-      "persona_exclusive": "paria",
+      "description": "Target evaluation for Eve Online. Assess potential marks based on ship type, likely cargo, and engagement viability.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/mark-assessment",
+        "mark assessment",
+        "assess target",
+        "is this worth ganking",
+        "evaluate target",
+        "should I engage"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/ships.md"
+      ],
       "path": ".claude/skills/mark-assessment/SKILL.md",
       "directory": "mark-assessment",
-      "triggers": [],
-      "requires_pilot": false,
-      "data_sources": [],
       "external_sources": [],
-      "esi_scopes": [],
-      "category": "general"
+      "esi_scopes": []
     },
     {
       "name": "mining",
@@ -845,15 +878,24 @@
     },
     {
       "name": "ransom-calc",
-      "persona_exclusive": "paria",
+      "description": "Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants.",
+      "model": "haiku",
+      "category": "financial",
+      "triggers": [
+        "/ransom-calc",
+        "ransom calc",
+        "how much ransom",
+        "ransom for [ship]",
+        "what should I charge"
+      ],
+      "requires_pilot": true,
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
       "path": ".claude/skills/ransom-calc/SKILL.md",
       "directory": "ransom-calc",
-      "triggers": [],
-      "requires_pilot": false,
-      "data_sources": [],
       "external_sources": [],
-      "esi_scopes": [],
-      "category": "general"
+      "esi_scopes": []
     },
     {
       "name": "reactions",
@@ -899,15 +941,28 @@
     },
     {
       "name": "sec-status",
-      "persona_exclusive": "paria",
+      "description": "Security status tracking for Eve Online. Monitor sec status, calculate tag costs, and track empire access restrictions.",
+      "model": "haiku",
+      "category": "identity",
+      "triggers": [
+        "/sec-status",
+        "sec status",
+        "security status",
+        "can I go to high-sec",
+        "empire access",
+        "how much to fix sec",
+        "tag costs"
+      ],
+      "requires_pilot": true,
+      "esi_scopes": [
+        "esi-characters.read_standings.v1"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md"
+      ],
       "path": ".claude/skills/sec-status/SKILL.md",
       "directory": "sec-status",
-      "triggers": [],
-      "requires_pilot": false,
-      "data_sources": [],
-      "external_sources": [],
-      "esi_scopes": [],
-      "category": "general"
+      "external_sources": []
     },
     {
       "name": "ship-next",
@@ -1100,19 +1155,14 @@
       "lp-store",
       "orders",
       "price",
-      "wallet-journal"
-    ],
-    "general": [
-      "escape-route",
-      "hunting-grounds",
-      "mark-assessment",
       "ransom-calc",
-      "sec-status"
+      "wallet-journal"
     ],
     "identity": [
       "aria-status",
       "corp",
       "pilot",
+      "sec-status",
       "standings"
     ],
     "industry": [
@@ -1138,12 +1188,15 @@
     "tactical": [
       "abyssal",
       "clones",
+      "escape-route",
       "fit-budget",
       "fit-check",
       "fitting",
       "gatecamp",
+      "hunting-grounds",
       "killmail",
       "killmails",
+      "mark-assessment",
       "mission-brief",
       "orient",
       "route",
@@ -1207,6 +1260,12 @@
     "corporation status": "corp",
     "corp wallet": "corp",
     "corp blueprints": "corp",
+    "/escape-route": "escape-route",
+    "escape route": "escape-route",
+    "get me out": "escape-route",
+    "nearest safe": "escape-route",
+    "route to safety": "escape-route",
+    "where can i dock": "escape-route",
     "/esi-query": "esi-query",
     "where am i": "orient",
     "current location": "esi-query",
@@ -1273,6 +1332,12 @@
     "what commands are available": "help",
     "how do i...": "help",
     "show me the options": "help",
+    "/hunting-grounds": "hunting-grounds",
+    "hunting grounds": "hunting-grounds",
+    "where should i hunt": "hunting-grounds",
+    "good systems for piracy": "hunting-grounds",
+    "find targets": "hunting-grounds",
+    "busy systems": "hunting-grounds",
     "/industry-jobs": "industry-jobs",
     "my industry jobs": "industry-jobs",
     "manufacturing jobs": "industry-jobs",
@@ -1313,6 +1378,12 @@
     "check mail": "mail",
     "eve mail": "mail",
     "inbox": "mail",
+    "/mark-assessment": "mark-assessment",
+    "mark assessment": "mark-assessment",
+    "assess target": "mark-assessment",
+    "is this worth ganking": "mark-assessment",
+    "evaluate target": "mark-assessment",
+    "should i engage": "mark-assessment",
     "/mining": "mining",
     "my mining ledger": "mining",
     "what have i mined": "mining",
@@ -1367,6 +1438,11 @@
     "what's [item] selling for": "price",
     "market price for [item]": "price",
     "value of [item]": "price",
+    "/ransom-calc": "ransom-calc",
+    "ransom calc": "ransom-calc",
+    "how much ransom": "ransom-calc",
+    "ransom for [ship]": "ransom-calc",
+    "what should i charge": "ransom-calc",
     "/reactions": "reactions",
     "fuel block cost": "reactions",
     "reaction profitability": "reactions",
@@ -1380,6 +1456,13 @@
     "navigate to [system]": "route",
     "safest route to [system]": "route",
     "plot course to [system]": "route",
+    "/sec-status": "sec-status",
+    "sec status": "sec-status",
+    "security status": "sec-status",
+    "can i go to high-sec": "sec-status",
+    "empire access": "sec-status",
+    "how much to fix sec": "sec-status",
+    "tag costs": "sec-status",
     "/ship-next": "ship-next",
     "what ship should i fly next": "ship-next",
     "next ship recommendation": "ship-next",

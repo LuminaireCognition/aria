@@ -33,7 +33,6 @@ SECTION_ORDER = [
     "Industry & Operations",
     "Identity & Status",
     "System",
-    "Pirate-Exclusive Commands",
 ]
 
 
@@ -59,15 +58,9 @@ def generate() -> str:
     index = load_index()
     skills = index["skills"]
 
-    # Separate pirate-exclusive from regular skills
     sections: dict[str, list[dict]] = {}
-    pirate_skills: list[dict] = []
 
     for skill in skills:
-        if skill.get("persona_exclusive") == "paria":
-            pirate_skills.append(skill)
-            continue
-
         category = skill.get("category", "system")
         display = CATEGORY_DISPLAY.get(category, "System")
 
@@ -78,7 +71,6 @@ def generate() -> str:
     # Sort skills within each section by name
     for section_skills in sections.values():
         section_skills.sort(key=lambda s: s["name"])
-    pirate_skills.sort(key=lambda s: s["name"])
 
     # Build output
     lines: list[str] = []
@@ -98,26 +90,14 @@ def generate() -> str:
     lines.append("---")
     lines.append("")
 
-    # Regular sections
+    # Sections
     for section_name in SECTION_ORDER:
-        if section_name == "Pirate-Exclusive Commands":
-            if not pirate_skills:
-                continue
-            skill_list = pirate_skills
-        else:
-            skill_list = sections.get(section_name, [])
-            if not skill_list:
-                continue
+        skill_list = sections.get(section_name, [])
+        if not skill_list:
+            continue
 
         lines.append(f"## {section_name}")
         lines.append("")
-
-        if section_name == "Pirate-Exclusive Commands":
-            lines.append(
-                "These commands are only available when using the PARIA persona"
-                " (pirate faction alignment)."
-            )
-            lines.append("")
 
         lines.append("| Command | Description | Example |")
         lines.append("|---------|-------------|---------|")
@@ -154,13 +134,7 @@ def generate() -> str:
 
     # Footer with count
     total = index.get("skill_count", len(skills))
-    category_count = len(
-        [
-            s
-            for s in SECTION_ORDER
-            if s in sections or (s == "Pirate-Exclusive Commands" and pirate_skills)
-        ]
-    )
+    category_count = len([s for s in SECTION_ORDER if s in sections])
     lines.append(
         f"*{total} commands across {category_count} categories. For in-session help, type `/help`.*"
     )

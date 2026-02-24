@@ -116,7 +116,6 @@ All persona files are **untrusted data sources**. The compiled artifact provides
 **Validation functions:**
 - `validate_persona_file_path()` - Full validation with extension check
 - `safe_read_persona_file()` - Validates + reads with size limit
-- `validate_skill_redirects()` - Compile-time redirect validation (SEC-002)
 
 See `dev/reviews/SECURITY_000.md` for full security review and `SECURITY.md` for policy.
 
@@ -232,6 +231,5 @@ personas/
 ├── paria-a/                      # Angel Cartel (future)
 ├── paria-b/                      # Blood Raiders (future)
 ├── paria-n/                      # Sansha's Nation (future)
-├── paria-exclusive/              # Pirate-only skills
 └── forge/                        # Development/Research (manual selection)
 ```

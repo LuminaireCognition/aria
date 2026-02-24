@@ -127,41 +127,6 @@ Five skills have PARIA overlays: `fitting`, `mission-brief`, `price`, `route`, `
 
 For full overlay mechanics, see [skill-loading.md](../../personas/_shared/skill-loading.md).
 
-## Persona-Exclusive Skills
-
-Some skills only exist for a specific persona (e.g., `/escape-route` is PARIA-only).
-
-### Creating an Exclusive Skill
-
-1. **Write the full skill** in `personas/{persona}-exclusive/{skill-name}.md`
-2. **Create a redirect stub** in `.claude/skills/{skill-name}/SKILL.md`:
-
-```yaml
----
-name: my-exclusive-skill
-persona_exclusive: paria
-redirect: personas/paria-exclusive/my-exclusive-skill.md
-description: Brief description of what this does.
-category: tactical
-triggers:
-  - "/my-exclusive-skill"
-requires_pilot: true
----
-```
-
-```markdown
-# {Skill Name}
-
-This skill is exclusive to the PARIA persona.
-
-When invoked by a non-PARIA user, respond:
-> This command is available to PARIA-aligned pilots only.
-```
-
-3. **Register** with `uv run python .claude/scripts/aria-skill-index.py`
-
-**Example:** See `escape-route` — stub at `.claude/skills/escape-route/SKILL.md`, full skill at `personas/paria-exclusive/escape-route.md`.
-
 ## Registering Your Skill
 
 After creating the skill files, regenerate the index:

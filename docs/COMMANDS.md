@@ -12,12 +12,15 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 |---------|-------------|---------|
 | `/abyssal` | Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats. | "abyssal deadspace" |
 | `/clones` | Clone and implant status tracking. Safety-critical for knowing your medical clone location and active implants before risky operations. | "clone status" |
+| `/escape-route` | Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. | "escape route" |
 | `/fit-budget` | Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions. | "budget version of this fit" |
 | `/fit-check` | Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions. | "can I fly this fit" |
 | `/fitting` | ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. | "fit my [ship]" |
 | `/gatecamp` | Real-time gatecamp detection and intel. Check for active camps in systems or along routes. | "is there a camp in [system]" |
+| `/hunting-grounds` | Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition. | "hunting grounds" |
 | `/killmail` | Analyze individual killmails with enriched tactical context | "analyze killmail" |
 | `/killmails` | Kill and loss history analysis. Post-mortem on ship losses to understand what killed you and how to improve survivability. | "what killed me" |
+| `/mark-assessment` | Target evaluation for Eve Online. Assess potential marks based on ship type, likely cargo, and engagement viability. | "mark assessment" |
 | `/mission-brief` | ARIA tactical intelligence briefing for Eve Online missions. Use for mission analysis, enemy intel, fitting advice, or combat preparation. | "mission brief" |
 | `/orient` | Local area intel for orientation in unknown space. Use after wormhole jumps, filaments, or when dropped into unfamiliar territory. | "orient me" |
 | `/route` | Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance. | "route from [origin] to [destination]" |
@@ -39,6 +42,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/lp-store` | Track LP balances and browse LP store offers. Essential for self-sufficient gameplay where LP store is the primary source of faction items. | "check my LP" |
 | `/orders` | View active market orders and order history. Track buy/sell orders, escrow, and fill status. | "my market orders" |
 | `/price` | EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis. | "price check [item]" |
+| `/ransom-calc` | Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants. | "ransom calc" |
 | `/wallet-journal` | View wallet transaction history and ISK flow analysis. Use for financial tracking, profit/loss analysis, or identifying income sources. | "where did my ISK go" |
 
 ## Industry & Operations
@@ -64,6 +68,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/aria-status` | ARIA operational status report. Use when capsuleer requests status, sitrep, or operational summary. | "status report" |
 | `/corp` | Corporation management and queries. Use for corp status, wallet, assets, blueprints, or industry jobs. | "corp status" |
 | `/pilot` | View pilot identity and configuration. Shows full data for authenticated pilot, public data for others. | "who am I" |
+| `/sec-status` | Security status tracking for Eve Online. Monitor sec status, calculate tag costs, and track empire access restrictions. | "sec status" |
 | `/standings` | Standings tracker and progression planner for agent access, faction requirements, and standing repair strategies. | "my standings" |
 
 ## System
@@ -73,18 +78,6 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/esi-query` | Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings. | "where am I" |
 | `/first-run-setup` | Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue. | "set up my profile" |
 | `/help` | Display available ARIA commands and capabilities. Use when capsuleer needs guidance on what ARIA can do. | "help" |
-
-## Pirate-Exclusive Commands
-
-These commands are only available when using the PARIA persona (pirate faction alignment).
-
-| Command | Description | Example |
-|---------|-------------|---------|
-| `/escape-route` |  |  |
-| `/hunting-grounds` |  |  |
-| `/mark-assessment` |  |  |
-| `/ransom-calc` |  |  |
-| `/sec-status` |  |  |
 
 ---
 
@@ -101,4 +94,4 @@ Multiple commands can chain naturally in conversation — ask a follow-up and AR
 
 ---
 
-*48 commands across 6 categories. For in-session help, type `/help`.*
+*48 commands across 5 categories. For in-session help, type `/help`.*

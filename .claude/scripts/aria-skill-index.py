@@ -167,31 +167,6 @@ def scan_skills(skills_dir: Path) -> list[dict[str, Any]]:
                 warnings.append(f"  {skill_dir.name}: Missing 'name' field")
                 frontmatter["name"] = skill_dir.name
 
-            # Handle persona-exclusive skills: read metadata from redirect target
-            if "redirect" in frontmatter and "persona_exclusive" in frontmatter:
-                redirect_path = project_root / frontmatter["redirect"]
-                if redirect_path.exists():
-                    redirect_content = redirect_path.read_text(encoding="utf-8")
-                    redirect_fm, _ = parse_yaml_frontmatter(redirect_content)
-
-                    if redirect_fm:
-                        # Merge redirect metadata, preserving stub's routing fields
-                        persona_exclusive = frontmatter["persona_exclusive"]
-                        redirect = frontmatter["redirect"]
-
-                        # Copy all fields from redirect (description, triggers, etc.)
-                        for key, value in redirect_fm.items():
-                            if key not in ("name",):  # Keep name from stub
-                                frontmatter[key] = value
-
-                        # Restore routing fields from stub
-                        frontmatter["persona_exclusive"] = persona_exclusive
-                        frontmatter["redirect"] = redirect
-                    else:
-                        warnings.append(f"  {skill_dir.name}: Redirect file has no frontmatter")
-                else:
-                    warnings.append(f"  {skill_dir.name}: Redirect file not found: {redirect_path}")
-
             if "description" not in frontmatter:
                 warnings.append(f"  {skill_dir.name}: Missing 'description' field")
 

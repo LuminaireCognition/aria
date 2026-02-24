@@ -826,33 +826,6 @@ class TestValidatePersonaContextSecurity:
         security_types = [i["type"] for i in result["issues"]["security"]]
         assert "unsafe_overlay_path" in security_types
 
-    def test_rejects_unsafe_redirect_path(self, tmp_path):
-        from aria_esi.commands.persona import validate_persona_context
-
-        context = {
-            "persona": "paria",
-            "fallback": None,
-            "files": [],
-            "skill_overlay_path": "personas/paria/skill-overlays",
-            "overlay_fallback_path": None,
-        }
-
-        skill_index = {
-            "skills": [
-                {
-                    "name": "escape-route",
-                    "persona_exclusive": "paria",
-                    "redirect": "../../../etc/shadow",  # Malicious redirect
-                }
-            ]
-        }
-
-        result = validate_persona_context(context, skill_index, tmp_path)
-
-        assert result["valid"] is False
-        security_types = [i["type"] for i in result["issues"]["security"]]
-        assert "unsafe_redirect_path" in security_types
-
     def test_security_violations_in_summary(self, tmp_path):
         from aria_esi.commands.persona import validate_persona_context
 
@@ -869,38 +842,6 @@ class TestValidatePersonaContextSecurity:
         result = validate_persona_context(context, skill_index, tmp_path)
 
         assert result["summary"]["security_violations"] == 2
-
-    def test_allows_valid_redirect_path(self, tmp_path):
-        from aria_esi.commands.persona import validate_persona_context
-
-        # Create redirect file
-        redirect_dir = tmp_path / "personas" / "paria-exclusive"
-        redirect_dir.mkdir(parents=True)
-        (redirect_dir / "escape-route.md").touch()
-
-        context = {
-            "persona": "paria",
-            "fallback": None,
-            "files": [],
-            "skill_overlay_path": "personas/paria/skill-overlays",
-            "overlay_fallback_path": None,
-        }
-
-        skill_index = {
-            "skills": [
-                {
-                    "name": "escape-route",
-                    "persona_exclusive": "paria",
-                    "redirect": "personas/paria-exclusive/escape-route.md",  # Valid path
-                }
-            ]
-        }
-
-        result = validate_persona_context(context, skill_index, tmp_path)
-
-        assert len(result["issues"]["security"]) == 0
-        assert "personas/paria-exclusive/escape-route.md" in result["validated"]["exclusive_skills"]
-
 
 class TestPersonaCompilerSecurity:
     """Tests for PersonaCompiler security enhancements.

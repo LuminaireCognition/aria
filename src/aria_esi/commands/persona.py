@@ -20,9 +20,6 @@ import yaml
 
 from ..core import get_pilot_directory, get_utc_timestamp
 from ..core.path_security import (
-    validate_persona_file_path,
-)
-from ..core.path_security import (
     validate_persona_path as validate_safe_path,
 )
 from ..persona.compiler import compile_persona_context, verify_persona_artifact
@@ -186,7 +183,6 @@ def build_persona_context(
         rp_level = "off"
 
     # Handle persona override (manual selection via Persona: field)
-    unrestricted_skills = False
     if persona_override:
         manifest_path = base_path / "personas" / persona_override / "manifest.yaml"
         if manifest_path.exists():
@@ -194,7 +190,6 @@ def build_persona_context(
             persona = persona_override
             branch = manifest.get("branch", "empire")
             fallback = manifest.get("fallback")
-            unrestricted_skills = manifest.get("unrestricted_skills", False)
         else:
             # Warn and fall back to faction-based selection
             logging.warning(
@@ -239,7 +234,6 @@ def build_persona_context(
             if fallback and persona != effective_persona
             else None
         ),
-        "unrestricted_skills": unrestricted_skills,
     }
 
     return context
@@ -278,9 +272,6 @@ def update_profile_with_context(profile_path: Path, context: dict) -> str:
     yaml_lines.append(
         f"  overlay_fallback_path: {overlay_fallback if overlay_fallback else 'null'}"
     )
-    # Only include unrestricted_skills if true (dev/debug personas)
-    if context.get("unrestricted_skills"):
-        yaml_lines.append("  unrestricted_skills: true")
 
     yaml_block = "\n".join(yaml_lines)
 
@@ -447,35 +438,11 @@ def cmd_persona_context(args: argparse.Namespace) -> dict:
             }
         )
 
-    # SEC-002: Validate skill redirects at compile time
-    redirect_issues = validate_skill_redirects(base_path)
-    if redirect_issues:
-        import logging
-
-        for issue in redirect_issues:
-            if issue["severity"] == "error":
-                logging.warning(
-                    "SEC-002: Unsafe redirect path in _index.json: %s -> %s (%s)",
-                    issue["skill"],
-                    issue["path"],
-                    issue["error"],
-                )
-            else:
-                logging.info(
-                    "SEC-002: Missing redirect in _index.json: %s -> %s",
-                    issue["skill"],
-                    issue["path"],
-                )
-
     return {
         "query_timestamp": query_ts,
         "status": "success",
         "pilots_processed": len(results),
         "results": results,
-        "redirect_validation": {
-            "issues": redirect_issues,
-            "valid": len([i for i in redirect_issues if i["severity"] == "error"]) == 0,
-        },
     }
 
 
@@ -525,61 +492,6 @@ def load_skill_index(base_path: Path) -> dict | None:
         return json.loads(index_path.read_text())
     except json.JSONDecodeError:
         return None
-
-
-def validate_skill_redirects(base_path: Path) -> list[dict]:
-    """
-    Validate all redirect paths in _index.json at compile time.
-
-    SEC-002: Ensures that skill redirects point to valid, safe paths
-    before they can be used at runtime.
-
-    Args:
-        base_path: Project root path
-
-    Returns:
-        List of validation issues (empty if all valid)
-    """
-    issues = []
-
-    skill_index = load_skill_index(base_path)
-    if not skill_index:
-        return issues  # No index to validate
-
-    skills = skill_index.get("skills", [])
-
-    for skill in skills:
-        skill_name = skill.get("name", "<unnamed>")
-
-        # Validate redirect paths for persona-exclusive skills
-        redirect_path = skill.get("redirect")
-        if redirect_path:
-            is_safe, error = validate_persona_file_path(redirect_path, base_path)
-            if not is_safe:
-                issues.append(
-                    {
-                        "type": "unsafe_redirect",
-                        "skill": skill_name,
-                        "path": redirect_path,
-                        "error": error,
-                        "severity": "error",
-                    }
-                )
-            elif not (base_path / redirect_path).exists():
-                issues.append(
-                    {
-                        "type": "missing_redirect",
-                        "skill": skill_name,
-                        "path": redirect_path,
-                        "error": f"Redirect file not found: {redirect_path}",
-                        "severity": "warning",
-                    }
-                )
-
-        # Validate overlay path patterns (these are directory prefixes)
-        # The actual overlay files are validated during validate_persona_context
-
-    return issues
 
 
 def normalize_rp_level(value: Any) -> str:
@@ -744,7 +656,6 @@ def validate_persona_context(
     validated: dict[str, list[str]] = {
         "persona_files": [],
         "overlays": [],
-        "exclusive_skills": [],
     }
 
     # Add staleness issues if detected
@@ -760,8 +671,6 @@ def validate_persona_context(
                 }
             )
 
-    persona = persona_context.get("persona")
-    fallback = persona_context.get("fallback")
     skill_overlay_path = persona_context.get("skill_overlay_path")
     overlay_fallback_path = persona_context.get("overlay_fallback_path")
     files = persona_context.get("files", [])
@@ -860,47 +769,6 @@ def validate_persona_context(
                 }
             )
 
-    # 3. Validate persona-exclusive skills the user should have access to
-    unrestricted = persona_context.get("unrestricted_skills", False)
-
-    for skill in skills:
-        exclusive_to = skill.get("persona_exclusive")
-        if not exclusive_to:
-            continue
-
-        # Check if this user has access (matches persona, fallback, or unrestricted)
-        has_access = exclusive_to == persona or exclusive_to == fallback or unrestricted
-
-        if has_access:
-            redirect_path = skill.get("redirect")
-            if redirect_path:
-                # Security: validate redirect path before file operations
-                is_safe, security_error = validate_safe_path(redirect_path, base_path)
-                if not is_safe:
-                    issues["security"].append(
-                        {
-                            "type": "unsafe_redirect_path",
-                            "skill": skill["name"],
-                            "path": redirect_path,
-                            "message": f"Unsafe redirect path rejected: {security_error}",
-                            "impact": "Exclusive skill will not be available",
-                        }
-                    )
-                    continue  # Don't check existence of unsafe paths
-
-                if (base_path / redirect_path).exists():
-                    validated["exclusive_skills"].append(redirect_path)
-                else:
-                    issues["errors"].append(
-                        {
-                            "type": "missing_exclusive_skill",
-                            "skill": skill["name"],
-                            "redirect": redirect_path,
-                            "message": f"Exclusive skill '{skill['name']}' redirect not found: {redirect_path}",
-                            "impact": "Skill invocation will fail",
-                        }
-                    )
-
     return {
         "valid": (
             len(issues["errors"]) == 0
@@ -918,10 +786,6 @@ def validate_persona_context(
             "overlays_ok": len(validated["overlays"]),
             "overlays_missing": len(
                 [i for i in issues["warnings"] if i["type"] == "missing_skill_overlay"]
-            ),
-            "exclusive_skills_ok": len(validated["exclusive_skills"]),
-            "exclusive_skills_missing": len(
-                [i for i in issues["errors"] if i["type"] == "missing_exclusive_skill"]
             ),
             "staleness_issues": len(issues["stale"]),
             "security_violations": len(issues["security"]),
