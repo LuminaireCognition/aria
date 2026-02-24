@@ -88,7 +88,6 @@ All file paths from user-editable sources are validated:
 Key functions:
 - `validate_persona_file_path()` - Full validation with extension check
 - `safe_read_persona_file()` - Validates + reads with size limit
-- `validate_skill_redirects()` - Compile-time redirect path validation
 
 ### Data Integrity (`src/aria_esi/core/data_integrity.py`)
 

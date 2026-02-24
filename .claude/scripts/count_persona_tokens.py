@@ -84,13 +84,6 @@ def main():
             base / "paria/skill-overlays/price.md",
             base / "paria/skill-overlays/mission-brief.md",
         ],
-        "paria-exclusive": [
-            base / "paria-exclusive/mark-assessment.md",
-            base / "paria-exclusive/hunting-grounds.md",
-            base / "paria-exclusive/escape-route.md",
-            base / "paria-exclusive/ransom-calc.md",
-            base / "paria-exclusive/sec-status.md",
-        ],
     }
 
     results = {}
@@ -156,11 +149,9 @@ def main():
     print("### Pirate Session (Full RP)")
     paria_base = shared_tokens + totals["by_group"]["paria"]
     paria_with_overlays = paria_base + totals["by_group"]["paria-overlays"]
-    paria_exclusive = totals["by_group"]["paria-exclusive"]
 
     print(f"Base (shared + paria):       {paria_base:>6} tokens")
     print(f"With all skill overlays:     {paria_with_overlays:>6} tokens")
-    print(f"Exclusive skills (separate): {paria_exclusive:>6} tokens")
     print()
 
     # Duplication analysis

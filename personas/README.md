@@ -30,20 +30,13 @@ personas/
 │       ├── price.md
 │       └── mission-brief.md
 │
-├── forge/                  # Development & Research (manual selection)
-│   ├── manifest.yaml
-│   ├── voice.md
-│   ├── intel-sources.md
-│   └── skill-overlays/
-│       ├── journal.md
-│       └── aria-status.md
-│
-└── paria-exclusive/        # Skills only available to PARIA
-    ├── mark-assessment.md
-    ├── hunting-grounds.md
-    ├── ransom-calc.md
-    ├── escape-route.md
-    └── sec-status.md
+└── forge/                  # Development & Research (manual selection)
+    ├── manifest.yaml
+    ├── voice.md
+    ├── intel-sources.md
+    └── skill-overlays/
+        ├── journal.md
+        └── aria-status.md
 ```
 
 ## Activation
@@ -142,15 +135,6 @@ Persona-specific adaptations for multi-persona skills:
 - Only loaded when persona matches
 
 Example: `paria/skill-overlays/threat-assessment.md` changes "Threat Assessment" to "Hunting Ground Analysis" and reframes danger as opportunity.
-
-### {persona}-exclusive/
-
-Skills that only exist for a specific persona:
-- Full skill definitions (not overlays)
-- Base skill location contains redirect stub
-- Unavailable to non-matching personas
-
-Example: `paria-exclusive/mark-assessment.md` is the complete skill; `.claude/skills/mark-assessment/SKILL.md` is just a 18-line redirect stub.
 
 ## Context Loading
 

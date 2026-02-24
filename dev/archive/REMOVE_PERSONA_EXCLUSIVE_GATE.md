@@ -1,7 +1,8 @@
 # Remove Persona-Exclusive Skill Gate
 
-**Status:** PROPOSED
-**Related:** `_index.json`, `personas/paria-exclusive/`, `persona.py`, `skill-loading.md`, `CLAUDE.md`
+**Status:** COMPLETED
+**Implemented:** 2026-02-24 (commit `8221f233`)
+**Related:** `_index.json`, `persona.py`, `skill-loading.md`, `CLAUDE.md`
 
 ---
 
@@ -13,7 +14,7 @@ The `persona_exclusive` mechanism gates 5 skills behind pirate persona selection
 
 ---
 
-## Current Architecture
+## Previous Architecture
 
 ```
 .claude/skills/escape-route/SKILL.md          ← stub (blocks non-paria users)
@@ -21,7 +22,7 @@ personas/paria-exclusive/escape-route.md       ← real skill implementation
 .claude/skills/_index.json                     ← persona_exclusive + redirect fields
 ```
 
-**Loading flow today:**
+**Loading flow (before removal):**
 1. Skill invoked → check `_index.json` for `persona_exclusive`
 2. If set and persona doesn't match → show stub, stop
 3. If set and persona matches → load from `redirect` path
@@ -152,16 +153,35 @@ Replace with a direct "Load base skill" as the new step 2.
 - Remove `test_valid_redirect_passes` (line ~319)
 - Remove `validate_skill_redirects` import and all tests that use it
 
-### 13. Archive/review docs (low priority)
+### 13. Clean `personas/README.md`
 
-These files contain historical references. No code depends on them, but update for consistency:
+- Remove `paria-exclusive/` from the directory tree (lines 41-46)
+- Remove the `{persona}-exclusive/` section (lines 146-153) explaining exclusive skills
 
-- `dev/reviews/PROJECT_REVIEW_2026-01.md` — mention removal in a note
-- `dev/reviews/SECURITY_000.md` — redirect validation no longer applies
-- `dev/reviews/CONTEXT_MANAGEMENT_REVIEW.md` — persona_exclusive check removed from flow
-- `dev/archive/PERSONA_SKILL_SEPARATION.md` — already archived, leave as-is
-- `dev/archive/PERSONA_HIERARCHY_PROPOSAL.md` — already archived, leave as-is
-- `dev/proposals/SKILL_ROUND2_REMAINING_ISSUES.md` — historical, leave as-is
+### 14. Clean `dev/docs/PERSONA_LOADING.md`
+
+- Remove `paria-exclusive/` from the persona directory tree (line 235)
+
+### 15. Clean `.claude/scripts/count_persona_tokens.py`
+
+- Remove `paria-exclusive` group from file groups (lines 87-93)
+- Remove `paria_exclusive` analysis from pirate session section (lines 159, 163)
+
+### 16. Clean `SECURITY.md` and `dev/docs/PERSONA_LOADING.md`
+
+- Remove `validate_skill_redirects()` from key functions lists (deleted function)
+
+### 17. Archive/review docs (low priority, leave as-is)
+
+These files contain historical references. No code depends on them:
+
+- `dev/reviews/PROJECT_REVIEW_2026-01.md` — historical review
+- `dev/reviews/SECURITY_000.md` — historical security review
+- `dev/reviews/CONTEXT_MANAGEMENT_REVIEW.md` — historical flow diagram
+- `dev/planning/REMEDIATION_BACKLOG.md` — completed remediation record (superseded)
+- `CHANGELOG.md` — historical changelog entry for when function was added
+- `dev/archive/*` — already archived
+- `dev/proposals/SKILL_ROUND2_REMAINING_ISSUES.md` — historical
 
 ---
 
@@ -201,6 +221,14 @@ grep -r "persona_exclusive" --include="*.py" --include="*.md" --include="*.json"
 # Verify exclusive directory removed
 test ! -d personas/paria-exclusive && echo "CLEAN"
 ```
+
+---
+
+## Implementation Notes
+
+Steps 1-12 completed in commit `8221f233`. Steps 13-16 completed in follow-up cleanup.
+
+Step 17 (archive/review docs) deferred — these are historical records with no code impact.
 
 ---
 
