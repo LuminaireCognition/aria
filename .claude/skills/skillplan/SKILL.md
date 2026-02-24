@@ -15,7 +15,8 @@ triggers:
   - "max out [ship] skills"
   - "priority training order for [ship]"
 requires_pilot: true
-esi_scopes: [esi-skills.read_skills.v1]
+esi_scopes:
+  - esi-skills.read_skills.v1
 data_sources:
   - reference/activities/skill_plans.yaml
   - reference/skills/ship_efficacy_rules.yaml
