@@ -31,7 +31,7 @@ class TestComputeSecuritySummary:
     """Test compute_security_summary function."""
 
     def test_pure_highsec_route(self, standard_universe):
-        """Highsec route has correct breakdown."""
+        """Highsec route has correct breakdown (origin excluded from jump counts)."""
         from aria_esi.services.navigation.result_builder import compute_security_summary
 
         # Jita (0) -> Perimeter (1) - both highsec
@@ -39,12 +39,12 @@ class TestComputeSecuritySummary:
         summary = compute_security_summary(standard_universe, path)
 
         assert summary.total_jumps == 1
-        assert summary.highsec_jumps == 2  # Both systems are highsec
+        assert summary.highsec_jumps == 1  # Perimeter (origin Jita excluded)
         assert summary.lowsec_jumps == 0
         assert summary.nullsec_jumps == 0
 
     def test_mixed_security_route(self, standard_universe):
-        """Mixed security route has correct breakdown."""
+        """Mixed security route has correct breakdown (origin excluded)."""
         from aria_esi.services.navigation.result_builder import compute_security_summary
 
         # Jita (0) -> Maurasi (2) -> Sivala (4) -> Ala (5)
@@ -53,7 +53,7 @@ class TestComputeSecuritySummary:
         summary = compute_security_summary(standard_universe, path)
 
         assert summary.total_jumps == 3
-        assert summary.highsec_jumps == 2  # Jita, Maurasi
+        assert summary.highsec_jumps == 1  # Maurasi (origin Jita excluded)
         assert summary.lowsec_jumps == 1  # Sivala
         assert summary.nullsec_jumps == 1  # Ala
 
@@ -69,14 +69,16 @@ class TestComputeSecuritySummary:
         assert summary.lowest_security_system == "Ala"
 
     def test_single_system_path(self, standard_universe):
-        """Single system path has zero jumps."""
+        """Single system path has zero jumps and zero per-category counts."""
         from aria_esi.services.navigation.result_builder import compute_security_summary
 
         path = [0]  # Just Jita
         summary = compute_security_summary(standard_universe, path)
 
         assert summary.total_jumps == 0
-        assert summary.highsec_jumps == 1
+        assert summary.highsec_jumps == 0  # No destinations = no jumps
+        assert summary.lowsec_jumps == 0
+        assert summary.nullsec_jumps == 0
 
 
 # =============================================================================
@@ -193,3 +195,57 @@ class TestSecuritySummary:
         assert summary.nullsec_jumps == 1
         assert summary.lowest_security == -0.2
         assert summary.lowest_security_system == "Ala"
+
+
+# =============================================================================
+# Security Summary Consistency Regression Tests
+# =============================================================================
+
+
+class TestSecuritySummaryConsistency:
+    """Regression tests for security summary jump count consistency."""
+
+    def test_per_category_sums_to_total_jumps(self, standard_universe):
+        """highsec_jumps + lowsec_jumps + nullsec_jumps == total_jumps."""
+        from aria_esi.services.navigation.result_builder import compute_security_summary
+
+        # Test multiple routes
+        routes = [
+            [0, 1],           # pure highsec
+            [0, 2, 4, 5],    # mixed
+            [0, 2, 3, 1],    # highsec loop
+            [0],              # single system
+        ]
+
+        for path in routes:
+            summary = compute_security_summary(standard_universe, path)
+            per_category = summary.highsec_jumps + summary.lowsec_jumps + summary.nullsec_jumps
+            assert per_category == summary.total_jumps, (
+                f"Path {path}: per-category sum {per_category} != total_jumps {summary.total_jumps}"
+            )
+
+    def test_origin_excluded_from_jump_counts(self, standard_universe):
+        """Origin system is not counted in per-category jump counts."""
+        from aria_esi.services.navigation.result_builder import compute_security_summary
+
+        # Jita (highsec) -> Sivala (lowsec): 1 jump landing in lowsec
+        # Even though origin is highsec, highsec_jumps should be 0
+        # (assuming direct path exists — use Maurasi as intermediate)
+        path = [0, 2, 4]  # Jita -> Maurasi -> Sivala
+        summary = compute_security_summary(standard_universe, path)
+
+        assert summary.total_jumps == 2
+        assert summary.highsec_jumps == 1  # Maurasi only
+        assert summary.lowsec_jumps == 1   # Sivala only
+
+    def test_origin_included_in_lowest_security(self, standard_universe):
+        """Origin system IS considered for lowest_security tracking."""
+        from aria_esi.services.navigation.result_builder import compute_security_summary
+
+        # Route starting from low-sec: Sivala (0.35) -> Maurasi (0.65) -> Jita (0.95)
+        path = [4, 2, 0]
+        summary = compute_security_summary(standard_universe, path)
+
+        # Lowest security should be Sivala (origin), even though it's excluded from jump counts
+        assert summary.lowest_security == pytest.approx(0.35, abs=0.01)
+        assert summary.lowest_security_system == "Sivala"

@@ -1189,10 +1189,10 @@ class TestTerritoryWeights:
         preferred = {0}
         result = apply_territory_preference(base_weights, standard_universe, preferred)
 
-        # Edges going TO Jita should stay 1.0
-        # Edges going to other systems should be multiplied
+        # Edges touching Jita (either endpoint) stay 1.0
+        # Edges where neither endpoint is in territory get penalized
         for i, edge in enumerate(standard_universe.graph.es):
-            if edge.target in preferred:
+            if edge.source in preferred or edge.target in preferred:
                 assert result[i] == 1.0
             else:
                 assert result[i] == WEIGHT_TERRITORY_PENALTY

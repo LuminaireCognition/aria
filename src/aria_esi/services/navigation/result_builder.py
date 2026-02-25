@@ -48,8 +48,10 @@ def compute_security_summary(
     lowest_sec = 1.0
     lowest_system = ""
 
-    for idx in path:
-        sec = universe.security[idx]
+    # Count per-category jumps (destinations only — skip origin).
+    # "highsec_jumps" = number of jumps that land in high-sec.
+    # The origin is not counted since you don't "jump" to your starting point.
+    for idx in path[1:]:
         sec_class = universe.security_class(idx)
 
         if sec_class == "HIGH":
@@ -59,6 +61,9 @@ def compute_security_summary(
         else:
             nullsec += 1
 
+    # Track lowest security across ALL systems (including origin)
+    for idx in path:
+        sec = universe.security[idx]
         if sec < lowest_sec:
             lowest_sec = sec
             lowest_system = universe.idx_to_name[idx]

@@ -280,23 +280,23 @@ class TestComputeSecuritySummary:
     """Test _compute_security_summary function."""
 
     def test_highsec_only_route(self, mock_universe: UniverseGraph):
-        """Route through high-sec only."""
+        """Route through high-sec only (origin excluded from jump counts)."""
         path = [0, 1, 3]  # Jita -> Perimeter -> Urlen
         summary = _compute_security_summary(mock_universe, path)
 
         assert summary.total_jumps == 2
-        assert summary.highsec_jumps == 3  # Systems, not jumps
+        assert summary.highsec_jumps == 2  # Perimeter, Urlen (origin Jita excluded)
         assert summary.lowsec_jumps == 0
         assert summary.nullsec_jumps == 0
         assert summary.lowest_security >= 0.45
 
     def test_mixed_security_route(self, mock_universe: UniverseGraph):
-        """Route through mixed security space."""
+        """Route through mixed security space (origin excluded from jump counts)."""
         path = [0, 2, 4, 5]  # Jita -> Maurasi -> Sivala -> Ala
         summary = _compute_security_summary(mock_universe, path)
 
         assert summary.total_jumps == 3
-        assert summary.highsec_jumps == 2  # Jita, Maurasi
+        assert summary.highsec_jumps == 1  # Maurasi (origin Jita excluded)
         assert summary.lowsec_jumps == 1  # Sivala
         assert summary.nullsec_jumps == 1  # Ala
         assert summary.lowest_security == pytest.approx(-0.2, rel=0.01)

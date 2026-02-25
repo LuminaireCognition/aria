@@ -139,7 +139,7 @@ class TestCmdRoute:
         assert result["total_jumps"] == 2
         assert result["origin"]["name"] == "Jita"
         assert result["destination"]["name"] == "Urlen"
-        assert result["security_summary"]["high_sec"] == 3
+        assert result["security_summary"]["high_sec"] == 2  # Perimeter, Urlen (origin excluded)
         assert result["security_summary"]["low_sec"] == 0
         assert result["security_summary"]["null_sec"] == 0
         assert result["security_summary"]["threat_level"] == "MINIMAL"
@@ -408,8 +408,8 @@ class TestSecurityClassification:
         with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
-        # Jita (0.95) + Maurasi (0.65) = 2 high-sec
+        # Maurasi (0.65) = 1 high-sec (origin Jita excluded)
         # Sivala (0.35) = 1 low-sec
-        assert result["security_summary"]["high_sec"] == 2
+        assert result["security_summary"]["high_sec"] == 1
         assert result["security_summary"]["low_sec"] == 1
         assert result["security_summary"]["null_sec"] == 0
