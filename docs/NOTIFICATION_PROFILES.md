@@ -140,7 +140,7 @@ quiet_hours:
 commentary:
   enabled: false
   provider: "anthropic"            # "anthropic", "openai", or "gemini"
-  model: "claude-sonnet-4-5-20241022"  # Omit to use provider default
+  model: "claude-sonnet-4-6"  # Omit to use provider default
   timeout_ms: 3000
   max_tokens: 100
   warrant_threshold: 0.3
@@ -319,7 +319,7 @@ Enable LLM-generated tactical commentary for interesting kills:
 commentary:
   enabled: true
   provider: "anthropic"         # "anthropic", "openai", or "gemini"
-  model: "claude-sonnet-4-5-20241022"
+  model: "claude-sonnet-4-6"
   timeout_ms: 3000              # Max generation time
   max_tokens: 100               # Max response length
   warrant_threshold: 0.3        # Pattern significance threshold
@@ -333,7 +333,7 @@ Requires the API key for your chosen provider:
 
 | Provider | Environment Variable | Default Model |
 |----------|---------------------|---------------|
-| `anthropic` | `ANTHROPIC_API_KEY` | `claude-sonnet-4-5-20241022` |
+| `anthropic` | `ANTHROPIC_API_KEY` | `claude-sonnet-4-6` |
 | `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` |
 | `gemini` | `GEMINI_API_KEY` | `gemini-2.0-flash` |
 

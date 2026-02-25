@@ -106,6 +106,79 @@ DIVISION_NAMES: dict[int, str] = {
     37: "Financial",
 }
 
+# =============================================================================
+# SQL Identifier Safety
+# =============================================================================
+
+# Allowlisted SDE column names that may be interpolated into SQL.
+# All column names from SDE tables that the importer queries dynamically.
+_VALID_SDE_IDENTIFIERS: frozenset[str] = frozenset(
+    {
+        # Blueprint tables
+        "blueprintTypeID",
+        "productTypeID",
+        "typeID",
+        "materialTypeID",
+        "quantity",
+        # Corporation tables
+        "corporationID",
+        "corporation_id",
+        "corporationName",
+        "factionID",
+        # Region tables
+        "regionID",
+        "region_id",
+        "regionName",
+        "region_name",
+        # Station tables
+        "stationID",
+        "station_id",
+        "stationName",
+        "station_name",
+        "solarSystemID",
+        "solar_system_id",
+        # Agent tables
+        "agentID",
+        "agent_id",
+        "divisionID",
+        "division_id",
+        "divisionName",
+        "division_name",
+        "agentTypeID",
+        "agent_type_id",
+        "agentType",
+        "agent_type",
+        "locationID",
+        "location_id",
+        "level",
+        "agent_level",
+        # Meta type tables
+        "metaGroupID",
+        "meta_group_id",
+        "metaGroupName",
+        "meta_group_name",
+        "parentTypeID",
+        "parent_type_id",
+        # SQL literals used as column fallbacks
+        "NULL",
+        "1",
+    }
+)
+
+
+def _qi(name: str) -> str:
+    """Validate and quote a SQL identifier against the SDE allowlist.
+
+    Returns the identifier wrapped in double-quotes for safe SQL interpolation.
+    SQL literals ('NULL', '1') are returned unquoted.
+    """
+    if name not in _VALID_SDE_IDENTIFIERS:
+        raise ValueError(f"Unknown SDE identifier: {name!r}")
+    # SQL literals pass through without quoting
+    if name in ("NULL", "1"):
+        return name
+    return f'"{name}"'
+
 
 # =============================================================================
 # Data Classes
@@ -728,7 +801,7 @@ class SDEImporter:
 
             # Activity 1 = Manufacturing
             cursor = sde_conn.execute(f"""
-                SELECT {bp_col}, {prod_col}, {qty_col}
+                SELECT {_qi(bp_col)}, {_qi(prod_col)}, {_qi(qty_col)}
                 FROM industryActivityProducts
                 WHERE activityID = 1
             """)
@@ -779,7 +852,7 @@ class SDEImporter:
 
         # Activity 1 = Manufacturing, 9 = Reactions, 11 = Simple Reactions
         cursor = sde_conn.execute(f"""
-            SELECT {bp_col}, {mat_col}, {qty_col}, activityID
+            SELECT {_qi(bp_col)}, {_qi(mat_col)}, {_qi(qty_col)}, activityID
             FROM industryActivityMaterials
             WHERE activityID IN (1, 9, 11)
         """)
@@ -826,7 +899,7 @@ class SDEImporter:
 
         if has_name:
             cursor = sde_conn.execute(f"""
-                SELECT {corp_id_col}, corporationName, factionID
+                SELECT {_qi(corp_id_col)}, corporationName, factionID
                 FROM crpNPCCorporations
             """)
             batch = []
@@ -845,9 +918,9 @@ class SDEImporter:
 
             if has_inv_names:
                 cursor = sde_conn.execute(f"""
-                    SELECT c.{corp_id_col}, n.itemName, c.{faction_col}
+                    SELECT c.{_qi(corp_id_col)}, n.itemName, c.{_qi(faction_col)}
                     FROM crpNPCCorporations c
-                    LEFT JOIN invNames n ON c.{corp_id_col} = n.itemID
+                    LEFT JOIN invNames n ON c.{_qi(corp_id_col)} = n.itemID
                 """)
                 batch = []
                 for row in cursor:
@@ -856,7 +929,7 @@ class SDEImporter:
             else:
                 # Fallback to placeholder names
                 cursor = sde_conn.execute(f"""
-                    SELECT {corp_id_col}, {faction_col}
+                    SELECT {_qi(corp_id_col)}, {_qi(faction_col)}
                     FROM crpNPCCorporations
                 """)
                 batch = []
@@ -925,9 +998,9 @@ class SDEImporter:
 
         try:
             cursor = sde_conn.execute(f"""
-                SELECT {region_id_col}, {region_name_col}
+                SELECT {_qi(region_id_col)}, {_qi(region_name_col)}
                 FROM mapRegions
-                WHERE {region_name_col} IS NOT NULL
+                WHERE {_qi(region_name_col)} IS NOT NULL
             """)
         except sqlite3.OperationalError as e:
             logger.warning("Could not query mapRegions: %s", e)
@@ -972,13 +1045,13 @@ class SDEImporter:
         try:
             cursor = sde_conn.execute(f"""
                 SELECT
-                    {station_id_col},
-                    {station_name_col},
-                    {system_id_col},
-                    {region_id_col},
-                    {corp_id_col}
+                    {_qi(station_id_col)},
+                    {_qi(station_name_col)},
+                    {_qi(system_id_col)},
+                    {_qi(region_id_col)},
+                    {_qi(corp_id_col)}
                 FROM staStations
-                WHERE {station_name_col} IS NOT NULL
+                WHERE {_qi(station_name_col)} IS NOT NULL
             """)
         except sqlite3.OperationalError as e:
             logger.warning("Could not query staStations: %s", e)
@@ -1305,9 +1378,9 @@ class SDEImporter:
 
             try:
                 cursor = sde_conn.execute(f"""
-                    SELECT {div_id_col}, {div_name_col}
+                    SELECT {_qi(div_id_col)}, {_qi(div_name_col)}
                     FROM crpNPCDivisions
-                    WHERE {div_name_col} IS NOT NULL
+                    WHERE {_qi(div_name_col)} IS NOT NULL
                 """)
                 for row in cursor:
                     div_id = row[0]
@@ -1330,9 +1403,9 @@ class SDEImporter:
 
                 try:
                     cursor = sde_conn.execute(f"""
-                        SELECT DISTINCT {div_col}
+                        SELECT DISTINCT {_qi(div_col)}
                         FROM agtAgents
-                        WHERE {div_col} IS NOT NULL
+                        WHERE {_qi(div_col)} IS NOT NULL
                     """)
                     for row in cursor:
                         div_id = row[0]
@@ -1376,7 +1449,7 @@ class SDEImporter:
 
         try:
             cursor = sde_conn.execute(f"""
-                SELECT {type_id_col}, {type_name_col}
+                SELECT {_qi(type_id_col)}, {_qi(type_name_col)}
                 FROM agtAgentTypes
             """)
         except sqlite3.OperationalError as e:
@@ -1440,45 +1513,45 @@ class SDEImporter:
                 # Full query with name and system resolution
                 cursor = sde_conn.execute(f"""
                     SELECT
-                        a.{agent_id_col},
+                        a.{_qi(agent_id_col)},
                         n.itemName,
-                        a.{div_id_col},
-                        a.{corp_id_col},
-                        a.{loc_id_col},
+                        a.{_qi(div_id_col)},
+                        a.{_qi(corp_id_col)},
+                        a.{_qi(loc_id_col)},
                         s.solarSystemID,
-                        a.{level_col},
-                        a.{type_id_col}
+                        a.{_qi(level_col)},
+                        a.{_qi(type_id_col)}
                     FROM agtAgents a
-                    LEFT JOIN invNames n ON a.{agent_id_col} = n.itemID
-                    LEFT JOIN staStations s ON a.{loc_id_col} = s.stationID
+                    LEFT JOIN invNames n ON a.{_qi(agent_id_col)} = n.itemID
+                    LEFT JOIN staStations s ON a.{_qi(loc_id_col)} = s.stationID
                 """)
             elif has_inv_names:
                 # Query with names but no system resolution
                 cursor = sde_conn.execute(f"""
                     SELECT
-                        a.{agent_id_col},
+                        a.{_qi(agent_id_col)},
                         n.itemName,
-                        a.{div_id_col},
-                        a.{corp_id_col},
-                        a.{loc_id_col},
+                        a.{_qi(div_id_col)},
+                        a.{_qi(corp_id_col)},
+                        a.{_qi(loc_id_col)},
                         NULL as solarSystemID,
-                        a.{level_col},
-                        a.{type_id_col}
+                        a.{_qi(level_col)},
+                        a.{_qi(type_id_col)}
                     FROM agtAgents a
-                    LEFT JOIN invNames n ON a.{agent_id_col} = n.itemID
+                    LEFT JOIN invNames n ON a.{_qi(agent_id_col)} = n.itemID
                 """)
             else:
                 # Minimal query without name resolution
                 cursor = sde_conn.execute(f"""
                     SELECT
-                        {agent_id_col},
+                        {_qi(agent_id_col)},
                         NULL as itemName,
-                        {div_id_col},
-                        {corp_id_col},
-                        {loc_id_col},
+                        {_qi(div_id_col)},
+                        {_qi(corp_id_col)},
+                        {_qi(loc_id_col)},
                         NULL as solarSystemID,
-                        {level_col},
-                        {type_id_col}
+                        {_qi(level_col)},
+                        {_qi(type_id_col)}
                     FROM agtAgents
                 """)
         except sqlite3.OperationalError as e:
@@ -1582,9 +1655,9 @@ class SDEImporter:
 
         try:
             cursor = sde_conn.execute(f"""
-                SELECT {group_id_col}, {group_name_col}
+                SELECT {_qi(group_id_col)}, {_qi(group_name_col)}
                 FROM invMetaGroups
-                WHERE {group_name_col} IS NOT NULL
+                WHERE {_qi(group_name_col)} IS NOT NULL
             """)
         except sqlite3.OperationalError as e:
             logger.warning("Could not query invMetaGroups: %s", e)
@@ -1635,7 +1708,7 @@ class SDEImporter:
 
         try:
             cursor = sde_conn.execute(f"""
-                SELECT {type_id_col}, {parent_col}, {meta_group_col}
+                SELECT {_qi(type_id_col)}, {_qi(parent_col)}, {_qi(meta_group_col)}
                 FROM invMetaTypes
             """)
         except sqlite3.OperationalError as e:

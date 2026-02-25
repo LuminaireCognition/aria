@@ -128,6 +128,20 @@ class TestESIClientBuildUrl:
         assert "flag=secure" in url
         assert "datasource=tranquility" in url
 
+    def test_build_url_encodes_special_characters(self):
+        """Verify query params with special characters are URL-encoded."""
+        from aria_esi.core import ESIClient
+
+        client = ESIClient()
+        url = client._build_url("/test/", params={"name": "a&b=c d", "uni": "café"})
+
+        # Special characters must be percent-encoded, not bare
+        assert "a%26b%3Dc+d" in url or "a%26b%3Dc%20d" in url
+        assert "&" in url  # separator between params
+        assert "datasource=tranquility" in url
+        # Raw unencoded special chars must NOT appear as bare param separators
+        assert "a&b=c" not in url
+
 
 @pytest.mark.httpx
 @pytest.mark.skipif(not HTTPX_AVAILABLE, reason="pytest-httpx not installed")

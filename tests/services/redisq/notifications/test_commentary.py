@@ -378,7 +378,7 @@ class TestCreateCommentaryGenerator:
         ), patch("anthropic.AsyncAnthropic"):
             generator = create_commentary_generator(mock_loader)
 
-        assert generator._model == "claude-sonnet-4-5-20241022"
+        assert generator._model == "claude-sonnet-4-6"
         assert generator._max_tokens == 100
         assert generator._default_timeout_ms == 3000
         assert generator._cost_limit_daily_usd == 1.0

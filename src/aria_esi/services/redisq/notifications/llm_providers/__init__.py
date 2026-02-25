@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 # Provider defaults: model and settings key field per provider
 PROVIDER_DEFAULTS: dict[str, dict[str, str]] = {
-    "anthropic": {"model": "claude-sonnet-4-5-20241022", "key_field": "anthropic_api_key"},
+    "anthropic": {"model": "claude-sonnet-4-6", "key_field": "anthropic_api_key"},
     "openai": {"model": "gpt-4o-mini", "key_field": "openai_api_key"},
     "gemini": {"model": "gemini-2.0-flash", "key_field": "gemini_api_key"},
 }

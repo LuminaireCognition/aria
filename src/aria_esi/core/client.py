@@ -13,6 +13,7 @@ import time
 from dataclasses import dataclass, field
 from email.utils import parsedate_to_datetime
 from typing import Any, Optional, Union
+from urllib.parse import urlencode
 
 import httpx
 
@@ -216,13 +217,8 @@ class ESIClient:
             query_params.update(params)
 
         # Append query string
-        if "?" in url:
-            url += "&"
-        else:
-            url += "?"
-
-        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
-        return url + query_string
+        separator = "&" if "?" in url else "?"
+        return f"{url}{separator}{urlencode(query_params)}"
 
     def _update_rate_limits(self, headers: httpx.Headers) -> None:
         """

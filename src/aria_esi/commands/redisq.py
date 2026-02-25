@@ -1115,8 +1115,8 @@ def register_parsers(subparsers) -> None:
     follow_parser.add_argument(
         "--model",
         type=str,
-        default="claude-sonnet-4-5-20241022",
-        help="LLM model for commentary (default: claude-sonnet-4-5-20241022)",
+        default="claude-sonnet-4-6",
+        help="LLM model for commentary (default: claude-sonnet-4-6)",
     )
     follow_parser.add_argument(
         "--warrant-threshold",

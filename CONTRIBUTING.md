@@ -39,9 +39,8 @@ The most valuable contributions are example configurations for different faction
 To contribute an example:
 1. Create a directory under `examples/` (e.g., `examples/caldari-trader/`)
 2. Include at minimum:
-   - `pilot_profile.md`
-   - `operational_profile.md`
-   - `ship_status.md`
+   - `profile.md`
+   - `operations.md`
 3. Optionally include populated logs with sample data
 4. Submit a pull request
 

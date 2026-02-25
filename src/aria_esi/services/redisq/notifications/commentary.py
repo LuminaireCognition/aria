@@ -63,7 +63,7 @@ __all__ = [
 NO_COMMENTARY_SIGNAL = "NO_COMMENTARY"
 
 # Default model configuration
-DEFAULT_MODEL = "claude-sonnet-4-5-20241022"
+DEFAULT_MODEL = "claude-sonnet-4-6"
 DEFAULT_MAX_TOKENS = 100
 DEFAULT_TIMEOUT_MS = 3000
 
