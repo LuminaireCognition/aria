@@ -206,7 +206,7 @@ class ExpungeTask:
                 logger.info("Expunge task cancelled")
                 break
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.error(
                     "Expunge task error, retrying in %.0fs: %s",
                     backoff,

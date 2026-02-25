@@ -247,7 +247,7 @@ def register_route_tools(server: FastMCP) -> None:
                         kills_data = activity_cache._kills_data.get(system_id)
                         if kills_data:
                             recent_kills = kills_data.ship_kills + kills_data.pod_kills
-                    except Exception:
+                    except Exception:  # noqa: BLE001 -- MCP handler
                         pass
 
                     system_risks.append(
@@ -271,7 +271,7 @@ def register_route_tools(server: FastMCP) -> None:
                 else:
                     warnings.append(f"Unknown system: {system_name}")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             logger.warning("Failed to get universe data: %s", e)
             warnings.append("Could not resolve route systems - universe graph unavailable")
 

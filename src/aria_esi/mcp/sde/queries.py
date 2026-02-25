@@ -16,6 +16,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from ...core.config import get_settings
+from ...core.exceptions import AriaError
 from ...core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -34,13 +35,13 @@ def _is_debug_timing_enabled() -> bool:
 # =============================================================================
 
 
-class SDENotSeededError(Exception):
+class SDENotSeededError(AriaError):
     """Raised when SDE tables are missing from database."""
 
     pass
 
 
-class SDEResolutionError(Exception):
+class SDEResolutionError(AriaError):
     """Raised when type name resolution fails against SDE."""
 
     def __init__(self, message: str, missing_names: list[str] | None = None):
@@ -1140,7 +1141,7 @@ class SDEQueryService:
             try:
                 self.get_corporation_regions(corp_id)
                 stats["corporations"] += 1
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- MCP handler
                 logger.debug("Failed to warm cache for corp %d: %s", corp_id, e)
                 stats["errors"] += 1
 
@@ -1149,7 +1150,7 @@ class SDEQueryService:
             try:
                 self.get_category_id(category_name)
                 stats["categories"] += 1
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- MCP handler
                 logger.debug("Failed to warm cache for category %s: %s", category_name, e)
                 stats["errors"] += 1
 

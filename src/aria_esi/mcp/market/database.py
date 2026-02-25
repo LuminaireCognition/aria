@@ -1335,7 +1335,7 @@ class MarketDatabase:
                 else:
                     aggregates_map[key]["sell"] = side_data
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- MCP handler
                 logger.warning("Failed to parse CSV row: %s", e)
                 continue
 

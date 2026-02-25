@@ -138,7 +138,7 @@ class WorkerSupervisor:
                 worker.start()
                 self._metrics.workers_started += 1
                 logger.info("Started worker for profile: %s", profile.name)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.error(
                     "Failed to start worker for profile %s: %s",
                     profile.name,
@@ -217,7 +217,7 @@ class WorkerSupervisor:
 
             except asyncio.CancelledError:
                 break
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.error("Health check error: %s", e)
 
     async def _handle_failed_worker(self, name: str, worker: NotificationWorker) -> None:
@@ -257,7 +257,7 @@ class WorkerSupervisor:
                 name,
                 restart_count,
             )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.error(
                 "Failed to restart worker '%s': %s",
                 name,

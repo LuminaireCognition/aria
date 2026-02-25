@@ -40,6 +40,7 @@ import re
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 from aria_esi.models.fitting import ParsedDrone, ParsedFit, ParsedModule
 
@@ -54,7 +55,7 @@ logger = get_logger(__name__)
 # =============================================================================
 
 
-class EFTParseError(Exception):
+class EFTParseError(AriaError):
     """Raised when EFT parsing fails."""
 
     def __init__(self, message: str, line_number: int | None = None):

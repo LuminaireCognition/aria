@@ -219,7 +219,7 @@ def suggest_consolidations(
                 if jumps is not None and jumps < best_home_jumps:
                     best_home_jumps = jumps
                     best_home = home
-            except Exception:
+            except Exception:  # noqa: BLE001 -- service handler
                 pass
 
         if best_home:
@@ -234,7 +234,7 @@ def suggest_consolidations(
                 if jumps is not None and jumps < best_hub_jumps:
                     best_hub_jumps = jumps
                     best_hub = hub
-            except Exception:
+            except Exception:  # noqa: BLE001 -- service handler
                 pass
 
         if best_hub:

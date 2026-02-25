@@ -291,7 +291,7 @@ def download_pyfa_staticdata(
                 raise RuntimeError(
                     f"Pinned tag ({pinned_tag or 'none'}) and commit ({pinned_commit[:12]}) "
                     f"are both unavailable. Cannot proceed with --strict-pin."
-                )
+                ) from None
             print("falling back to HEAD...")
 
     elif strict_pin and pinned_tag:
@@ -498,7 +498,7 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
                 "message": str(e),
                 "query_timestamp": query_ts,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             print(f"\n✗ Error: {e}")
             return {
                 "error": "seed_error",

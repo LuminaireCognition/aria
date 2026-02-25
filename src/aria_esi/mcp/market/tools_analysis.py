@@ -100,7 +100,7 @@ def register_analysis_tools(server: FastMCP) -> None:
                     }
                     for p in prices
                 }
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- MCP handler
                 logger.warning("Failed to fetch prices from %s: %s", region, e)
                 region_prices[region] = {}
 

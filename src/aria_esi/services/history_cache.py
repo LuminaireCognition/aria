@@ -148,7 +148,7 @@ class HistoryCacheService:
                     volatility_pct=history_data.get("volatility_pct"),
                     source="history",
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.warning("Failed to fetch history for type %d: %s", type_id, e)
 
         # Fall back to market proxy
@@ -272,7 +272,7 @@ class HistoryCacheService:
                         volatility_pct=history_data.get("volatility_pct"),
                         source="history",
                     )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.debug("Failed to fetch history for type %d: %s", type_id, e)
         return None
 
@@ -337,7 +337,7 @@ class HistoryCacheService:
         except ImportError:
             logger.warning("httpx client not available for history fetch")
             return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             logger.debug("History fetch error: %s", e)
             return None
 

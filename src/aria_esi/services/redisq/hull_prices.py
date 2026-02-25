@@ -76,7 +76,7 @@ class ShipPriceLookup:
                     return
 
                 prices_data = response.json()
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.warning("Failed to fetch ESI prices: %s", e)
             self._loaded = True
             return
@@ -121,7 +121,7 @@ class ShipPriceLookup:
                 (SHIP_CATEGORY_ID,),
             ).fetchall()
             return {row[0] for row in rows}
-        except Exception as e:
+        except (ImportError, RuntimeError) as e:
             logger.warning("Failed to query ship type_ids from SDE: %s", e)
             return set()
 

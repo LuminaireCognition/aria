@@ -239,7 +239,7 @@ def register_search_tools(server: FastMCP) -> None:
             blueprint_count = conn.execute("SELECT COUNT(*) FROM blueprints").fetchone()[0]
             seeding_count = conn.execute("SELECT COUNT(*) FROM npc_seeding").fetchone()[0]
             corp_count = conn.execute("SELECT COUNT(*) FROM npc_corporations").fetchone()[0]
-        except Exception:
+        except Exception:  # noqa: BLE001 -- MCP handler
             return SDEStatusResult(seeded=False).model_dump()
 
         # Get metadata
@@ -254,7 +254,7 @@ def register_search_tools(server: FastMCP) -> None:
             ).fetchone()
             sde_version = version_row[0] if version_row else None
             import_timestamp = timestamp_row[0] if timestamp_row else None
-        except Exception:
+        except Exception:  # noqa: BLE001 -- MCP handler
             pass
 
         return SDEStatusResult(

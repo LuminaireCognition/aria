@@ -19,7 +19,9 @@ class AnthropicProvider:
         try:
             from anthropic import AsyncAnthropic
         except ImportError:
-            raise RuntimeError("anthropic provider requires 'anthropic' package. Run: uv sync")
+            raise RuntimeError(
+                "anthropic provider requires 'anthropic' package. Run: uv sync"
+            ) from None
 
         self._client: Any = AsyncAnthropic(api_key=api_key)
 

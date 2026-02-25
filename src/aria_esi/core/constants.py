@@ -100,7 +100,7 @@ def get_ship_group_ids() -> set[int]:
             # Note: a non-empty but smaller-than-expected set (e.g., CCP removed
             # a ship group) is accepted as valid — the SDE is authoritative.
             _ship_group_ids = sde_result if sde_result else _SHIP_GROUP_IDS_FALLBACK
-        except Exception:
+        except (ImportError, RuntimeError):
             _ship_group_ids = _SHIP_GROUP_IDS_FALLBACK
         return _ship_group_ids
 

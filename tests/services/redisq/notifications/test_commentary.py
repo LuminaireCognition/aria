@@ -9,6 +9,7 @@ import sys
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from aria_esi.services.redisq.models import ProcessedKill
@@ -285,7 +286,7 @@ class TestCommentaryGenerator:
     async def test_generate_commentary_error(self, mock_persona_loader, pattern_context):
         """Test handling errors."""
         mock_provider = AsyncMock()
-        mock_provider.generate = AsyncMock(side_effect=Exception("API Error"))
+        mock_provider.generate = AsyncMock(side_effect=httpx.RequestError("API Error"))
         mock_provider.close = AsyncMock()
 
         generator = CommentaryGenerator(

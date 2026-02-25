@@ -181,7 +181,7 @@ def cmd_sov_status(args: argparse.Namespace) -> dict:
             "query_timestamp": query_ts,
         }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "status_failed",
             "message": str(e),
@@ -311,7 +311,7 @@ def cmd_sov_lookup(args: argparse.Namespace) -> dict:
 
         return result
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "lookup_failed",
             "message": str(e),
@@ -358,7 +358,7 @@ def cmd_sov_coalitions(args: argparse.Namespace) -> dict:
             "query_timestamp": query_ts,
         }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "coalitions_failed",
             "message": str(e),
@@ -491,7 +491,7 @@ def cmd_sov_load_coalitions(args: argparse.Namespace) -> dict:
             "query_timestamp": query_ts,
         }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "load_failed",
             "message": str(e),
@@ -580,7 +580,7 @@ def validate_coalitions_yaml(
 
     try:
         esi_results = fetch_alliances_batch_sync(alliance_ids)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "valid": False,
             "error": "esi_unavailable",

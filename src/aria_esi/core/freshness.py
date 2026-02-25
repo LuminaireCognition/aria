@@ -423,7 +423,7 @@ def is_esi_available(timeout: float = 5.0) -> bool:
 
             get_authenticated_client()
             result_holder[0] = True
-        except Exception as e:
+        except (ImportError, RuntimeError) as e:
             error_holder[0] = e
 
     thread = threading.Thread(target=_probe, daemon=True)
@@ -482,7 +482,7 @@ def ensure_fresh(
     try:
         sync_fn = _resolve_sync_fn(config.sync_fn)
         sync_fn(resolved_dir)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- broad handler
         # Sync failed — return with error
         final = check_freshness(section, resolved_dir)
         return dataclasses.replace(

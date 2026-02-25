@@ -447,7 +447,7 @@ def cmd_redisq_follow(args: argparse.Namespace) -> dict | None:
                                 )
                                 if commentary and persona_loader:
                                     persona_name = persona_loader.get_persona_name()
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001 -- CLI handler
                             logger.warning("Commentary generation failed: %s", e)
                             commentary = None
                             persona_name = None
@@ -602,7 +602,7 @@ def cmd_watchlist_create(args: argparse.Namespace) -> dict:
             "watchlist_id": watchlist.watchlist_id,
             "query_timestamp": get_utc_timestamp(),
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "status": "error",
             "error": str(e),
@@ -642,7 +642,7 @@ def cmd_watchlist_add(args: argparse.Namespace) -> dict:
             },
             "query_timestamp": get_utc_timestamp(),
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "status": "error",
             "error": str(e),
@@ -809,7 +809,7 @@ def cmd_topology_build(args: argparse.Namespace) -> dict:
 
     try:
         interest_map = build_topology(systems, weights, save_cache=True)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "status": "error",
             "error": str(e),

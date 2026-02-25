@@ -345,7 +345,7 @@ def validate_yaml_skill_references(
         from aria_esi.mcp.sde.queries import SDEResolutionError, get_sde_query_service
 
         sde = get_sde_query_service()
-    except Exception:
+    except (ImportError, RuntimeError):
         return []
 
     extractor = YAML_SKILL_EXTRACTORS.get(extractor_key)

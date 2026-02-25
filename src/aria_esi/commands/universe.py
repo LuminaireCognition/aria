@@ -172,7 +172,7 @@ def cmd_loop(args: argparse.Namespace) -> dict:
     # Load graph and call loop planner
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -260,7 +260,7 @@ def cmd_loop(args: argparse.Namespace) -> dict:
             "suggestion": e.suggestion,
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "loop_planning_failed",
             "message": f"Loop planning failed: {e}",
@@ -398,7 +398,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
                     "sha256": checksum,
                     "updated": True,
                 }
-            except Exception as e:
+            except (ImportError, RuntimeError) as e:
                 result["checksum"] = {
                     "error": str(e),
                     "updated": False,
@@ -406,7 +406,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
 
         return result
 
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         return {
             "error": "build_failed",
             "message": f"Build failed: {e}",
@@ -447,7 +447,7 @@ def cmd_graph_verify(args: argparse.Namespace) -> dict:
                 "load_time_ms": round(load_time * 1000, 1),
             }
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "load_failed",
             "message": f"Could not load graph: {e}",
@@ -589,7 +589,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -605,7 +605,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
 
             realtime_cache = get_threat_cache()
             realtime_healthy = realtime_cache.is_healthy()
-        except Exception:
+        except (ImportError, RuntimeError):
             pass  # Silently fall back to hourly-only
 
     try:
@@ -647,7 +647,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
                     try:
                         rt_summary = realtime_cache.get_activity_summary(system_id, system_name)
                         system_data["realtime"] = rt_summary.to_dict()
-                    except Exception:
+                    except Exception:  # noqa: BLE001 -- CLI handler
                         pass  # Non-fatal
 
                 result_systems.append(system_data)
@@ -678,7 +678,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "activity_failed",
             "message": f"Activity query failed: {e}",
@@ -722,7 +722,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -825,7 +825,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "hotspots_failed",
             "message": f"Hotspots search failed: {e}",
@@ -860,7 +860,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -895,7 +895,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
                 "message": f"No route found from {origin} to {destination}",
                 "query_timestamp": query_ts,
             }
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         return {
             "error": "route_failed",
             "message": f"Route calculation failed: {e}",
@@ -912,7 +912,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
 
             realtime_cache = get_threat_cache()
             realtime_healthy = realtime_cache.is_healthy()
-        except Exception:
+        except (ImportError, RuntimeError):
             pass  # Silently fall back to hourly-only
 
     # Analyze gatecamp risk
@@ -966,7 +966,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
                             realtime_camp = realtime_cache.get_gatecamp_status(
                                 system_id, system_name
                             )
-                        except Exception:
+                        except Exception:  # noqa: BLE001 -- CLI handler
                             pass
 
                     # Determine risk level - realtime detection takes precedence
@@ -1075,7 +1075,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "risk_analysis_failed",
             "message": f"Risk analysis failed: {e}",
@@ -1107,7 +1107,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -1135,7 +1135,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
 
         realtime_cache = get_threat_cache()
         realtime_healthy = realtime_cache.is_healthy()
-    except Exception:
+    except (ImportError, RuntimeError):
         pass  # Fall back to hourly-only
 
     try:
@@ -1196,7 +1196,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
                 else:
                     result["gatecamp_detected"] = False
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- CLI handler
                 result["realtime_error"] = str(e)
                 result["gatecamp_detected"] = None  # Unknown
         else:
@@ -1220,7 +1220,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "gatecamp_check_failed",
             "message": f"Gatecamp check failed: {e}",
@@ -1250,7 +1250,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -1352,7 +1352,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "fw_frontlines_failed",
             "message": f"FW frontlines query failed: {e}",
@@ -1383,7 +1383,7 @@ def cmd_activity_cache_status(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "cache_status_failed",
             "message": f"Failed to get cache status: {e}",
@@ -1411,7 +1411,7 @@ def cmd_graph_stats(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(graph_path)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "load_failed",
             "message": f"Could not load graph: {e}",
@@ -1505,7 +1505,7 @@ def cmd_orient(args: argparse.Namespace) -> dict:
     # Load universe graph
     try:
         universe = load_universe_graph()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_not_available",
             "message": str(e),
@@ -1570,7 +1570,7 @@ def cmd_orient(args: argparse.Namespace) -> dict:
                     for system_id, summary in realtime_data.items():
                         if summary.gatecamp:
                             active_camps.append(summary.gatecamp.system_name or str(system_id))
-            except Exception:
+            except (ImportError, RuntimeError):
                 pass
 
         # Classify systems
@@ -1730,7 +1730,7 @@ def cmd_orient(args: argparse.Namespace) -> dict:
             "data_period": "last_hour",
             **result,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "orient_failed",
             "message": f"Local area analysis failed: {e}",

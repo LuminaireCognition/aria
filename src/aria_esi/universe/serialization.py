@@ -39,6 +39,7 @@ from typing import TYPE_CHECKING
 import igraph as ig
 import msgpack
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -56,7 +57,7 @@ _UINT32 = struct.Struct(">I")
 _EDGE_PAIR = struct.Struct(">II")
 
 
-class SerializationError(Exception):
+class SerializationError(AriaError):
     """Error during serialization or deserialization."""
 
     pass

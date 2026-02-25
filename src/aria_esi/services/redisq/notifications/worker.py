@@ -159,7 +159,7 @@ class NotificationWorker:
         except httpx.TimeoutException:
             logger.warning("ESI timeout for kill %d", kill.kill_id)
             return None
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.warning("ESI fetch error for kill %d: %s", kill.kill_id, e)
             return None
 
@@ -255,7 +255,7 @@ class NotificationWorker:
                     self._metrics.consecutive_errors = 0
                 except asyncio.CancelledError:
                     raise
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 -- service handler
                     self._metrics.consecutive_errors += 1
                     self._metrics.total_errors += 1
                     logger.error(
@@ -387,7 +387,7 @@ class NotificationWorker:
                             await self.esi_coordinator.complete_failure(
                                 kill.kill_id, "Fetch returned None", self.name
                             )
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 -- service handler
                         logger.warning("ESI fetch error for kill %d: %s", kill.kill_id, e)
                         await self.esi_coordinator.complete_failure(kill.kill_id, str(e), self.name)
 
@@ -547,7 +547,7 @@ class NotificationWorker:
             resolver = get_name_resolver()
             system_name = resolver.resolve_system_with_fallback(primary_system_id)
             system_name_line = f"📍 {system_name}\n"
-        except Exception:
+        except (ImportError, RuntimeError):
             pass  # Graceful degradation — omit system name line
 
         # Build title

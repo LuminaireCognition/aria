@@ -382,7 +382,7 @@ class ThreatCache:
             age = (datetime.now(UTC).replace(tzinfo=None) - last_poll).total_seconds()
             return age <= POLLER_HEALTHY_MAX_POLL_AGE_SECONDS
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.debug("ThreatCache health check failed: %s", e)
             return False
 
@@ -669,7 +669,7 @@ class ThreatCache:
                 ),
             )
             conn.commit()
-        except Exception as e:
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
             # Non-critical - don't fail on tracking errors
             logger.debug("Failed to save gatecamp detection: %s", e)
 

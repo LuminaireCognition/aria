@@ -102,7 +102,7 @@ def cmd_sde_seed(args: argparse.Namespace) -> dict:
             db, progress_callback, break_glass=break_glass, show_checksum=show_checksum
         )
         db.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         error_type = type(e).__name__
         return {
             "error": "seed_error",
@@ -121,7 +121,7 @@ def cmd_sde_seed(args: argparse.Namespace) -> dict:
             status = importer.get_sde_status()
             source_checksum = status.source_checksum
             db.close()
-        except Exception:
+        except Exception:  # noqa: BLE001 -- CLI handler
             source_checksum = None
 
         if show_checksum and source_checksum:
@@ -186,7 +186,7 @@ def cmd_sde_status(args: argparse.Namespace) -> dict:
         status = importer.get_sde_status()
         db_stats = db.get_stats()
         db.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "database_error",
             "message": f"Failed to read database: {e}",
@@ -330,7 +330,7 @@ def cmd_sde_item(args: argparse.Namespace) -> dict:
                 "query_timestamp": query_ts,
             }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "lookup_error",
             "message": f"Failed to look up item: {e}",
@@ -498,7 +498,7 @@ def cmd_sde_blueprint(args: argparse.Namespace) -> dict:
                 "query_timestamp": query_ts,
             }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- could not find try block
         return {
             "error": "lookup_error",
             "message": f"Failed to look up blueprint: {e}",

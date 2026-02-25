@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 from aria_esi.fitting.skill_registry import (
     BONUS_CORE_SKILL_NAMES,
@@ -86,7 +87,7 @@ def _load_skill_requirements() -> dict[int, dict[int, int]]:
 # =============================================================================
 
 
-class SkillFetchError(Exception):
+class SkillFetchError(AriaError):
     """Raised when skill fetching fails."""
 
     def __init__(self, message: str, is_auth_error: bool = False):

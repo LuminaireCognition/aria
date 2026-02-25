@@ -72,7 +72,7 @@ class TimeSignal(BaseSignalProvider):
         try:
             tz = ZoneInfo(tz_str)
             local_time = kill_time.astimezone(tz)
-        except Exception:
+        except Exception:  # noqa: BLE001 -- service handler
             local_time = kill_time
 
         current_time = local_time.time()
@@ -93,7 +93,7 @@ class TimeSignal(BaseSignalProvider):
                         prefetch_capable=True,
                         raw_value={"time": current_time.isoformat(), "window": label},
                     )
-            except Exception:
+            except Exception:  # noqa: BLE001 -- service handler
                 continue
 
         # Outside all windows
@@ -134,7 +134,7 @@ class TimeSignal(BaseSignalProvider):
         tz_str = config.get("timezone", "UTC")
         try:
             ZoneInfo(tz_str)
-        except Exception:
+        except Exception:  # noqa: BLE001 -- service handler
             errors.append(f"Invalid timezone: '{tz_str}'")
 
         return errors

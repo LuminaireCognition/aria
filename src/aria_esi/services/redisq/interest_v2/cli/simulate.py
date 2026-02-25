@@ -203,7 +203,7 @@ def simulate_profile(
             if kill.kill_time:
                 timestamps.append(kill.kill_time)
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             errors.append(f"Kill {kill.kill_id}: {e}")
             logger.warning(f"Simulation error for kill {kill.kill_id}: {e}")
 

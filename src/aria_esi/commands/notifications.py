@@ -197,7 +197,7 @@ def cmd_notifications_create(args: argparse.Namespace) -> dict[str, Any]:
             persona=persona,
         )
         path = ProfileLoader.save_profile(profile)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "query_timestamp": query_ts,
             "status": "error",
@@ -439,7 +439,7 @@ def cmd_notifications_templates(args: argparse.Namespace) -> dict[str, Any]:
                     ),
                 }
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 -- CLI handler
             template_details.append(
                 {
                     "name": name,

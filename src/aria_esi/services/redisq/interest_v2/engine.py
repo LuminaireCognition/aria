@@ -357,7 +357,7 @@ class InterestEngineV2:
             try:
                 score = provider.score(kill, system_id, merged_config)
                 signal_scores[signal_name] = score
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning(f"Signal {category}.{signal_name} scoring failed: {e}")
                 signal_scores[signal_name] = SignalScore(
                     signal=signal_name,

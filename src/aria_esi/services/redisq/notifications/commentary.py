@@ -12,6 +12,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import TYPE_CHECKING
 
+import httpx
+
 from ....core.logging import get_logger
 
 # Import shared types to avoid circular imports with prompts.py
@@ -508,7 +510,7 @@ class CommentaryGenerator:
             logger.debug("Commentary generation timed out after %dms", timeout_ms)
             return None
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             self._metrics.record_error()
             logger.error("Commentary generation failed: %s", e)
             return None

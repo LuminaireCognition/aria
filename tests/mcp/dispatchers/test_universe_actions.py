@@ -975,7 +975,10 @@ class TestRouteFWWarnings:
         }
         mock_activity_cache.get_all_fw = AsyncMock(return_value=fw_data)
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
+        with (
+            patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache", return_value=mock_activity_cache),
+            patch("aria_esi.mcp.dispatchers.universe._helpers_route.get_activity_cache", return_value=mock_activity_cache),
+        ):
             result = asyncio.run(
                 universe_dispatcher(
                     action="route",
@@ -993,7 +996,10 @@ class TestRouteFWWarnings:
         """Route not through FW systems has no FW warnings."""
         mock_activity_cache.get_all_fw = AsyncMock(return_value={})
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache", return_value=mock_activity_cache):
+        with (
+            patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache", return_value=mock_activity_cache),
+            patch("aria_esi.mcp.dispatchers.universe._helpers_route.get_activity_cache", return_value=mock_activity_cache),
+        ):
             result = asyncio.run(
                 universe_dispatcher(
                     action="route",

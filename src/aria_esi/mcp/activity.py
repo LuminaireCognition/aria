@@ -16,6 +16,8 @@ import time
 from dataclasses import dataclass
 from typing import Any, Literal
 
+import httpx
+
 from ..core.logging import get_logger
 
 logger = get_logger("aria_universe.activity")
@@ -230,7 +232,7 @@ class ActivityCache:
                 }
                 self._kills_timestamp = time.time()
                 logger.debug("Refreshed kills cache: %d systems", len(self._kills_data))
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             # On error, keep stale data (better than nothing)
             logger.warning("Failed to refresh kills cache: %s", e)
 
@@ -246,7 +248,7 @@ class ActivityCache:
                 self._jumps_data = {item["system_id"]: item.get("ship_jumps", 0) for item in data}
                 self._jumps_timestamp = time.time()
                 logger.debug("Refreshed jumps cache: %d systems", len(self._jumps_data))
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.warning("Failed to refresh jumps cache: %s", e)
 
     async def _refresh_fw(self) -> None:
@@ -271,7 +273,7 @@ class ActivityCache:
                 }
                 self._fw_timestamp = time.time()
                 logger.debug("Refreshed FW cache: %d systems", len(self._fw_data))
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.warning("Failed to refresh FW cache: %s", e)
 
 

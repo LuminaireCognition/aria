@@ -49,7 +49,7 @@ def get_ship_group_ids_from_sde() -> Optional[set[int]]:
         return None
     try:
         return _ship_group_ids_provider()
-    except Exception:
+    except Exception:  # noqa: BLE001 -- broad handler
         return None
 
 
@@ -59,7 +59,7 @@ def get_station_name_from_sde(station_id: int) -> Optional[str]:
         return None
     try:
         return _station_name_provider(station_id)
-    except Exception:
+    except Exception:  # noqa: BLE001 -- broad handler
         return None
 
 

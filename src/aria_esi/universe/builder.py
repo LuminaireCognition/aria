@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING
 import igraph as ig
 import numpy as np
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 
 from .graph import UniverseGraph
@@ -41,7 +42,7 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-class UniverseBuildError(Exception):
+class UniverseBuildError(AriaError):
     """Error building or loading universe graph."""
 
     pass
@@ -79,13 +80,13 @@ def build_universe_graph(
         raise UniverseBuildError(
             f"Universe cache not found: {cache_path}\n"
             "Run 'uv run aria-esi universe --build' to generate it."
-        )
+        ) from None
     except json.JSONDecodeError as e:
         raise UniverseBuildError(
             f"Invalid JSON in universe cache: {cache_path}\n"
             f"Parse error: {e}\n"
             "The cache file may be corrupted. Try rebuilding with 'uv run aria-esi universe --build'."
-        )
+        ) from e
 
     # Validate required keys
     required_keys = ["systems", "stargates"]
@@ -331,7 +332,7 @@ def load_universe_graph(
                 verify_universe_graph_integrity(graph_path)
             except IntegrityError:
                 raise
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- broad handler
                 logger.warning("Integrity check failed with unexpected error: %s", e)
 
         try:

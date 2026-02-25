@@ -448,7 +448,7 @@ def _get_system_info(system_id: int) -> tuple[float | None, str | None]:
         if graph and system_id in graph.systems:
             system = graph.systems[system_id]
             return (system.security, system.name)
-    except Exception:
+    except (ImportError, RuntimeError):
         pass
 
     return (None, None)

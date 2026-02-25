@@ -191,7 +191,7 @@ def main() -> int:
         )
         return 0
 
-    except Exception as e:
+    except (json.JSONDecodeError, KeyError, ValueError) as e:
         print(json.dumps({"status": "error", "message": str(e)}))
         return 1
 

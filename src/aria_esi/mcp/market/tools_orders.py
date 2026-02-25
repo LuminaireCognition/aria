@@ -20,6 +20,7 @@ from aria_esi.models.market import (
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
+import httpx
 
 logger = get_logger("aria_market.tools_orders")
 
@@ -121,7 +122,7 @@ def register_order_tools(server: FastMCP) -> None:
                     )
                     if isinstance(data, list):
                         buy_orders = data
-                except Exception as e:
+                except (httpx.HTTPStatusError, httpx.RequestError, TimeoutError, ValueError) as e:
                     logger.warning("Failed to fetch buy orders: %s", e)
                     warnings.append(f"Buy orders unavailable: {e}")
 
@@ -133,11 +134,11 @@ def register_order_tools(server: FastMCP) -> None:
                     )
                     if isinstance(data, list):
                         sell_orders = data
-                except Exception as e:
+                except (httpx.HTTPStatusError, httpx.RequestError, TimeoutError, ValueError) as e:
                     logger.warning("Failed to fetch sell orders: %s", e)
                     warnings.append(f"Sell orders unavailable: {e}")
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ConnectionError, ValueError) as e:
             return {
                 "error": {
                     "code": "ESI_UNAVAILABLE",

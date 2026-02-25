@@ -17,6 +17,8 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
+import httpx
+
 from aria_esi.core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -376,7 +378,7 @@ class MarketCache:
             from aria_esi.mcp.esi_client import get_async_esi_client
 
             client = await get_async_esi_client()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- MCP handler
             logger.warning("ESI client not available: %s", e)
             return []
 
@@ -390,7 +392,7 @@ class MarketCache:
                 )
                 if isinstance(data, list):
                     all_orders.extend(data)
-            except Exception as e:
+            except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                 logger.debug("Failed to fetch sell orders: %s", e)
 
         if order_type in ("buy", "all"):
@@ -401,7 +403,7 @@ class MarketCache:
                 )
                 if isinstance(data, list):
                     all_orders.extend(data)
-            except Exception as e:
+            except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                 logger.debug("Failed to fetch buy orders: %s", e)
 
         return all_orders
@@ -450,7 +452,7 @@ class MarketCache:
                 logger.debug("Fetched %d prices from Fuzzwork", len(results))
                 return results
 
-            except Exception as e:
+            except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                 self._fuzzwork.last_error = str(e)
                 logger.warning("Fuzzwork fetch failed: %s", e)
                 return []
@@ -521,7 +523,7 @@ class MarketCache:
             from aria_esi.mcp.esi_client import get_async_esi_client
 
             client = await get_async_esi_client()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- MCP handler
             logger.warning("ESI client not available: %s", e)
             return []
 
@@ -542,7 +544,7 @@ class MarketCache:
                     )
                     if isinstance(data, list):
                         buy_orders = data
-                except Exception as e:
+                except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                     logger.debug("Failed to fetch buy orders for %d: %s", type_id, e)
 
                 try:
@@ -552,7 +554,7 @@ class MarketCache:
                     )
                     if isinstance(data, list):
                         sell_orders = data
-                except Exception as e:
+                except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                     logger.debug("Failed to fetch sell orders for %d: %s", type_id, e)
 
                 # Aggregate buy orders
@@ -579,7 +581,7 @@ class MarketCache:
                     )
                 )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- could not find try block
                 logger.warning("Failed to fetch ESI prices for %d: %s", type_id, e)
 
         return results
@@ -619,7 +621,7 @@ class MarketCache:
         # Standard deviation
         try:
             stddev_val = calc_stdev(prices) if len(prices) > 1 else 0.0
-        except Exception:
+        except Exception:  # noqa: BLE001 -- MCP handler
             stddev_val = None
 
         return PriceAggregate(
@@ -707,7 +709,7 @@ class MarketCache:
             logger.debug("Got %d prices from database cache", len(results))
             return results
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             logger.warning("Database cache read failed: %s", e)
             return []
 
@@ -781,7 +783,7 @@ class MarketCache:
             logger.debug("Got %d prices from async database cache", len(results))
             return results
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             logger.warning("Async database cache read failed: %s", e)
             return []
 

@@ -181,7 +181,7 @@ class KillFilter:
                 region_id = graph.systems[system_id].region_id
                 self._system_regions[system_id] = region_id
                 return region_id
-        except Exception:
+        except (ImportError, RuntimeError):
             pass
 
         return None

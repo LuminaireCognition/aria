@@ -11,13 +11,14 @@ from __future__ import annotations
 
 import asyncio
 import json
-from dataclasses import dataclass, field
-from email.utils import parsedate_to_datetime
 from typing import TYPE_CHECKING, Any, Optional, Union
+from urllib.parse import urlencode
 
 import httpx
 
+from .client import ESIResponse as AsyncESIResponse
 from .constants import ESI_BASE_URL, ESI_DATASOURCE
+from .exceptions import AriaError
 from .logging import get_logger
 from .retry import (
     RETRYABLE_STATUS_CODES,
@@ -31,75 +32,11 @@ logger = get_logger(__name__)
 
 
 # =============================================================================
-# Response Types
-# =============================================================================
-
-
-@dataclass
-class AsyncESIResponse:
-    """
-    ESI response with headers for conditional requests.
-
-    Used by get_with_headers() to capture HTTP response headers
-    like Last-Modified, Expires, and X-Pages for caching and pagination.
-    """
-
-    data: dict | list | None
-    """Parsed JSON response body."""
-
-    headers: dict[str, str] = field(default_factory=dict)
-    """HTTP response headers (case-insensitive keys normalized to title case)."""
-
-    status_code: int = 200
-    """HTTP status code."""
-
-    @property
-    def last_modified_timestamp(self) -> int | None:
-        """Parse Last-Modified header to Unix timestamp."""
-        header = self.headers.get("Last-Modified") or self.headers.get("last-modified")
-        if not header:
-            return None
-        try:
-            dt = parsedate_to_datetime(header)
-            return int(dt.timestamp())
-        except (ValueError, TypeError):
-            return None
-
-    @property
-    def expires_timestamp(self) -> int | None:
-        """Parse Expires header to Unix timestamp."""
-        header = self.headers.get("Expires") or self.headers.get("expires")
-        if not header:
-            return None
-        try:
-            dt = parsedate_to_datetime(header)
-            return int(dt.timestamp())
-        except (ValueError, TypeError):
-            return None
-
-    @property
-    def x_pages(self) -> int | None:
-        """Parse X-Pages header for pagination."""
-        header = self.headers.get("X-Pages") or self.headers.get("x-pages")
-        if not header:
-            return None
-        try:
-            return int(header)
-        except (ValueError, TypeError):
-            return None
-
-    @property
-    def is_not_modified(self) -> bool:
-        """Check if response was 304 Not Modified."""
-        return self.status_code == 304
-
-
-# =============================================================================
 # Exceptions
 # =============================================================================
 
 
-class AsyncESIError(Exception):
+class AsyncESIError(AriaError):
     """Exception raised for async ESI API errors."""
 
     def __init__(
@@ -264,8 +201,7 @@ class AsyncESIClient:
         if params:
             query_params.update(params)
 
-        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
-        return f"{endpoint}?{query_string}"
+        return f"{endpoint}?{urlencode(query_params)}"
 
     def _update_rate_limits(self, headers: Mapping[str, str]) -> None:
         """Update rate limit tracking from ESI response headers."""
@@ -530,30 +466,3 @@ class AsyncESIClient:
 
         except httpx.RequestError as e:
             raise AsyncESIError(f"Network error: {e}") from e
-
-
-# =============================================================================
-# Convenience Functions
-# =============================================================================
-
-
-async def create_async_client(
-    token: Optional[str] = None,
-    timeout: float = 30.0,
-) -> AsyncESIClient:
-    """
-    Create and enter an async ESI client context.
-
-    This is a convenience function for when you need the client
-    outside of an async with block. Remember to call aclose().
-
-    Args:
-        token: OAuth access token for authenticated requests
-        timeout: Request timeout in seconds
-
-    Returns:
-        Initialized AsyncESIClient (must call aclose() when done)
-    """
-    client = AsyncESIClient(token=token, timeout=timeout)
-    await client.__aenter__()
-    return client

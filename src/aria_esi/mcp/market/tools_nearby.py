@@ -11,6 +11,8 @@ import asyncio
 from collections import deque
 from typing import TYPE_CHECKING, Literal
 
+import httpx
+
 from aria_esi.core.logging import get_logger
 from aria_esi.mcp.market.cache import MarketCache, get_market_cache
 from aria_esi.mcp.market.database import get_market_database
@@ -91,7 +93,7 @@ async def fetch_region_orders(
         orders = await cache.get_regional_orders(region_id, type_id, order_type)
         return (region_id, orders)
 
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError) as e:
         logger.debug("Failed to fetch orders for region %d: %s", region_id, e)
         return (region_id, [])
 
@@ -384,7 +386,7 @@ async def _find_nearby_impl(
     try:
         _region_id, origin_orders = await fetch_region_orders(origin_region_id, type_id, order_type)
         all_orders.extend(origin_orders)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler
         logger.warning("Failed to fetch orders from origin region: %s", e)
         had_region_failures = True
 
@@ -422,7 +424,7 @@ async def _find_nearby_impl(
                         if region_name not in regions_searched_names:
                             regions_searched_names.append(region_name)
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- MCP handler
                 logger.warning("Failed to fetch orders from neighbor regions: %s", e)
                 had_region_failures = True
 
@@ -442,7 +444,7 @@ async def _find_nearby_impl(
                 if item_price.type_id == type_id:
                     jita_reference_price = item_price.sell.min_price if item_price.sell else None
                     break
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError) as e:
         logger.debug("Could not fetch Jita reference price: %s", e)
 
     # Step 7: Filter and process orders
@@ -634,10 +636,10 @@ def resolve_station_name(station_id: int) -> str | None:
             ).fetchone()
             if row:
                 return row["station_name"]
-        except Exception:
+        except Exception:  # noqa: BLE001 -- MCP handler
             pass  # Table doesn't exist or other error
 
-    except Exception:
+    except Exception:  # noqa: BLE001 -- MCP handler
         pass
 
     return None

@@ -511,7 +511,7 @@ class ArbitrageEngine:
                 history_results = await history_service.get_daily_volumes_batch(history_items)
                 for type_id, result in history_results.items():
                     history_data[type_id] = (result.daily_volume, result.source)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning("Failed to fetch history data: %s", e)
 
         opportunities = []
@@ -635,7 +635,7 @@ class ArbitrageEngine:
                         len(resolved_scopes),
                     )
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning("Failed to process scope opportunities: %s", e)
 
         # Calculate hauling scores if cargo capacity is provided

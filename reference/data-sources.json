@@ -5,8 +5,8 @@
       "url_template": "https://www.fuzzwork.co.uk/dump/sqlite-{version}.sqlite.bz2",
       "url_latest": "https://www.fuzzwork.co.uk/dump/sqlite-latest.sqlite.bz2",
       "pinned_version": "latest",
-      "sha256": null,
-      "last_verified": null
+      "sha256": "95a5e77975403115ac251b5707dc940e6f1379a8b331aae7e509b5c80dc73167",
+      "last_verified": "2026-02-25T19:05:10.107724+00:00"
     },
     "eos": {
       "repository": "https://github.com/pyfa-org/Pyfa.git",

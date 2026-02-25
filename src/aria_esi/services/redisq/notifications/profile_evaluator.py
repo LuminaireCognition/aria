@@ -145,7 +145,7 @@ class ProfileEvaluator:
                     profile.name,
                     profile.interest.get("preset"),
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.error(
                     "Failed to build v2 engine for profile '%s': %s. Profile will be disabled for evaluation.",
                     profile.name,
@@ -415,7 +415,7 @@ class ProfileEvaluator:
                 "interest_result": interest_result,
             }
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             logger.error(
                 "Error evaluating v2 profile '%s' for kill %d: %s",
                 profile.name,

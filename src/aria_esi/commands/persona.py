@@ -365,7 +365,7 @@ def cmd_persona_context(args: argparse.Namespace) -> dict:
                 pilots_to_process.append(
                     {"id": pilot_id or "active", "directory": pilot_dir.name, "path": pilot_dir}
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- CLI handler
             return {
                 "query_timestamp": query_ts,
                 "status": "error",
@@ -846,7 +846,7 @@ def cmd_validate_overlays(args: argparse.Namespace) -> dict:
                         "path": pilot_dir,
                     }
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- CLI handler
             return {
                 "query_timestamp": query_ts,
                 "status": "error",
@@ -957,7 +957,7 @@ def cmd_verify_persona_context(args: argparse.Namespace) -> dict:
     pilot_id = getattr(args, "pilot", None)
     try:
         pilot_dir = get_pilot_directory(pilot_id)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "query_timestamp": query_ts,
             "status": "error",

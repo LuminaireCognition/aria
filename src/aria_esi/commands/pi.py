@@ -129,7 +129,7 @@ def cmd_cache_planets(args: argparse.Namespace) -> dict:
             planets = fetch_system_planets_sync(system_id, esi)
             service.add_system(system_name, system_id, planets)
             cached += 1
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- CLI handler
             errors.append({"system": system_name, "error": str(e)})
 
     # Save cache
@@ -378,7 +378,7 @@ def _calculate_distances_from_home(
 
         universe = load_universe_graph()
         nav = NavigationService(universe)
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         logger.warning(f"Could not load universe graph: {e}")
         return {}
 

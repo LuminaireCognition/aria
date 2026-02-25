@@ -111,7 +111,7 @@ class UniverseServer:
             # Validate YAML skill references after SDE is confirmed available
             self._validate_yaml_configs()
 
-        except Exception as e:
+        except (ImportError, RuntimeError) as e:
             # Don't fail server startup due to cache warming issues
             logger.debug("SDE cache warming skipped (non-fatal): %s", e)
 
@@ -135,7 +135,7 @@ class UniverseServer:
                 warnings = validate_yaml_skill_references(data, source, extractor_key)
                 for w in warnings:
                     logger.warning(w)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- MCP handler
                 logger.debug("YAML validation for %s skipped: %s", source, e)
 
     def run(self) -> None:

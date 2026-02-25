@@ -202,7 +202,7 @@ def analyze_territory(
     # Load universe for region mapping
     try:
         universe = load_universe_graph()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- service handler
         return {
             "entity_name": entity_name,
             "entity_type": entity_type,

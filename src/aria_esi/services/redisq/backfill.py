@@ -125,7 +125,7 @@ async def backfill_from_zkillboard(
                     processed = parse_esi_killmail(esi_data, zkb_data)
                     db.save_kill(processed)
                     processed_kills.append(processed)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 -- service handler
                     logger.warning("Failed to parse kill %d: %s", kill_id, e)
 
             # Rate limiting
@@ -169,7 +169,7 @@ async def _fetch_zkb_kills(
                 # Rate limiting
                 await asyncio.sleep(1.0 / ZKB_RATE_LIMIT)
 
-            except Exception as e:
+            except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                 logger.warning("Failed to fetch region %d: %s", region_id, e)
                 continue
     else:
@@ -178,7 +178,7 @@ async def _fetch_zkb_kills(
             response = await client.get(ZKB_ALL_KILLS_URL)
             if response.status_code == 200:
                 all_kills = response.json()
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.warning("Failed to fetch all kills: %s", e)
 
     return all_kills[:max_kills]
@@ -209,7 +209,7 @@ async def _fetch_esi_killmail(
         else:
             logger.debug("ESI returned %d for kill %d", response.status_code, kill_id)
             return None
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         logger.debug("ESI fetch failed for kill %d: %s", kill_id, e)
         return None
 

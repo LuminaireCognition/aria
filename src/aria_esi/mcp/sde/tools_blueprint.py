@@ -328,7 +328,7 @@ def _get_blueprint_sources(conn, blueprint_type_id: int) -> list[BlueprintSource
     # Get the query service for dynamic region lookups
     try:
         query_service = get_sde_query_service()
-    except Exception:
+    except Exception:  # noqa: BLE001 -- SDE query
         query_service = None
 
     for row in cursor.fetchall():

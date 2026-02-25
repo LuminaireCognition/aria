@@ -184,7 +184,7 @@ def get_skill_registry() -> SkillRegistry | None:
                 e.missing_names,
             )
             return None
-        except Exception as e:
+        except (ImportError, RuntimeError) as e:
             _registry_attempted = True
             logger.warning("Skill registry unavailable (SDE infrastructure): %s", e)
             return None

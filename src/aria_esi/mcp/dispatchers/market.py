@@ -20,6 +20,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal
 
+import httpx
+
 from ..context import log_context, wrap_output, wrap_output_multi
 from ..context_policy import MARKET
 from ..errors import InvalidParameterError
@@ -580,7 +582,7 @@ async def _orders(
                 )
                 if isinstance(data, list):
                     buy_orders = data
-            except Exception as e:
+            except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                 warnings.append(f"Buy orders unavailable: {e}")
 
         if order_type in ("all", "sell"):
@@ -591,10 +593,10 @@ async def _orders(
                 )
                 if isinstance(data, list):
                     sell_orders = data
-            except Exception as e:
+            except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                 warnings.append(f"Sell orders unavailable: {e}")
 
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         return {"error": {"code": "ESI_UNAVAILABLE", "message": f"ESI client error: {e}"}}
 
     buy_orders.sort(key=lambda x: x.get("price", 0), reverse=True)
@@ -876,7 +878,7 @@ async def _spread(items: list[str] | list[dict] | str | None, regions: list[str]
                 }
                 for p in prices
             }
-        except Exception:
+        except Exception:  # noqa: BLE001 -- MCP handler
             region_prices[region] = {}
 
     item_spreads: list[ItemSpread] = []

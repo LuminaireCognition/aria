@@ -451,7 +451,7 @@ class NotificationProfile:
 
             config = InterestConfigV2.from_dict(self.interest)
             return config.validate()
-        except Exception as e:
+        except (ImportError, RuntimeError) as e:
             return [f"Failed to parse interest config: {e}"]
 
     @property

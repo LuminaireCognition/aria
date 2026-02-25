@@ -234,7 +234,7 @@ class ChainResolver:
         # Get blueprint info for the top-level product
         try:
             blueprint_info = self.sde_lookup(product_name)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.warning("Failed to look up blueprint for %s: %s", product_name, e)
             # Return a terminal node
             return self._make_terminal_result(product_name, f"No blueprint found: {e}")
@@ -319,7 +319,7 @@ class ChainResolver:
         if blueprint_info is None:
             try:
                 blueprint_info = self.sde_lookup(type_name)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.debug("No blueprint for %s: %s", type_name, e)
                 blueprint_info = None
 
@@ -389,7 +389,7 @@ class ChainResolver:
                 for item in prices["items"]:
                     if item.get("type_name") == type_name:
                         return item.get("sell_min") or item.get("sell_percentile")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.debug("Failed to get price for %s: %s", type_name, e)
         return None
 

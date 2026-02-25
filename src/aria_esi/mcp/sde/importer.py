@@ -21,6 +21,7 @@ from aria_esi.core.data_integrity import (
     IntegrityError,
     compute_sha256,
     get_pinned_sde_url,
+    is_break_glass_enabled,  # noqa: F401 -- patched by tests
     update_sde_checksum,
     verify_sde_integrity,
 )
@@ -366,7 +367,7 @@ class SDEImporter:
             logger.info("Auto-pinning SDE checksum: %s...", actual_checksum[:16])
             try:
                 update_sde_checksum(compressed_path)
-            except Exception as pin_err:
+            except Exception as pin_err:  # noqa: BLE001 -- MCP handler
                 logger.warning("Failed to auto-pin SDE checksum: %s", pin_err)
 
         # Decompress
@@ -565,7 +566,7 @@ class SDEImporter:
 
                 get_sde_query_service().invalidate_all()
                 logger.info("SDE query caches invalidated")
-            except Exception:
+            except (ImportError, RuntimeError):
                 pass  # Service may not be initialized yet
 
             result.success = True
@@ -579,7 +580,7 @@ class SDEImporter:
                 result.blueprints_imported,
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             logger.error("SDE import failed: %s", e)
             result.error = str(e)
             result.import_time_seconds = time.time() - start_time
@@ -1942,7 +1943,7 @@ def seed_sde(
         result.import_time_seconds = import_result.import_time_seconds
         result.error = import_result.error
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler
         result.error = str(e)
         logger.error("SDE seed failed: %s", e)
 

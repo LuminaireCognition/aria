@@ -395,7 +395,7 @@ def classify_http_error(
     try:
         if error.fp:
             error_body = error.read().decode("utf-8", errors="replace")
-    except Exception:
+    except (OSError, ValueError):
         pass
 
     # Parse error message

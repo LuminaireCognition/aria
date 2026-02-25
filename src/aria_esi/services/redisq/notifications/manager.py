@@ -141,7 +141,7 @@ class NotificationManager:
                 len(self._profiles),
             )
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.error("Failed to load notification profiles: %s", e)
             self._profiles = []
             self._evaluator = None
@@ -219,7 +219,7 @@ class NotificationManager:
                     profile.name,
                 )
                 return None
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.error(
                 "Failed to create commentary generator for profile '%s': %s",
                 profile.name,
@@ -299,7 +299,7 @@ class NotificationManager:
                 )
                 return commentary, persona_name
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.error(
                 "Commentary generation failed for profile '%s': %s",
                 profile.name,
@@ -350,14 +350,14 @@ class NotificationManager:
         for url, client in self._clients.items():
             try:
                 await client.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning("Error closing webhook client for %s: %s", url[:50], e)
 
         # Close all commentary generators
         for name, generator in self._commentary_generators.items():
             try:
                 await generator.close()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning("Error closing commentary generator for %s: %s", name, e)
 
         self._clients.clear()
@@ -396,7 +396,7 @@ class NotificationManager:
 
             except asyncio.CancelledError:
                 break
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.error("Error in notification process loop: %s", e)
                 await asyncio.sleep(5)  # Back off on error
 
@@ -512,7 +512,7 @@ class NotificationManager:
                 resolver = get_name_resolver()
                 system_name = resolver.resolve_system_with_fallback(primary_system_id)
                 system_name_line = f"📍 {system_name}\n"
-            except Exception:
+            except (ImportError, RuntimeError):
                 pass
 
         rls = profile.rate_limit_strategy
@@ -620,7 +620,7 @@ class NotificationManager:
                         len(pattern_context.patterns),
                         pattern_context.warrant_score(),
                     )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.error("Pattern detection failed for kill %d: %s", kill.kill_id, e)
                 pattern_context = None
 

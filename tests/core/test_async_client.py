@@ -10,7 +10,6 @@ from aria_esi.core.async_client import (
     AsyncESIClient,
     AsyncESIError,
     AsyncESIResponse,
-    create_async_client,
 )
 
 
@@ -235,14 +234,6 @@ class TestAsyncESIClientAsync:
         with pytest.raises(AsyncESIError, match="Client not initialized"):
             await client.get("/test/")
 
-    async def test_create_async_client_helper(self):
-        """Test create_async_client convenience function."""
-        client = await create_async_client()
-
-        try:
-            assert client._client is not None
-        finally:
-            await client.__aexit__(None, None, None)
 
 
 # Skip all tests in this class if pytest-httpx is not installed

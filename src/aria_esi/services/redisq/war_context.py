@@ -196,7 +196,7 @@ class WarContextProvider:
             logger.info("Loaded %d war relationships from database", loaded)
             return loaded
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             logger.warning("Failed to load war relationships: %s", e)
             return 0
 
@@ -260,7 +260,7 @@ class WarContextProvider:
             )
             conn.commit()
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- could not find try block
             logger.debug("Failed to save war relationship: %s", e)
 
     def add_relationship(self, relationship: WarRelationship) -> None:
@@ -521,7 +521,7 @@ class WarContextProvider:
                         (cutoff,),
                     )
                     conn.commit()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.debug("Failed to cleanup war relationships: %s", e)
 
         if stale_keys:

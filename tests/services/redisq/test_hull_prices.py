@@ -197,7 +197,7 @@ class TestGetShipTypIds:
 
         with patch(
             "aria_esi.mcp.market.database.get_market_database",
-            side_effect=Exception("No SDE"),
+            side_effect=RuntimeError("No SDE"),
         ):
             result = lookup._get_ship_type_ids()
 

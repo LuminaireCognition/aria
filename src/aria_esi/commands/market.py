@@ -16,6 +16,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+import httpx
+
 from ..core import (
     ESIClient,
     ESIError,
@@ -233,7 +235,7 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
         client = FuzzworkClient()
         csv_data = client.download_bulk_csv_sync()
         print(f"Downloaded {len(csv_data) / 1024 / 1024:.1f} MB", file=sys.stderr)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "download_error",
             "message": f"Failed to download bulk data: {e}",
@@ -245,7 +247,7 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
     try:
         db = MarketDatabase()
         types_count, aggregates_count = db.import_fuzzwork_csv(csv_data)
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError) as e:
         return {
             "error": "import_error",
             "message": f"Failed to import data: {e}",
@@ -283,7 +285,7 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
             if all_names:
                 names_resolved = db.update_type_names(all_names)
 
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         print(f"Warning: Failed to resolve type names: {e}", file=sys.stderr)
 
     db.close()
@@ -328,7 +330,7 @@ def cmd_market_status(args: argparse.Namespace) -> dict:
         db = MarketDatabase()
         stats = db.get_stats()
         db.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "database_error",
             "message": f"Failed to read database: {e}",
@@ -391,7 +393,7 @@ def cmd_price_batch(args: argparse.Namespace) -> dict:
     try:
         with open(file_path) as f:
             item_names = [line.strip() for line in f if line.strip()]
-    except Exception as e:
+    except (OSError, ValueError) as e:
         return {
             "error": "file_error",
             "message": f"Failed to read file: {e}",
@@ -452,7 +454,7 @@ def cmd_price_batch(args: argparse.Namespace) -> dict:
     client = create_client(hub_name, station_only=True)
     try:
         aggregates = client.get_aggregates_sync(type_ids)
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         db.close()
         return {
             "error": "fuzzwork_error",

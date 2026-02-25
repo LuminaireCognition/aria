@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ..core.config import get_settings
+from ..core.exceptions import AriaError
 from ..core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -139,7 +140,7 @@ DEFAULT_ACTION_SENSITIVITY: dict[str, dict[str, SensitivityLevel]] = {
 # =============================================================================
 
 
-class PolicyError(Exception):
+class PolicyError(AriaError):
     """Base exception for policy errors."""
 
     pass

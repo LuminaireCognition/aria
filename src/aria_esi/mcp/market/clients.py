@@ -15,6 +15,7 @@ import gzip
 import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
+from urllib.parse import quote, urlencode
 
 import httpx
 
@@ -24,6 +25,14 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 logger = get_logger(__name__)
+
+
+def _quote_comma_safe(
+    s: str, safe: str = "", encoding: str | None = None, errors: str | None = None
+) -> str:
+    """URL-encode preserving commas (used for Fuzzwork types parameter)."""
+    return quote(s, safe=safe + ",")
+
 
 # =============================================================================
 # Constants
@@ -145,13 +154,14 @@ class FuzzworkClient:
             Full URL with query parameters
         """
         types_param = ",".join(str(t) for t in type_ids)
-        url = f"{FUZZWORK_BASE_URL}{FUZZWORK_AGGREGATES_ENDPOINT}"
-        url += f"?region={self.region_id}&types={types_param}"
-
+        params: dict[str, str | int] = {
+            "region": self.region_id,
+            "types": types_param,
+        }
         if self.station_id:
-            url += f"&station={self.station_id}"
+            params["station"] = self.station_id
 
-        return url
+        return f"{FUZZWORK_BASE_URL}{FUZZWORK_AGGREGATES_ENDPOINT}?{urlencode(params, quote_via=_quote_comma_safe)}"  # type: ignore[arg-type]
 
     def get_aggregates_sync(
         self,

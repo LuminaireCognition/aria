@@ -16,6 +16,7 @@ from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -36,7 +37,7 @@ MANIFEST_PATH = Path(__file__).parent.parent.parent.parent / "reference" / "data
 # =============================================================================
 
 
-class IntegrityError(Exception):
+class IntegrityError(AriaError):
     """
     Raised when data integrity verification fails.
 

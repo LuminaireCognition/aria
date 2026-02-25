@@ -10,12 +10,19 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..core.exceptions import AriaError
 from ..services.loop_planning.errors import (
     InsufficientBordersError as _ServiceInsufficientBordersError,
 )
+from ..services.navigation.errors import (
+    RouteNotFoundError as _ServiceRouteNotFoundError,
+)
+from ..services.navigation.errors import (
+    SystemNotFoundError as _ServiceSystemNotFoundError,
+)
 
 
-class UniverseError(Exception):
+class UniverseError(AriaError):
     """Base exception for universe queries."""
 
     code: str = "UNIVERSE_ERROR"
@@ -35,36 +42,35 @@ class UniverseError(Exception):
         return {}
 
 
-class SystemNotFoundError(UniverseError):
-    """Raised when a system name cannot be resolved."""
+class SystemNotFoundError(UniverseError, _ServiceSystemNotFoundError):
+    """
+    Raised when a system name cannot be resolved.
+
+    Inherits from both UniverseError (for MCP error formatting)
+    and the service-level SystemNotFoundError (for attribute compatibility).
+    """
 
     code = "SYSTEM_NOT_FOUND"
 
     def __init__(self, name: str, suggestions: list[str] | None = None):
-        self.name = name
-        self.suggestions = suggestions or []
-        msg = f"Unknown system: {name}"
-        if self.suggestions:
-            msg += f". Did you mean: {', '.join(self.suggestions)}?"
-        super().__init__(msg)
+        _ServiceSystemNotFoundError.__init__(self, name, suggestions)
 
     def _error_data(self) -> dict[str, Any]:
         return {"suggestions": self.suggestions}
 
 
-class RouteNotFoundError(UniverseError):
-    """Raised when no route exists between systems."""
+class RouteNotFoundError(UniverseError, _ServiceRouteNotFoundError):
+    """
+    Raised when no route exists between systems.
+
+    Inherits from both UniverseError (for MCP error formatting)
+    and the service-level RouteNotFoundError (for attribute compatibility).
+    """
 
     code = "ROUTE_NOT_FOUND"
 
     def __init__(self, origin: str, destination: str, reason: str | None = None):
-        self.origin = origin
-        self.destination = destination
-        self.reason = reason
-        msg = f"No route from {origin} to {destination}"
-        if reason:
-            msg += f": {reason}"
-        super().__init__(msg)
+        _ServiceRouteNotFoundError.__init__(self, origin, destination, reason)
 
     def _error_data(self) -> dict[str, Any]:
         return {

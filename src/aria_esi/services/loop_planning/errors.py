@@ -7,8 +7,10 @@ These errors are independent of the transport layer (MCP, CLI, etc.).
 
 from __future__ import annotations
 
+from aria_esi.core.exceptions import AriaError
 
-class LoopPlanningError(Exception):
+
+class LoopPlanningError(AriaError):
     """Base exception for loop planning operations."""
 
     pass

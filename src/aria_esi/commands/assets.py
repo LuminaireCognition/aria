@@ -340,7 +340,7 @@ def _save_asset_snapshot(
             "total_value": total_value,
             "has_insights": insights_summary is not None,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "saved": False,
             "error": str(e),

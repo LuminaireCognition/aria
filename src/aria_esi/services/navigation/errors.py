@@ -7,8 +7,10 @@ These errors are independent of the transport layer (MCP, CLI, etc.).
 
 from __future__ import annotations
 
+from aria_esi.core.exceptions import AriaError
 
-class NavigationError(Exception):
+
+class NavigationError(AriaError):
     """Base exception for navigation operations."""
 
     pass
@@ -30,6 +32,10 @@ class RouteNotFoundError(NavigationError):
 class SystemNotFoundError(NavigationError):
     """Raised when a system cannot be resolved."""
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, suggestions: list[str] | None = None):
         self.name = name
-        super().__init__(f"Unknown system: {name}")
+        self.suggestions = suggestions or []
+        msg = f"Unknown system: {name}"
+        if self.suggestions:
+            msg += f". Did you mean: {', '.join(self.suggestions)}?"
+        super().__init__(msg)

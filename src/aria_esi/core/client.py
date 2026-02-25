@@ -18,6 +18,7 @@ from urllib.parse import urlencode
 import httpx
 
 from .constants import ESI_BASE_URL, ESI_DATASOURCE
+from .exceptions import AriaError
 from .retry import (
     RetryableESIError,
     classify_httpx_error,
@@ -91,7 +92,7 @@ class ESIResponse:
         return self.status_code == 304
 
 
-class ESIError(Exception):
+class ESIError(AriaError):
     """Exception raised for ESI API errors."""
 
     def __init__(
@@ -185,14 +186,6 @@ class ESIClient:
     ) -> None:
         """Exit context manager and close client."""
         self.close()
-
-    def __del__(self) -> None:
-        """Cleanup on garbage collection (opportunistic)."""
-        if hasattr(self, "_http_client") and self._http_client is not None:
-            try:
-                self._http_client.close()
-            except Exception:
-                pass
 
     def _build_url(self, endpoint: str, params: Optional[dict[str, Any]] = None) -> str:
         """
@@ -871,7 +864,7 @@ class ESIClient:
             sde_name = get_station_name_from_sde(station_id)
             if sde_name:
                 return sde_name
-        except Exception:
+        except (ImportError, RuntimeError):
             pass
 
         # Fallback to ESI API

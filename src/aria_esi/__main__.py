@@ -10,6 +10,8 @@ import argparse
 import json
 import sys
 
+import httpx
+
 from .core import get_utc_timestamp
 
 
@@ -347,7 +349,7 @@ def cmd_test_core(args: argparse.Namespace) -> dict:
         results["checks"].append({"test": "formatters_basic", "status": "ok"})
     except AssertionError as e:
         results["checks"].append({"test": "formatters_basic", "status": "error", "message": str(e)})
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         results["checks"].append({"test": "formatters_basic", "status": "error", "message": str(e)})
 
     # Test ESI client (public endpoint)
@@ -364,7 +366,7 @@ def cmd_test_core(args: argparse.Namespace) -> dict:
             results["checks"].append(
                 {"test": "esi_client_public", "status": "warning", "message": "Unexpected response"}
             )
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         results["checks"].append(
             {"test": "esi_client_public", "status": "error", "message": str(e)}
         )
@@ -391,7 +393,7 @@ def cmd_test_core(args: argparse.Namespace) -> dict:
                     "message": "No credentials configured (expected for first run)",
                 }
             )
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         results["checks"].append({"test": "credentials", "status": "error", "message": str(e)})
 
     # Determine overall status
@@ -595,7 +597,7 @@ def main() -> int:
     except KeyboardInterrupt:
         print("\nInterrupted", file=sys.stderr)
         return 130
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- broad handler
         output_error(str(e), error_type="command_error", command=args.command)
         return 1
 

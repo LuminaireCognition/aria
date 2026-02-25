@@ -369,7 +369,7 @@ class TopologyBuilder:
                     if path_indices:
                         path_names = [self.graph.idx_to_name[p] for p in path_indices]
                         routes[f"{name1} -> {name2}"] = path_names
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 -- service handler
                     logger.debug("Failed to calculate route %s -> %s: %s", name1, name2, e)
 
         return routes

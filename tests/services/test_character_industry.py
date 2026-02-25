@@ -2,6 +2,7 @@
 Tests for Character Industry Service.
 """
 
+import httpx
 import pytest
 from unittest.mock import Mock
 
@@ -89,7 +90,7 @@ class TestGetCharacterBlueprints:
     def test_handles_esi_error(self):
         """Should return empty list on ESI error."""
         mock_client = Mock()
-        mock_client.get.side_effect = Exception("ESI Error")
+        mock_client.get.side_effect = httpx.RequestError("ESI Error")
 
         blueprints = get_character_blueprints(123456789, mock_client)
 
@@ -206,7 +207,7 @@ class TestGetCharacterIndustrySkills:
     def test_handles_esi_error(self):
         """Should return empty dict on ESI error."""
         mock_client = Mock()
-        mock_client.get.side_effect = Exception("ESI Error")
+        mock_client.get.side_effect = httpx.RequestError("ESI Error")
 
         skills = get_character_industry_skills(123456789, mock_client)
 

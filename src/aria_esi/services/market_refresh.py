@@ -18,6 +18,8 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+import httpx
+
 from aria_esi.core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -323,7 +325,7 @@ class MarketRefreshService:
                 )
                 return items_updated, duration_ms, None
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 if status:
                     status.is_refreshing = False
                     status.last_error = str(e)
@@ -387,7 +389,7 @@ class MarketRefreshService:
         except TimeoutError:
             fuzzwork_error = f"Fuzzwork request timed out after {REFRESH_TIMEOUT_SECONDS}s"
             logger.warning(fuzzwork_error)
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             fuzzwork_error = f"Fuzzwork request failed: {e}"
             logger.warning(fuzzwork_error)
 
@@ -494,7 +496,7 @@ class MarketRefreshService:
             from aria_esi.mcp.esi_client import get_async_esi_client
 
             client = await get_async_esi_client()
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.warning("ESI client not available for fallback: %s", e)
             return {}
 
@@ -511,7 +513,7 @@ class MarketRefreshService:
                     )
                     if isinstance(data, list):
                         buy_orders = data
-                except Exception as e:
+                except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                     logger.debug("ESI buy orders failed for %d: %s", type_id, e)
 
                 # Fetch sell orders
@@ -523,13 +525,13 @@ class MarketRefreshService:
                     )
                     if isinstance(data, list):
                         sell_orders = data
-                except Exception as e:
+                except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                     logger.debug("ESI sell orders failed for %d: %s", type_id, e)
 
                 # Aggregate to Fuzzwork-compatible format
                 results[type_id] = self._aggregate_esi_orders(buy_orders, sell_orders)
 
-            except Exception as e:
+            except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
                 logger.debug("ESI fallback failed for type %d: %s", type_id, e)
 
         return results

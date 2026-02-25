@@ -107,7 +107,7 @@ def cmd_agents_research(args: argparse.Namespace) -> dict:
                 else:
                     agent_names[aid] = f"Agent-{aid}"
                     agent_corps[aid] = "Unknown Corp"
-    except Exception:
+    except (ImportError, RuntimeError):
         # Graceful fallback when SDE not seeded or DB unavailable
         for aid in agent_ids:
             if aid:

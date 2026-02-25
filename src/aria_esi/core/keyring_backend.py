@@ -79,7 +79,7 @@ except ImportError:
     KEYRING_REASON = "keyring package not installed (pip install aria[secure])"
     KeyringError = Exception  # type: ignore[assignment]  # Fallback for type hints
 
-except Exception as e:
+except Exception as e:  # noqa: BLE001 -- broad handler
     KEYRING_AVAILABLE = False
     KEYRING_BACKEND = None
     KEYRING_REASON = f"Keyring initialization failed: {e}"

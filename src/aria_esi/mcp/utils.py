@@ -377,6 +377,6 @@ def _get_sovereignty_info(system_id: int) -> SovereigntyInfo | None:
             faction_name=faction_name,
         )
 
-    except Exception:
+    except (ImportError, RuntimeError):
         # Sovereignty service not available or error - return None
         return None

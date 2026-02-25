@@ -91,7 +91,7 @@ class DiscordDelivery(BaseDeliveryProvider):
                 response.raise_for_status()
                 logger.debug(f"Discord delivery succeeded for kill {result.kill_id}")
                 return True
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.error(f"Discord delivery failed: {e}")
             return False
 
@@ -234,7 +234,7 @@ class WebhookDelivery(BaseDeliveryProvider):
                 response.raise_for_status()
                 logger.debug(f"Webhook delivery succeeded for kill {result.kill_id}")
                 return True
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.error(f"Webhook delivery failed: {e}")
             return False
 
