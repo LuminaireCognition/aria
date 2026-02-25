@@ -51,6 +51,8 @@ Calculate costs, production times, and profitability for moon material reactions
 
 ## Implementation
 
+**SDE Category Note:** Fuel blocks are categorized as "Material" in the SDE, not "Charge". Use `sde(action="search", query="Fuel Block", category="Material")` or `sde(action="item_info")` without category filter.
+
 ### Step 1: Get Fuel Block Info
 
 ```python
@@ -136,6 +138,8 @@ print(format_fuel_block_summary(profit_result))
 ```
 
 ## Response Format
+
+**Note:** Quantities below are illustrative examples only. Always query `sde(action="blueprint_info")` at runtime for actual material quantities — these may change with game patches.
 
 ```
 ## Fuel Block Production: Nitrogen Fuel Block

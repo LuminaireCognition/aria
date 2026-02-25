@@ -268,6 +268,51 @@ Super Unknown Module X9000
 
 
 # =============================================================================
+# Ammo Classification Tests
+# =============================================================================
+
+
+class TestAmmoClassification:
+    """Tests for distinguishing charges/ammo from drones."""
+
+    def test_ammo_high_quantity_goes_to_cargo(self, mock_market_db):
+        """Test that high-quantity items (likely ammo) go to cargo, not drones."""
+        # Add ammo type to mock db
+        from tests.fitting.conftest import TypeInfo
+
+        original_resolve = mock_market_db.resolve_type_name
+
+        def resolve_with_ammo(name: str):
+            if name.lower() == "scourge heavy missile":
+                return TypeInfo(2629, "Scourge Heavy Missile")
+            return original_resolve(name)
+
+        mock_market_db.resolve_type_name = resolve_with_ammo
+
+        eft = """[Vexor, Ammo Test]
+Drone Damage Amplifier II
+
+10MN Afterburner II
+
+Drone Link Augmentor I
+
+Medium Auxiliary Nano Pump I
+
+Hammerhead II x5
+Scourge Heavy Missile x1000
+"""
+        parser = EFTParser(mock_market_db)
+        fit = parser.parse(eft)
+
+        # Hammerhead should be drone, missile should be cargo
+        assert len(fit.drones) == 1
+        assert fit.drones[0].type_name == "Hammerhead II"
+        assert len(fit.cargo) == 1
+        assert fit.cargo[0].type_name == "Scourge Heavy Missile"
+        assert fit.cargo[0].quantity == 1000
+
+
+# =============================================================================
 # Section Transition Tests
 # =============================================================================
 

@@ -299,18 +299,50 @@ class EFTParser:
                     suggestions = self._db.find_type_suggestions(type_name)
                     raise TypeResolutionError(type_name, suggestions)
 
-                drone = ParsedDrone(
-                    type_id=type_info.type_id,
-                    type_name=type_info.type_name,
-                    quantity=quantity,
-                )
-
-                # Determine if drone or cargo based on section
+                # Determine if drone or cargo based on section and item category
                 if current_section == ParseSection.CARGO:
-                    fit.cargo.append(drone)
+                    fit.cargo.append(
+                        ParsedDrone(
+                            type_id=type_info.type_id,
+                            type_name=type_info.type_name,
+                            quantity=quantity,
+                        )
+                    )
                 else:
-                    # Assume drones until we hit cargo section
-                    fit.drones.append(drone)
+                    # Check item category to distinguish drones from charges/ammo
+                    # Category 18 = Drone, Category 8 = Charge
+                    is_charge = False
+                    category_resolved = False
+                    try:
+                        conn = self._db._conn  # noqa: SLF001
+                        if conn is not None and hasattr(conn, "execute"):
+                            cat_cursor = conn.execute(
+                                "SELECT category_id FROM types WHERE type_id = ?",
+                                (type_info.type_id,),
+                            )
+                            cat_row = cat_cursor.fetchone()
+                            if cat_row and isinstance(cat_row[0], int):
+                                category_resolved = True
+                                if cat_row[0] == 8:  # Charge category
+                                    is_charge = True
+                    except Exception:  # noqa: BLE001
+                        pass
+
+                    if not category_resolved:
+                        # DB not available — use quantity heuristic
+                        # Drones rarely exceed x10; ammo is typically x100+
+                        if quantity > 10:
+                            is_charge = True
+
+                    item = ParsedDrone(
+                        type_id=type_info.type_id,
+                        type_name=type_info.type_name,
+                        quantity=quantity,
+                    )
+                    if is_charge:
+                        fit.cargo.append(item)
+                    else:
+                        fit.drones.append(item)
                 continue
 
             # Parse as module

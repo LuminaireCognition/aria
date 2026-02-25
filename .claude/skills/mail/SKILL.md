@@ -286,6 +286,15 @@ Select "esi-mail.read_mail.v1" during setup.
 ═══════════════════════════════════════════════════════════════════
 ```
 
+## MCP Policy Denial
+
+If `pilot(action="mail_read")` returns an error containing "policy" or "sensitivity level", the content was blocked by ARIA's content policy filter. This is not an error — some mail content is restricted.
+
+**Response:**
+- Present a user-friendly message: "This mail's content was filtered by ARIA's content policy."
+- Direct the user to read it in-game: **Alt+I** (mail window) or via **EVE Portal** mobile app
+- Do NOT retry the request or attempt to bypass the filter
+
 ## Contextual Suggestions
 
 | Context | Suggest |

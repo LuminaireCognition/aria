@@ -85,7 +85,7 @@ sde(action="blueprint_info", item="Dominix Blueprint")
 sde(action="blueprint_info", item="Dominix")  # Auto-detects blueprint
 ```
 
-**Response contains all materials:**
+**Response contains all materials** (example quantities are illustrative — always use runtime SDE data):
 ```json
 {
   "blueprint": "Dominix Blueprint",
@@ -94,18 +94,13 @@ sde(action="blueprint_info", item="Dominix")  # Auto-detects blueprint
   "materials": [
     {"type_name": "Tritanium", "quantity": 13333334},
     {"type_name": "Pyerite", "quantity": 2666667},
-    {"type_name": "Mexallon", "quantity": 666667},
-    {"type_name": "Isogen", "quantity": 200000},
-    {"type_name": "Nocxium", "quantity": 33334},
-    {"type_name": "Zydrine", "quantity": 13334},
-    {"type_name": "Megacyte", "quantity": 3334},
-    {"type_name": "Auto-Integrity Preservation Seal", "quantity": 150},
-    {"type_name": "Life Support Backup Unit", "quantity": 75},
-    {"type_name": "Core Temperature Regulator", "quantity": 1}
+    ...
   ],
   "time_seconds": 14400
 }
 ```
+
+**IMPORTANT:** The Material Extraction Protocol (Step 2 below) is MANDATORY. All material names and quantities MUST come from `sde(action="blueprint_info")` at runtime. Never use the example quantities above for actual cost calculations.
 
 ### Step 2: Extract ALL Materials
 

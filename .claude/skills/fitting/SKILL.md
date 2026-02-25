@@ -172,6 +172,17 @@ CRITICAL: Before making recommendations, check the active pilot's profile for:
 
 **Never recommend T2 modules/drones unless explicitly confirmed.**
 
+## Known Limitation: Ammo Lines in EFT
+
+Ammo/charge lines (e.g., `Scourge Heavy Missile x1000`) in EFT format may be misparsed as drones by the parser. The parser uses category lookups and quantity heuristics to classify items, but edge cases exist.
+
+**Validation signs of misparsed ammo:**
+- `drones.launched` exceeds 5 (impossible for most ships)
+- Drone bay capacity overflows
+- DPS seems unreasonably low for a missile/turret ship (ammo not being applied)
+
+**Workaround:** Place ammo lines after an extra blank line (cargo section) in the EFT format. The parser always routes cargo-section items correctly.
+
 ## Fit Validation Protocol (MANDATORY)
 
 **CRITICAL:** Never present a fitting recommendation without EOS validation.

@@ -213,13 +213,19 @@ elif product in pi_data["p4_schematics"]:
 
 ### Step 2: Fetch Market Prices
 
-```python
-# Build item list for market query
-items_to_price = [product] + inputs
+**CRITICAL: Extract ALL input names from the schematic BEFORE querying prices.**
 
-# Use market dispatcher
+```python
+# 1. Read the schematic from reference file first
+# 2. Extract ALL input names from schematic["inputs"]
+# 3. Build complete item list
+items_to_price = [product] + list(inputs)  # inputs = all names from schematic
+
+# Use market dispatcher — must include product AND every input
 market(action="prices", items=items_to_price, region="jita")
 ```
+
+**Post-fetch validation:** Count prices received vs inputs expected. If any input price is missing, display a warning and do NOT present profit numbers — incomplete pricing makes profit calculations misleading.
 
 ### Step 3: Calculate Costs and Profit
 

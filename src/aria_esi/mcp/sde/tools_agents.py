@@ -437,6 +437,8 @@ def _get_system_info(system_id: int) -> tuple[float | None, str | None]:
     """
     Get system security and name from universe data.
 
+    Falls back to SDE solar_systems table when universe graph unavailable.
+
     Returns:
         Tuple of (security_status, system_name)
     """
@@ -449,6 +451,20 @@ def _get_system_info(system_id: int) -> tuple[float | None, str | None]:
             system = graph.systems[system_id]
             return (system.security, system.name)
     except (ImportError, RuntimeError):
+        pass
+
+    # Fallback: query SDE solar_systems table
+    try:
+        db = get_market_database()
+        conn = db._get_connection()
+        cursor = conn.execute(
+            "SELECT security, system_name FROM solar_systems WHERE system_id = ?",
+            (system_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            return (row[0], row[1])
+    except Exception:  # noqa: BLE001 -- fallback, any error returns None
         pass
 
     return (None, None)

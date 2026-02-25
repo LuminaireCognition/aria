@@ -44,12 +44,14 @@ from .schema import (
     IMPORT_REGIONS_SQL,
     IMPORT_SKILL_ATTRIBUTES_SQL,
     IMPORT_SKILL_PREREQUISITES_SQL,
+    IMPORT_SOLAR_SYSTEMS_SQL,
     IMPORT_STATIONS_SQL,
     IMPORT_TYPE_SKILL_REQUIREMENTS_SQL,
     IMPORT_TYPES_SQL,
     META_TYPE_TABLES_SQL,
     SDE_TABLES_SQL,
     SKILL_TABLES_SQL,
+    SOLAR_SYSTEMS_TABLE_SQL,
 )
 
 if TYPE_CHECKING:
@@ -139,6 +141,13 @@ _VALID_SDE_IDENTIFIERS: frozenset[str] = frozenset(
         "station_name",
         "solarSystemID",
         "solar_system_id",
+        # Solar system tables
+        "solarSystemName",
+        "solar_system_name",
+        "security",
+        "securityStatus",
+        "constellationID",
+        "constellation_id",
         # Agent tables
         "agentID",
         "agent_id",
@@ -202,6 +211,7 @@ class SDEImportResult:
     npc_corporations_imported: int = 0
     regions_imported: int = 0
     stations_imported: int = 0
+    solar_systems_imported: int = 0
     skill_attributes_imported: int = 0
     skill_prerequisites_imported: int = 0
     type_skill_requirements_imported: int = 0
@@ -294,6 +304,8 @@ class SDEImporter:
         conn.executescript(SKILL_TABLES_SQL)
         # Create agent tables
         conn.executescript(AGENT_TABLES_SQL)
+        # Create solar systems table
+        conn.executescript(SOLAR_SYSTEMS_TABLE_SQL)
         # Create meta type tables
         conn.executescript(META_TYPE_TABLES_SQL)
         conn.commit()
@@ -485,6 +497,13 @@ class SDEImporter:
             result.stations_imported = self._import_stations(sde_conn, target_conn)
             if progress_callback:
                 progress_callback("stations", result.stations_imported)
+
+            # Import solar systems (for agent system name/security resolution)
+            if progress_callback:
+                progress_callback("solar_systems", 0)
+            result.solar_systems_imported = self._import_solar_systems(sde_conn, target_conn)
+            if progress_callback:
+                progress_callback("solar_systems", result.solar_systems_imported)
 
             # Import skill attributes (rank, training parameters)
             if progress_callback:
@@ -1083,6 +1102,72 @@ class SDEImporter:
                 target_conn.executemany(IMPORT_STATIONS_SQL, chunk)
             target_conn.commit()
 
+        return len(batch)
+
+    def _import_solar_systems(
+        self, sde_conn: sqlite3.Connection, target_conn: sqlite3.Connection
+    ) -> int:
+        """Import solar system data for agent system name/security resolution."""
+        # Check if mapSolarSystems table exists
+        cursor = sde_conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='mapSolarSystems'"
+        )
+        if not cursor.fetchone():
+            logger.warning("mapSolarSystems table not found in SDE")
+            return 0
+
+        # Check actual column names
+        cursor = sde_conn.execute("PRAGMA table_info(mapSolarSystems)")
+        columns = {row[1] for row in cursor.fetchall()}
+        logger.debug("mapSolarSystems columns: %s", columns)
+
+        system_id_col = "solarSystemID" if "solarSystemID" in columns else "solar_system_id"
+        system_name_col = "solarSystemName" if "solarSystemName" in columns else "solar_system_name"
+        security_col = "security" if "security" in columns else "securityStatus"
+        constellation_col = (
+            "constellationID" if "constellationID" in columns else "constellation_id"
+        )
+        region_col = "regionID" if "regionID" in columns else "region_id"
+
+        try:
+            cursor = sde_conn.execute(f"""
+                SELECT
+                    {_qi(system_id_col)},
+                    {_qi(system_name_col)},
+                    {_qi(security_col)},
+                    {_qi(constellation_col)},
+                    {_qi(region_col)}
+                FROM mapSolarSystems
+                WHERE {_qi(system_name_col)} IS NOT NULL
+            """)
+        except sqlite3.OperationalError as e:
+            logger.warning("Could not query mapSolarSystems: %s", e)
+            return 0
+
+        batch = []
+        for row in cursor:
+            system_id = row[0]
+            system_name = row[1] if row[1] else f"System {system_id}"
+            security = round(row[2], 4) if row[2] is not None else None
+            batch.append(
+                (
+                    system_id,
+                    system_name,
+                    system_name.lower(),
+                    security,
+                    row[3],  # constellation_id
+                    row[4],  # region_id
+                )
+            )
+
+        if batch:
+            chunk_size = 5000
+            for i in range(0, len(batch), chunk_size):
+                chunk = batch[i : i + chunk_size]
+                target_conn.executemany(IMPORT_SOLAR_SYSTEMS_SQL, chunk)
+            target_conn.commit()
+
+        logger.info("Imported %d solar systems from SDE", len(batch))
         return len(batch)
 
     def _import_skill_attributes(
@@ -1932,6 +2017,7 @@ def seed_sde(
         result.npc_corporations_imported = import_result.npc_corporations_imported
         result.regions_imported = import_result.regions_imported
         result.stations_imported = import_result.stations_imported
+        result.solar_systems_imported = import_result.solar_systems_imported
         result.skill_attributes_imported = import_result.skill_attributes_imported
         result.skill_prerequisites_imported = import_result.skill_prerequisites_imported
         result.type_skill_requirements_imported = import_result.type_skill_requirements_imported

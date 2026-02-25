@@ -166,6 +166,8 @@ universe(action="systems", systems=["1DQ1-A"])
 universe(action="territory_analysis", coalition="imperium")
 ```
 
+**Coalition Data Availability:** `territory_analysis` requires a populated coalition registry. If it returns `coalition_not_found`, skip sovereignty analysis gracefully and note the limitation. Fall back to `universe(action="systems", systems=[...])` for basic alliance sovereignty on individual systems.
+
 ### Coalition Response Analysis
 
 | Coalition | Response Characteristics | Hunting Viability |

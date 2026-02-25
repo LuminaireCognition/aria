@@ -46,6 +46,10 @@ Mining ledger data is **semi-stable** - updates as you mine:
 3. **30-day window** - older data is purged automatically
 4. **Safe to cache** - data only updates when actively mining
 
+## MCP Confirmation Gate
+
+`pilot(action="mining_ledger")` may require user confirmation before executing on first use (MCP tool permission prompt). Present the confirmation to the user naturally — do not treat it as an error or retry automatically.
+
 ## Trigger Phrases
 
 - `/mining`

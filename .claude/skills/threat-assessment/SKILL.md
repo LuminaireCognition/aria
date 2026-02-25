@@ -53,6 +53,8 @@ universe(action="activity", systems=["Simela"], include_realtime=True)
 
 **Advantages:** Sub-millisecond response, security status included, batch queries supported.
 
+**Efficiency note:** `universe(action="local_area", origin="X")` already includes activity data for the origin system and nearby systems. Do NOT make a separate `universe(action="activity")` call for the origin — it duplicates data already in the local_area response. Only use separate `activity()` calls for systems outside the local_area radius.
+
 #### 2. CLI Commands (fallback)
 
 If MCP tools are not available, use the `aria-esi` CLI:

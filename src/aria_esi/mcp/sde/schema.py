@@ -136,7 +136,7 @@ INSERT OR REPLACE INTO metadata (key, value) VALUES ('sde_schema_version', '2');
 # SQL to check if SDE tables exist
 CHECK_SDE_TABLES_SQL = """
 SELECT name FROM sqlite_master
-WHERE type='table' AND name IN ('groups', 'categories', 'blueprints', 'npc_seeding', 'stations');
+WHERE type='table' AND name IN ('groups', 'categories', 'blueprints', 'npc_seeding', 'stations', 'solar_systems');
 """
 
 # SQL to get SDE table counts for status
@@ -341,6 +341,33 @@ INSERT OR REPLACE INTO agents (
     level, agent_type_id
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+"""
+
+# =============================================================================
+# Solar Systems Table SQL
+# =============================================================================
+
+SOLAR_SYSTEMS_TABLE_SQL = """
+-- Solar systems (for agent system name/security resolution without universe graph)
+CREATE TABLE IF NOT EXISTS solar_systems (
+    system_id INTEGER PRIMARY KEY,
+    system_name TEXT NOT NULL,
+    system_name_lower TEXT NOT NULL,
+    security REAL,
+    constellation_id INTEGER,
+    region_id INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS idx_solar_systems_name_lower ON solar_systems(system_name_lower);
+CREATE INDEX IF NOT EXISTS idx_solar_systems_region ON solar_systems(region_id);
+"""
+
+IMPORT_SOLAR_SYSTEMS_SQL = """
+INSERT OR REPLACE INTO solar_systems (
+    system_id, system_name, system_name_lower,
+    security, constellation_id, region_id
+)
+VALUES (?, ?, ?, ?, ?, ?);
 """
 
 # =============================================================================

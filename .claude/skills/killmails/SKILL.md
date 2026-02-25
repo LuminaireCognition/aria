@@ -296,6 +296,17 @@ Proceed with killmail queries.
 
 ## Error Handling
 
+### Store Not Initialized / Poller Not Running
+
+If `killmails(action="query")`, `killmails(action="stats")`, or `killmails(action="recent")` returns an error about the store not being initialized or no data available, the real-time killmail poller is not running.
+
+**Recovery:**
+1. **Individual killmail analysis still works** — use `killmails(action="analyze", killmail_input="<zkillboard_url>")` for specific kills
+2. **Suggest zKillboard** for browsing: `https://zkillboard.com/character/{character_id}/`
+3. **To enable the poller:** `uv run aria-esi redisq-start` (requires configuration)
+
+Do NOT retry query/stats/recent — they will keep failing until the poller is started and has ingested data.
+
 ### No Killmails Found
 
 ```

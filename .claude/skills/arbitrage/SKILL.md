@@ -58,7 +58,14 @@ Scan for cross-region arbitrage opportunities across EVE's major trade hubs. Ide
 | `--scopes` | `names` | Ad-hoc scope names to include (comma-separated) |
 | `--include-scopes` | (flag) | Enable ad-hoc scope data in scan |
 
-**Note on default filters:** The default `--min-profit 5` (5% minimum margin) often returns 0 results during low-volatility periods when trade hub prices are closely aligned. If the scan returns no opportunities, retry with a lower threshold: `--min-profit 2` or `--min-profit 1`.
+**Note on default filters:** The default `--min-profit 5` (5% minimum margin) often returns 0 results during low-volatility periods when trade hub prices are closely aligned.
+
+**Empty results recovery sequence:**
+1. Retry at `min_profit_pct=2`, then `min_profit_pct=1` before reporting no opportunities
+2. Try different `sort_by` values: `hauling_score` (best for haulers), `profit_density` (ISK/m³)
+3. Try `trade_mode="hybrid"` or `trade_mode="station_trading"` for different fee structures
+
+**Expected response schema** (even when empty): `opportunities` (list), `scan_params` (dict with filters used), `market_summary` (dict with hub price freshness). When results exist, each opportunity includes: `type_name`, `buy_price`, `sell_price`, `margin_pct`, `volume`, `profit_per_unit`, `buy_region`, `sell_region`.
 
 ### Trade Modes & Fees
 

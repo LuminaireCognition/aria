@@ -96,6 +96,13 @@ LORE CONTEXT:
 - **Faction BPCs** - Can be manufactured without market
 - **Datacores** - Research materials
 
+## Important: Site Names vs Items
+
+Exploration site names (e.g., "Serpentis Temple", "Ruined Sansha Monument", "Local Guristas Shattered Life-Support Unit") are **cosmic signature names**, NOT SDE items. Do NOT search SDE for site names — `sde(action="item_info", item="Serpentis Temple")` will fail or return wrong results.
+
+- **Site information:** Use the `data_sources` reference files listed in this skill's `_index.json`
+- **Individual loot items:** These ARE SDE items — use `sde(action="item_info")` for specific loot like "Intact Armor Plates" or "Emission Scope Sharpener"
+
 ## Behavior
 - **Intelligence Framing:** Follow the Intelligence Sourcing Protocol in CLAUDE.md. For exploration sites, frame data as live archaeological surveys and faction intelligence assessments. Use phrases like "Site signature analysis indicates..." or "DED classification identifies this as..." rather than archival language.
 - Provide lore context as active intelligence on discovered sites

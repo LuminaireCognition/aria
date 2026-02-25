@@ -207,6 +207,16 @@ PYTHONPATH=.claude/scripts uv run python -m aria_esi agents-research
 }
 ```
 
+## SDE Agent Search Limitations
+
+When using `sde(action="agent_search")`, be aware of these data gaps:
+
+1. **`system_name` is often null** — The SDE agent table doesn't always include system names. Resolve missing names via `universe(action="systems", systems=[...])` using the system_id from the agent record.
+
+2. **`security` may be null** — The `highsec_only=True` filter silently drops agents with null security status, potentially omitting valid highsec agents. Workaround: fetch without `highsec_only`, then verify security via `universe(action="systems")` and filter manually.
+
+3. **Always use `limit=100`** — Default limit is 20 and results are silently truncated. If `total_found` equals your limit, increase it or add filters.
+
 ## Research Skills Reference
 
 | Skill | Datacore Type | Common Uses |
