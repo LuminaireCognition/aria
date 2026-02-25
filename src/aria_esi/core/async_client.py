@@ -366,12 +366,12 @@ class AsyncESIClient:
                     message,
                     status_code=e.response.status_code,
                     retry_after=int(retry_after) if retry_after else None,
-                )
+                ) from e
 
-            raise AsyncESIError(message, status_code=e.response.status_code)
+            raise AsyncESIError(message, status_code=e.response.status_code) from e
 
         except httpx.RequestError as e:
-            raise AsyncESIError(f"Network error: {e}")
+            raise AsyncESIError(f"Network error: {e}") from e
 
     @esi_retry_async()
     async def _get_with_retry(
@@ -477,10 +477,10 @@ class AsyncESIClient:
                 message = error_json.get("error", str(e))
             except json.JSONDecodeError:
                 message = e.response.text or str(e)
-            raise AsyncESIError(message, status_code=e.response.status_code)
+            raise AsyncESIError(message, status_code=e.response.status_code) from e
 
         except httpx.RequestError as e:
-            raise AsyncESIError(f"Network error: {e}")
+            raise AsyncESIError(f"Network error: {e}") from e
 
     async def post(
         self,
@@ -526,10 +526,10 @@ class AsyncESIClient:
                 message = error_json.get("error", str(e))
             except json.JSONDecodeError:
                 message = e.response.text or str(e)
-            raise AsyncESIError(message, status_code=e.response.status_code)
+            raise AsyncESIError(message, status_code=e.response.status_code) from e
 
         except httpx.RequestError as e:
-            raise AsyncESIError(f"Network error: {e}")
+            raise AsyncESIError(f"Network error: {e}") from e
 
 
 # =============================================================================

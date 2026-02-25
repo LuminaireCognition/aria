@@ -169,7 +169,6 @@ select = [
 ignore = [
     "E501",   # line too long (handled by formatter)
     "B008",   # do not perform function calls in argument defaults
-    "B904",   # raise from - TODO: add exception chaining throughout codebase
     "B905",   # zip without strict= (Python 3.11+, now baseline)
     "C401",   # unnecessary generator - set(x for x) vs {x for x} is style preference
     "UP007",  # Use X | Y for Union - keep Union[] for readability
@@ -181,6 +180,12 @@ ignore = [
 "__init__.py" = ["F401"]  # re-exports
 "retry.py" = ["F401"]     # conditional imports for tenacity fallback
 "auth.py" = ["E402"]      # TYPE_CHECKING import after code block
+"src/aria_esi/mcp/dispatchers/*.py" = ["B904"]
+"src/aria_esi/mcp/sde/*.py" = ["B904"]
+"src/aria_esi/mcp/market/*.py" = ["B904"]
+"src/aria_esi/commands/*.py" = ["B904"]
+"src/aria_esi/services/*.py" = ["B904"]
+"src/aria_esi/universe/*.py" = ["B904"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["aria_esi"]

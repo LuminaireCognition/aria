@@ -1192,7 +1192,24 @@ def get_sde_query_service() -> SDEQueryService:
                 from aria_esi.mcp.market.database import get_market_database
 
                 _sde_query_service = SDEQueryService(get_market_database())
+                _register_sde_bridge_providers(_sde_query_service)
     return _sde_query_service
+
+
+def _register_sde_bridge_providers(service: SDEQueryService) -> None:
+    """Register SDE bridge callbacks so core modules can query SDE without importing MCP."""
+    from aria_esi.core.sde_bridge import (
+        register_ship_group_ids_provider,
+        register_station_name_provider,
+    )
+
+    register_ship_group_ids_provider(service.get_all_ship_group_ids)
+
+    def _station_name_provider(station_id: int) -> str | None:
+        info = service.get_station_info(station_id)
+        return info.station_name if info else None
+
+    register_station_name_provider(_station_name_provider)
 
 
 def reset_sde_query_service() -> None:

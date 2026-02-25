@@ -5,15 +5,18 @@ Tests for core authentication module.
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from aria_esi.core.auth import (
     Credentials,
     CredentialsError,
+    get_authenticated_client,
     is_player_corp,
+    migrate_credentials_to_keyring,
 )
 from aria_esi.core.constants import PLAYER_CORP_MIN_ID
 
@@ -370,3 +373,292 @@ class TestCredentialsSaveToKeyring:
 
         assert result is False
         assert creds.storage_source == "file"  # Unchanged
+
+
+class TestRefreshIfNeeded:
+    """Tests for Credentials.refresh_if_needed method."""
+
+    def _make_creds(self, credentials_file=None):
+        """Helper to create a Credentials instance for testing."""
+        return Credentials(
+            credentials_file=credentials_file,
+            character_id=12345,
+            access_token="old_token",
+            token_expiry="2024-01-01T00:00:00Z",
+        )
+
+    def test_script_not_found(self, tmp_path):
+        """Should return False when refresh script does not exist."""
+        creds = self._make_creds(credentials_file=tmp_path / "creds.json")
+        # script_dir exists but does not contain the refresh script
+        result = creds.refresh_if_needed(script_dir=tmp_path)
+        assert result is False
+
+    def test_credentials_file_none(self, tmp_path):
+        """Should return False when credentials_file is None."""
+        creds = self._make_creds(credentials_file=None)
+        # Create the refresh script so that check passes
+        refresh_script = tmp_path / "aria-token-refresh.py"
+        refresh_script.write_text("# placeholder")
+        result = creds.refresh_if_needed(script_dir=tmp_path)
+        assert result is False
+
+    def test_subprocess_success(self, tmp_path):
+        """Should reload credentials and return True on returncode 0."""
+        creds_file = tmp_path / "creds.json"
+        creds_file.write_text(
+            json.dumps(
+                {
+                    "character_id": 12345,
+                    "access_token": "refreshed_token",
+                    "token_expiry": "2025-06-01T00:00:00Z",
+                }
+            )
+        )
+        creds = self._make_creds(credentials_file=creds_file)
+
+        # Create the refresh script
+        refresh_script = tmp_path / "aria-token-refresh.py"
+        refresh_script.write_text("# placeholder")
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+
+        with patch("aria_esi.core.auth.subprocess.run", return_value=mock_result):
+            result = creds.refresh_if_needed(script_dir=tmp_path)
+
+        assert result is True
+        assert creds.access_token == "refreshed_token"
+        assert creds.token_expiry == "2025-06-01T00:00:00Z"
+
+    def test_subprocess_blocking_error(self, tmp_path):
+        """Should still reload credentials and return True on returncode 2."""
+        creds_file = tmp_path / "creds.json"
+        creds_file.write_text(
+            json.dumps(
+                {
+                    "character_id": 12345,
+                    "access_token": "refreshed_after_error",
+                    "token_expiry": "2025-07-01T00:00:00Z",
+                }
+            )
+        )
+        creds = self._make_creds(credentials_file=creds_file)
+
+        refresh_script = tmp_path / "aria-token-refresh.py"
+        refresh_script.write_text("# placeholder")
+
+        mock_result = MagicMock()
+        mock_result.returncode = 2
+
+        with patch("aria_esi.core.auth.subprocess.run", return_value=mock_result):
+            result = creds.refresh_if_needed(script_dir=tmp_path)
+
+        assert result is True
+        assert creds.access_token == "refreshed_after_error"
+        assert creds.token_expiry == "2025-07-01T00:00:00Z"
+
+    def test_subprocess_timeout(self, tmp_path):
+        """Should return False when subprocess times out."""
+        creds_file = tmp_path / "creds.json"
+        creds = self._make_creds(credentials_file=creds_file)
+
+        refresh_script = tmp_path / "aria-token-refresh.py"
+        refresh_script.write_text("# placeholder")
+
+        with patch(
+            "aria_esi.core.auth.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(cmd="uv", timeout=30),
+        ):
+            result = creds.refresh_if_needed(script_dir=tmp_path)
+
+        assert result is False
+        # Token should remain unchanged
+        assert creds.access_token == "old_token"
+
+    def test_project_dir_not_found(self):
+        """Should return False when _find_project_dir returns None."""
+        creds = self._make_creds(credentials_file=Path("/fake/creds.json"))
+
+        with patch.object(Credentials, "_find_project_dir", return_value=None):
+            result = creds.refresh_if_needed(script_dir=None)
+
+        assert result is False
+
+
+class TestGetAuthenticatedClient:
+    """Tests for get_authenticated_client function."""
+
+    def test_happy_path(self):
+        """Should return (client, creds) tuple with valid credentials."""
+        mock_creds = Credentials(
+            credentials_file=Path("/fake/creds.json"),
+            character_id=12345,
+            access_token="valid_token",
+            token_expiry="2099-12-31T23:59:59Z",
+            scopes=["esi-wallet.read_character_wallet.v1"],
+        )
+
+        with (
+            patch("aria_esi.core.auth.get_credentials", return_value=mock_creds),
+            patch.object(Credentials, "refresh_if_needed", return_value=True),
+        ):
+            client, creds = get_authenticated_client()
+
+        assert creds is mock_creds
+        assert creds.access_token == "valid_token"
+        # The client should have been created with the token
+        assert client.token == "valid_token"
+
+    def test_no_credentials(self):
+        """Should raise CredentialsError when get_credentials returns None."""
+        with patch(
+            "aria_esi.core.auth.get_credentials",
+            side_effect=CredentialsError("No credentials found"),
+        ):
+            with pytest.raises(CredentialsError) as exc_info:
+                get_authenticated_client()
+            assert "No credentials found" in str(exc_info.value)
+
+    def test_token_expired_after_refresh(self):
+        """Should raise CredentialsError when token is expired after refresh."""
+        mock_creds = Credentials(
+            credentials_file=Path("/fake/creds.json"),
+            character_id=12345,
+            access_token="expired_token",
+            token_expiry="2020-01-01T00:00:00Z",  # In the past
+        )
+
+        with (
+            patch("aria_esi.core.auth.get_credentials", return_value=mock_creds),
+            patch.object(Credentials, "refresh_if_needed", return_value=False),
+        ):
+            with pytest.raises(CredentialsError) as exc_info:
+                get_authenticated_client()
+            assert "expired" in str(exc_info.value).lower()
+
+    def test_unparseable_expiry_continues(self):
+        """Should proceed without error when token_expiry has bad format."""
+        mock_creds = Credentials(
+            credentials_file=Path("/fake/creds.json"),
+            character_id=12345,
+            access_token="token_with_bad_expiry",
+            token_expiry="not-a-date-at-all",
+        )
+
+        with (
+            patch("aria_esi.core.auth.get_credentials", return_value=mock_creds),
+            patch.object(Credentials, "refresh_if_needed", return_value=True),
+        ):
+            client, creds = get_authenticated_client()
+
+        assert creds.access_token == "token_with_bad_expiry"
+        assert client.token == "token_with_bad_expiry"
+
+
+class TestMigrateCredentialsToKeyring:
+    """Tests for migrate_credentials_to_keyring function."""
+
+    def test_keyring_unavailable(self):
+        """Should return error when keyring is not enabled."""
+        with (
+            patch("aria_esi.core.auth.is_keyring_enabled", return_value=False),
+            patch("aria_esi.core.auth.get_keyring_status", return_value={"available": False}),
+        ):
+            result = migrate_credentials_to_keyring()
+
+        assert "error" in result
+        assert result["error"] == "Keyring not available"
+        assert result["migrated"] == []
+        assert result["skipped"] == []
+        assert result["failed"] == []
+
+    def test_successful_migration(self, tmp_path):
+        """Should migrate credentials from file to keyring."""
+        # Set up a fake credentials directory
+        creds_dir = tmp_path / "userdata" / "credentials"
+        creds_dir.mkdir(parents=True)
+
+        creds_file = creds_dir / "12345.json"
+        creds_data = {
+            "character_id": 12345,
+            "access_token": "migrate_me",
+            "refresh_token": "refresh_me",
+        }
+        creds_file.write_text(json.dumps(creds_data))
+
+        with (
+            patch("aria_esi.core.auth.is_keyring_enabled", return_value=True),
+            patch("aria_esi.core.auth.get_keyring_status", return_value={"available": True}),
+            patch("aria_esi.core.auth.load_from_keyring", return_value=None),
+            patch("aria_esi.core.auth.store_in_keyring", return_value=True) as mock_store,
+        ):
+            result = migrate_credentials_to_keyring(project_dir=tmp_path)
+
+        assert "12345" in result["migrated"]
+        assert result["skipped"] == []
+        assert result["failed"] == []
+        assert "error" not in result
+        # Verify store was called with the right data
+        mock_store.assert_called_once_with("12345", creds_data)
+
+    def test_skip_already_migrated(self, tmp_path):
+        """Should skip pilots whose credentials are already in keyring."""
+        creds_dir = tmp_path / "userdata" / "credentials"
+        creds_dir.mkdir(parents=True)
+
+        creds_file = creds_dir / "67890.json"
+        creds_file.write_text(
+            json.dumps({"character_id": 67890, "access_token": "already_there"})
+        )
+
+        with (
+            patch("aria_esi.core.auth.is_keyring_enabled", return_value=True),
+            patch("aria_esi.core.auth.get_keyring_status", return_value={"available": True}),
+            patch(
+                "aria_esi.core.auth.load_from_keyring",
+                return_value={"character_id": 67890, "access_token": "already_there"},
+            ),
+        ):
+            result = migrate_credentials_to_keyring(project_dir=tmp_path)
+
+        assert result["migrated"] == []
+        assert "67890" in result["skipped"]
+        assert result["failed"] == []
+
+    def test_failed_migration(self, tmp_path):
+        """Should record failure when store_in_keyring returns False."""
+        creds_dir = tmp_path / "userdata" / "credentials"
+        creds_dir.mkdir(parents=True)
+
+        creds_file = creds_dir / "11111.json"
+        creds_file.write_text(
+            json.dumps({"character_id": 11111, "access_token": "fail_me"})
+        )
+
+        with (
+            patch("aria_esi.core.auth.is_keyring_enabled", return_value=True),
+            patch("aria_esi.core.auth.get_keyring_status", return_value={"available": True}),
+            patch("aria_esi.core.auth.load_from_keyring", return_value=None),
+            patch("aria_esi.core.auth.store_in_keyring", return_value=False),
+        ):
+            result = migrate_credentials_to_keyring(project_dir=tmp_path)
+
+        assert result["migrated"] == []
+        assert result["skipped"] == []
+        assert "11111" in result["failed"]
+
+    def test_no_project_dir(self):
+        """Should return error when project directory cannot be found."""
+        with (
+            patch("aria_esi.core.auth.is_keyring_enabled", return_value=True),
+            patch("aria_esi.core.auth.get_keyring_status", return_value={"available": True}),
+            patch.object(Credentials, "_find_project_dir", return_value=None),
+        ):
+            result = migrate_credentials_to_keyring(project_dir=None)
+
+        assert "error" in result
+        assert result["error"] == "Could not find project directory"
+        assert result["migrated"] == []
+        assert result["skipped"] == []
+        assert result["failed"] == []

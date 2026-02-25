@@ -154,9 +154,9 @@ class Credentials:
                 f"Credentials file not found: {credentials_file}",
                 action="Run the OAuth setup wizard",
                 command="uv run python .claude/scripts/aria-oauth-setup.py",
-            )
+            ) from None
         except json.JSONDecodeError as e:
-            raise CredentialsError(f"Invalid credentials JSON: {e}")
+            raise CredentialsError(f"Invalid credentials JSON: {e}") from e
 
         required_fields = ["character_id", "access_token"]
         for field in required_fields:
