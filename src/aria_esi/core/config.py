@@ -344,6 +344,47 @@ class AriaSettings(BaseSettings):
         else:
             return False
 
+    def audit_break_glass_state(self) -> set[str]:
+        """
+        Audit all break-glass overrides and log active ones.
+
+        Checks all three break-glass environment variables and logs
+        WARNING if one is active, ERROR if two or more are active.
+
+        Returns:
+            Set of active break-glass feature names
+        """
+        _BREAK_GLASS_FLAGS = {
+            "paths": ("ARIA_ALLOW_UNSAFE_PATHS", self.allow_unsafe_paths),
+            "integrity": ("ARIA_ALLOW_UNPINNED", self.allow_unpinned),
+            "policy": ("ARIA_MCP_BYPASS_POLICY", self.mcp_bypass_policy),
+        }
+
+        active: set[str] = set()
+        for feature, (_env_var, enabled) in _BREAK_GLASS_FLAGS.items():
+            if enabled:
+                active.add(feature)
+
+        if not active:
+            return active
+
+        _logger = logging.getLogger(__name__)
+        env_vars = [_BREAK_GLASS_FLAGS[f][0] for f in sorted(active)]
+
+        if len(active) >= 2:
+            _logger.error(
+                "Multiple break-glass overrides active: %s. "
+                "This significantly weakens security controls.",
+                ", ".join(env_vars),
+            )
+        else:
+            _logger.warning(
+                "Break-glass override active: %s",
+                env_vars[0],
+            )
+
+        return active
+
 
 # =============================================================================
 # Singleton Accessor
@@ -397,3 +438,15 @@ def is_keyring_disabled() -> bool:
 def is_retry_disabled() -> bool:
     """Check if retry logic is disabled via environment."""
     return get_settings().no_retry
+
+
+def audit_break_glass_state() -> set[str]:
+    """
+    Audit all break-glass overrides and log active ones.
+
+    Convenience function that uses the singleton settings.
+
+    Returns:
+        Set of active break-glass feature names
+    """
+    return get_settings().audit_break_glass_state()

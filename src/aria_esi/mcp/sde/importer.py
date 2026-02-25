@@ -21,7 +21,8 @@ from aria_esi.core.data_integrity import (
     IntegrityError,
     compute_sha256,
     get_pinned_sde_url,
-    is_break_glass_enabled,
+    update_sde_checksum,
+    verify_sde_integrity,
 )
 from aria_esi.core.logging import get_logger
 
@@ -349,23 +350,24 @@ class SDEImporter:
         if show_checksum:
             logger.info("SDE SHA256 checksum: %s", actual_checksum)
 
-        # Verify checksum if configured and not in break-glass mode
-        effective_break_glass = break_glass or is_break_glass_enabled()
-
-        if expected_checksum and not effective_break_glass:
-            if actual_checksum.lower() != expected_checksum.lower():
-                # Clean up the bad download
+        # Verify integrity using centralized verification
+        try:
+            verify_sde_integrity(
+                compressed_path,
+                expected_checksum=expected_checksum,
+                break_glass=break_glass,
+            )
+        except IntegrityError as e:
+            if e.expected is not None:
+                # Checksum mismatch — clean up bad download
                 compressed_path.unlink(missing_ok=True)
-                raise IntegrityError(
-                    f"SDE checksum mismatch: expected {expected_checksum}, got {actual_checksum}",
-                    expected=expected_checksum,
-                    actual=actual_checksum,
-                )
-            logger.info("SDE checksum verified: %s...", actual_checksum[:16])
-        elif expected_checksum and effective_break_glass:
-            logger.warning("Break-glass mode: skipping SDE checksum verification")
-        else:
-            logger.info("No SDE checksum configured, skipping verification")
+                raise
+            # No checksum configured — auto-pin after successful first download
+            logger.info("Auto-pinning SDE checksum: %s...", actual_checksum[:16])
+            try:
+                update_sde_checksum(compressed_path)
+            except Exception as pin_err:
+                logger.warning("Failed to auto-pin SDE checksum: %s", pin_err)
 
         # Decompress
         logger.info("Decompressing SDE...")

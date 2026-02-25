@@ -1039,19 +1039,21 @@ class TestDownloadSDE:
     All network and file I/O is mocked to avoid real downloads.
     """
 
+    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
     @patch("aria_esi.mcp.sde.importer.compute_sha256")
     @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
     @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
     @patch("aria_esi.mcp.sde.importer.httpx")
     @patch("aria_esi.mcp.sde.importer.bz2")
     def test_checksum_pass(
-        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, importer, tmp_path
+        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer, tmp_path
     ):
         """Successful download with matching checksum returns decompressed path."""
         expected_checksum = "abc123def456"
         mock_get_url.return_value = ("https://example.com/sde.bz2", expected_checksum)
         mock_break_glass.return_value = False
         mock_sha256.return_value = expected_checksum
+        mock_verify.return_value = (True, expected_checksum)
 
         # Mock httpx.stream context manager
         mock_response = MagicMock()
@@ -1072,12 +1074,13 @@ class TestDownloadSDE:
         mock_httpx.stream.assert_called_once()
         mock_sha256.assert_called_once()
 
+    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
     @patch("aria_esi.mcp.sde.importer.compute_sha256")
     @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
     @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
     @patch("aria_esi.mcp.sde.importer.httpx")
     def test_checksum_mismatch_raises(
-        self, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, importer, tmp_path
+        self, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer, tmp_path
     ):
         """Checksum mismatch raises IntegrityError."""
         from aria_esi.core.data_integrity import IntegrityError
@@ -1085,6 +1088,11 @@ class TestDownloadSDE:
         mock_get_url.return_value = ("https://example.com/sde.bz2", "expected_hash")
         mock_break_glass.return_value = False
         mock_sha256.return_value = "wrong_hash"
+        mock_verify.side_effect = IntegrityError(
+            "SDE checksum mismatch: expected expected_hash, got wrong_hash",
+            expected="expected_hash",
+            actual="wrong_hash",
+        )
 
         # Mock httpx.stream context manager
         mock_response = MagicMock()
@@ -1096,18 +1104,20 @@ class TestDownloadSDE:
         with pytest.raises(IntegrityError, match="checksum mismatch"):
             importer.download_sde()
 
+    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
     @patch("aria_esi.mcp.sde.importer.compute_sha256")
     @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
     @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
     @patch("aria_esi.mcp.sde.importer.httpx")
     @patch("aria_esi.mcp.sde.importer.bz2")
     def test_break_glass_skips_checksum(
-        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, importer
+        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer
     ):
         """Break-glass mode skips checksum verification even on mismatch."""
         mock_get_url.return_value = ("https://example.com/sde.bz2", "expected_hash")
         mock_break_glass.return_value = False
         mock_sha256.return_value = "different_hash"
+        mock_verify.return_value = (True, "different_hash")  # break_glass=True passes
 
         # Mock httpx.stream context manager
         mock_response = MagicMock()
@@ -1126,18 +1136,20 @@ class TestDownloadSDE:
         result = importer.download_sde(break_glass=True)
         assert result.name == "sde-latest.sqlite"
 
+    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
     @patch("aria_esi.mcp.sde.importer.compute_sha256")
     @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
     @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
     @patch("aria_esi.mcp.sde.importer.httpx")
     @patch("aria_esi.mcp.sde.importer.bz2")
     def test_env_break_glass_skips_checksum(
-        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, importer
+        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer
     ):
         """Environment-level break-glass also skips checksum."""
         mock_get_url.return_value = ("https://example.com/sde.bz2", "expected_hash")
         mock_break_glass.return_value = True  # Environment says break-glass
         mock_sha256.return_value = "different_hash"
+        mock_verify.return_value = (True, "different_hash")  # break-glass passes
 
         # Mock httpx.stream context manager
         mock_response = MagicMock()
@@ -1155,18 +1167,26 @@ class TestDownloadSDE:
         result = importer.download_sde()
         assert result.name == "sde-latest.sqlite"
 
+    @patch("aria_esi.mcp.sde.importer.update_sde_checksum")
+    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
     @patch("aria_esi.mcp.sde.importer.compute_sha256")
     @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
     @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
     @patch("aria_esi.mcp.sde.importer.httpx")
     @patch("aria_esi.mcp.sde.importer.bz2")
     def test_no_expected_checksum(
-        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, importer
+        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, mock_update, importer
     ):
-        """When no expected checksum is configured, verification is skipped."""
+        """When no expected checksum is configured, auto-pins after download."""
+        from aria_esi.core.data_integrity import IntegrityError
+
         mock_get_url.return_value = ("https://example.com/sde.bz2", None)
         mock_break_glass.return_value = False
         mock_sha256.return_value = "any_hash"
+        # verify_sde_integrity raises IntegrityError with expected=None (no checksum)
+        mock_verify.side_effect = IntegrityError(
+            "No SDE checksum configured", expected=None, actual="any_hash"
+        )
 
         # Mock httpx.stream context manager
         mock_response = MagicMock()
@@ -1183,19 +1203,27 @@ class TestDownloadSDE:
 
         result = importer.download_sde()
         assert result.name == "sde-latest.sqlite"
+        mock_update.assert_called_once()  # Auto-pin was called
 
+    @patch("aria_esi.mcp.sde.importer.update_sde_checksum")
+    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
     @patch("aria_esi.mcp.sde.importer.compute_sha256")
     @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
     @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
     @patch("aria_esi.mcp.sde.importer.httpx")
     @patch("aria_esi.mcp.sde.importer.bz2")
     def test_show_checksum_flag(
-        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, importer
+        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, mock_update, importer
     ):
         """show_checksum parameter stores the checksum on the importer."""
+        from aria_esi.core.data_integrity import IntegrityError
+
         mock_get_url.return_value = ("https://example.com/sde.bz2", None)
         mock_break_glass.return_value = False
         mock_sha256.return_value = "the_sha256_hash"
+        mock_verify.side_effect = IntegrityError(
+            "No SDE checksum configured", expected=None, actual="the_sha256_hash"
+        )
 
         # Mock httpx.stream context manager
         mock_response = MagicMock()
@@ -1213,18 +1241,25 @@ class TestDownloadSDE:
         importer.download_sde(show_checksum=True)
         assert importer._source_checksum == "the_sha256_hash"
 
+    @patch("aria_esi.mcp.sde.importer.update_sde_checksum")
+    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
     @patch("aria_esi.mcp.sde.importer.compute_sha256")
     @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
     @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
     @patch("aria_esi.mcp.sde.importer.httpx")
     @patch("aria_esi.mcp.sde.importer.bz2")
     def test_progress_callback_called(
-        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, importer
+        self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, mock_update, importer
     ):
         """Progress callback receives download progress."""
+        from aria_esi.core.data_integrity import IntegrityError
+
         mock_get_url.return_value = ("https://example.com/sde.bz2", None)
         mock_break_glass.return_value = False
         mock_sha256.return_value = "hash"
+        mock_verify.side_effect = IntegrityError(
+            "No SDE checksum configured", expected=None, actual="hash"
+        )
 
         # Return multiple chunks to test callback
         mock_response = MagicMock()
@@ -1245,19 +1280,19 @@ class TestDownloadSDE:
         assert progress_calls[0] == (100, 200)
         assert progress_calls[1] == (200, 200)
 
+    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
     @patch("aria_esi.mcp.sde.importer.compute_sha256")
     @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
     @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
     @patch("aria_esi.mcp.sde.importer.httpx")
     def test_checksum_case_insensitive(
-        self, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, importer
+        self, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer
     ):
-        """Checksum comparison is case-insensitive."""
-        from aria_esi.core.data_integrity import IntegrityError
-
+        """Checksum comparison is case-insensitive (delegated to verify_sde_integrity)."""
         mock_get_url.return_value = ("https://example.com/sde.bz2", "ABCDEF123456")
         mock_break_glass.return_value = False
         mock_sha256.return_value = "abcdef123456"
+        mock_verify.return_value = (True, "abcdef123456")
 
         mock_response = MagicMock()
         mock_response.headers = {"content-length": "100"}
@@ -1435,3 +1470,36 @@ class TestEdgeCases:
         assert "quantity" in _VALID_SDE_IDENTIFIERS
         assert "NULL" in _VALID_SDE_IDENTIFIERS
         assert "1" in _VALID_SDE_IDENTIFIERS
+
+
+class TestSQLInterpolationSafety:
+    """Regression test: all column variables in importer.py are wrapped in _qi().
+
+    Security: This test scans the importer source for f-string column
+    interpolations that bypass the _qi() allowlist. If a column variable
+    is interpolated directly (e.g., {foo_col}) instead of via {_qi(foo_col)},
+    it would bypass the SQL identifier allowlist and enable SQL injection.
+
+    See dev/reviews/SECURITY_000.md #7.
+    """
+
+    def test_no_col_variables_interpolated_without_qi(self):
+        """Every {xxx_col} in importer.py must be wrapped in _qi()."""
+        import re
+
+        importer_path = Path(__file__).parent.parent.parent / "src" / "aria_esi" / "mcp" / "sde" / "importer.py"
+        source = importer_path.read_text()
+
+        # Pattern: find {some_col} that is NOT inside _qi(...)
+        # We look for f-string interpolations containing _col that aren't
+        # preceded by _qi(
+        #
+        # Match: {foo_col} — bare column interpolation (DANGEROUS)
+        # Skip:  {_qi(foo_col)} — safely wrapped
+        bare_col_pattern = re.compile(r'\{(?!_qi\()(\w+_col)\}')
+        matches = bare_col_pattern.findall(source)
+
+        assert matches == [], (
+            f"Found column variables interpolated without _qi(): {matches}. "
+            "All column variables in SQL f-strings must use _qi() for safe quoting."
+        )

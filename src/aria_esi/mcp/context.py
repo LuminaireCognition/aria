@@ -663,7 +663,7 @@ def _sanitize_params(params: dict[str, Any]) -> dict[str, Any]:
     """
     Sanitize parameters for logging.
 
-    Removes potentially sensitive data and truncates large values.
+    Delegates to shared sanitization module for consistent redaction.
 
     Args:
         params: Raw parameter dictionary
@@ -671,30 +671,9 @@ def _sanitize_params(params: dict[str, Any]) -> dict[str, Any]:
     Returns:
         Sanitized copy safe for logging
     """
-    sanitized = {}
-    sensitive_keys = {"token", "password", "secret", "key", "auth"}
+    from ..core.sanitization import sanitize_for_logging
 
-    for key, value in params.items():
-        key_lower = key.lower()
-
-        # Skip sensitive keys
-        if any(s in key_lower for s in sensitive_keys):
-            sanitized[key] = "[REDACTED]"
-            continue
-
-        # Truncate large strings
-        if isinstance(value, str) and len(value) > 200:
-            sanitized[key] = value[:200] + "..."
-        # Truncate large lists
-        elif isinstance(value, list) and len(value) > 10:
-            sanitized[key] = f"[list of {len(value)} items]"
-        # Truncate large dicts
-        elif isinstance(value, dict) and len(value) > 10:
-            sanitized[key] = f"{{dict with {len(value)} keys}}"
-        else:
-            sanitized[key] = value
-
-    return sanitized
+    return sanitize_for_logging(params)
 
 
 def log_context(dispatcher: str) -> Callable[[F], F]:

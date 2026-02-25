@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -234,7 +234,7 @@ class PolicyConfig:
     audit_logging: bool = True
 
     # Rate limit settings (calls per minute, 0 = unlimited)
-    rate_limit_per_minute: int = 0
+    rate_limit_per_minute: int = 300
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> PolicyConfig:
@@ -250,7 +250,7 @@ class PolicyConfig:
             denied_actions=set(data.get("denied_actions", [])),
             allowed_actions=set(data.get("allowed_actions", [])),
             audit_logging=data.get("audit_logging", True),
-            rate_limit_per_minute=data.get("rate_limit_per_minute", 0),
+            rate_limit_per_minute=data.get("rate_limit_per_minute", 300),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -432,7 +432,7 @@ class PolicyEngine:
         """Check and enforce rate limits."""
         full_action = f"{dispatcher}.{action}"
         now = datetime.now(UTC)
-        minute_ago = now.replace(second=0, microsecond=0)
+        minute_ago = now - timedelta(minutes=1)
 
         # Get call history for this action
         if full_action not in self._call_counts:
@@ -484,10 +484,9 @@ class PolicyEngine:
 
         if context:
             # Sanitize context to avoid logging sensitive data
-            safe_context = {
-                k: v for k, v in context.items() if k not in ("password", "token", "secret")
-            }
-            log_entry["context"] = safe_context
+            from ..core.sanitization import sanitize_for_logging
+
+            log_entry["context"] = sanitize_for_logging(context)
 
         if result == "denied":
             logger.warning("MCP policy: %s", json.dumps(log_entry))

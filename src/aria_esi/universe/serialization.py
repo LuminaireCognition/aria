@@ -3,30 +3,36 @@ Safe serialization for UniverseGraph.
 
 This module provides pickle-free serialization using a hybrid format:
 - msgpack for Python data structures (dicts, arrays, frozensets)
-- igraph's native binary format for graph topology
+- Custom binary edge list for graph topology (no pickle)
 
 Container format (.universe file):
     Offset  Size  Description
     0       4     Magic: b'ARIA'
-    4       2     Version: 0x0001 (big-endian)
+    4       2     Version: 0x0002 (big-endian)
     6       4     Metadata length N (big-endian)
     10      N     msgpack metadata
     10+N    4     Graph length M (big-endian)
-    14+N    M     igraph picklez blob (gzipped)
+    14+N    M     Graph blob (format depends on version)
+
+Graph blob format by version:
+    v1: igraph picklez (gzipped pickle — DEPRECATED, read-only)
+    v2: gzipped edge list — safe binary format:
+        [uint32 n_vertices][uint32 n_edges][uint32 u, uint32 v]...
 
 Security:
-    This format eliminates pickle.load() for Python data, removing the
-    primary RCE attack vector. The igraph picklez format is still used
-    for graph topology, but only contains graph structure (vertices/edges),
-    not arbitrary Python objects.
+    v2 eliminates all pickle deserialization. The graph blob contains only
+    unsigned 32-bit integers (vertex counts and edge pairs), making arbitrary
+    code execution impossible during deserialization.
 
 STP-001: Core Data Model - Safe Serialization Extension
 """
 
 from __future__ import annotations
 
+import gzip
 import io
 import struct
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -42,8 +48,12 @@ logger = get_logger(__name__)
 
 # Container format constants
 MAGIC = b"ARIA"
-FORMAT_VERSION = 1  # Increment when format changes incompatibly
+FORMAT_VERSION = 2  # v2: safe binary edge list (no pickle)
 HEADER_SIZE = 10  # 4 (magic) + 2 (version) + 4 (metadata length)
+
+# Edge list binary format constants
+_UINT32 = struct.Struct(">I")
+_EDGE_PAIR = struct.Struct(">II")
 
 
 class SerializationError(Exception):
@@ -52,9 +62,104 @@ class SerializationError(Exception):
     pass
 
 
+# =============================================================================
+# Safe Binary Edge List (v2)
+# =============================================================================
+
+
+def _graph_to_bytes(graph: ig.Graph) -> bytes:
+    """
+    Serialize an igraph graph to a gzipped binary edge list.
+
+    Format: gzip([uint32 n_vertices][uint32 n_edges][uint32 u, uint32 v]...)
+
+    Only topology is serialized — no vertex/edge attributes.
+
+    Args:
+        graph: igraph.Graph instance (must be undirected)
+
+    Returns:
+        Gzipped bytes containing the edge list
+
+    Raises:
+        SerializationError: If graph has too many vertices for uint32
+    """
+    n_vertices = graph.vcount()
+    n_edges = graph.ecount()
+
+    if n_vertices > 0xFFFFFFFF:
+        raise SerializationError(f"Graph has {n_vertices} vertices, exceeding uint32 max")
+
+    # Build raw buffer: header + edges
+    buf = io.BytesIO()
+    buf.write(_UINT32.pack(n_vertices))
+    buf.write(_UINT32.pack(n_edges))
+
+    for edge in graph.es:
+        buf.write(_EDGE_PAIR.pack(edge.source, edge.target))
+
+    return gzip.compress(buf.getvalue())
+
+
+def _bytes_to_graph(data: bytes) -> ig.Graph:
+    """
+    Deserialize a gzipped binary edge list to an igraph graph.
+
+    Performs strict validation:
+    - Size checks to ensure complete data
+    - Vertex index bounds checking for every edge
+
+    Args:
+        data: Gzipped bytes from _graph_to_bytes()
+
+    Returns:
+        igraph.Graph instance (undirected, no attributes)
+
+    Raises:
+        SerializationError: If data is malformed or contains invalid indices
+    """
+    try:
+        raw = gzip.decompress(data)
+    except Exception as e:
+        raise SerializationError(f"Failed to decompress graph data: {e}") from e
+
+    # Need at least 8 bytes for header (n_vertices + n_edges)
+    if len(raw) < 8:
+        raise SerializationError(f"Graph data too short: {len(raw)} bytes (minimum 8)")
+
+    n_vertices = _UINT32.unpack_from(raw, 0)[0]
+    n_edges = _UINT32.unpack_from(raw, 4)[0]
+
+    expected_size = 8 + n_edges * 8
+    if len(raw) != expected_size:
+        raise SerializationError(
+            f"Graph data size mismatch: expected {expected_size} bytes "
+            f"(header + {n_edges} edges), got {len(raw)}"
+        )
+
+    # Parse edges with bounds checking
+    edges: list[tuple[int, int]] = []
+    offset = 8
+    for i in range(n_edges):
+        u, v = _EDGE_PAIR.unpack_from(raw, offset)
+        if u >= n_vertices or v >= n_vertices:
+            raise SerializationError(
+                f"Edge {i} has out-of-range vertex index: ({u}, {v}) with n_vertices={n_vertices}"
+            )
+        edges.append((u, v))
+        offset += 8
+
+    return ig.Graph(n=n_vertices, edges=edges, directed=False)
+
+
+# =============================================================================
+# Save / Load
+# =============================================================================
+
+
 def save_universe_graph(universe: UniverseGraph, path: Path) -> None:
     """
-    Serialize UniverseGraph to container format.
+    Serialize UniverseGraph to container format (always writes v2).
 
     Args:
         universe: UniverseGraph instance to serialize
@@ -70,17 +175,15 @@ def save_universe_graph(universe: UniverseGraph, path: Path) -> None:
         # 2. Pack metadata with msgpack
         metadata_bytes = msgpack.packb(metadata, use_bin_type=True)
 
-        # 3. Serialize igraph to picklez (gzipped binary)
-        graph_buffer = io.BytesIO()
-        universe.graph.write_picklez(graph_buffer)
-        graph_bytes = graph_buffer.getvalue()
+        # 3. Serialize graph to safe binary edge list
+        graph_bytes = _graph_to_bytes(universe.graph)
 
         # 4. Build container
         with open(path, "wb") as f:
             # Magic bytes
             f.write(MAGIC)
 
-            # Version (big-endian uint16)
+            # Version (big-endian uint16) — always write v2
             f.write(struct.pack(">H", FORMAT_VERSION))
 
             # Metadata length + data
@@ -92,7 +195,7 @@ def save_universe_graph(universe: UniverseGraph, path: Path) -> None:
             f.write(graph_bytes)
 
         logger.debug(
-            "Saved universe graph: metadata=%d bytes, graph=%d bytes",
+            "Saved universe graph v2: metadata=%d bytes, graph=%d bytes",
             len(metadata_bytes),
             len(graph_bytes),
         )
@@ -104,6 +207,8 @@ def save_universe_graph(universe: UniverseGraph, path: Path) -> None:
 def load_universe_graph(path: Path) -> UniverseGraph:
     """
     Deserialize UniverseGraph from container format.
+
+    Supports both v1 (legacy pickle, with deprecation warning) and v2 (safe edge list).
 
     Args:
         path: Path to .universe file
@@ -140,14 +245,28 @@ def load_universe_graph(path: Path) -> UniverseGraph:
             metadata_bytes = f.read(metadata_len)
             metadata = msgpack.unpackb(metadata_bytes, raw=False)
 
-            # 4. Read graph
+            # 4. Read graph blob
             graph_len_bytes = f.read(4)
             graph_len = struct.unpack(">I", graph_len_bytes)[0]
             graph_bytes = f.read(graph_len)
 
-            # 5. Reconstruct igraph from picklez
-            graph_buffer = io.BytesIO(graph_bytes)
-            graph = ig.Graph.Read_Picklez(graph_buffer)
+            # 5. Deserialize graph based on version
+            if version == 1:
+                # Legacy v1: igraph picklez (deprecated)
+                warnings.warn(
+                    "Loading v1 universe graph (pickle format). "
+                    "Rebuild with 'uv run aria-esi universe --build' to upgrade to v2.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                logger.warning(
+                    "Loading v1 universe graph (pickle). Rebuild to upgrade to safe v2 format."
+                )
+                graph_buffer = io.BytesIO(graph_bytes)
+                graph = ig.Graph.Read_Picklez(graph_buffer)
+            else:
+                # v2: safe binary edge list
+                graph = _bytes_to_graph(graph_bytes)
 
             # 6. Reconstruct UniverseGraph
             return UniverseGraph.from_dict(metadata, graph)

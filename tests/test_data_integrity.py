@@ -457,7 +457,34 @@ class TestVerifySdeIntegrity:
     """Tests for SDE integrity verification."""
 
     def test_verify_sde_integrity_no_checksum_configured(self, tmp_path, monkeypatch):
-        """Test verification passes when no checksum is configured."""
+        """Test verification raises IntegrityError when no checksum is configured."""
+        from aria_esi.core import data_integrity
+        from aria_esi.core.data_integrity import IntegrityError
+
+        # Create test file
+        test_file = tmp_path / "sde.sqlite.bz2"
+        test_file.write_text("test content")
+
+        # Create manifest with no checksum
+        manifest_path = tmp_path / "data-sources.json"
+        manifest_content = {
+            "schema_version": 1,
+            "sources": {
+                "sde": {"pinned_version": "latest", "sha256": None},
+            },
+        }
+        manifest_path.write_text(json.dumps(manifest_content))
+        monkeypatch.setattr(data_integrity, "MANIFEST_PATH", manifest_path)
+
+        with pytest.raises(IntegrityError) as exc_info:
+            data_integrity.verify_sde_integrity(test_file)
+
+        assert "No SDE checksum configured" in str(exc_info.value)
+        assert exc_info.value.actual is not None
+        assert len(exc_info.value.actual) == 64
+
+    def test_verify_sde_integrity_no_checksum_break_glass_passes(self, tmp_path, monkeypatch):
+        """Test break-glass bypasses the no-checksum error."""
         from aria_esi.core import data_integrity
 
         # Create test file
@@ -475,10 +502,9 @@ class TestVerifySdeIntegrity:
         manifest_path.write_text(json.dumps(manifest_content))
         monkeypatch.setattr(data_integrity, "MANIFEST_PATH", manifest_path)
 
-        success, actual = data_integrity.verify_sde_integrity(test_file)
+        success, actual = data_integrity.verify_sde_integrity(test_file, break_glass=True)
 
         assert success is True
-        assert len(actual) == 64  # SHA256 hex length
 
     def test_verify_sde_integrity_break_glass(self, tmp_path, monkeypatch):
         """Test verification passes in break-glass mode."""
@@ -527,3 +553,34 @@ class TestVerifySdeIntegrity:
             verify_sde_integrity(test_file, expected_checksum="wrong_checksum")
 
         assert "mismatch" in str(exc_info.value).lower()
+
+
+class TestUpdateSdeChecksum:
+    """Tests for SDE checksum auto-pinning."""
+
+    def test_update_sde_checksum(self, tmp_path):
+        """update_sde_checksum writes checksum to manifest."""
+        from aria_esi.core.data_integrity import update_sde_checksum, compute_sha256
+
+        # Create test file
+        test_file = tmp_path / "sde.sqlite.bz2"
+        test_file.write_text("test content")
+
+        # Create manifest
+        manifest_path = tmp_path / "data-sources.json"
+        manifest_content = {
+            "schema_version": 1,
+            "sources": {
+                "sde": {"pinned_version": "latest", "sha256": None},
+            },
+        }
+        manifest_path.write_text(json.dumps(manifest_content))
+
+        # Update checksum
+        checksum = update_sde_checksum(test_file, manifest_path=manifest_path)
+
+        # Verify it was written
+        assert checksum == compute_sha256(test_file)
+        manifest = json.loads(manifest_path.read_text())
+        assert manifest["sources"]["sde"]["sha256"] == checksum
+        assert "last_verified" in manifest["sources"]["sde"]

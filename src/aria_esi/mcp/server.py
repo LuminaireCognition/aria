@@ -141,6 +141,12 @@ class UniverseServer:
     def run(self) -> None:
         """Start MCP server with stdio transport."""
         logger.info("Starting ARIA Universe MCP Server")
+
+        # Audit break-glass overrides at startup
+        from ..core.config import audit_break_glass_state
+
+        audit_break_glass_state()
+
         self.load_graph()
         self.register_tools()
         self.warm_sde_caches()
