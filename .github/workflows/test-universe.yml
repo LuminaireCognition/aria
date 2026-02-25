@@ -87,7 +87,7 @@ jobs:
       - name: Run benchmarks
         if: steps.graph-check.outputs.graph_exists == 'true'
         run: |
-          uv run pytest tests/benchmarks/ -v -m "benchmark" --benchmark-enable --benchmark-json=benchmark.json
+          uv run pytest tests/benchmarks/ -v -m "benchmark" --benchmark-enable --benchmark-json=benchmark.json --no-cov
 
       - name: Upload benchmark results
         if: steps.graph-check.outputs.graph_exists == 'true'
