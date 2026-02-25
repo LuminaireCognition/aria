@@ -24,6 +24,8 @@ from email.message import Message
 from functools import wraps
 from typing import Any, Optional, TypeVar, Union
 
+from .exceptions import AriaError
+
 # Import httpx with graceful fallback
 try:
     import httpx
@@ -122,7 +124,7 @@ def get_retry_status() -> dict:
     }
 
 
-class RetryableESIError(Exception):
+class RetryableESIError(AriaError):
     """
     Exception for retryable ESI errors.
 
@@ -144,7 +146,7 @@ class RetryableESIError(Exception):
         super().__init__(self.message)
 
 
-class NonRetryableESIError(Exception):
+class NonRetryableESIError(AriaError):
     """
     Exception for non-retryable ESI errors.
 

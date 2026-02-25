@@ -271,7 +271,7 @@ def register_route_tools(server: FastMCP) -> None:
                 else:
                     warnings.append(f"Unknown system: {system_name}")
 
-        except Exception as e:  # noqa: BLE001 -- could not find try block
+        except Exception as e:  # noqa: BLE001 -- MCP handler boundary
             logger.warning("Failed to get universe data: %s", e)
             warnings.append("Could not resolve route systems - universe graph unavailable")
 

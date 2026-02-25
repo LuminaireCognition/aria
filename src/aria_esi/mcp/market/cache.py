@@ -581,7 +581,7 @@ class MarketCache:
                     )
                 )
 
-            except Exception as e:  # noqa: BLE001 -- could not find try block
+            except Exception as e:  # noqa: BLE001 -- per-item ESI fetch, skip and continue
                 logger.warning("Failed to fetch ESI prices for %d: %s", type_id, e)
 
         return results
@@ -709,7 +709,7 @@ class MarketCache:
             logger.debug("Got %d prices from database cache", len(results))
             return results
 
-        except Exception as e:  # noqa: BLE001 -- could not find try block
+        except Exception as e:  # noqa: BLE001 -- DB cache read, fall back to ESI
             logger.warning("Database cache read failed: %s", e)
             return []
 
@@ -783,7 +783,7 @@ class MarketCache:
             logger.debug("Got %d prices from async database cache", len(results))
             return results
 
-        except Exception as e:  # noqa: BLE001 -- could not find try block
+        except Exception as e:  # noqa: BLE001 -- async DB cache read, fall back to ESI
             logger.warning("Async database cache read failed: %s", e)
             return []
 

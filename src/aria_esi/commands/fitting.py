@@ -498,7 +498,7 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
                 "message": str(e),
                 "query_timestamp": query_ts,
             }
-        except Exception as e:  # noqa: BLE001 -- could not find try block
+        except Exception as e:  # noqa: BLE001 -- CLI error barrier
             print(f"\n✗ Error: {e}")
             return {
                 "error": "seed_error",

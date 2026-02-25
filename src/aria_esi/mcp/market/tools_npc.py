@@ -501,7 +501,7 @@ async def _npc_sources_impl(item: str, limit: int = 10) -> dict:
                 logger.warning("Failed to fetch orders from region %s: %s", region_id, e)
                 warnings.append(f"Failed to query {region_name}: {e}")
 
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- MCP handler boundary
         return {
             "error": {
                 "code": "ESI_UNAVAILABLE",

@@ -311,7 +311,7 @@ def cmd_sov_lookup(args: argparse.Namespace) -> dict:
 
         return result
 
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- CLI error barrier
         return {
             "error": "lookup_failed",
             "message": str(e),
@@ -491,7 +491,7 @@ def cmd_sov_load_coalitions(args: argparse.Namespace) -> dict:
             "query_timestamp": query_ts,
         }
 
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- CLI error barrier
         return {
             "error": "load_failed",
             "message": str(e),

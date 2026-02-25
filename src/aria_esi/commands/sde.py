@@ -330,7 +330,7 @@ def cmd_sde_item(args: argparse.Namespace) -> dict:
                 "query_timestamp": query_ts,
             }
 
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- CLI error barrier
         return {
             "error": "lookup_error",
             "message": f"Failed to look up item: {e}",
@@ -498,7 +498,7 @@ def cmd_sde_blueprint(args: argparse.Namespace) -> dict:
                 "query_timestamp": query_ts,
             }
 
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- CLI error barrier
         return {
             "error": "lookup_error",
             "message": f"Failed to look up blueprint: {e}",

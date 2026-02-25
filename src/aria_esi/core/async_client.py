@@ -16,9 +16,9 @@ from urllib.parse import urlencode
 
 import httpx
 
+from .client import ESIError as AsyncESIError
 from .client import ESIResponse as AsyncESIResponse
 from .constants import ESI_BASE_URL, ESI_DATASOURCE
-from .exceptions import AriaError
 from .logging import get_logger
 from .retry import (
     RETRYABLE_STATUS_CODES,
@@ -29,33 +29,6 @@ if TYPE_CHECKING:
     from collections.abc import Mapping
 
 logger = get_logger(__name__)
-
-
-# =============================================================================
-# Exceptions
-# =============================================================================
-
-
-class AsyncESIError(AriaError):
-    """Exception raised for async ESI API errors."""
-
-    def __init__(
-        self,
-        message: str,
-        status_code: Optional[int] = None,
-        response: Optional[dict[str, Any]] = None,
-    ) -> None:
-        self.message = message
-        self.status_code = status_code
-        self.response = response or {}
-        super().__init__(self.message)
-
-    def to_dict(self) -> dict[str, Any]:
-        """Convert error to JSON-serializable dict."""
-        result: dict[str, Any] = {"error": "esi_error", "message": self.message}
-        if self.status_code:
-            result["status_code"] = self.status_code
-        return result
 
 
 # =============================================================================

@@ -337,7 +337,7 @@ class HistoryCacheService:
         except ImportError:
             logger.warning("httpx client not available for history fetch")
             return None
-        except Exception as e:  # noqa: BLE001 -- could not find try block
+        except Exception as e:  # noqa: BLE001 -- ESI history fetch, return None
             logger.debug("History fetch error: %s", e)
             return None
 

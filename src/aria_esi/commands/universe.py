@@ -260,7 +260,7 @@ def cmd_loop(args: argparse.Namespace) -> dict:
             "suggestion": e.suggestion,
             "query_timestamp": query_ts,
         }
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- CLI error barrier
         return {
             "error": "loop_planning_failed",
             "message": f"Loop planning failed: {e}",
@@ -678,7 +678,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- ESI activity fetch fallback
         return {
             "error": "activity_failed",
             "message": f"Activity query failed: {e}",
@@ -825,7 +825,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- ESI hotspot fetch fallback
         return {
             "error": "hotspots_failed",
             "message": f"Hotspots search failed: {e}",
@@ -1075,7 +1075,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- ESI gatecamp risk fallback
         return {
             "error": "risk_analysis_failed",
             "message": f"Risk analysis failed: {e}",
@@ -1220,7 +1220,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- ESI gatecamp detect fallback
         return {
             "error": "gatecamp_check_failed",
             "message": f"Gatecamp check failed: {e}",
@@ -1352,7 +1352,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:  # noqa: BLE001 -- could not find try block
+    except Exception as e:  # noqa: BLE001 -- ESI FW frontlines fallback
         return {
             "error": "fw_frontlines_failed",
             "message": f"FW frontlines query failed: {e}",

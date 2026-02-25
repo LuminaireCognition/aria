@@ -580,7 +580,7 @@ class SDEImporter:
                 result.blueprints_imported,
             )
 
-        except Exception as e:  # noqa: BLE001 -- could not find try block
+        except Exception as e:  # noqa: BLE001 -- CLI error barrier
             logger.error("SDE import failed: %s", e)
             result.error = str(e)
             result.import_time_seconds = time.time() - start_time

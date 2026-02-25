@@ -415,7 +415,7 @@ class ProfileEvaluator:
                 "interest_result": interest_result,
             }
 
-        except Exception as e:  # noqa: BLE001 -- could not find try block
+        except Exception as e:  # noqa: BLE001 -- evaluation failure, skip notification
             logger.error(
                 "Error evaluating v2 profile '%s' for kill %d: %s",
                 profile.name,
