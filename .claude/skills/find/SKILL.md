@@ -71,6 +71,22 @@ ARIA automatically suggests the best source filter based on item category:
 
 When the suggested filter differs from the applied filter, ARIA will note this in the response.
 
+### Blueprint and Skillbook Fallback
+
+If `market(action="find_nearby", source_filter="npc")` returns empty results for blueprints or skillbooks, fall back to `market(action="npc_sources", item=...)` which queries SDE NPC seeding data directly rather than filtering live market orders. This is more reliable for NPC-exclusive items where no active orders may exist in nearby regions.
+
+**Fallback pattern:**
+```python
+# Step 1: Try proximity search
+result = market(action="find_nearby", item="Venture Blueprint", origin="Sortet", source_filter="npc")
+
+# Step 2: If empty, use NPC sources
+if not result.get("sources"):
+    result = market(action="npc_sources", item="Venture Blueprint")
+```
+
+**Note:** `npc_sources` does not include distance data. Use `universe(action="route")` to calculate jump counts from the NPC source systems if needed.
+
 ## MCP Tool
 
 This skill uses the `market_find_nearby` MCP tool:

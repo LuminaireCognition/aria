@@ -110,6 +110,16 @@ This provides:
 
 **Cache behavior:** Activity data refreshes every ~10 minutes. ESI aggregates hourly.
 
+### Efficiency: Single Bulk Call
+
+**CRITICAL:** Always fetch activity for ALL route systems in a single call:
+
+```
+universe(action="activity", systems=["Jita", "Perimeter", "Urlen", ...all route systems...])
+```
+
+Do NOT fetch activity or system data one system at a time. The `universe(action="route")` response already returns system names and security — you only need the bulk activity call for Ships/Pods/Jumps columns.
+
 ### Real-Time Gatecamp Detection
 
 When `include_realtime=True` returns gatecamp data for systems on the route, display alerts in the Notes column:
@@ -452,6 +462,7 @@ For detailed threat analysis of dangerous segments, I can run
 - **DO NOT** ignore Pochven systems (limited connectivity)
 - **DO NOT** assume wormhole routes exist (J-space has no stargates)
 - **DO NOT** cache route results locally (ESI handles caching)
+- **DO NOT** fetch activity or system data one system at a time — always use bulk calls
 
 ---
 

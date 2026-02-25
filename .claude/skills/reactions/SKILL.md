@@ -90,6 +90,8 @@ for item in prices_result.get("items", []):
     material_prices[item["type_name"]] = item.get("sell_min", 0)
 ```
 
+**CRITICAL:** Always fetch ALL material prices in a single `market(action="prices")` call. Never split materials across multiple queries.
+
 ### Step 3: Calculate Cost
 
 ```python

@@ -437,6 +437,16 @@ EVE University Wiki uses inconsistent naming:
 
 Search is more reliable than guessing the URL pattern.
 
+**Direct URL shortcut (when mission name and level are known):**
+When the user provides a specific mission name and level, try constructing the URL directly before searching:
+```
+https://wiki.eveuniversity.org/{Mission_Name}_(Level_{N})
+```
+Example: `The_Blockade_(Level_4)` → `https://wiki.eveuniversity.org/The_Blockade_(Level_4)`
+
+**URL rules:** Replace spaces with underscores, capitalize first letter of each word, append `_(Level_N)`.
+If the page returns 404 or a disambiguation page, fall back to `Special:Search`.
+
 ### WebFetch Prompts
 
 When using WebFetch to retrieve mission pages, use specific extraction prompts:

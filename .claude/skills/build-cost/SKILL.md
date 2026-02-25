@@ -132,6 +132,8 @@ def apply_me(base_qty: int, me_level: int) -> int:
 market(action="prices", items=material_names)
 ```
 
+**CRITICAL:** Always fetch ALL material prices in a single `market(action="prices")` call. Never split materials across multiple price queries — this wastes API calls and risks stale data mismatches.
+
 ### Step 5: Verify Price Completeness
 
 ```python

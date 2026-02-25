@@ -46,10 +46,6 @@ Mining ledger data is **semi-stable** - updates as you mine:
 3. **30-day window** - older data is purged automatically
 4. **Safe to cache** - data only updates when actively mining
 
-## MCP Confirmation Gate
-
-`pilot(action="mining_ledger")` may require user confirmation before executing on first use (MCP tool permission prompt). Present the confirmation to the user naturally — do not treat it as an error or retry automatically.
-
 ## Trigger Phrases
 
 - `/mining`
@@ -104,10 +100,18 @@ Proceed with normal mining ledger queries.
 
 ## Implementation
 
-Run the ESI wrapper commands:
+### MCP (preferred if available)
+
+```python
+pilot(action="mining_ledger", days=7)
+pilot(action="mining_ledger", days=30, system_filter="Masalle", ore_filter="Veldspar")
+```
+
+### CLI (fallback)
+
 ```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi mining [options]
-PYTHONPATH=.claude/scripts uv run python -m aria_esi mining-summary [options]
+uv run python -m aria_esi mining [options]
+uv run python -m aria_esi mining-summary [options]
 ```
 
 ### Commands
