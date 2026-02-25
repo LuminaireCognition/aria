@@ -101,7 +101,11 @@ class SystemInfo(MCPModel):
 
 
 class SecuritySummary(MCPModel):
-    """Security breakdown for a route or system list."""
+    """Security breakdown for a route or system list.
+
+    Note: A dataclass twin exists in services.navigation.result_builder for the
+    service layer; this Pydantic version adds validation at the MCP API boundary.
+    """
 
     total_jumps: int = Field(ge=0)
     highsec_jumps: int = Field(ge=0)

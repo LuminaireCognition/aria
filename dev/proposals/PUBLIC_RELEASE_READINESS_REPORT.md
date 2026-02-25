@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-An audit of all 45 proposals (5 active, 40 archived) concludes that ARIA is **near-ready for a quiet public release**. The prior `GITHUB_RELEASE_READINESS` proposal (archived as complete) graded the project "A- for first-visitor impressions" and declared it "ready for a quiet release." The repo is already public on GitHub.
+An audit of all 46 proposals (5 active, 41 archived) concludes that ARIA is **near-ready for a quiet public release**. The prior `GITHUB_RELEASE_READINESS` proposal (archived as complete) graded the project "A- for first-visitor impressions" and declared it "ready for a quiet release." The repo is already public on GitHub.
 
 The single most likely blocker is verifying that `aria-init` works correctly with the current `userdata/` directory layout. Beyond that, remaining work is polish and future enhancements.
 

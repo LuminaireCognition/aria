@@ -17,9 +17,9 @@ from aria_esi.mcp.errors import InvalidParameterError, RouteNotFoundError
 from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.dispatchers.universe import (
     _analyze_route,
-    _compute_security_summary,
     _find_chokepoints,
     _find_danger_zones,
+    _route_compute_security_summary,
     _validate_connectivity,
     register_analyze_tools,
 )
@@ -189,37 +189,44 @@ class TestValidateConnectivity:
 
 
 class TestComputeSecuritySummary:
-    """Test _compute_security_summary function."""
+    """Test _route_compute_security_summary function."""
 
     def test_highsec_only_route(self, mock_universe: UniverseGraph):
-        """High-sec only route counted correctly."""
+        """High-sec only route counted correctly (origin excluded from jump counts)."""
         indices = [0, 1, 3]  # Jita -> Perimeter -> Urlen
-        summary = _compute_security_summary(mock_universe, indices)
+        summary = _route_compute_security_summary(mock_universe, indices)
 
-        assert summary.highsec_jumps == 3
+        assert summary.highsec_jumps == 2  # Perimeter, Urlen (origin excluded)
         assert summary.lowsec_jumps == 0
         assert summary.nullsec_jumps == 0
 
     def test_mixed_security_route(self, mock_universe: UniverseGraph):
-        """Mixed security route counted correctly."""
+        """Mixed security route counted correctly (origin excluded from jump counts)."""
         indices = [0, 2, 4, 5]  # Jita -> Maurasi -> Sivala -> Ala
-        summary = _compute_security_summary(mock_universe, indices)
+        summary = _route_compute_security_summary(mock_universe, indices)
 
-        assert summary.highsec_jumps == 2  # Jita, Maurasi
+        assert summary.highsec_jumps == 1  # Maurasi (origin Jita excluded)
         assert summary.lowsec_jumps == 1  # Sivala
         assert summary.nullsec_jumps == 1  # Ala
 
     def test_total_jumps_calculated(self, mock_universe: UniverseGraph):
         """Total jumps is systems minus 1."""
         indices = [0, 1, 3]  # 3 systems = 2 jumps
-        summary = _compute_security_summary(mock_universe, indices)
+        summary = _route_compute_security_summary(mock_universe, indices)
 
         assert summary.total_jumps == 2
+
+    def test_security_summary_invariant(self, mock_universe: UniverseGraph):
+        """Jump counts must sum to total_jumps."""
+        indices = [0, 2, 4, 5, 6]  # Through to Oijanen
+        summary = _route_compute_security_summary(mock_universe, indices)
+
+        assert summary.highsec_jumps + summary.lowsec_jumps + summary.nullsec_jumps == summary.total_jumps
 
     def test_lowest_security_identified(self, mock_universe: UniverseGraph):
         """Lowest security system identified."""
         indices = [0, 2, 4, 5, 6]  # Through to Oijanen (-0.3)
-        summary = _compute_security_summary(mock_universe, indices)
+        summary = _route_compute_security_summary(mock_universe, indices)
 
         assert summary.lowest_security == pytest.approx(-0.3, rel=0.01)
         assert summary.lowest_security_system == "Oijanen"
@@ -464,7 +471,7 @@ class TestUniverseAnalyzeIntegration:
             asyncio.run(captured_tool(systems=[]))
 
     def test_analyze_security_summary_totals(self, registered_universe: UniverseGraph):
-        """Security summary totals match system count."""
+        """Security category jumps sum to total_jumps (origin excluded)."""
         import asyncio
 
         captured_tool = self._capture_tool(registered_universe)
@@ -472,7 +479,7 @@ class TestUniverseAnalyzeIntegration:
 
         summary = result["security_summary"]
         total = summary["highsec_jumps"] + summary["lowsec_jumps"] + summary["nullsec_jumps"]
-        assert total == len(result["systems"])
+        assert total == summary["total_jumps"]
 
     def test_analyze_case_insensitive(self, registered_universe: UniverseGraph):
         """System names are case-insensitive."""
@@ -544,7 +551,7 @@ class TestAnalyzePerformance:
 
         start = time.perf_counter()
         for _ in range(1000):
-            _compute_security_summary(mock_universe, indices)
+            _route_compute_security_summary(mock_universe, indices)
         elapsed = time.perf_counter() - start
 
         avg_time = elapsed / 1000

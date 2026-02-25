@@ -23,10 +23,11 @@ from __future__ import annotations
 import logging
 from collections import deque
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from ...services.navigation import (
     VALID_MODES,
+    RouteMode,
 )
 
 # Re-exports for test compatibility
@@ -502,11 +503,12 @@ async def _route(
             else:
                 unresolved_avoids.append(name)
 
-    # Expand avoid_territory to system indices and merge into avoid set
+    # Expand territory params to system indices
     territory_warnings: list[str] = []
-    if avoid_territory:
+    if avoid_territory or prefer_territory:
         from ...services.sovereignty.coalition_service import get_systems_by_coalition
 
+    if avoid_territory:
         territory_system_ids = get_systems_by_coalition(avoid_territory)
         if territory_system_ids:
             if avoid_indices is None:
@@ -526,8 +528,6 @@ async def _route(
     # Expand prefer_territory to system indices
     preferred_indices: set[int] | None = None
     if prefer_territory:
-        from ...services.sovereignty.coalition_service import get_systems_by_coalition
-
         territory_system_ids = get_systems_by_coalition(prefer_territory)
         if territory_system_ids:
             preferred_indices = set()
@@ -1978,7 +1978,9 @@ def _calculate_route(
     from ...services.navigation import NavigationService
 
     service = NavigationService(universe)
-    return service.calculate_route(origin_idx, dest_idx, mode, avoid_systems, preferred_systems)  # type: ignore[arg-type]
+    return service.calculate_route(
+        origin_idx, dest_idx, cast(RouteMode, mode), avoid_systems, preferred_systems
+    )
 
 
 async def _generate_fw_route_warnings(universe: UniverseGraph, path: list[int]) -> list[str]:
@@ -2035,7 +2037,7 @@ def _build_route_result(
     return RouteResult(
         origin=origin,
         destination=destination,
-        mode=mode,  # type: ignore[arg-type]
+        mode=cast(RouteMode, mode),
         jumps=len(path) - 1,
         systems=systems,
         security_summary=SecuritySummary(
@@ -2458,7 +2460,7 @@ def _analyze_route(
 ) -> RouteAnalysis:
     """Build complete route analysis."""
     systems = [build_system_info(universe, idx) for idx in indices]
-    security_summary = _compute_security_summary(universe, indices)
+    security_summary = _route_compute_security_summary(universe, indices)
     chokepoints = _find_chokepoints(universe, indices)
     danger_zones = _find_danger_zones(universe, indices)
 
@@ -2467,42 +2469,6 @@ def _analyze_route(
         security_summary=security_summary,
         chokepoints=chokepoints,
         danger_zones=danger_zones,
-    )
-
-
-def _compute_security_summary(
-    universe: UniverseGraph,
-    indices: list[int],
-) -> SecuritySummary:
-    """Compute security breakdown for route (analyze version)."""
-    highsec = 0
-    lowsec = 0
-    nullsec = 0
-    lowest_sec = 1.0
-    lowest_system = ""
-
-    for idx in indices:
-        sec = float(universe.security[idx])
-        sec_class = universe.security_class(idx)
-
-        if sec_class == "HIGH":
-            highsec += 1
-        elif sec_class == "LOW":
-            lowsec += 1
-        else:
-            nullsec += 1
-
-        if sec < lowest_sec:
-            lowest_sec = sec
-            lowest_system = universe.idx_to_name[idx]
-
-    return SecuritySummary(
-        total_jumps=len(indices) - 1,
-        highsec_jumps=highsec,
-        lowsec_jumps=lowsec,
-        nullsec_jumps=nullsec,
-        lowest_security=lowest_sec,
-        lowest_security_system=lowest_system,
     )
 
 

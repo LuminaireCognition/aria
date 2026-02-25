@@ -18,7 +18,11 @@ if TYPE_CHECKING:
 
 @dataclass
 class SecuritySummary:
-    """Security breakdown for a route."""
+    """Security breakdown for a route.
+
+    Note: A Pydantic twin exists in mcp.models for the MCP API boundary with
+    field validation; this dataclass is the service-layer representation.
+    """
 
     total_jumps: int
     highsec_jumps: int

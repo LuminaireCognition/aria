@@ -465,6 +465,18 @@ class TestAnalyzeAction:
 
         assert "highsec_jumps" in result or "security" in str(result)
 
+    def test_analyze_security_summary_invariant(self, universe_dispatcher):
+        """Security summary jumps must sum to total_jumps."""
+        result = asyncio.run(
+            universe_dispatcher(
+                action="analyze",
+                systems=["Jita", "Perimeter", "Urlen"],
+            )
+        )
+
+        ss = result["security_summary"]
+        assert ss["highsec_jumps"] + ss["lowsec_jumps"] + ss["nullsec_jumps"] == ss["total_jumps"]
+
 
 # =============================================================================
 # Nearest Action Tests
