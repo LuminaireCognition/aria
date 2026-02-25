@@ -104,3 +104,6 @@ Thumbs.db
 # ═══════════════════════════════════════════════════════════════════
 .proposal-runs/
 memory/
+
+# MCP skill exercise outputs (generated during pre-release reviews)
+dev/reviews/exercise-outputs/

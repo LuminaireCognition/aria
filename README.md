@@ -26,6 +26,22 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 <a href="./docs/README.md">Full Docs Index</a>
 </p>
 
+### Get Value in 60 Seconds
+
+ARIA is for **EVE Online players** who want tactical advice without alt-tabbing to wikis. After a 5-minute setup you'll have a Claude-powered copilot that answers questions like *"fit my Vexor for L2 missions"* or *"is Uedama safe right now"* with live game data.
+
+```bash
+git clone https://github.com/LuminaireCognition/aria.git && cd aria
+./aria-init        # downloads game data, sets up hooks (~2 min)
+claude             # start talking to ARIA
+```
+
+First prompt to try:
+
+```
+I'm a new player flying a Vexor. What should I know about running level 2 missions?
+```
+
 ### What ARIA Does
 
 - **Mission briefs** — enemy intel, damage profiles, blitz strategies, wave-by-wave breakdowns
@@ -37,6 +53,13 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
 - **Mining & exploration** — ore recommendations, site analysis, hacking guidance
 - **Faction personas** — optional roleplay mode with 5 faction-specific AI personalities
 - **40+ slash commands** — or just ask naturally: *"is Uedama safe"*, *"fit my Vexor for L2s"*, *"what should I mine"*
+
+### What ARIA Is Not
+
+- **Not a bot** — ARIA cannot control your ship or automate gameplay
+- **Not a game overlay** — it runs in your terminal via Claude Code
+- **Not affiliated with CCP** — this is a fan project using public ESI/SDE APIs
+- **Not required for EVE** — it enhances your experience with tactical advice
 
 ---
 
@@ -87,6 +110,25 @@ cd aria
 claude
 ```
 
+### Verify It Worked
+
+After running `./aria-init` you should see:
+
+```
+✓ Dependencies installed
+✓ Game data seeded
+✓ Claude Code hooks configured
+```
+
+Quick checks:
+
+```bash
+ls userdata/pilots/          # should list your pilot directory
+ls -la .claude/hooks/aria-boot.sh  # should be executable (-rwxr-xr-x)
+```
+
+If either is missing, re-run `./aria-init`. For detailed first-run guidance, see [docs/FIRST_RUN.md](docs/FIRST_RUN.md).
+
 ---
 
 ## Using ARIA
@@ -113,34 +155,6 @@ uv run aria-esi --help
 ## See It In Action
 
 > **Note:** These are real ARIA responses, not mockups. ARIA uses natural language — no special syntax needed.
-
-### Route Planning
-
-```text
-❯ I just filamented into 7BIX-A. Find me a ~20 jump route through goon ratting systems, avoiding hotspots.
-```
-
-<details>
-<summary>MCP tool calls (collapsed)</summary>
-
-```text
-aria-universe (MCP) local_area: origin=7BIX-A max_jumps=15 include_realtime=true
-aria-universe (MCP) territory_analysis: coalition=imperium
-aria-universe (MCP) optimize_waypoints: origin=7BIX-A waypoints=[...]
-aria-universe (MCP) hotspots: origin=7BIX-A max_jumps=20 activity_type=kills limit=10
-```
-</details>
-
-```text
-You're in Fountain - Imperium territory. Threat level: LOW.
-
-Recommended ~20-jump loop (ratting-heavy systems):
-7BIX-A → G-UTHL → A-1CON → YZ-LQL → Z30S-A → V6-NY1 → 9DQW-W → PXF-RF → return
-
-Hotspots to avoid:
-- 75FA-Z (recent kills)
-- L7-APB (recent kills)
-```
 
 ### Mission Brief
 
@@ -193,24 +207,33 @@ Blitz Strategy
 If you engage everything instead of blitzing, clear frigates first with Hobgoblins, then switch to Hammerheads for Kruul.
 ```
 
-### Fit Recommendation
+<details>
+<summary>More examples: Route Planning, Fit Recommendation</summary>
+
+#### Route Planning
+
+```text
+❯ I just filamented into 7BIX-A. Find me a ~20 jump route through goon ratting systems, avoiding hotspots.
+```
+
+```text
+You're in Fountain - Imperium territory. Threat level: LOW.
+
+Recommended ~20-jump loop (ratting-heavy systems):
+7BIX-A → G-UTHL → A-1CON → YZ-LQL → Z30S-A → V6-NY1 → 9DQW-W → PXF-RF → return
+
+Hotspots to avoid:
+- 75FA-Z (recent kills)
+- L7-APB (recent kills)
+```
+
+#### Fit Recommendation
 
 ```text
 ❯ Give me a vexor fit for level 2 damsel using t1/meta modules.
 ```
 
-<details>
-<summary>MCP tool calls (collapsed)</summary>
-
 ```text
-aria-universe (MCP) fitting.calculate_stats: [Vexor, Damsel L2 - T1/Meta]
-aria-universe (MCP) market.valuation: items=[Vexor + fit], region=jita
-```
-</details>
-
-```text
-Vexor - Damsel L2 (T1/Meta)
-
 [Vexor, Damsel L2 - T1/Meta]
 Medium Armor Repairer I
 Drone Damage Amplifier I
@@ -232,17 +255,10 @@ Medium Capacitor Control Circuit I
 Hammerhead I x5
 Hobgoblin I x5
 
-Stats (All V)
-DPS: 380 thermal
-EHP: 8,952
-Speed: 244 m/s
-Align: 6s
-
-Cost (Jita Sell)
-Total: 17.7M
-
-380 DPS is more than enough for L2 content. You'll clear slightly slower but save nearly 15M ISK while training into T2.
+Stats (All V): 380 DPS | 8,952 EHP | Cost: 17.7M ISK
 ```
+
+</details>
 
 ---
 
@@ -267,6 +283,7 @@ For deeper details:
 - [dev/docs/DATA_SOURCES.md](dev/docs/DATA_SOURCES.md) — where each data type originates and how it's updated
 - [dev/docs/ai-runtime/DATA_VERIFICATION.md](dev/docs/ai-runtime/DATA_VERIFICATION.md) — how ARIA validates game data before presenting it
 - [docs/ESI.md](docs/ESI.md) — live character data setup and token lifecycle
+- [SECURITY.md](SECURITY.md) — threat model, path validation, prompt injection defenses
 
 ---
 
@@ -286,6 +303,21 @@ uv run python .claude/scripts/aria-esi-sync.py
 ---
 
 ## Troubleshooting
+
+### `./aria-init: Permission denied`
+
+```bash
+chmod +x aria-init
+./aria-init
+```
+
+### Missing game data after init
+
+If ARIA warns about missing SDE or universe data:
+
+```bash
+./aria-init --seed-only
+```
 
 ### Boot sequence doesn't appear
 
@@ -365,11 +397,7 @@ Use of EVE Online content and the ESI API is subject to the [CCP Developer Licen
 
 ### Disclaimer
 
-ARIA dispenses tactical wisdom with the confidence of a thousand battles—none of which she has actually fought. Ship fittings, mission tactics, and strategic recommendations are provided **without warranty**, express or implied, by an AI with strong opinions and zero killboard history.
-
-Your ships will explode. Some of those explosions may be ARIA's fault. This is EVE.
-
-The developers and contributors accept no liability for lost vessels, empty wallets, or strongly-worded messages in Local. Remember the capsuleer's first rule: never undock what you can't afford to lose—*especially* on the advice of an AI who analyzes countless capacitor depletions, but never from the capsuleer's perspective.
+Ship fittings, mission tactics, and strategic recommendations are provided **without warranty**, express or implied. The developers and contributors accept no liability for lost vessels or empty wallets. Never undock what you can't afford to lose.
 
 See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
 

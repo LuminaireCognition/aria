@@ -573,7 +573,7 @@ ARIA: ## Imperium Hunting Grounds Analysis
 ### Deliverables
 
 - [x] `universe(action="search")` supports `coalition` filter
-- [ ] `universe(action="route")` supports `prefer_territory` / `avoid_territory`
+- [x] `universe(action="route")` supports `prefer_territory` / `avoid_territory`
 - [x] New action: `universe(action="territory_analysis", coalition="imperium")`
 - [ ] `/hunting-grounds` skill enhancement (PARIA-exclusive)
 - [x] `/orient` skill enhancement with sovereignty context

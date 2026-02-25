@@ -46,6 +46,9 @@ WEIGHT_UNSAFE_HIGHSEC = 10.0  # Avoided: high-sec
 # System avoidance
 WEIGHT_AVOID = float("inf")  # Effectively blocks the edge
 
+# Territory preference (multiplier applied to non-territory edges)
+WEIGHT_TERRITORY_PENALTY = 3.0  # Non-territory systems cost 3x more
+
 
 # =============================================================================
 # Weight Computation Functions
@@ -62,6 +65,10 @@ def compute_avoid_weights(
     Used for "shortest" mode with avoid_systems specified.
     All non-avoided edges get weight 1.0.
 
+    Note: The graph is undirected, so edge.source/edge.target are arbitrary.
+    We check both endpoints to ensure avoidance works regardless of
+    igraph's internal edge direction.
+
     Args:
         universe: UniverseGraph for edge iteration
         avoid_systems: Set of vertex indices to avoid
@@ -73,12 +80,23 @@ def compute_avoid_weights(
     weights = []
 
     for edge in g.es:
-        if edge.target in avoid_systems:
+        if edge.source in avoid_systems or edge.target in avoid_systems:
             weights.append(WEIGHT_AVOID)
         else:
             weights.append(WEIGHT_NORMAL)
 
     return weights
+
+
+def _safe_directed_weight(src_sec: float, dst_sec: float) -> float:
+    """Compute safe-mode weight for a directed traversal from src to dst."""
+    if dst_sec >= HIGHSEC_THRESHOLD:
+        return WEIGHT_NORMAL
+    elif dst_sec > LOWSEC_THRESHOLD:
+        if src_sec >= HIGHSEC_THRESHOLD:
+            return WEIGHT_LOWSEC_ENTRY
+        return WEIGHT_LOWSEC_STAY
+    return WEIGHT_NULLSEC
 
 
 def compute_safe_weights(
@@ -88,12 +106,16 @@ def compute_safe_weights(
     """
     Compute edge weights that prefer high-sec routes.
 
-    Weight scheme:
+    Weight scheme (per directed traversal):
     - High-sec -> high-sec: WEIGHT_NORMAL (1)
     - High-sec -> low-sec: WEIGHT_LOWSEC_ENTRY (50) - strong avoidance
     - Low-sec -> low-sec: WEIGHT_LOWSEC_STAY (10) - moderate penalty
     - Any -> null-sec: WEIGHT_NULLSEC (100) - very strong penalty
     - Any -> avoided system: WEIGHT_AVOID (infinity)
+
+    Note: The graph is undirected, so edge.source/edge.target are arbitrary.
+    We compute the weight for both traversal directions and take the max
+    (conservative — penalizes border crossings in both directions).
 
     Args:
         universe: UniverseGraph with security data
@@ -108,28 +130,18 @@ def compute_safe_weights(
     weights = []
 
     for edge in g.es:
-        dst_idx = edge.target
-
-        # Check avoid list first
-        if dst_idx in avoid:
+        # Check avoid list first (either endpoint)
+        if edge.source in avoid or edge.target in avoid:
             weights.append(WEIGHT_AVOID)
             continue
 
-        src_sec = security[edge.source]
-        dst_sec = security[dst_idx]
+        sec_a = security[edge.source]
+        sec_b = security[edge.target]
 
-        if dst_sec >= HIGHSEC_THRESHOLD:
-            # Destination is high-sec
-            weights.append(WEIGHT_NORMAL)
-        elif dst_sec > LOWSEC_THRESHOLD:
-            # Destination is low-sec
-            if src_sec >= HIGHSEC_THRESHOLD:
-                weights.append(WEIGHT_LOWSEC_ENTRY)  # Entering low-sec penalty
-            else:
-                weights.append(WEIGHT_LOWSEC_STAY)  # Staying in low-sec
-        else:
-            # Destination is null-sec
-            weights.append(WEIGHT_NULLSEC)
+        # Compute both directions, take max (conservative for safe routing)
+        w_fwd = _safe_directed_weight(sec_a, sec_b)
+        w_rev = _safe_directed_weight(sec_b, sec_a)
+        weights.append(max(w_fwd, w_rev))
 
     return weights
 
@@ -142,10 +154,14 @@ def compute_unsafe_weights(
     Compute edge weights that prefer dangerous space (for hunters).
 
     Weight scheme:
-    - Any -> null-sec: WEIGHT_UNSAFE_NULLSEC (1) - preferred
-    - Any -> low-sec: WEIGHT_UNSAFE_LOWSEC (2) - acceptable
-    - Any -> high-sec: WEIGHT_UNSAFE_HIGHSEC (10) - avoided
-    - Any -> avoided system: WEIGHT_AVOID (infinity)
+    - Null-sec edge: WEIGHT_UNSAFE_NULLSEC (1) - preferred
+    - Low-sec edge: WEIGHT_UNSAFE_LOWSEC (2) - acceptable
+    - High-sec edge: WEIGHT_UNSAFE_HIGHSEC (10) - avoided
+    - Avoided system: WEIGHT_AVOID (infinity)
+
+    Note: The graph is undirected, so edge.source/edge.target are arbitrary.
+    We check both endpoints and use the most dangerous (lowest sec) to
+    classify the edge (optimistic — prefers edges touching dangerous space).
 
     Args:
         universe: UniverseGraph with security data
@@ -160,20 +176,54 @@ def compute_unsafe_weights(
     weights = []
 
     for edge in g.es:
-        dst_idx = edge.target
-
-        # Check avoid list first
-        if dst_idx in avoid:
+        # Check avoid list first (either endpoint)
+        if edge.source in avoid or edge.target in avoid:
             weights.append(WEIGHT_AVOID)
             continue
 
-        dst_sec = security[dst_idx]
+        # Use the most dangerous endpoint to classify this edge
+        worst_sec = min(security[edge.source], security[edge.target])
 
-        if dst_sec <= LOWSEC_THRESHOLD:
+        if worst_sec <= LOWSEC_THRESHOLD:
             weights.append(WEIGHT_UNSAFE_NULLSEC)  # Prefer null-sec
-        elif dst_sec < HIGHSEC_THRESHOLD:
+        elif worst_sec < HIGHSEC_THRESHOLD:
             weights.append(WEIGHT_UNSAFE_LOWSEC)  # Low-sec acceptable
         else:
             weights.append(WEIGHT_UNSAFE_HIGHSEC)  # Avoid high-sec
 
     return weights
+
+
+def apply_territory_preference(
+    weights: list[float],
+    universe: UniverseGraph,
+    preferred_systems: set[int],
+) -> list[float]:
+    """
+    Apply territory preference to existing edge weights.
+
+    Multiplies weights for edges leading to non-territory systems,
+    making the pathfinder prefer routes through territory.
+
+    Args:
+        weights: Pre-computed edge weights to modify
+        universe: UniverseGraph for edge iteration
+        preferred_systems: Set of vertex indices to prefer
+
+    Returns:
+        New list of modified edge weights
+    """
+    g = universe.graph
+    result = []
+
+    for i, edge in enumerate(g.es):
+        w = weights[i]
+        if w == WEIGHT_AVOID:
+            result.append(w)
+        elif edge.source not in preferred_systems and edge.target not in preferred_systems:
+            # Neither endpoint is in preferred territory — penalize
+            result.append(w * WEIGHT_TERRITORY_PENALTY)
+        else:
+            result.append(w)
+
+    return result

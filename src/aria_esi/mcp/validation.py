@@ -20,7 +20,14 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 UNIVERSE_ACTION_PARAMS: dict[str, set[str]] = {
-    "route": {"origin", "destination", "mode", "avoid_systems"},
+    "route": {
+        "origin",
+        "destination",
+        "mode",
+        "avoid_systems",
+        "prefer_territory",
+        "avoid_territory",
+    },
     "systems": {"systems"},
     "borders": {"origin", "limit", "max_jumps"},
     "search": {

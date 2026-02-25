@@ -1,6 +1,6 @@
 # Linux VM / Docker Runtime Framing Proposal
 
-**Status:** PROPOSED (initial draft 2026-02-07, revised 2026-02-07, revised 2026-02-07: known-ID invariant, JSON merge semantics, script alignment, revised 2026-02-08: phase gates, aria-refresh gap, unconditional adoption warning, revised 2026-02-08: --force semantics, adoption confirmation gate, sentinel expansion, phase gate determinism)
+**Status:** COMPLETE (archived 2026-02-24 — `aria-init` already uses correct `userdata/pilots/{id}_{slug}/` paths and `uv run python`) (initial draft 2026-02-07, revised 2026-02-07, revised 2026-02-07: known-ID invariant, JSON merge semantics, script alignment, revised 2026-02-08: phase gates, aria-refresh gap, unconditional adoption warning, revised 2026-02-08: --force semantics, adoption confirmation gate, sentinel expansion, phase gate determinism)
 **Owner:** DX
 **Scope:** `aria-init` correctness, runtime advisory, optional container baseline
 **Related:** `dev/proposals/README_FIRST_RUN_IMPROVEMENTS_PROPOSAL.md`, `README.md`, `docs/FIRST_RUN.md`, `SECURITY.md`, `CLAUDE.md`

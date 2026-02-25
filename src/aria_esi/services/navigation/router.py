@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from .weights import (
+    apply_territory_preference,
     compute_avoid_weights,
     compute_safe_weights,
     compute_unsafe_weights,
@@ -47,6 +48,7 @@ class NavigationService:
         dest_idx: int,
         mode: RouteMode = "shortest",
         avoid_systems: set[int] | None = None,
+        preferred_systems: set[int] | None = None,
     ) -> list[int]:
         """
         Calculate route between two systems using the specified mode.
@@ -59,6 +61,8 @@ class NavigationService:
                 - "safe": Prefer high-sec, penalize low/null-sec
                 - "unsafe": Prefer low/null-sec (for hunting)
             avoid_systems: Set of vertex indices to avoid (treated as blocked)
+            preferred_systems: Set of vertex indices to prefer (territory routing).
+                Non-preferred systems get a weight penalty.
 
         Returns:
             List of vertex indices from origin to destination.
@@ -71,8 +75,13 @@ class NavigationService:
         g = self.universe.graph
 
         if mode == "shortest":
-            if avoid_systems:
-                weights = compute_avoid_weights(self.universe, avoid_systems)
+            if avoid_systems or preferred_systems:
+                if avoid_systems:
+                    weights = compute_avoid_weights(self.universe, avoid_systems)
+                else:
+                    weights = [1.0] * g.ecount()
+                if preferred_systems:
+                    weights = apply_territory_preference(weights, self.universe, preferred_systems)
                 paths = g.get_shortest_paths(origin_idx, dest_idx, weights=weights)
             else:
                 # Unweighted BFS - O(V + E)
@@ -81,11 +90,15 @@ class NavigationService:
 
         elif mode == "safe":
             weights = compute_safe_weights(self.universe, avoid_systems)
+            if preferred_systems:
+                weights = apply_territory_preference(weights, self.universe, preferred_systems)
             paths = g.get_shortest_paths(origin_idx, dest_idx, weights=weights)
             return paths[0] if paths and paths[0] else []
 
         elif mode == "unsafe":
             weights = compute_unsafe_weights(self.universe, avoid_systems)
+            if preferred_systems:
+                weights = apply_territory_preference(weights, self.universe, preferred_systems)
             paths = g.get_shortest_paths(origin_idx, dest_idx, weights=weights)
             return paths[0] if paths and paths[0] else []
 
