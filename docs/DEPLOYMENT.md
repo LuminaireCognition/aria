@@ -64,7 +64,7 @@ uv sync --extra fitting
 uv sync --extra full
 
 # Development tools (testing, linting)
-uv sync --extra dev
+uv sync --dev
 ```
 
 ## First Run

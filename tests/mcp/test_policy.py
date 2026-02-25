@@ -59,14 +59,15 @@ class TestPolicyConfig:
     """Test policy configuration."""
 
     def test_default_config(self):
-        """Default config allows safe levels + authenticated, excludes restricted."""
+        """Default config allows safe levels, requires confirmation for authenticated (SECURITY_001)."""
         config = PolicyConfig()
 
         assert SensitivityLevel.PUBLIC in config.allowed_levels
         assert SensitivityLevel.AGGREGATE in config.allowed_levels
         assert SensitivityLevel.MARKET in config.allowed_levels
-        # Authenticated is allowed by default (for pilot dispatcher: mining_ledger etc.)
-        assert SensitivityLevel.AUTHENTICATED in config.allowed_levels
+        # Authenticated requires confirmation by default (SECURITY_001)
+        assert SensitivityLevel.AUTHENTICATED not in config.allowed_levels
+        assert SensitivityLevel.AUTHENTICATED in config.require_confirmation
         # Restricted not allowed by default (security - mail requires opt-in)
         assert SensitivityLevel.RESTRICTED not in config.allowed_levels
 
@@ -548,11 +549,12 @@ class TestConfirmationRequired:
         with pytest.raises(CapabilityDenied):
             engine.check_capability("market", "prices")
 
-    def test_policy_config_default_includes_authenticated(self):
-        """Default PolicyConfig includes authenticated (for pilot dispatcher)."""
+    def test_policy_config_default_requires_confirmation_for_authenticated(self):
+        """Default PolicyConfig requires confirmation for authenticated (SECURITY_001)."""
         config = PolicyConfig()
 
-        assert SensitivityLevel.AUTHENTICATED in config.allowed_levels
+        assert SensitivityLevel.AUTHENTICATED not in config.allowed_levels
+        assert SensitivityLevel.AUTHENTICATED in config.require_confirmation
         assert SensitivityLevel.PUBLIC in config.allowed_levels
         assert SensitivityLevel.AGGREGATE in config.allowed_levels
         assert SensitivityLevel.MARKET in config.allowed_levels

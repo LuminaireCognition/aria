@@ -509,10 +509,11 @@ class TestFittingDispatcher:
         """When policy denies authenticated, falls back to all-V with warning."""
         from aria_esi.mcp.policy import PolicyConfig, PolicyEngine, SensitivityLevel
 
-        # Configure policy to deny authenticated
+        # Configure policy to fully deny authenticated (not even require_confirmation)
         engine = PolicyEngine.get_instance()
         engine.config = PolicyConfig(
-            allowed_levels={SensitivityLevel.PUBLIC, SensitivityLevel.AGGREGATE, SensitivityLevel.MARKET}
+            allowed_levels={SensitivityLevel.PUBLIC, SensitivityLevel.AGGREGATE, SensitivityLevel.MARKET},
+            require_confirmation=set(),
         )
 
         # Mock the underlying calculation to avoid needing EOS data

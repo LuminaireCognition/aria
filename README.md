@@ -291,7 +291,7 @@ For deeper details:
 
 ```bash
 # Install dependencies (creates .venv automatically)
-uv sync
+uv sync --dev
 
 # Run tests
 uv run pytest

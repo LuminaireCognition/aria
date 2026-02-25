@@ -213,13 +213,16 @@ class PolicyConfig:
             SensitivityLevel.PUBLIC,
             SensitivityLevel.AGGREGATE,
             SensitivityLevel.MARKET,
-            SensitivityLevel.AUTHENTICATED,
         }
     )
 
     # Sensitivity levels that require user confirmation before access
     # Actions at these levels will raise ConfirmationRequired instead of CapabilityDenied
-    require_confirmation: set[SensitivityLevel] = field(default_factory=set)
+    require_confirmation: set[SensitivityLevel] = field(
+        default_factory=lambda: {
+            SensitivityLevel.AUTHENTICATED,
+        }
+    )
 
     # Explicitly denied actions (dispatcher.action format)
     denied_actions: set[str] = field(default_factory=set)
@@ -239,9 +242,7 @@ class PolicyConfig:
         return cls(
             allowed_levels={
                 SensitivityLevel(level)
-                for level in data.get(
-                    "allowed_levels", ["public", "aggregate", "market", "authenticated"]
-                )
+                for level in data.get("allowed_levels", ["public", "aggregate", "market"])
             },
             require_confirmation={
                 SensitivityLevel(level) for level in data.get("require_confirmation", [])

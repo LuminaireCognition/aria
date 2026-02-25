@@ -204,14 +204,14 @@ run_artifact_verification() {
     local verify_json
     verify_json=$(uv run --quiet aria-esi verify-persona-context 2>/dev/null || echo '{"status":"error"}')
 
-    # Parse verification result using Python
+    # Parse verification result using Python (stdin piping to avoid shell injection)
     local verify_result
-    verify_result=$(uv run python -c "
+    verify_result=$(echo "$verify_json" | uv run python -c "
 import json
 import sys
 
 try:
-    data = json.loads('''$verify_json''')
+    data = json.load(sys.stdin)
 except:
     print('parse_error')
     sys.exit(0)
@@ -320,14 +320,14 @@ run_security_validation() {
     local validation_json
     validation_json=$(uv run --quiet aria-esi validate-overlays 2>/dev/null || echo '{"status":"error"}')
 
-    # Parse security violations using Python (more reliable than jq for complex JSON)
+    # Parse security violations using Python (stdin piping to avoid shell injection)
     local security_result
-    security_result=$(uv run python -c "
+    security_result=$(echo "$validation_json" | uv run python -c "
 import json
 import sys
 
 try:
-    data = json.loads('''$validation_json''')
+    data = json.load(sys.stdin)
 except:
     print('parse_error')
     sys.exit(0)

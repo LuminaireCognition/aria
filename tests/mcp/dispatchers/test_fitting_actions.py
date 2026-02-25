@@ -120,10 +120,11 @@ class TestCalculateStatsAction:
 
     def test_calculate_stats_authenticated_denied_falls_back(self, fitting_dispatcher):
         """When authenticated is denied, falls back to all-V with warning."""
-        # Configure policy to deny authenticated
+        # Configure policy to fully deny authenticated (not even require_confirmation)
         engine = PolicyEngine.get_instance()
         engine.config = PolicyConfig(
-            allowed_levels={SensitivityLevel.PUBLIC, SensitivityLevel.AGGREGATE, SensitivityLevel.MARKET}
+            allowed_levels={SensitivityLevel.PUBLIC, SensitivityLevel.AGGREGATE, SensitivityLevel.MARKET},
+            require_confirmation=set(),
         )
 
         mock_result = {
