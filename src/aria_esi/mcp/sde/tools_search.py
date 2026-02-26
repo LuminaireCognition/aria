@@ -23,6 +23,26 @@ if TYPE_CHECKING:
 logger = get_logger("aria_sde.tools_search")
 
 
+async def _cache_status_impl() -> dict:
+    """
+    Get SDE database status.
+
+    Standalone implementation callable by both MCP tool and dispatcher.
+
+    Returns:
+        Dict with database_path, database_size_mb, type_count, is_available
+    """
+    db = get_market_database()
+    stats = db.get_stats()
+
+    return {
+        "database_path": stats.get("database_path"),
+        "database_size_mb": round(stats.get("database_size_mb", 0), 2),
+        "type_count": stats.get("type_count", 0),
+        "is_available": stats.get("type_count", 0) > 0,
+    }
+
+
 # =============================================================================
 # Standalone Implementation Functions (for dispatcher imports)
 # =============================================================================

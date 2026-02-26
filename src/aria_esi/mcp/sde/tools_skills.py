@@ -11,7 +11,6 @@ import math
 from typing import TYPE_CHECKING
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
 from aria_esi.models.sde import (
     CATEGORY_SKILL,
     SkillRequirementNode,
@@ -130,6 +129,98 @@ def format_training_time(seconds: int) -> str:
 
 
 # =============================================================================
+# Standalone Implementation Functions (for dispatcher imports)
+# =============================================================================
+
+
+async def _skill_requirements_impl(item: str, include_prerequisites: bool = True) -> dict:
+    """
+    Get skill requirements for an item.
+
+    Standalone implementation callable by both MCP tool and dispatcher.
+
+    Args:
+        item: Item name (ship, module, or skill)
+        include_prerequisites: Include full prerequisite chain
+
+    Returns:
+        SkillRequirementsResult dict
+    """
+    query_service = get_sde_query_service()
+    query = item.strip()
+
+    if not query_service.has_table("type_skill_requirements"):
+        return SkillRequirementsResult(
+            item=query,
+            item_type_id=0,
+            item_category=None,
+            found=False,
+            warnings=["Skill data not imported. Run 'aria-esi sde-seed' to update SDE."],
+        ).model_dump()
+
+    resolved = query_service.resolve_item_type(query)
+    if not resolved:
+        return SkillRequirementsResult(
+            item=query,
+            item_type_id=0,
+            item_category=None,
+            found=False,
+            warnings=[f"Item '{query}' not found in SDE."],
+        ).model_dump()
+
+    type_id, type_name, category_name, category_id = resolved
+
+    direct_reqs = query_service.get_type_skill_requirements(type_id)
+
+    if category_id == CATEGORY_SKILL:
+        skill_prereqs = query_service.get_skill_prerequisites(type_id)
+        direct_req_list = [
+            TypeSkillRequirement(
+                skill_id=p.skill_id,
+                skill_name=p.skill_name,
+                required_level=p.required_level,
+            )
+            for p in skill_prereqs
+        ]
+    else:
+        direct_req_list = [
+            TypeSkillRequirement(
+                skill_id=r.skill_id,
+                skill_name=r.skill_name,
+                required_level=r.required_level,
+            )
+            for r in direct_reqs
+        ]
+
+    full_tree: list[SkillRequirementNode] = []
+    if include_prerequisites:
+        tree_data = query_service.get_full_skill_tree(type_id)
+        for skill_id, skill_name, level, rank in tree_data:
+            attrs = query_service.get_skill_attributes(skill_id)
+            full_tree.append(
+                SkillRequirementNode(
+                    skill_id=skill_id,
+                    skill_name=skill_name,
+                    required_level=level,
+                    rank=rank,
+                    primary_attribute=attrs.primary_attribute if attrs else None,
+                    secondary_attribute=attrs.secondary_attribute if attrs else None,
+                )
+            )
+
+    return SkillRequirementsResult(
+        item=type_name,
+        item_type_id=type_id,
+        item_category=category_name,
+        found=True,
+        direct_requirements=direct_req_list,
+        full_prerequisite_tree=full_tree,
+        total_skills=len(full_tree),
+        warnings=[],
+    ).model_dump()
+
+
+# =============================================================================
 # Tool Registration
 # =============================================================================
 
@@ -160,118 +251,7 @@ def register_skill_tools(server: FastMCP) -> None:
             sde_skill_requirements("Medium Armor Repairer II")
             sde_skill_requirements("Mechanical Engineering")
         """
-        db = get_market_database()
-        conn = db._get_connection()
-        query_service = get_sde_query_service()
-
-        # Normalize query
-        query = item.strip()
-        query_lower = query.lower()
-
-        # Check if SDE tables exist
-        cursor = conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='type_skill_requirements'"
-        )
-        if not cursor.fetchone():
-            return SkillRequirementsResult(
-                item=query,
-                item_type_id=0,
-                item_category=None,
-                found=False,
-                warnings=["Skill data not imported. Run 'aria-esi sde-seed' to update SDE."],
-            ).model_dump()
-
-        # Look up item
-        cursor = conn.execute(
-            """
-            SELECT t.type_id, t.type_name, c.category_name, t.category_id
-            FROM types t
-            LEFT JOIN categories c ON t.category_id = c.category_id
-            WHERE t.type_name_lower = ?
-            LIMIT 1
-            """,
-            (query_lower,),
-        )
-        row = cursor.fetchone()
-
-        if not row:
-            # Try fuzzy match
-            cursor = conn.execute(
-                """
-                SELECT t.type_id, t.type_name, c.category_name, t.category_id
-                FROM types t
-                LEFT JOIN categories c ON t.category_id = c.category_id
-                WHERE t.type_name_lower LIKE ?
-                AND t.published = 1
-                ORDER BY length(t.type_name)
-                LIMIT 1
-                """,
-                (f"{query_lower}%",),
-            )
-            row = cursor.fetchone()
-
-        if not row:
-            return SkillRequirementsResult(
-                item=query,
-                item_type_id=0,
-                item_category=None,
-                found=False,
-                warnings=[f"Item '{query}' not found in SDE."],
-            ).model_dump()
-
-        type_id, type_name, category_name, category_id = row
-
-        # Get direct requirements
-        direct_reqs = query_service.get_type_skill_requirements(type_id)
-
-        # For skills, get their prerequisites too
-        if category_id == CATEGORY_SKILL:
-            skill_prereqs = query_service.get_skill_prerequisites(type_id)
-            direct_req_list = [
-                TypeSkillRequirement(
-                    skill_id=p.skill_id,
-                    skill_name=p.skill_name,
-                    required_level=p.required_level,
-                )
-                for p in skill_prereqs
-            ]
-        else:
-            direct_req_list = [
-                TypeSkillRequirement(
-                    skill_id=r.skill_id,
-                    skill_name=r.skill_name,
-                    required_level=r.required_level,
-                )
-                for r in direct_reqs
-            ]
-
-        # Get full prerequisite tree if requested
-        full_tree: list[SkillRequirementNode] = []
-        if include_prerequisites:
-            tree_data = query_service.get_full_skill_tree(type_id)
-            for skill_id, skill_name, level, rank in tree_data:
-                attrs = query_service.get_skill_attributes(skill_id)
-                full_tree.append(
-                    SkillRequirementNode(
-                        skill_id=skill_id,
-                        skill_name=skill_name,
-                        required_level=level,
-                        rank=rank,
-                        primary_attribute=attrs.primary_attribute if attrs else None,
-                        secondary_attribute=attrs.secondary_attribute if attrs else None,
-                    )
-                )
-
-        return SkillRequirementsResult(
-            item=type_name,
-            item_type_id=type_id,
-            item_category=category_name,
-            found=True,
-            direct_requirements=direct_req_list,
-            full_prerequisite_tree=full_tree,
-            total_skills=len(full_tree),
-            warnings=[],
-        ).model_dump()
+        return await _skill_requirements_impl(item, include_prerequisites)
 
     @server.tool()
     async def skill_training_time(
@@ -311,8 +291,6 @@ def register_skill_tools(server: FastMCP) -> None:
                 attributes={"perception": 24, "willpower": 20}
             )
         """
-        db = get_market_database()
-        conn = db._get_connection()
         query_service = get_sde_query_service()
 
         attrs = attributes or DEFAULT_ATTRIBUTES.copy()
@@ -337,22 +315,11 @@ def register_skill_tools(server: FastMCP) -> None:
                 warnings.append(f"{skill_name}: from_level >= to_level, skipping")
                 continue
 
-            # Look up skill
-            cursor = conn.execute(
-                """
-                SELECT type_id FROM types
-                WHERE type_name_lower = ?
-                AND category_id = 16
-                LIMIT 1
-                """,
-                (skill_name.lower(),),
-            )
-            row = cursor.fetchone()
-            if not row:
+            skill_id = query_service.resolve_skill_type_id(skill_name)
+            if not skill_id:
                 warnings.append(f"Skill '{skill_name}' not found")
                 continue
 
-            skill_id = row[0]
             skill_attrs = query_service.get_skill_attributes(skill_id)
 
             if not skill_attrs:

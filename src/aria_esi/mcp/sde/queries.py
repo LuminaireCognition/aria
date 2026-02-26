@@ -1065,6 +1065,249 @@ class SDEQueryService:
 
         return result
 
+    def lookup_item(self, name: str, exact: bool = True) -> dict | None:
+        """
+        Look up an item by name with optional fuzzy matching.
+
+        Centralizes the item lookup SQL used by item_info, meta_variants,
+        and skill_requirements actions.
+
+        Args:
+            name: Item name (case-insensitive)
+            exact: If True, only exact match; if False, allow prefix/contains
+
+        Returns:
+            Dict with item data or None
+        """
+        conn = self._db._get_connection()
+        query_lower = name.lower()
+
+        if exact:
+            cursor = conn.execute(
+                """
+                SELECT
+                    t.type_id, t.type_name, t.description, t.group_id, t.category_id,
+                    t.market_group_id, t.volume, t.packaged_volume, t.published,
+                    g.group_name, c.category_name
+                FROM types t
+                LEFT JOIN groups g ON t.group_id = g.group_id
+                LEFT JOIN categories c ON t.category_id = c.category_id
+                WHERE t.type_name_lower = ?
+                LIMIT 1
+                """,
+                (query_lower,),
+            )
+        else:
+            # Prefix match first
+            cursor = conn.execute(
+                """
+                SELECT
+                    t.type_id, t.type_name, t.description, t.group_id, t.category_id,
+                    t.market_group_id, t.volume, t.packaged_volume, t.published,
+                    g.group_name, c.category_name
+                FROM types t
+                LEFT JOIN groups g ON t.group_id = g.group_id
+                LEFT JOIN categories c ON t.category_id = c.category_id
+                WHERE t.type_name_lower LIKE ?
+                AND t.published = 1
+                ORDER BY length(t.type_name)
+                LIMIT 1
+                """,
+                (f"{query_lower}%",),
+            )
+
+        row = cursor.fetchone()
+
+        if not row and not exact:
+            # Try contains match
+            cursor = conn.execute(
+                """
+                SELECT
+                    t.type_id, t.type_name, t.description, t.group_id, t.category_id,
+                    t.market_group_id, t.volume, t.packaged_volume, t.published,
+                    g.group_name, c.category_name
+                FROM types t
+                LEFT JOIN groups g ON t.group_id = g.group_id
+                LEFT JOIN categories c ON t.category_id = c.category_id
+                WHERE t.type_name_lower LIKE ?
+                AND t.published = 1
+                ORDER BY length(t.type_name)
+                LIMIT 1
+                """,
+                (f"%{query_lower}%",),
+            )
+            row = cursor.fetchone()
+
+        if row:
+            return {
+                "type_id": row[0],
+                "type_name": row[1],
+                "description": row[2],
+                "group_id": row[3],
+                "category_id": row[4],
+                "market_group_id": row[5],
+                "volume": row[6],
+                "packaged_volume": row[7],
+                "published": row[8],
+                "group_name": row[9],
+                "category_name": row[10],
+            }
+
+        return None
+
+    def find_item_suggestions(self, name: str, limit: int = 5) -> list[str]:
+        """
+        Find similar item names for suggestions when lookup fails.
+
+        Args:
+            name: Search term (case-insensitive)
+            limit: Maximum suggestions to return
+
+        Returns:
+            List of similar item names
+        """
+        conn = self._db._get_connection()
+        query_lower = name.lower()
+        suggestions: list[str] = []
+
+        # Prefix matches first
+        cursor = conn.execute(
+            """
+            SELECT type_name FROM types
+            WHERE type_name_lower LIKE ?
+            AND published = 1
+            ORDER BY length(type_name)
+            LIMIT ?
+            """,
+            (f"{query_lower}%", limit),
+        )
+        suggestions.extend(row[0] for row in cursor.fetchall())
+
+        if len(suggestions) < limit:
+            remaining = limit - len(suggestions)
+            cursor = conn.execute(
+                """
+                SELECT type_name FROM types
+                WHERE type_name_lower LIKE ?
+                AND type_name_lower NOT LIKE ?
+                AND published = 1
+                ORDER BY length(type_name)
+                LIMIT ?
+                """,
+                (f"%{query_lower}%", f"{query_lower}%", remaining),
+            )
+            suggestions.extend(row[0] for row in cursor.fetchall())
+
+        return suggestions
+
+    def resolve_skill_type_id(self, name: str) -> int | None:
+        """
+        Resolve a single skill name to its type ID.
+
+        Searches only category_id=16 (Skills). Lighter-weight than
+        resolve_skill_ids() for single lookups.
+
+        Args:
+            name: Skill name (case-insensitive)
+
+        Returns:
+            type_id or None if not found
+        """
+        conn = self._db._get_connection()
+        cursor = conn.execute(
+            """
+            SELECT type_id FROM types
+            WHERE type_name_lower = ?
+            AND category_id = 16
+            LIMIT 1
+            """,
+            (name.lower(),),
+        )
+        row = cursor.fetchone()
+        return row[0] if row else None
+
+    def get_type_name(self, type_id: int) -> str | None:
+        """
+        Get item name by type ID.
+
+        Args:
+            type_id: Item type ID
+
+        Returns:
+            Item name or None if not found
+        """
+        conn = self._db._get_connection()
+        cursor = conn.execute(
+            "SELECT type_name FROM types WHERE type_id = ?",
+            (type_id,),
+        )
+        row = cursor.fetchone()
+        return row[0] if row else None
+
+    def resolve_item_type(self, name: str) -> tuple[int, str, str | None, int | None] | None:
+        """
+        Resolve an item name to (type_id, type_name, category_name, category_id).
+
+        Tries exact match, then prefix match. Used by skill_requirements
+        and similar lookups that need the type ID + category.
+
+        Args:
+            name: Item name (case-insensitive)
+
+        Returns:
+            Tuple of (type_id, type_name, category_name, category_id) or None
+        """
+        conn = self._db._get_connection()
+        query_lower = name.lower()
+
+        cursor = conn.execute(
+            """
+            SELECT t.type_id, t.type_name, c.category_name, t.category_id
+            FROM types t
+            LEFT JOIN categories c ON t.category_id = c.category_id
+            WHERE t.type_name_lower = ?
+            LIMIT 1
+            """,
+            (query_lower,),
+        )
+        row = cursor.fetchone()
+
+        if not row:
+            cursor = conn.execute(
+                """
+                SELECT t.type_id, t.type_name, c.category_name, t.category_id
+                FROM types t
+                LEFT JOIN categories c ON t.category_id = c.category_id
+                WHERE t.type_name_lower LIKE ?
+                AND t.published = 1
+                ORDER BY length(t.type_name)
+                LIMIT 1
+                """,
+                (f"{query_lower}%",),
+            )
+            row = cursor.fetchone()
+
+        if row:
+            return (row[0], row[1], row[2], row[3])
+        return None
+
+    def has_table(self, table_name: str) -> bool:
+        """
+        Check if a table exists in the database.
+
+        Args:
+            table_name: Name of the table to check
+
+        Returns:
+            True if the table exists
+        """
+        conn = self._db._get_connection()
+        cursor = conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+            (table_name,),
+        )
+        return cursor.fetchone() is not None
+
     def get_all_ship_group_ids(self) -> set[int]:
         """Return all group IDs in the Ship category (category_id=6)."""
         self._check_cache_validity()
