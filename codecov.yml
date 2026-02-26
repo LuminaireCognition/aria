@@ -1,0 +1,65 @@
+# Codecov configuration for ARIA
+# Complements check_coverage_thresholds.py (hard gate) with trend tracking,
+# PR comments, and per-component visibility.
+
+codecov:
+  require_ci_to_pass: true
+
+coverage:
+  precision: 2
+  round: down
+
+  status:
+    project:
+      default:
+        target: 68%    # Matches pyproject.toml fail_under
+        threshold: 1%  # Allow 1% fluctuation
+    patch:
+      default:
+        target: 70%    # New code should maintain or improve coverage
+
+  # Components mirror [tool.aria.coverage_thresholds] in pyproject.toml
+  components:
+    core:
+      paths: ["src/aria_esi/core/**"]
+      target: 75%
+    fitting:
+      paths: ["src/aria_esi/fitting/**"]
+      target: 82%
+    models:
+      paths: ["src/aria_esi/models/**"]
+      target: 88%
+    universe:
+      paths: ["src/aria_esi/universe/**"]
+      target: 90%
+    persona:
+      paths: ["src/aria_esi/persona/**"]
+      target: 89%
+    mcp-dispatchers:
+      paths: ["src/aria_esi/mcp/dispatchers/**"]
+      target: 57%
+    mcp-market:
+      paths: ["src/aria_esi/mcp/market/**"]
+      target: 56%
+    mcp-sde:
+      paths: ["src/aria_esi/mcp/sde/**"]
+      target: 56%
+    commands:
+      paths: ["src/aria_esi/commands/**"]
+      target: 44%
+
+comment:
+  layout: "reach, diff, components"
+  behavior: default
+  require_changes: true
+
+ignore:
+  - "src/aria_esi/_vendor/**"
+  - "tests/**"
+  - ".claude/**"
+
+flags:
+  unittests:
+    paths:
+      - "src/aria_esi/"
+    carryforward: true
