@@ -1723,10 +1723,10 @@ def cmd_orient(args: argparse.Namespace) -> dict:
                         )
 
         # Sort results
-        hotspots.sort(key=lambda s: s["ship_kills"] + s["pod_kills"], reverse=True)
-        quiet_zones.sort(key=lambda s: s["jumps"])
-        ratting_banks.sort(key=lambda s: s["npc_kills"], reverse=True)
-        borders.sort(key=lambda s: s["jumps"])
+        hotspots.sort(key=lambda s: int(s["ship_kills"]) + int(s["pod_kills"]), reverse=True)
+        quiet_zones.sort(key=lambda s: int(s["jumps"]))
+        ratting_banks.sort(key=lambda s: int(s["npc_kills"]), reverse=True)
+        borders.sort(key=lambda s: int(s["jumps"]))
 
         # Find escape routes
         escape_routes = []

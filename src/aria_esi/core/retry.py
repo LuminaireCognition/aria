@@ -22,7 +22,7 @@ import urllib.error
 from collections.abc import Callable, Mapping
 from email.message import Message
 from functools import wraps
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, NoReturn, Optional, TypeVar, Union
 
 from .exceptions import AriaError
 
@@ -453,7 +453,7 @@ def classify_httpx_error(
         return NonRetryableESIError(message=message, status_code=status_code, original_error=error)
 
 
-def handle_esi_error(error: urllib.error.HTTPError):
+def handle_esi_error(error: urllib.error.HTTPError) -> NoReturn:
     """
     Handle an ESI HTTP error by raising appropriate exception.
 

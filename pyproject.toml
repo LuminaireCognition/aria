@@ -216,8 +216,8 @@ exclude = ["tests/", "__pycache__"]
 # Phase 1: Baseline - catches syntax errors, undefined names ✓
 # Phase 2: Enable union-attr, attr-defined ✓
 # Phase 3: Enable arg-type, return-value ✓
-# Phase 4 (in progress): Enable assignment ✓, index, operator
-# Phase 5: Enable disallow_untyped_defs on core modules
+# Phase 4: Enable assignment ✓, index, operator (in progress)
+# Phase 5: check_untyped_defs=true, disallow_untyped_defs on core.* ✓
 # Phase 6: Strict mode on all modules
 # =============================================================================
 
@@ -227,7 +227,7 @@ warn_redundant_casts = true
 # Permissive settings for initial adoption
 warn_return_any = false           # Too noisy with json.load() returns
 warn_unused_ignores = false       # Allow unused ignores during transition
-check_untyped_defs = false        # Skip checking inside untyped functions
+check_untyped_defs = true          # Phase 5: Check inside untyped functions
 disallow_untyped_defs = false     # Allow functions without type hints
 disallow_incomplete_defs = false  # Allow partial type hints
 
@@ -242,6 +242,7 @@ pretty = true
 # Phase 2 COMPLETE: union-attr and attr-defined now enabled
 # Phase 3 COMPLETE: arg-type and return-value now enabled
 # Phase 4 IN PROGRESS: assignment enabled (conditional imports use type: ignore)
+# Phase 5 COMPLETE: check_untyped_defs=true, disallow_untyped_defs on core.*
 # Remaining codes disabled for future phases
 disable_error_code = [
     "misc",          # Cannot assign to a type - conditional exception aliases
@@ -273,6 +274,12 @@ dev = [
 preview = true
 
 # Per-module overrides for stricter checking and suppressions
+
+# Vendored EOS library — not our code, skip type checking entirely
+[[tool.mypy.overrides]]
+module = ["aria_esi._vendor.*"]
+ignore_errors = true
+
 # MCP dispatcher modules have incomplete implementations with missing _impl functions
 # These need to be completed separately before enabling strict checking
 [[tool.mypy.overrides]]
@@ -296,18 +303,19 @@ module = [
 disable_error_code = ["attr-defined", "union-attr"]
 
 # =============================================================================
-# SECURITY-CRITICAL MODULES - STRICT TYPING ENFORCED
+# CORE MODULES - STRICT TYPING ENFORCED
 # =============================================================================
-# Phase 5 (partial): Enable strict typing on security-critical auth modules
-# These modules handle credentials and must have complete type coverage
-# to reduce the risk of type-related bugs in sensitive code paths.
-# Per Gemini 3 Pro DevOps/Security Review 2026-01-31
+# Phase 5: All core modules require complete type annotations.
+# All 17 modules pass strict checks (retry.py fixed with NoReturn).
+[[tool.mypy.overrides]]
+module = ["aria_esi.core.*"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+# Security-critical modules get additional warn_return_any
 [[tool.mypy.overrides]]
 module = [
     "aria_esi.core.auth",
     "aria_esi.core.keyring_backend",
 ]
-disallow_untyped_defs = true
-check_untyped_defs = true
-disallow_incomplete_defs = true
 warn_return_any = true
