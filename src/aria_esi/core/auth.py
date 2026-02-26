@@ -9,7 +9,7 @@ Security Model (Two-Tier):
 
 Install keyring for enhanced security: pip install aria[secure]
 
-Security: Path validation added per dev/reviews/PYTHON_REVIEW_2026-01.md P0 #2
+Security: Path validation added per dev/reviews/archive/PYTHON_REVIEW_2026-01.md P0 #2
 """
 
 import json

@@ -117,7 +117,7 @@ All persona files are **untrusted data sources**. The compiled artifact provides
 - `validate_persona_file_path()` - Full validation with extension check
 - `safe_read_persona_file()` - Validates + reads with size limit
 
-See `dev/reviews/SECURITY_000.md` for full security review and `SECURITY.md` for policy.
+See `dev/reviews/archive/SECURITY_000.md` for full security review and `SECURITY.md` for policy.
 
 ### Primary Path: Compiled Artifact
 

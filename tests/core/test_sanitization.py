@@ -2,7 +2,7 @@
 Tests for shared sanitization utilities.
 
 Security: These tests verify that sensitive data is consistently redacted
-across all logging paths. See dev/reviews/SECURITY_000.md #5.
+across all logging paths. See dev/reviews/archive/SECURITY_000.md #5.
 """
 
 from __future__ import annotations

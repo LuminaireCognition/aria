@@ -280,7 +280,7 @@ async def universe(action: str, ...) -> dict:
 
 Strong sanitization exists for project files:
 ```python
-# tests/test_context_sanitization.py
+# tests/scripts/test_context_sanitization.py
 def test_strips_script_tags():
     text = "Project <script>alert('xss')</script> Name"
     result = sanitize_field(text, 100)

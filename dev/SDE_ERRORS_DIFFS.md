@@ -229,8 +229,8 @@ The following files were validated and contain correct SDE data:
 | `src/aria_esi/models/sde.py` | ORE_CORPORATION_ID (1000129), category constants (6, 7, 8, 9, 16, 18, 25) |
 | `tests/integration/test_sde_data_integrity.py` | Category IDs, corporation assertions |
 | `tests/mcp/test_sde_queries.py` | Mock data (intentionally different from SDE) |
-| `tests/test_constants.py` | Tests structure, not SDE values |
-| `tests/test_market_clipboard.py` | Uses item names for parsing tests only |
+| `tests/core/test_constants.py` | Tests structure, not SDE values |
+| `tests/mcp/market/test_clipboard.py` | Uses item names for parsing tests only |
 | `reference/industry/manufacturing.md` | Game mechanics reference, no type IDs |
 | `reference/industry/npc_blueprint_sources.md` | General guidance, no hardcoded IDs |
 

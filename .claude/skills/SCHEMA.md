@@ -88,7 +88,6 @@ Local files the skill reads. Use `{active_pilot}` placeholder for pilot-specific
 ```yaml
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
-  - reference/ships/fittings/*.md
   - reference/mechanics/ore_database.md
 ```
 

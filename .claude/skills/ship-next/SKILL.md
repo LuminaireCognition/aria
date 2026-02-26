@@ -18,7 +18,6 @@ esi_scopes:
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/operations.md
-  - reference/archetypes/hulls/**/*.yaml
 external_sources: []
 ---
 
@@ -341,19 +340,6 @@ Include practical wisdom that veterans wish they knew:
 - "Don't skip cruisers - they teach skills you'll need in bigger ships"
 - "Faction cruisers are often better ISK/performance than T1 battleships"
 - "Train your support skills (capacitor, tank, navigation) alongside ship skills"
-
-## Archetype Integration
-
-When available, reference existing archetypes:
-```
-reference/archetypes/hulls/{class}/{ship}/manifest.yaml
-```
-
-These contain:
-- Validated fits for each tier
-- Engagement profiles
-- Slot layouts
-- Role classifications
 
 ## Behavior Notes
 

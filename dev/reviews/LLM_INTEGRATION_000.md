@@ -12,7 +12,7 @@
   - Protocol docs: context budget/provenance, data verification, and volatility protocols are centralized in docs/. docs/
     CONTEXT_POLICY.md:L1-L198, docs/DATA_VERIFICATION.md:L1-L200, docs/PROTOCOLS.md:L1-L159
   - Tests: MCP context/policy and context sanitization tests are present. tests/mcp/test_context.py:L1-L120, tests/mcp/
-    test_policy.py:L1-L200, tests/test_context_sanitization.py:L1-L120
+    test_policy.py:L1-L200, tests/scripts/test_context_sanitization.py:L1-L120
   - Execution flow: session start triggers the boot hook, which runs prerequisite checks, security preflight, ESI sync, context
     assembly, and skill index update. .claude/hooks/aria-boot.sh:L92-L126, .claude/hooks/aria-boot.d/boot-operations.sh:L403-L449
   - Execution flow: context assembly generates .session-context.json, and session protocol defines how ARIA consumes it. .claude/
@@ -69,7 +69,7 @@
   Data access
 
   - Current: session context assembly sanitizes and validates fields/aliases; session context usage is documented; data verification
-    and volatility rules are explicit. .claude/scripts/aria-context-assembly.py:L39-L176, tests/test_context_sanitization.py:L1-L120,
+    and volatility rules are explicit. .claude/scripts/aria-context-assembly.py:L39-L176, tests/scripts/test_context_sanitization.py:L1-L120,
     docs/SESSION_CONTEXT.md:L1-L60, docs/DATA_VERIFICATION.md:L1-L200, docs/PROTOCOLS.md:L5-L159, dev/decisions/ADR-003-data-
     volatility-protocol.md:L1-L39
   - Missing/Risk: provenance/citations are required by docs but not embedded in tool output metadata; no chunking/RAG for large
@@ -348,7 +348,7 @@
   +    main()
 
   - New config/env vars: optional ARIA_SKILL_PREFLIGHT=1 to require checks before skill use.
-  - Tests to add: tests/test_skill_preflight.py validating missing pilot/data sources and missing scopes; add a fixture that points
+  - Tests to add: tests/scripts/test_skill_preflight.py validating missing pilot/data sources and missing scopes; add a fixture that points
     to a temp userdata/ tree.
 
   6. Checklists
@@ -382,7 +382,7 @@
     - tests/mcp/test_policy.py - TestContextAwareSensitivity class validates behavior
   - [x] Skill preflight validation script
     - .claude/scripts/aria-skill-preflight.py - validates requires_pilot, data_sources, esi_scopes
-    - tests/test_skill_preflight.py - comprehensive test coverage
+    - tests/scripts/test_skill_preflight.py - comprehensive test coverage
 
   P1 Issues - COMPLETE (2026-01-23)
   - [x] Enforce per-tool byte size limits and add provenance fields in _meta

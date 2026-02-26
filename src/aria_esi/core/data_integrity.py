@@ -5,7 +5,7 @@ Provides checksum verification and version pinning for external data sources.
 This module helps ensure that downloaded SDE and EOS data hasn't been tampered
 with or corrupted during transit.
 
-Security finding: #4 from dev/reviews/SECURITY_000.md
+Security finding: #4 from dev/reviews/archive/SECURITY_000.md
 """
 
 from __future__ import annotations

@@ -8,7 +8,7 @@ hijack the session.
 
 See: CLAUDE.md "Untrusted Data Handling" section
 
-Security: Path validation added per dev/reviews/PYTHON_REVIEW_2026-01.md P0 #2
+Security: Path validation added per dev/reviews/archive/PYTHON_REVIEW_2026-01.md P0 #2
 """
 
 import hashlib
@@ -132,7 +132,7 @@ class PersonaCompiler:
             - Path traversal prevention
             - Symlink containment verification
 
-            See dev/reviews/SECURITY_001.md Finding #1.
+            See dev/reviews/archive/SECURITY_001.md Finding #1.
         """
         # Security: Use safe_read_persona_file for full validation
         # This enforces extension allowlist and size limits (Finding #1)

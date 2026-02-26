@@ -3,7 +3,7 @@ ARIA Path Security
 
 Centralized path validation to prevent directory traversal attacks.
 
-Security finding: P0 #2 from dev/reviews/PYTHON_REVIEW_2026-01.md
+Security finding: P0 #2 from dev/reviews/archive/PYTHON_REVIEW_2026-01.md
 """
 
 from __future__ import annotations

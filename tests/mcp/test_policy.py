@@ -2,7 +2,7 @@
 Tests for MCP tool capability policy engine.
 
 Security: These tests verify the capability gating that limits blast radius
-from prompt injection attacks. See dev/reviews/SECURITY_000.md #5.
+from prompt injection attacks. See dev/reviews/archive/SECURITY_000.md #5.
 """
 
 from __future__ import annotations
@@ -483,7 +483,7 @@ class TestConfirmationRequired:
 
     Security: These tests verify the confirmation gate that prevents prompt
     injection from silently accessing authenticated data. See
-    dev/reviews/SECURITY_001.md finding #3.
+    dev/reviews/archive/SECURITY_001.md finding #3.
     """
 
     def test_exception_stores_fields(self):
@@ -610,7 +610,7 @@ class TestRateLimiting:
     """Test rate limiting enforcement.
 
     Security: Verifies that rate limiting defaults to 300/min and actually
-    enforces the limit. See dev/reviews/SECURITY_000.md #6.
+    enforces the limit. See dev/reviews/archive/SECURITY_000.md #6.
     """
 
     def test_default_rate_limit_is_300(self):

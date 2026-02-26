@@ -323,7 +323,6 @@ Capabilities:
 TRIGGERS: "fit my [ship]", "export fitting", "EFT format",
           "what modules for [ship]"
 
-SAVED FITS: reference/ships/fittings/
 SHIP TREES: reference/ships/[faction]_progression.md
 ═══════════════════════════════════════════════════════════════════
 ```
@@ -577,7 +576,6 @@ ARIA maintains local intelligence files for offline access.
 
 QUICK ACCESS:
 • PvE intel ............ reference/pve-intel/cache/INDEX.md
-• Ship fittings ........ reference/ships/fittings/README.md
 • NPC damage types ..... reference/mechanics/npc_damage_types.md
 • Hacking guide ........ reference/mechanics/hacking_guide.md
 • Ore database ......... reference/mechanics/ore_database.md

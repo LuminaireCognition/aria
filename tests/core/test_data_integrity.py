@@ -2,7 +2,7 @@
 Tests for data integrity verification.
 
 Security: These tests verify the checksum verification logic that protects
-against RCE from tampered pickle files. See dev/reviews/SECURITY_000.md #3.
+against RCE from tampered pickle files. See dev/reviews/archive/SECURITY_000.md #3.
 """
 
 from __future__ import annotations

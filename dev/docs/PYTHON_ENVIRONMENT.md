@@ -131,13 +131,13 @@ uv run python .claude/scripts/aria-token-refresh.py
 uv run pytest
 
 # Run specific test file
-uv run pytest tests/test_foo.py
+uv run pytest tests/core/test_foo.py
 
 # Run with coverage
 uv run pytest --cov
 
 # Run specific test
-uv run pytest tests/test_foo.py::test_specific_function
+uv run pytest tests/core/test_foo.py::test_specific_function
 ```
 
 **Alternative - use venv binaries directly:**

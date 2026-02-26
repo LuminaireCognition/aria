@@ -108,7 +108,6 @@ ARIA_PILOT=9876543210 claude
 | Mission/exploration logs | `userdata/pilots/{id}/*.md` | Per-pilot |
 | Blueprints | `userdata/pilots/{id}/industry/` | Per-pilot |
 | Game mechanics | `reference/mechanics/` | Shared |
-| Faction lore | `reference/lore/` | Shared |
 | Ship guides | `reference/ships/` | Shared |
 | PvE intel | `reference/pve-intel/` | Shared |
 

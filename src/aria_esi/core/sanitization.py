@@ -5,7 +5,7 @@ Provides consistent redaction of sensitive fields across all ARIA modules.
 All modules that log request parameters or context should use sanitize_for_logging()
 to prevent accidental credential leakage.
 
-Security finding: #5 from dev/reviews/SECURITY_000.md
+Security finding: #5 from dev/reviews/archive/SECURITY_000.md
 """
 
 from __future__ import annotations

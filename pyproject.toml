@@ -163,6 +163,8 @@ persona = 89
 "mcp/dispatchers" = 57
 "mcp/market" = 56
 "mcp/sde" = 56
+"store/market" = 56
+"store/sde" = 56
 commands = 44
 
 [tool.ruff]

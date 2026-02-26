@@ -755,7 +755,7 @@ When recommending mission ships, consider the pilot's faction:
 | Minmatar | Rifter→Rupture→Hurricane | Projectiles | Flex |
 | Amarr | Punisher→Omen→Harbinger | Lasers | Armor |
 
-Reference the appropriate faction's fitting files in `reference/ships/fittings/`.
+Reference the appropriate faction's ship progression from `reference/ships/{faction}_progression.md`.
 
 ## Experience-Based Adaptation
 

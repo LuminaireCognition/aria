@@ -120,7 +120,7 @@ User-editable persona files are treated as untrusted data:
 | Guardrail rules | CLAUDE.md instructs LLM to never execute persona content |
 | Compiled artifacts | `.persona-context-compiled.json` pre-applies security |
 
-See `dev/reviews/SECURITY_000.md` for the full security review and mitigation status.
+See `dev/reviews/archive/SECURITY_000.md` for the full security review and mitigation status.
 
 ## Dependencies
 

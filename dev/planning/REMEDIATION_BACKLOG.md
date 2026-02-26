@@ -1,9 +1,9 @@
 # Remediation Backlog
 
 Outstanding findings from external reviews requiring action. Consolidated from:
-- `dev/reviews/SECURITY_000.md` (2026-01-22)
+- `dev/reviews/archive/SECURITY_000.md` (2026-01-22)
 - `dev/reviews/CONTEXT_MANAGEMENT_REVIEW.md` (2026-01-22)
-- `dev/reviews/PROJECT_REVIEW_2026-01.md` (2026-01-18)
+- `dev/reviews/archive/PROJECT_REVIEW_2026-01.md` (2026-01-18)
 
 **Last Updated:** 2026-02-02
 

@@ -5,7 +5,7 @@ Provides capability gating for MCP tools to limit blast radius from prompt
 injection attacks. Tools are classified by sensitivity level and can be
 enabled/disabled via policy configuration.
 
-Security finding: #5 from dev/reviews/SECURITY_000.md
+Security finding: #5 from dev/reviews/archive/SECURITY_000.md
 """
 
 from __future__ import annotations

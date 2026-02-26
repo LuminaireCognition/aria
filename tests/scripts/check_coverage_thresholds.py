@@ -44,7 +44,7 @@ def aggregate_coverage(coverage_data: dict) -> dict[str, dict[str, int]]:
         parts = rel.split("/")
 
         # Two-level grouping for services/* and mcp/*
-        if parts[0] in ("services", "mcp") and len(parts) > 1:
+        if parts[0] in ("services", "mcp", "store") and len(parts) > 1:
             mod = f"{parts[0]}/{parts[1]}"
         else:
             mod = parts[0].replace(".py", "")

@@ -17,9 +17,6 @@ validation_tool: "fitting(action='calculate_stats')"
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
-  - reference/archetypes/hulls/{class}/{ship}/manifest.yaml
-  - reference/archetypes/hulls/{class}/{ship}/**/*.yaml
-  - reference/archetypes/_shared/*.yaml
   - reference/fittings/MODULE_NAMES.md
 ---
 
@@ -64,71 +61,9 @@ Before accessing pilot files, resolve the active pilot path:
 
 **Single-pilot shortcut:** If config is missing, read the registry - if only one pilot exists, use that pilot's directory.
 
-## Reference Fit Lookup (MANDATORY FIRST STEP)
+## Building Fits
 
-**CRITICAL:** Before building ANY fit from scratch, check for existing archetype fits.
-
-### Archetype Structure
-
-```
-reference/archetypes/hulls/{class}/{ship}/
-├── manifest.yaml                    # Hull metadata, slot layout, roles
-└── pve/missions/{level}/
-    ├── alpha.yaml                   # Alpha clone variant
-    ├── low.yaml                     # New pilot variant
-    ├── medium.yaml                  # Established pilot variant
-    └── high.yaml                    # Maxed skills variant
-```
-
-**Ship classes:** `frigate`, `destroyer`, `cruiser`, `battlecruiser`, `battleship`, `mining_barge`, `industrial`, `industrial_command`
-
-**Activity types:** `pve/missions/{l1-l5}`, `pve/ratting`, `exploration`, `mining/ore`, `mining/gas`, `hauling`
-
-### Lookup Workflow
-
-```
-Request for [ship] fit for [activity]
-    │
-    ├─→ Glob: reference/archetypes/hulls/*/{ship}/manifest.yaml
-    │       Found? → Read manifest for hull info
-    │
-    ├─→ Glob: reference/archetypes/hulls/*/{ship}/{activity}/**/*.yaml
-    │       Found? → Select skill tier matching pilot's module_tier
-    │                Load YAML, validate with pilot skills, adapt if needed
-    │
-    └─→ No archetype exists → Build from scratch (proceed to Prerequisites)
-```
-
-### Selecting Skill Tier
-
-Match pilot's `module_tier` from profile to archetype variant:
-
-| Profile `module_tier` | Archetype Variant |
-|-----------------------|-------------------|
-| `t1` | `low.yaml` (T1/Meta modules) |
-| `t2` | `medium.yaml` or `high.yaml` |
-| Not specified | `low.yaml` (default safe) |
-| Alpha clone | `alpha.yaml` |
-
-### Adapting Archetype Fits
-
-When an archetype fit exists:
-1. **Load the YAML** - Read the EFT block and metadata
-2. **Check `damage_tuning.overrides`** - Apply faction-specific module swaps if mission enemy matches
-3. **Validate with pilot skills** - Run through EOS to get actual stats
-4. **Minor adaptation only** - Swap drones for enemy weakness, adjust hardeners for damage profile
-
-**Do NOT rebuild from scratch** when an archetype exists.
-
-### Why This Matters
-
-Archetype fits are:
-- **Tested** - Validated with EOS across skill tiers
-- **Documented** - Include skill requirements, upgrade paths, engagement notes
-- **Consistent** - Same fit structure across skill levels
-- **Maintained** - Single source of truth for each hull + activity
-
-Building from scratch ignores this work and risks errors.
+When building fits from scratch, follow the Prerequisites section above and use EOS validation.
 
 ## Operational Constraints
 
@@ -400,7 +335,7 @@ When recommending drones for a fit:
 
 ## Faction-Specific Fitting Guidance
 
-Reference archetype fits by faction's typical tank and weapon system:
+Typical tank and weapon system by faction:
 
 | Faction | Tank | Primary Weapon | Hull Examples |
 |---------|------|----------------|---------------|
@@ -408,8 +343,6 @@ Reference archetype fits by faction's typical tank and weapon system:
 | Caldari | Shield | Missiles | Caracal, Drake, Raven |
 | Minmatar | Shield/Flex | Projectiles | Rupture, Hurricane, Maelstrom |
 | Amarr | Armor | Lasers | Omen, Harbinger, Apocalypse |
-
-Archetype fits are located at `reference/archetypes/hulls/{class}/{ship}/`.
 
 ## Behavior
 - Maintain ARIA persona throughout

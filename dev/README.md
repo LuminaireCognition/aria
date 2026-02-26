@@ -23,10 +23,10 @@ dev/
 │   └── proposed/        # Under consideration
 │
 ├── proposals/           # Feature proposals and RFCs
-│   ├── *.md             # Active proposals
-│   └── archive/         # Implemented, superseded, or consolidated
+│   └── *.md             # Active proposals
 │
 ├── reviews/             # Code reviews and audits
+│   └── archive/         # Completed reviews
 ├── planning/            # Task tracking and roadmaps
 ├── archive/             # Historical documents (pre-proposal era)
 ├── decisions/           # Design decisions
@@ -48,7 +48,7 @@ dev/
 | Add an MCP dispatcher action | `dev/docs/MCP_DEVELOPMENT.md` |
 | Understand test tiers | `dev/docs/TESTING.md` |
 | See design decisions | `dev/decisions/` |
-| Find a past proposal | `dev/proposals/archive/` |
+| Find a past review | `dev/reviews/archive/` |
 | Check typing progress | `dev/docs/TYPING_ROADMAP.md` |
 | Set up dev environment | `dev/docs/GETTING_STARTED.md` |
 | Run a code review | `dev/prompts/README.md` |
@@ -80,7 +80,7 @@ Feature proposals go through this lifecycle:
 1. Draft proposal in `proposals/`
 2. Review and iterate
 3. Accept → Create STP if implementation-focused
-4. Archive completed proposals in `proposals/archive/`
+4. Archive completed proposals when done
 
 ## Key Documents
 

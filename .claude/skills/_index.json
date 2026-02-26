@@ -399,9 +399,6 @@
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md",
-        "reference/archetypes/hulls/{class}/{ship}/manifest.yaml",
-        "reference/archetypes/hulls/{class}/{ship}/**/*.yaml",
-        "reference/archetypes/_shared/*.yaml",
         "reference/fittings/MODULE_NAMES.md"
       ],
       "path": ".claude/skills/fitting/SKILL.md",
@@ -985,8 +982,7 @@
       ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/operations.md",
-        "reference/archetypes/hulls/**/*.yaml"
+        "userdata/pilots/{active_pilot}/operations.md"
       ],
       "external_sources": [],
       "path": ".claude/skills/ship-next/SKILL.md",

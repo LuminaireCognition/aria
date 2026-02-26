@@ -2,7 +2,7 @@
 Tests for aria_esi.store.market.database_async
 
 Tests AsyncMarketDatabase against a real temp SQLite database.
-Mirrors the sync test_market_database.py structure.
+Mirrors the sync test_database.py structure.
 """
 
 import time

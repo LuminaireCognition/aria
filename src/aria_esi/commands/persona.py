@@ -7,7 +7,7 @@ Removes runtime conditional evaluation from the LLM.
 Includes validation to detect stale or missing overlay dependencies.
 
 Security: Path validation centralized in core.path_security per
-dev/reviews/PYTHON_REVIEW_2026-01.md P0 #2
+dev/reviews/archive/PYTHON_REVIEW_2026-01.md P0 #2
 """
 
 import argparse

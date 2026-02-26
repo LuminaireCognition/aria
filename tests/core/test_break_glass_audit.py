@@ -2,7 +2,7 @@
 Tests for break-glass environment variable audit trail.
 
 Security: These tests verify that break-glass overrides are centrally detected
-and logged with appropriate severity. See dev/reviews/SECURITY_000.md #8.
+and logged with appropriate severity. See dev/reviews/archive/SECURITY_000.md #8.
 """
 
 from __future__ import annotations

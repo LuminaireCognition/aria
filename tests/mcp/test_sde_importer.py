@@ -1479,7 +1479,7 @@ class TestSQLInterpolationSafety:
     is interpolated directly (e.g., {foo_col}) instead of via {_qi(foo_col)},
     it would bypass the SQL identifier allowlist and enable SQL injection.
 
-    See dev/reviews/SECURITY_000.md #7.
+    See dev/reviews/archive/SECURITY_000.md #7.
     """
 
     def test_no_col_variables_interpolated_without_qi(self):
