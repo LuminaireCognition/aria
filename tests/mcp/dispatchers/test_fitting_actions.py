@@ -17,7 +17,6 @@ import pytest
 from aria_esi.mcp.errors import InvalidParameterError
 from aria_esi.mcp.policy import PolicyConfig, PolicyEngine, SensitivityLevel
 
-
 # =============================================================================
 # Test Fixtures
 # =============================================================================

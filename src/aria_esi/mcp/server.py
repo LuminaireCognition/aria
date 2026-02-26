@@ -95,7 +95,7 @@ class UniverseServer:
     def warm_sde_caches(self) -> None:
         """Warm SDE query caches at startup and validate YAML configs."""
         try:
-            from .sde.queries import get_sde_query_service
+            from aria_esi.store.sde.queries import get_sde_query_service
 
             service = get_sde_query_service()
             stats = service.warm_caches()

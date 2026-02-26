@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.sde.queries import SDEQueryService
 from aria_esi.mcp.sde.tools_search import register_search_tools
+from aria_esi.store.sde.queries import SDEQueryService
 
 # =============================================================================
 # Mock Database Fixtures

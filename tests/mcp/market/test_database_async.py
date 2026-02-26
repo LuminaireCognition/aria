@@ -1,5 +1,5 @@
 """
-Tests for aria_esi.mcp.market.database_async
+Tests for aria_esi.store.market.database_async
 
 Tests AsyncMarketDatabase against a real temp SQLite database.
 Mirrors the sync test_market_database.py structure.
@@ -13,16 +13,15 @@ import pytest_asyncio
 
 pytestmark = pytest.mark.asyncio
 
-from aria_esi.mcp.market.database import (
+from aria_esi.store.market.database import (
     CachedAggregate,
     MarketScopePrice,
 )
-from aria_esi.mcp.market.database_async import (
+from aria_esi.store.market.database_async import (
     AsyncMarketDatabase,
     get_async_market_database,
     reset_async_market_database_sync,
 )
-
 
 # =============================================================================
 # Fixtures

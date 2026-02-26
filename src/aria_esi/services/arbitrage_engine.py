@@ -22,7 +22,6 @@ from aria_esi.core.logging import get_logger
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-from aria_esi.mcp.market.database_async import AsyncMarketDatabase, get_async_market_database
 from aria_esi.models.market import (
     TRADE_HUBS,
     ArbitrageDetailResult,
@@ -47,6 +46,7 @@ from aria_esi.services.arbitrage_freshness import (
     get_freshness,
     get_scope_freshness,
 )
+from aria_esi.store.market.database_async import AsyncMarketDatabase, get_async_market_database
 
 logger = get_logger("aria_market.arbitrage")
 

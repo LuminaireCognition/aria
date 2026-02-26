@@ -86,7 +86,7 @@ def cmd_agents_research(args: argparse.Namespace) -> dict:
     agent_names = {}
     agent_corps = {}
     try:
-        from ..mcp.market.database import get_market_database
+        from ..store.market.database import get_market_database
 
         db = get_market_database()
         conn = db._get_connection()

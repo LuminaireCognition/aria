@@ -4,8 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from aria_esi.store.activity import (
+    classify_activity,
+    get_activity_cache,
+    get_faction_id,
+    get_faction_name,
+)
+
 from ....services.navigation import VALID_MODES
-from ...activity import classify_activity, get_activity_cache, get_faction_id, get_faction_name
 from ...context_policy import UNIVERSE
 from ...errors import InvalidParameterError, RouteNotFoundError, SystemNotFoundError
 from ...models import (

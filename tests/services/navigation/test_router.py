@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.mcp.conftest import create_mock_universe, STANDARD_SYSTEMS, STANDARD_EDGES
-
+from tests.mcp.conftest import STANDARD_EDGES, STANDARD_SYSTEMS, create_mock_universe
 
 # =============================================================================
 # Fixtures

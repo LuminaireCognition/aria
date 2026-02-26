@@ -241,8 +241,7 @@ async def _training_time(skill_list: list[dict] | None, attributes: dict | None)
     import math
 
     from aria_esi.models.sde import TrainingTimeResult
-
-    from ..sde.queries import get_sde_query_service
+    from aria_esi.store.sde.queries import get_sde_query_service
 
     # Training time constants
     SP_PER_LEVEL = {1: 250, 2: 1415, 3: 8000, 4: 45255, 5: 256000}

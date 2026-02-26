@@ -14,7 +14,7 @@ class TestMetaTypeImporter:
 
     def test_import_meta_groups(self, seeded_market_db):
         """Verify meta groups are imported from SDE."""
-        from aria_esi.mcp.sde.importer import SDEImporter
+        from aria_esi.store.sde.importer import SDEImporter
 
         importer = SDEImporter(seeded_market_db)
         status = importer.get_sde_status()
@@ -25,7 +25,7 @@ class TestMetaTypeImporter:
 
     def test_import_meta_types(self, seeded_market_db):
         """Verify meta types are imported from SDE."""
-        from aria_esi.mcp.sde.importer import SDEImporter
+        from aria_esi.store.sde.importer import SDEImporter
 
         importer = SDEImporter(seeded_market_db)
         status = importer.get_sde_status()
@@ -40,7 +40,7 @@ class TestMetaTypeQueries:
 
     def test_get_all_meta_groups(self, seeded_market_db):
         """List all meta groups."""
-        from aria_esi.mcp.sde.queries import SDEQueryService
+        from aria_esi.store.sde.queries import SDEQueryService
 
         service = SDEQueryService(seeded_market_db)
         groups = service.get_all_meta_groups()
@@ -54,7 +54,7 @@ class TestMetaTypeQueries:
 
     def test_get_meta_group_by_id(self, seeded_market_db):
         """Get a specific meta group by ID."""
-        from aria_esi.mcp.sde.queries import SDEQueryService
+        from aria_esi.store.sde.queries import SDEQueryService
 
         service = SDEQueryService(seeded_market_db)
 
@@ -67,7 +67,7 @@ class TestMetaTypeQueries:
 
     def test_get_meta_variants_from_t2(self, seeded_market_db):
         """Query variants starting from T2 item."""
-        from aria_esi.mcp.sde.queries import SDEQueryService
+        from aria_esi.store.sde.queries import SDEQueryService
 
         service = SDEQueryService(seeded_market_db)
 
@@ -93,7 +93,7 @@ class TestMetaTypeQueries:
 
     def test_get_meta_variants_from_t1(self, seeded_market_db):
         """Query variants starting from T1 item."""
-        from aria_esi.mcp.sde.queries import SDEQueryService
+        from aria_esi.store.sde.queries import SDEQueryService
 
         service = SDEQueryService(seeded_market_db)
 
@@ -119,7 +119,7 @@ class TestMetaTypeQueries:
 
     def test_get_parent_type_id(self, seeded_market_db):
         """Test parent type resolution."""
-        from aria_esi.mcp.sde.queries import SDEQueryService
+        from aria_esi.store.sde.queries import SDEQueryService
 
         service = SDEQueryService(seeded_market_db)
 
@@ -139,7 +139,7 @@ class TestMetaTypeQueries:
 
     def test_cache_invalidation(self, seeded_market_db):
         """Test that caches are properly invalidated."""
-        from aria_esi.mcp.sde.queries import SDEQueryService
+        from aria_esi.store.sde.queries import SDEQueryService
 
         service = SDEQueryService(seeded_market_db)
 
@@ -211,7 +211,7 @@ def seeded_market_db():
 
     This reuses the existing database if available, otherwise skips.
     """
-    from aria_esi.mcp.market.database import get_market_database
+    from aria_esi.store.market.database import get_market_database
 
     db = get_market_database()
 

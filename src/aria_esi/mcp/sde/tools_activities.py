@@ -215,9 +215,8 @@ def calculate_activity_training_time(
     Returns:
         Training time breakdown
     """
-    from aria_esi.mcp.market.database import get_market_database
-
-    from .queries import get_sde_query_service
+    from aria_esi.store.market.database import get_market_database
+    from aria_esi.store.sde.queries import get_sde_query_service
 
     current = current_skills or {}
     attrs = attributes or DEFAULT_ATTRIBUTES

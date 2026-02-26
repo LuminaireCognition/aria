@@ -10,7 +10,6 @@ import pytest
 
 from aria_esi.models.fitting import ParsedFit, ParsedModule
 
-
 # =============================================================================
 # Fixtures
 # =============================================================================
@@ -45,21 +44,21 @@ class TestMatchesAnyPattern:
 
     def test_matches_armor_repairer(self):
         """Matches armor repairer pattern."""
-        from aria_esi.fitting.tank_classifier import _matches_any_pattern, ACTIVE_TANK_PATTERNS
+        from aria_esi.fitting.tank_classifier import ACTIVE_TANK_PATTERNS, _matches_any_pattern
 
         assert _matches_any_pattern("Medium Armor Repairer II", ACTIVE_TANK_PATTERNS)
         assert _matches_any_pattern("Large Armor Repairer II", ACTIVE_TANK_PATTERNS)
 
     def test_matches_shield_booster(self):
         """Matches shield booster pattern."""
-        from aria_esi.fitting.tank_classifier import _matches_any_pattern, ACTIVE_TANK_PATTERNS
+        from aria_esi.fitting.tank_classifier import ACTIVE_TANK_PATTERNS, _matches_any_pattern
 
         assert _matches_any_pattern("Medium Shield Booster II", ACTIVE_TANK_PATTERNS)
         assert _matches_any_pattern("X-Large Shield Booster II", ACTIVE_TANK_PATTERNS)
 
     def test_matches_armor_plate(self):
         """Matches armor plate pattern."""
-        from aria_esi.fitting.tank_classifier import _matches_any_pattern, BUFFER_TANK_PATTERNS
+        from aria_esi.fitting.tank_classifier import BUFFER_TANK_PATTERNS, _matches_any_pattern
 
         # Module name must contain "armor plate" to match
         assert _matches_any_pattern("1600mm Rolled Tungsten Compact Armor Plate", BUFFER_TANK_PATTERNS)
@@ -68,26 +67,26 @@ class TestMatchesAnyPattern:
 
     def test_matches_shield_extender(self):
         """Matches shield extender pattern."""
-        from aria_esi.fitting.tank_classifier import _matches_any_pattern, BUFFER_TANK_PATTERNS
+        from aria_esi.fitting.tank_classifier import BUFFER_TANK_PATTERNS, _matches_any_pattern
 
         assert _matches_any_pattern("Large Shield Extender II", BUFFER_TANK_PATTERNS)
 
     def test_matches_shield_power_relay(self):
         """Matches shield power relay pattern."""
-        from aria_esi.fitting.tank_classifier import _matches_any_pattern, PASSIVE_TANK_PATTERNS
+        from aria_esi.fitting.tank_classifier import PASSIVE_TANK_PATTERNS, _matches_any_pattern
 
         assert _matches_any_pattern("Shield Power Relay II", PASSIVE_TANK_PATTERNS)
 
     def test_case_insensitive(self):
         """Pattern matching is case-insensitive."""
-        from aria_esi.fitting.tank_classifier import _matches_any_pattern, ACTIVE_TANK_PATTERNS
+        from aria_esi.fitting.tank_classifier import ACTIVE_TANK_PATTERNS, _matches_any_pattern
 
         assert _matches_any_pattern("MEDIUM ARMOR REPAIRER II", ACTIVE_TANK_PATTERNS)
         assert _matches_any_pattern("medium armor repairer ii", ACTIVE_TANK_PATTERNS)
 
     def test_no_match(self):
         """Returns False for non-matching module."""
-        from aria_esi.fitting.tank_classifier import _matches_any_pattern, ACTIVE_TANK_PATTERNS
+        from aria_esi.fitting.tank_classifier import ACTIVE_TANK_PATTERNS, _matches_any_pattern
 
         assert not _matches_any_pattern("Damage Control II", ACTIVE_TANK_PATTERNS)
         assert not _matches_any_pattern("Magnetic Field Stabilizer II", ACTIVE_TANK_PATTERNS)

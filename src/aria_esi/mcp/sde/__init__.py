@@ -10,8 +10,8 @@ This module extends the market database with authoritative game data
 from the Fuzzwork SDE SQLite conversion.
 """
 
-from .importer import SDEImporter, SDEImportResult, SDEStatus, seed_sde
-from .schema import SDE_SCHEMA_VERSION
+from aria_esi.store.sde.importer import SDEImporter, SDEImportResult, SDEStatus, seed_sde
+from aria_esi.store.sde.schema import SDE_SCHEMA_VERSION
 
 __all__ = [
     "SDEImporter",

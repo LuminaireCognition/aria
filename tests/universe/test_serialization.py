@@ -16,8 +16,7 @@ from pathlib import Path
 import igraph as ig
 import pytest
 
-from tests.mcp.conftest import create_mock_universe, STANDARD_SYSTEMS, STANDARD_EDGES
-
+from tests.mcp.conftest import STANDARD_EDGES, STANDARD_SYSTEMS, create_mock_universe
 
 # =============================================================================
 # Fixtures
@@ -193,13 +192,13 @@ class TestV1Migration:
 
     def test_v1_file_loads_with_deprecation_warning(self, standard_universe, temp_file):
         """v1 file loads successfully but emits deprecation warning."""
+        # Build a v1 file manually (with pickle graph blob)
+        import msgpack
+
         from aria_esi.universe.serialization import (
             MAGIC,
             load_universe_graph,
         )
-
-        # Build a v1 file manually (with pickle graph blob)
-        import msgpack
 
         metadata = standard_universe.to_dict()
         metadata_bytes = msgpack.packb(metadata, use_bin_type=True)
@@ -369,7 +368,7 @@ class TestLoadErrors:
 
     def test_invalid_magic(self, temp_file):
         """Raises SerializationError for invalid magic."""
-        from aria_esi.universe.serialization import load_universe_graph, SerializationError
+        from aria_esi.universe.serialization import SerializationError, load_universe_graph
 
         # Write file with wrong magic
         with open(temp_file, "wb") as f:

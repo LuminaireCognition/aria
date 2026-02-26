@@ -125,7 +125,7 @@ def validate_type_ids_against_sde(type_ids: list[tuple[int, str, str]]) -> list[
     issues = []
 
     try:
-        from ..mcp.market.database import MarketDatabase
+        from ..store.market.database import MarketDatabase
 
         db = MarketDatabase()
         conn = db._get_connection()

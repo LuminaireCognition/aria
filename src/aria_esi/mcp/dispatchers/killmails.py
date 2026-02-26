@@ -401,7 +401,7 @@ async def _handle_analyze(killmail_input: str | None) -> dict:
 
     import httpx
 
-    from ..esi_client import get_async_esi_client
+    from aria_esi.store.esi_client import get_async_esi_client
 
     # Fetch from zKillboard API
     zkb_data = None

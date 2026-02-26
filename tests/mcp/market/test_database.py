@@ -1,5 +1,5 @@
 """
-Tests for aria_esi.mcp.market.database
+Tests for aria_esi.store.market.database
 
 Tests SQLite database operations for market data.
 """
@@ -19,7 +19,7 @@ def temp_db(tmp_path: Path) -> Path:
 @pytest.fixture
 def market_db(temp_db: Path):
     """Create a MarketDatabase instance with temp path."""
-    from aria_esi.mcp.market.database import MarketDatabase
+    from aria_esi.store.market.database import MarketDatabase
 
     db = MarketDatabase(db_path=temp_db)
     yield db
@@ -30,7 +30,7 @@ class TestMarketDatabaseInit:
     """Tests for MarketDatabase initialization."""
 
     def test_creates_database_file(self, temp_db: Path):
-        from aria_esi.mcp.market.database import MarketDatabase
+        from aria_esi.store.market.database import MarketDatabase
 
         db = MarketDatabase(db_path=temp_db)
         db._get_connection()  # Trigger initialization
@@ -39,7 +39,7 @@ class TestMarketDatabaseInit:
         db.close()
 
     def test_creates_parent_directories(self, tmp_path: Path):
-        from aria_esi.mcp.market.database import MarketDatabase
+        from aria_esi.store.market.database import MarketDatabase
 
         deep_path = tmp_path / "nested" / "dirs" / "aria.db"
         db = MarketDatabase(db_path=deep_path)
@@ -51,7 +51,7 @@ class TestMarketDatabaseInit:
     def test_default_path_uses_canonical_name(self, monkeypatch):
         """Verify default db_path uses aria.db from settings when ARIA_DB is unset."""
         from aria_esi.core.config import get_settings, reset_settings
-        from aria_esi.mcp.market.database import MarketDatabase
+        from aria_esi.store.market.database import MarketDatabase
 
         # Ensure ARIA_DB env var is not set
         monkeypatch.delenv("ARIA_DB", raising=False)
@@ -283,7 +283,7 @@ class TestAggregates:
 
     def test_save_and_get_aggregate(self, market_db):
         """Save and retrieve an aggregate."""
-        from aria_esi.mcp.market.database import CachedAggregate
+        from aria_esi.store.market.database import CachedAggregate
 
         agg = CachedAggregate(
             type_id=34,
@@ -318,7 +318,7 @@ class TestAggregates:
 
     def test_get_aggregate_stale(self, market_db):
         """Returns None when aggregate is stale."""
-        from aria_esi.mcp.market.database import CachedAggregate
+        from aria_esi.store.market.database import CachedAggregate
 
         # Save with old timestamp
         old_time = int(time.time()) - 1000  # 1000 seconds ago
@@ -353,7 +353,7 @@ class TestAggregates:
 
     def test_get_aggregates_batch(self, market_db):
         """Batch retrieval of aggregates."""
-        from aria_esi.mcp.market.database import CachedAggregate
+        from aria_esi.store.market.database import CachedAggregate
 
         now = int(time.time())
 
@@ -392,7 +392,7 @@ class TestAggregates:
 
     def test_save_aggregates_batch(self, market_db):
         """Batch saving of aggregates."""
-        from aria_esi.mcp.market.database import CachedAggregate
+        from aria_esi.store.market.database import CachedAggregate
 
         now = int(time.time())
         aggregates = []
@@ -441,7 +441,7 @@ class TestDatabaseStats:
 
     def test_get_stats_with_data(self, market_db):
         """Stats with data."""
-        from aria_esi.mcp.market.database import CachedAggregate
+        from aria_esi.store.market.database import CachedAggregate
 
         # Add types
         conn = market_db._get_connection()
@@ -524,7 +524,7 @@ class TestSafeHelpers:
     """Tests for safe conversion helpers."""
 
     def test_safe_float(self):
-        from aria_esi.mcp.market.database import _safe_float
+        from aria_esi.store.market.database import _safe_float
 
         assert _safe_float("3.14") == 3.14
         assert _safe_float("100") == 100.0
@@ -533,7 +533,7 @@ class TestSafeHelpers:
         assert _safe_float("not a number") is None
 
     def test_safe_int(self):
-        from aria_esi.mcp.market.database import _safe_int
+        from aria_esi.store.market.database import _safe_int
 
         assert _safe_int("100") == 100
         assert _safe_int("3.14") == 3  # Truncates

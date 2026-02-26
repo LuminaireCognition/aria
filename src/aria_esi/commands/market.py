@@ -217,8 +217,8 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.market.clients import FuzzworkClient
-        from ..mcp.market.database import MarketDatabase
+        from ..store.market.clients import FuzzworkClient
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",
@@ -316,7 +316,7 @@ def cmd_market_status(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.market.database import MarketDatabase
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",
@@ -406,9 +406,9 @@ def cmd_price_batch(args: argparse.Namespace) -> dict:
         }
 
     try:
-        from ..mcp.market.clients import create_client
-        from ..mcp.market.database import MarketDatabase
         from ..models.market import TRADE_HUBS, resolve_trade_hub
+        from ..store.market.clients import create_client
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",

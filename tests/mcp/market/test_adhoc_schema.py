@@ -17,7 +17,7 @@ from pathlib import Path
 
 import pytest
 
-from aria_esi.mcp.market.database import (
+from aria_esi.store.market.database import (
     MarketDatabase,
     MarketScopePrice,
 )

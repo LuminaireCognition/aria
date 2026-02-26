@@ -769,9 +769,9 @@ class TestCalculateActivityTrainingTime:
         current_skills = {"Mining": 5}  # Already at level 5
 
         with patch(
-            "aria_esi.mcp.market.database.get_market_database"
+            "aria_esi.store.market.database.get_market_database"
         ) as mock_db, patch(
-            "aria_esi.mcp.sde.queries.get_sde_query_service"
+            "aria_esi.store.sde.queries.get_sde_query_service"
         ):
             # Mock database connection
             mock_conn = MagicMock()
@@ -793,9 +793,9 @@ class TestCalculateActivityTrainingTime:
         skills = [{"skill": "[field - parameter required]", "level": 3, "parameter_required": "field"}]
 
         with patch(
-            "aria_esi.mcp.market.database.get_market_database"
+            "aria_esi.store.market.database.get_market_database"
         ) as mock_db, patch(
-            "aria_esi.mcp.sde.queries.get_sde_query_service"
+            "aria_esi.store.sde.queries.get_sde_query_service"
         ):
             mock_conn = MagicMock()
             mock_db.return_value._get_connection.return_value = mock_conn
@@ -812,9 +812,9 @@ class TestCalculateActivityTrainingTime:
         skills = [{"skill": "Nonexistent Skill XYZ", "level": 3}]
 
         with patch(
-            "aria_esi.mcp.market.database.get_market_database"
+            "aria_esi.store.market.database.get_market_database"
         ) as mock_db, patch(
-            "aria_esi.mcp.sde.queries.get_sde_query_service"
+            "aria_esi.store.sde.queries.get_sde_query_service"
         ):
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
@@ -839,9 +839,9 @@ class TestCalculateActivityTrainingTime:
         mock_skill_attrs.secondary_attribute = "memory"
 
         with patch(
-            "aria_esi.mcp.market.database.get_market_database"
+            "aria_esi.store.market.database.get_market_database"
         ) as mock_db, patch(
-            "aria_esi.mcp.sde.queries.get_sde_query_service"
+            "aria_esi.store.sde.queries.get_sde_query_service"
         ) as mock_query_service:
             mock_conn = MagicMock()
             mock_cursor = MagicMock()
@@ -874,9 +874,9 @@ class TestCalculateActivityTrainingTime:
         mock_skill_attrs.secondary_attribute = "memory"
 
         with patch(
-            "aria_esi.mcp.market.database.get_market_database"
+            "aria_esi.store.market.database.get_market_database"
         ) as mock_db, patch(
-            "aria_esi.mcp.sde.queries.get_sde_query_service"
+            "aria_esi.store.sde.queries.get_sde_query_service"
         ) as mock_query_service:
             mock_conn = MagicMock()
             mock_cursor = MagicMock()

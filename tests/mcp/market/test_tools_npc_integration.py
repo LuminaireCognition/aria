@@ -21,7 +21,6 @@ from aria_esi.mcp.market.tools_npc import (
     register_npc_tools,
 )
 
-
 # =============================================================================
 # Test Fixtures
 # =============================================================================
@@ -310,7 +309,7 @@ class TestNPCSourcesHappyPath:
                 return_value=mock_query_service,
             ),
             patch(
-                "aria_esi.mcp.esi_client.get_async_esi_client",
+                "aria_esi.store.esi_client.get_async_esi_client",
                 new_callable=AsyncMock,
                 return_value=mock_client,
             ),
@@ -364,7 +363,7 @@ class TestNPCSourcesHappyPath:
                 return_value=mock_query_service,
             ),
             patch(
-                "aria_esi.mcp.esi_client.get_async_esi_client",
+                "aria_esi.store.esi_client.get_async_esi_client",
                 new_callable=AsyncMock,
                 return_value=mock_client,
             ),
@@ -411,7 +410,7 @@ class TestNPCSourcesCorpMapping:
                 return_value=mock_query_service,
             ),
             patch(
-                "aria_esi.mcp.esi_client.get_async_esi_client",
+                "aria_esi.store.esi_client.get_async_esi_client",
                 new_callable=AsyncMock,
                 return_value=mock_client,
             ),
@@ -459,7 +458,7 @@ class TestNPCSourcesESIErrors:
                 return_value=mock_query_service,
             ),
             patch(
-                "aria_esi.mcp.esi_client.get_async_esi_client",
+                "aria_esi.store.esi_client.get_async_esi_client",
                 new_callable=AsyncMock,
                 side_effect=ConnectionError("ESI down"),
             ),
@@ -517,7 +516,7 @@ class TestNPCSourcesESIErrors:
                 return_value=mock_query_service,
             ),
             patch(
-                "aria_esi.mcp.esi_client.get_async_esi_client",
+                "aria_esi.store.esi_client.get_async_esi_client",
                 new_callable=AsyncMock,
                 return_value=mock_client,
             ),

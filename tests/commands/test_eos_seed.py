@@ -12,7 +12,6 @@ import pytest
 
 from aria_esi.commands.fitting import DownloadResult, download_pyfa_staticdata
 
-
 # =============================================================================
 # Helpers
 # =============================================================================

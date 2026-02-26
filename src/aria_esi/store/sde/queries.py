@@ -20,7 +20,7 @@ from ...core.exceptions import AriaError
 from ...core.logging import get_logger
 
 if TYPE_CHECKING:
-    from aria_esi.mcp.market.database import MarketDatabase
+    from aria_esi.store.market.database import MarketDatabase
 
 logger = get_logger(__name__)
 
@@ -1433,7 +1433,7 @@ def get_sde_query_service() -> SDEQueryService:
         with _service_lock:
             # Double-check after acquiring lock
             if _sde_query_service is None:
-                from aria_esi.mcp.market.database import get_market_database
+                from aria_esi.store.market.database import get_market_database
 
                 _sde_query_service = SDEQueryService(get_market_database())
                 _register_sde_bridge_providers(_sde_query_service)

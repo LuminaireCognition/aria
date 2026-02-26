@@ -349,7 +349,7 @@ class TestHistoryFetch:
         async_cm.__aexit__.return_value = None
 
         with patch(
-            "aria_esi.mcp.market.clients.create_client",
+            "aria_esi.store.market.clients.create_client",
             return_value=async_cm,
         ):
             result = await history_service._fetch_history(34, 10000002)
@@ -374,7 +374,7 @@ class TestHistoryFetch:
         async_cm.__aexit__.return_value = None
 
         with patch(
-            "aria_esi.mcp.market.clients.create_client",
+            "aria_esi.store.market.clients.create_client",
             return_value=async_cm,
         ):
             result = await history_service._fetch_history(34, 10000002)
@@ -396,7 +396,7 @@ class TestHistoryFetch:
         async_cm.__aexit__.return_value = None
 
         with patch(
-            "aria_esi.mcp.market.clients.create_client",
+            "aria_esi.store.market.clients.create_client",
             return_value=async_cm,
         ):
             result = await history_service._fetch_history(34, 10000002)
@@ -423,7 +423,7 @@ class TestHistoryFetch:
         async_cm.__aexit__.return_value = None
 
         with patch(
-            "aria_esi.mcp.market.clients.create_client",
+            "aria_esi.store.market.clients.create_client",
             return_value=async_cm,
         ):
             result = await history_service._fetch_history(34, 10000002)
@@ -459,7 +459,7 @@ class TestVolatilityCalculation:
         async_cm.__aexit__.return_value = None
 
         with patch(
-            "aria_esi.mcp.market.clients.create_client",
+            "aria_esi.store.market.clients.create_client",
             return_value=async_cm,
         ):
             result = await history_service._fetch_history(34, 10000002)
@@ -493,7 +493,7 @@ class TestVolatilityCalculation:
         async_cm.__aexit__.return_value = None
 
         with patch(
-            "aria_esi.mcp.market.clients.create_client",
+            "aria_esi.store.market.clients.create_client",
             return_value=async_cm,
         ):
             result = await history_service._fetch_history(34, 10000002)

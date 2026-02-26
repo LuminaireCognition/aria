@@ -68,7 +68,7 @@ class RealtimeKillsDatabase:
 
     def _run_schema_init(self) -> None:
         """Ensure the database schema is up to date via MarketDatabase."""
-        from ...mcp.market.database import MarketDatabase
+        from aria_esi.store.market.database import MarketDatabase
 
         # MarketDatabase initialization runs migrations
         market_db = MarketDatabase(self.db_path)

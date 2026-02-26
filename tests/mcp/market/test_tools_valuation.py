@@ -12,7 +12,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.market.clipboard import parse_clipboard_to_dict
 from aria_esi.models.market import (
     FreshnessLevel,
     ItemPrice,
@@ -20,7 +19,7 @@ from aria_esi.models.market import (
     ValuationItem,
     ValuationResult,
 )
-
+from aria_esi.store.market.clipboard import parse_clipboard_to_dict
 
 # =============================================================================
 # Test Fixtures

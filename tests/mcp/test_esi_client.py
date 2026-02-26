@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from aria_esi.mcp.esi_client import (
+from aria_esi.store.esi_client import (
     close_async_esi_client,
     get_async_esi_client,
     reset_async_esi_client,

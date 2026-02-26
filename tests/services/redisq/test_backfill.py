@@ -21,7 +21,6 @@ from aria_esi.services.redisq.backfill import (
 )
 from aria_esi.services.redisq.models import ProcessedKill, RedisQConfig
 
-
 # =============================================================================
 # Async helpers (pattern from test_hull_prices.py)
 # =============================================================================

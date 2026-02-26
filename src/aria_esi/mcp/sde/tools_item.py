@@ -17,8 +17,7 @@ from aria_esi.models.sde import (
     MetaVariantInfo,
     MetaVariantsResult,
 )
-
-from .queries import get_sde_query_service
+from aria_esi.store.sde.queries import get_sde_query_service
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP

@@ -13,7 +13,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from aria_esi.mcp.activity import (
+from aria_esi.mcp.dispatchers.universe import register_activity_tools
+from aria_esi.store.activity import (
     ActivityCache,
     ActivityData,
     FWSystemData,
@@ -21,7 +22,6 @@ from aria_esi.mcp.activity import (
     get_faction_id,
     get_faction_name,
 )
-from aria_esi.mcp.dispatchers.universe import register_activity_tools
 
 from .conftest import create_mock_universe
 
@@ -167,7 +167,7 @@ class TestActivityCacheRefresh:
         mock_client.get.return_value = mock_kills_data
 
         # Patch at the source module where get_async_esi_client is defined
-        with patch("aria_esi.mcp.esi_client.get_async_esi_client", new=AsyncMock(return_value=mock_client)):
+        with patch("aria_esi.store.esi_client.get_async_esi_client", new=AsyncMock(return_value=mock_client)):
             # First call - should trigger refresh
             await cache.get_activity(30000142)
             first_timestamp = cache._kills_timestamp
@@ -192,7 +192,7 @@ class TestActivityCacheRefresh:
         mock_client.get.side_effect = httpx.RequestError("ESI down")
 
         # Patch at the source module where get_async_esi_client is defined
-        with patch("aria_esi.mcp.esi_client.get_async_esi_client", new=AsyncMock(return_value=mock_client)):
+        with patch("aria_esi.store.esi_client.get_async_esi_client", new=AsyncMock(return_value=mock_client)):
             data = await cache.get_activity(30000142)
             assert data.ship_kills == 10  # Stale data preserved
 

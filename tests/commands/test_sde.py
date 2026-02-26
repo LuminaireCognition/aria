@@ -28,8 +28,8 @@ class TestSDEStatusCommand:
         mock_importer = MagicMock()
         mock_importer.get_sde_status.return_value = mock_status
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
-            with patch("aria_esi.mcp.sde.importer.SDEImporter") as mock_imp_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
+            with patch("aria_esi.store.sde.importer.SDEImporter") as mock_imp_cls:
                 mock_db_cls.return_value = mock_db
                 mock_imp_cls.return_value = mock_importer
 
@@ -64,8 +64,8 @@ class TestSDEStatusCommand:
         mock_importer = MagicMock()
         mock_importer.get_sde_status.return_value = mock_status
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
-            with patch("aria_esi.mcp.sde.importer.SDEImporter") as mock_imp_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
+            with patch("aria_esi.store.sde.importer.SDEImporter") as mock_imp_cls:
                 mock_db_cls.return_value = mock_db
                 mock_imp_cls.return_value = mock_importer
 
@@ -78,7 +78,7 @@ class TestSDEStatusCommand:
 
     def test_sde_status_database_error(self, empty_args):
         """Test status when database error occurs."""
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
             mock_db_cls.side_effect = Exception("Database connection failed")
 
             result = cmd_sde_status(empty_args)
@@ -106,7 +106,7 @@ class TestSDEItemCommand:
         mock_db = MagicMock()
         mock_db._get_connection.return_value = mock_conn
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
             mock_db_cls.return_value = mock_db
 
             result = cmd_sde_item(item_args)
@@ -147,7 +147,7 @@ class TestSDEItemCommand:
         mock_db = MagicMock()
         mock_db._get_connection.return_value = mock_conn
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
             mock_db_cls.return_value = mock_db
 
             result = cmd_sde_item(item_args)
@@ -178,7 +178,7 @@ class TestSDEItemCommand:
         mock_db = MagicMock()
         mock_db._get_connection.return_value = mock_conn
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
             mock_db_cls.return_value = mock_db
 
             result = cmd_sde_item(item_args)
@@ -211,7 +211,7 @@ class TestSDEItemCommand:
         mock_db = MagicMock()
         mock_db._get_connection.return_value = mock_conn
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
             mock_db_cls.return_value = mock_db
 
             result = cmd_sde_item(args)
@@ -240,7 +240,7 @@ class TestSDEBlueprintCommand:
         mock_db = MagicMock()
         mock_db._get_connection.return_value = mock_conn
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
             mock_db_cls.return_value = mock_db
 
             result = cmd_sde_blueprint(bp_args)
@@ -295,7 +295,7 @@ class TestSDEBlueprintCommand:
         mock_db = MagicMock()
         mock_db._get_connection.return_value = mock_conn
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
             mock_db_cls.return_value = mock_db
 
             result = cmd_sde_blueprint(bp_args)
@@ -327,7 +327,7 @@ class TestSDEBlueprintCommand:
         mock_db = MagicMock()
         mock_db._get_connection.return_value = mock_conn
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
             mock_db_cls.return_value = mock_db
 
             result = cmd_sde_blueprint(bp_args)
@@ -351,8 +351,8 @@ class TestSDESeedCommand:
         mock_importer = MagicMock()
         mock_importer.get_sde_status.return_value = mock_status
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
-            with patch("aria_esi.mcp.sde.importer.SDEImporter") as mock_imp_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
+            with patch("aria_esi.store.sde.importer.SDEImporter") as mock_imp_cls:
                 mock_db_cls.return_value = mock_db
                 mock_imp_cls.return_value = mock_importer
 
@@ -377,8 +377,8 @@ class TestSDESeedCommand:
         mock_importer = MagicMock()
         mock_importer.get_sde_status.return_value = mock_status
 
-        with patch("aria_esi.mcp.market.database.MarketDatabase") as mock_db_cls:
-            with patch("aria_esi.mcp.sde.importer.SDEImporter") as mock_imp_cls:
+        with patch("aria_esi.store.market.database.MarketDatabase") as mock_db_cls:
+            with patch("aria_esi.store.sde.importer.SDEImporter") as mock_imp_cls:
                 mock_db_cls.return_value = mock_db
                 mock_imp_cls.return_value = mock_importer
 

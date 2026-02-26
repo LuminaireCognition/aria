@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+from aria_esi.store.activity import get_activity_cache
+
 from ....services.navigation import (
     compute_security_summary as _svc_compute_security_summary,
 )
 from ....services.navigation import (
     generate_warnings as _svc_generate_warnings,
 )
-from ...activity import get_activity_cache
 from ...models import RouteResult, SecuritySummary
 from ...utils import build_system_info
 

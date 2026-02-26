@@ -16,12 +16,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from aria_esi.fitting.skill_registry import (
+    BONUS_CORE_SKILL_NAMES,
+    BONUS_DRONE_SKILL_NAMES,
     DRONE_SKILL_NAMES,
     FITTING_SKILL_NAMES,
     NAVIGATION_SKILL_NAMES,
     TANK_SKILL_NAMES,
-    BONUS_DRONE_SKILL_NAMES,
-    BONUS_CORE_SKILL_NAMES,
 )
 from aria_esi.fitting.skills import (
     SkillFetchError,

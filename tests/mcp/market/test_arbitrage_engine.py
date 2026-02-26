@@ -849,7 +849,7 @@ class TestScopeIntegration:
     @pytest.mark.asyncio
     async def test_scopes_included_when_enabled(self):
         """Test that scopes are processed when include_custom_scopes=True."""
-        from aria_esi.mcp.market.database import MarketScope
+        from aria_esi.store.market.database import MarketScope
 
         engine = ArbitrageEngine()
         engine._database = AsyncMock()

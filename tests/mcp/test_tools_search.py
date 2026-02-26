@@ -13,8 +13,6 @@ import igraph as ig
 import numpy as np
 import pytest
 
-from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
-from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.dispatchers.universe import (
     _bfs_within_range,
     _build_search_result,
@@ -23,6 +21,8 @@ from aria_esi.mcp.dispatchers.universe import (
     _summarize_filters,
     register_search_tools,
 )
+from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
+from aria_esi.mcp.tools import register_tools
 from aria_esi.universe import UniverseGraph
 
 # =============================================================================

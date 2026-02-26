@@ -21,7 +21,6 @@ from aria_esi.mcp.sde.tools_minmax import (
 )
 from aria_esi.mcp.sde.tools_skills import calculate_sp_for_level
 
-
 # =============================================================================
 # Synthetic Test Data Builders
 # =============================================================================

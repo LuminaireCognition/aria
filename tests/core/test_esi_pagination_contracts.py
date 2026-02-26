@@ -137,7 +137,7 @@ def _run_mining_cmd(mock_client, mock_credentials, mock_public):
 @pytest.fixture
 def temp_db():
     """Create a temporary sync database for testing."""
-    from aria_esi.mcp.market.database import MarketDatabase
+    from aria_esi.store.market.database import MarketDatabase
 
     with tempfile.TemporaryDirectory() as tmpdir:
         db_path = Path(tmpdir) / "test.db"
@@ -171,7 +171,7 @@ def mock_esi_client():
 
 def create_test_scope(sync_db, scope_name, scope_type, **kwargs):
     """Create a test scope with watchlist."""
-    from aria_esi.mcp.market.database import MarketScope, WatchlistItem
+    from aria_esi.store.market.database import MarketScope, WatchlistItem
 
     watchlist = sync_db.create_watchlist(f"{scope_name}_watchlist")
     items = []
@@ -376,8 +376,8 @@ class TestXPagesDrivenPaginationContract:
     @pytest.mark.integration
     async def test_x_pages_1_no_further_fetch(self, temp_db, mock_esi_client):
         """X-Pages=1 on page 1 means single page, no further requests."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)
@@ -424,8 +424,8 @@ class TestXPagesDrivenPaginationContract:
     @pytest.mark.integration
     async def test_x_pages_missing_loops_to_max(self, temp_db, mock_esi_client):
         """Missing X-Pages header means total_pages=None, loops until max_pages."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)
@@ -471,8 +471,8 @@ class TestXPagesDrivenPaginationContract:
     @pytest.mark.integration
     async def test_x_pages_changes_between_pages(self, temp_db, mock_esi_client):
         """Only page 1 X-Pages header is used; later pages' headers are ignored."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)
@@ -518,8 +518,8 @@ class TestXPagesDrivenPaginationContract:
     @pytest.mark.integration
     async def test_empty_data_mid_pagination(self, temp_db, mock_esi_client):
         """Empty data mid-pagination doesn't stop when X-Pages drives the loop."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)
@@ -566,8 +566,8 @@ class TestXPagesDrivenPaginationContract:
     @pytest.mark.integration
     async def test_max_pages_param_respected(self, temp_db, mock_esi_client):
         """max_pages truncates even when X-Pages says more pages exist."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)
@@ -613,8 +613,8 @@ class TestXPagesDrivenPaginationContract:
     @pytest.mark.integration
     async def test_truncation_metadata_set(self, temp_db, mock_esi_client):
         """Truncation sets scan_status and pages_truncated correctly."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)
@@ -707,8 +707,8 @@ class TestPaginationErrorRecoveryContract:
     @pytest.mark.integration
     async def test_pattern_b_403_sets_error_status(self, temp_db, mock_esi_client):
         """403 on structure endpoint sets scan_status='error'."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)
@@ -740,8 +740,8 @@ class TestPaginationErrorRecoveryContract:
     @pytest.mark.integration
     async def test_pattern_b_404_sets_error_status(self, temp_db, mock_esi_client):
         """404 on structure endpoint sets scan_status='error'."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)
@@ -773,8 +773,8 @@ class TestPaginationErrorRecoveryContract:
     @pytest.mark.integration
     async def test_pattern_b_error_mid_pagination_stops(self, temp_db, mock_esi_client):
         """ESIError on page 2 of 3 stops pagination and returns immediately."""
-        from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-        from aria_esi.mcp.market.scope_refresh import MarketScopeFetcher
+        from aria_esi.store.market.database_async import AsyncMarketDatabase
+        from aria_esi.store.market.scope_refresh import MarketScopeFetcher
 
         sync_db, db_path = temp_db
         async_db = AsyncMarketDatabase(db_path)

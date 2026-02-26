@@ -5,7 +5,13 @@ from __future__ import annotations
 import logging
 from collections import deque
 
-from ...activity import classify_activity, get_activity_cache, get_faction_id, get_faction_name
+from aria_esi.store.activity import (
+    classify_activity,
+    get_activity_cache,
+    get_faction_id,
+    get_faction_name,
+)
+
 from ...context import wrap_output, wrap_output_multi
 from ...context_policy import UNIVERSE
 from ...errors import InvalidParameterError, RouteNotFoundError, SystemNotFoundError

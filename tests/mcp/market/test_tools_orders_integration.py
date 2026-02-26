@@ -15,7 +15,6 @@ import pytest
 
 from aria_esi.mcp.market.tools_orders import register_order_tools
 
-
 # =============================================================================
 # Test Fixtures
 # =============================================================================
@@ -114,7 +113,7 @@ class TestMarketOrdersHappyPath:
         mock_client.get = mock_get
 
         with patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new_callable=AsyncMock,
             return_value=mock_client,
         ):
@@ -145,7 +144,7 @@ class TestMarketOrdersHappyPath:
         mock_client.get = AsyncMock(return_value=[_make_esi_order(1, 5.50, True)])
 
         with patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new_callable=AsyncMock,
             return_value=mock_client,
         ):
@@ -202,7 +201,7 @@ class TestMarketOrdersRegionHandling:
         mock_client.get = AsyncMock(return_value=[])
 
         with patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new_callable=AsyncMock,
             return_value=mock_client,
         ):
@@ -232,7 +231,7 @@ class TestMarketOrdersESIErrors:
         db.resolve_type_name.return_value = TypeInfo(34, "Tritanium")
 
         with patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new_callable=AsyncMock,
             side_effect=ConnectionError("ESI down"),
         ):
@@ -262,7 +261,7 @@ class TestMarketOrdersESIErrors:
         mock_client.get = mock_get
 
         with patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new_callable=AsyncMock,
             return_value=mock_client,
         ):
@@ -297,7 +296,7 @@ class TestMarketOrdersLimitClamping:
         mock_client.get = AsyncMock(return_value=sell_orders)
 
         with patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new_callable=AsyncMock,
             return_value=mock_client,
         ):

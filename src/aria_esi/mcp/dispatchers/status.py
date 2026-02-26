@@ -90,7 +90,7 @@ def register_status_tool(server: FastMCP) -> None:
 
         # Activity cache status
         try:
-            from ..activity import get_activity_cache
+            from aria_esi.store.activity import get_activity_cache
 
             cache = get_activity_cache()
             activity_status = cache.get_cache_status()
@@ -126,8 +126,8 @@ def register_status_tool(server: FastMCP) -> None:
 
         # Market cache status
         try:
-            from ..market.cache import get_market_cache
-            from ..market.database import get_market_database
+            from aria_esi.store.market.cache import get_market_cache
+            from aria_esi.store.market.database import get_market_database
 
             market_cache = get_market_cache()
             market_status = market_cache.get_cache_status()
@@ -161,7 +161,7 @@ def register_status_tool(server: FastMCP) -> None:
 
         # SDE database status
         try:
-            from ..market.database import get_market_database
+            from aria_esi.store.market.database import get_market_database
 
             db = get_market_database()
             stats = db.get_stats()

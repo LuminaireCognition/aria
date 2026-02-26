@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.sde.queries import (
+from aria_esi.store.sde.queries import (
     CorporationRegions,
     SDENotSeededError,
     SDEQueryService,
@@ -313,7 +313,7 @@ class TestSingletonAccessor:
 
         mock_conn = sqlite3.connect(":memory:")
         try:
-            with patch("aria_esi.mcp.market.database.get_market_database") as mock:
+            with patch("aria_esi.store.market.database.get_market_database") as mock:
                 mock_db = MagicMock()
                 mock_conn.row_factory = sqlite3.Row
                 mock_conn.execute(
@@ -335,7 +335,7 @@ class TestSingletonAccessor:
 
         mock_conn = sqlite3.connect(":memory:")
         try:
-            with patch("aria_esi.mcp.market.database.get_market_database") as mock:
+            with patch("aria_esi.store.market.database.get_market_database") as mock:
                 mock_db = MagicMock()
                 mock_conn.row_factory = sqlite3.Row
                 mock_conn.execute(

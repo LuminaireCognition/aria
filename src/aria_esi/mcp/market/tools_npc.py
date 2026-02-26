@@ -18,8 +18,8 @@ import httpx
 from pydantic import BaseModel, ConfigDict, Field
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
-from aria_esi.mcp.sde.queries import SDENotSeededError, get_sde_query_service
+from aria_esi.store.market.database import get_market_database
+from aria_esi.store.sde.queries import SDENotSeededError, get_sde_query_service
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
@@ -128,7 +128,7 @@ async def _esi_fallback_scan(
     )
 
     try:
-        from aria_esi.mcp.esi_client import get_async_esi_client
+        from aria_esi.store.esi_client import get_async_esi_client
 
         client = await get_async_esi_client()
     except Exception as e:  # noqa: BLE001 -- MCP handler
@@ -445,7 +445,7 @@ async def _npc_sources_impl(item: str, limit: int = 10) -> dict:
     total_orders = 0
 
     try:
-        from aria_esi.mcp.esi_client import get_async_esi_client
+        from aria_esi.store.esi_client import get_async_esi_client
 
         client = await get_async_esi_client()
 

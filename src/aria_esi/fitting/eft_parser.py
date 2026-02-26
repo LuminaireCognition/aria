@@ -45,7 +45,7 @@ from aria_esi.core.logging import get_logger
 from aria_esi.models.fitting import ParsedDrone, ParsedFit, ParsedModule
 
 if TYPE_CHECKING:
-    from aria_esi.mcp.market.database import MarketDatabase
+    from aria_esi.store.market.database import MarketDatabase
 
 logger = get_logger(__name__)
 
@@ -454,7 +454,7 @@ def parse_eft(eft_string: str, db: MarketDatabase | None = None) -> ParsedFit:
         TypeResolutionError: If a type name cannot be resolved
     """
     if db is None:
-        from aria_esi.mcp.market.database import get_market_database
+        from aria_esi.store.market.database import get_market_database
 
         db = get_market_database()
 

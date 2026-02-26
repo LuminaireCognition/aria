@@ -25,7 +25,6 @@ from aria_esi.models.market import (
     PriceAggregate,
 )
 
-
 # =============================================================================
 # Test Fixtures
 # =============================================================================
@@ -305,7 +304,7 @@ class TestMarketRouteValue:
 
         with patch("aria_esi.mcp.tools.get_universe", return_value=mock_universe):
             # Also mock get_activity_cache to avoid import errors
-            with patch("aria_esi.mcp.activity.get_activity_cache", side_effect=ImportError):
+            with patch("aria_esi.store.activity.get_activity_cache", side_effect=ImportError):
                 result = await tools["market_route_value"](
                     items=[{"name": "PLEX", "quantity": 10}],
                     route=["Jita", "Perimeter"],
@@ -340,7 +339,7 @@ class TestMarketRouteValue:
         mock_universe.idx_to_name = {0: "Jita", 1: "Amarr"}
 
         with patch("aria_esi.mcp.tools.get_universe", return_value=mock_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", side_effect=ImportError):
+            with patch("aria_esi.store.activity.get_activity_cache", side_effect=ImportError):
                 result = await tools["market_route_value"](
                     items="Tritanium\t1000000",
                     route=["Jita", "Amarr"],
@@ -398,7 +397,7 @@ class TestMarketRouteValue:
         mock_universe.idx_to_name = {0: "Jita"}
 
         with patch("aria_esi.mcp.tools.get_universe", return_value=mock_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", side_effect=ImportError):
+            with patch("aria_esi.store.activity.get_activity_cache", side_effect=ImportError):
                 result = await tools["market_route_value"](
                     items=[{"name": "Tritanium", "quantity": 100}],
                     route=["Jita", "NonexistentSystem"],
@@ -428,7 +427,7 @@ class TestMarketRouteValue:
         mock_universe.idx_to_name = {0: "Jita"}
 
         with patch("aria_esi.mcp.tools.get_universe", return_value=mock_universe):
-            with patch("aria_esi.mcp.activity.get_activity_cache", side_effect=ImportError):
+            with patch("aria_esi.store.activity.get_activity_cache", side_effect=ImportError):
                 result = await tools["market_route_value"](
                     items=[{"name": "Tritanium", "quantity": 100}],
                     route=["Jita", "Jita"],

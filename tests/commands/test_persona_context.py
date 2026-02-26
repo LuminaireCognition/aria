@@ -918,7 +918,7 @@ class TestPersonaCompilerSecurity:
 
     def test_rejects_oversized_file(self, tmp_path):
         """Compiler should reject files exceeding 50KB size limit."""
-        from aria_esi.persona.compiler import PersonaCompiler, PERSONA_MAX_FILE_SIZE
+        from aria_esi.persona.compiler import PERSONA_MAX_FILE_SIZE, PersonaCompiler
 
         (tmp_path / "personas" / "test").mkdir(parents=True)
 
@@ -934,7 +934,7 @@ class TestPersonaCompilerSecurity:
 
     def test_accepts_file_at_size_limit(self, tmp_path):
         """Compiler should accept files at exactly the size limit."""
-        from aria_esi.persona.compiler import PersonaCompiler, PERSONA_MAX_FILE_SIZE
+        from aria_esi.persona.compiler import PERSONA_MAX_FILE_SIZE, PersonaCompiler
 
         (tmp_path / "personas" / "test").mkdir(parents=True)
 

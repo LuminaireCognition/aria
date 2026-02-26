@@ -344,7 +344,7 @@ async def _resolve_names(names: list[str] | None) -> dict:
     if not unique_names:
         raise InvalidParameterError("names", names, "At least one non-empty name required")
 
-    from ..esi_client import get_async_esi_client
+    from aria_esi.store.esi_client import get_async_esi_client
 
     client = await get_async_esi_client()
     result = await client.post("/universe/ids/", data=unique_names)

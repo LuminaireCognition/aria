@@ -8,9 +8,9 @@ import asyncio
 import sqlite3
 import sys
 import time
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import httpx
 import pytest
@@ -24,10 +24,10 @@ from aria_esi.services.redisq.models import (
     RedisQConfig,
 )
 from aria_esi.services.redisq.poller import (
+    REDISQ_URL,
     RedisQPoller,
     get_poller,
     reset_poller,
-    REDISQ_URL,
 )
 
 

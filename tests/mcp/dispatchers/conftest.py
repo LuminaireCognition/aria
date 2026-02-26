@@ -12,9 +12,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.activity import ActivityData
+from aria_esi.store.activity import ActivityData
 from aria_esi.universe import UniverseGraph
-
 
 # =============================================================================
 # Dispatcher Factory Fixtures

@@ -560,7 +560,7 @@ class TestUpdateSdeChecksum:
 
     def test_update_sde_checksum(self, tmp_path):
         """update_sde_checksum writes checksum to manifest."""
-        from aria_esi.core.data_integrity import update_sde_checksum, compute_sha256
+        from aria_esi.core.data_integrity import compute_sha256, update_sde_checksum
 
         # Create test file
         test_file = tmp_path / "sde.sqlite.bz2"

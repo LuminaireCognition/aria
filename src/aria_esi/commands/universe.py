@@ -681,7 +681,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
             pass  # Silently fall back to hourly-only
 
     try:
-        from ..mcp.activity import classify_activity, get_activity_cache
+        from ..store.activity import classify_activity, get_activity_cache
 
         cache = get_activity_cache()
 
@@ -813,7 +813,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
 
     # Use the MCP hotspots implementation
     try:
-        from ..mcp.activity import classify_activity, get_activity_cache
+        from ..store.activity import classify_activity, get_activity_cache
 
         cache = get_activity_cache()
 
@@ -991,7 +991,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
 
     # Analyze gatecamp risk
     try:
-        from ..mcp.activity import get_activity_cache
+        from ..store.activity import get_activity_cache
 
         cache = get_activity_cache()
 
@@ -1214,7 +1214,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
         pass  # Fall back to hourly-only
 
     try:
-        from ..mcp.activity import get_activity_cache
+        from ..store.activity import get_activity_cache
 
         cache = get_activity_cache()
 
@@ -1334,7 +1334,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
         }
 
     try:
-        from ..mcp.activity import get_activity_cache, get_faction_id, get_faction_name
+        from ..store.activity import get_activity_cache, get_faction_id, get_faction_name
 
         cache = get_activity_cache()
 
@@ -1443,7 +1443,7 @@ def cmd_activity_cache_status(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.activity import get_activity_cache
+        from ..store.activity import get_activity_cache
 
         cache = get_activity_cache()
         status = cache.get_cache_status()
@@ -1600,7 +1600,7 @@ def cmd_orient(args: argparse.Namespace) -> dict:
         }
 
     async def fetch_local_area():
-        from ..mcp.activity import classify_activity, get_activity_cache
+        from ..store.activity import classify_activity, get_activity_cache
 
         cache = get_activity_cache()
         all_activity = await cache.get_all_activity()

@@ -569,7 +569,7 @@ def resolve_region(name: str) -> RegionConfig | None:
 
     # Fall back to SDE region lookup
     try:
-        from aria_esi.mcp.market.database import get_market_database
+        from aria_esi.store.market.database import get_market_database
 
         db = get_market_database()
         region_info = db.resolve_region_name(name)

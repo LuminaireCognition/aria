@@ -17,14 +17,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.market.database import MarketDatabase
-from aria_esi.mcp.sde.importer import (
-    SDEImportResult,
-    SDEImporter,
+from aria_esi.store.market.database import MarketDatabase
+from aria_esi.store.sde.importer import (
     _VALID_SDE_IDENTIFIERS,
+    SDEImporter,
+    SDEImportResult,
     _qi,
 )
-
 
 # =============================================================================
 # Fixtures
@@ -1039,12 +1038,12 @@ class TestDownloadSDE:
     All network and file I/O is mocked to avoid real downloads.
     """
 
-    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
-    @patch("aria_esi.mcp.sde.importer.compute_sha256")
-    @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
-    @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
-    @patch("aria_esi.mcp.sde.importer.httpx")
-    @patch("aria_esi.mcp.sde.importer.bz2")
+    @patch("aria_esi.store.sde.importer.verify_sde_integrity")
+    @patch("aria_esi.store.sde.importer.compute_sha256")
+    @patch("aria_esi.store.sde.importer.is_break_glass_enabled")
+    @patch("aria_esi.store.sde.importer.get_pinned_sde_url")
+    @patch("aria_esi.store.sde.importer.httpx")
+    @patch("aria_esi.store.sde.importer.bz2")
     def test_checksum_pass(
         self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer, tmp_path
     ):
@@ -1074,11 +1073,11 @@ class TestDownloadSDE:
         mock_httpx.stream.assert_called_once()
         mock_sha256.assert_called_once()
 
-    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
-    @patch("aria_esi.mcp.sde.importer.compute_sha256")
-    @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
-    @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
-    @patch("aria_esi.mcp.sde.importer.httpx")
+    @patch("aria_esi.store.sde.importer.verify_sde_integrity")
+    @patch("aria_esi.store.sde.importer.compute_sha256")
+    @patch("aria_esi.store.sde.importer.is_break_glass_enabled")
+    @patch("aria_esi.store.sde.importer.get_pinned_sde_url")
+    @patch("aria_esi.store.sde.importer.httpx")
     def test_checksum_mismatch_raises(
         self, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer, tmp_path
     ):
@@ -1104,12 +1103,12 @@ class TestDownloadSDE:
         with pytest.raises(IntegrityError, match="checksum mismatch"):
             importer.download_sde()
 
-    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
-    @patch("aria_esi.mcp.sde.importer.compute_sha256")
-    @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
-    @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
-    @patch("aria_esi.mcp.sde.importer.httpx")
-    @patch("aria_esi.mcp.sde.importer.bz2")
+    @patch("aria_esi.store.sde.importer.verify_sde_integrity")
+    @patch("aria_esi.store.sde.importer.compute_sha256")
+    @patch("aria_esi.store.sde.importer.is_break_glass_enabled")
+    @patch("aria_esi.store.sde.importer.get_pinned_sde_url")
+    @patch("aria_esi.store.sde.importer.httpx")
+    @patch("aria_esi.store.sde.importer.bz2")
     def test_break_glass_skips_checksum(
         self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer
     ):
@@ -1136,12 +1135,12 @@ class TestDownloadSDE:
         result = importer.download_sde(break_glass=True)
         assert result.name == "sde-latest.sqlite"
 
-    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
-    @patch("aria_esi.mcp.sde.importer.compute_sha256")
-    @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
-    @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
-    @patch("aria_esi.mcp.sde.importer.httpx")
-    @patch("aria_esi.mcp.sde.importer.bz2")
+    @patch("aria_esi.store.sde.importer.verify_sde_integrity")
+    @patch("aria_esi.store.sde.importer.compute_sha256")
+    @patch("aria_esi.store.sde.importer.is_break_glass_enabled")
+    @patch("aria_esi.store.sde.importer.get_pinned_sde_url")
+    @patch("aria_esi.store.sde.importer.httpx")
+    @patch("aria_esi.store.sde.importer.bz2")
     def test_env_break_glass_skips_checksum(
         self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer
     ):
@@ -1167,13 +1166,13 @@ class TestDownloadSDE:
         result = importer.download_sde()
         assert result.name == "sde-latest.sqlite"
 
-    @patch("aria_esi.mcp.sde.importer.update_sde_checksum")
-    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
-    @patch("aria_esi.mcp.sde.importer.compute_sha256")
-    @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
-    @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
-    @patch("aria_esi.mcp.sde.importer.httpx")
-    @patch("aria_esi.mcp.sde.importer.bz2")
+    @patch("aria_esi.store.sde.importer.update_sde_checksum")
+    @patch("aria_esi.store.sde.importer.verify_sde_integrity")
+    @patch("aria_esi.store.sde.importer.compute_sha256")
+    @patch("aria_esi.store.sde.importer.is_break_glass_enabled")
+    @patch("aria_esi.store.sde.importer.get_pinned_sde_url")
+    @patch("aria_esi.store.sde.importer.httpx")
+    @patch("aria_esi.store.sde.importer.bz2")
     def test_no_expected_checksum(
         self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, mock_update, importer
     ):
@@ -1205,13 +1204,13 @@ class TestDownloadSDE:
         assert result.name == "sde-latest.sqlite"
         mock_update.assert_called_once()  # Auto-pin was called
 
-    @patch("aria_esi.mcp.sde.importer.update_sde_checksum")
-    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
-    @patch("aria_esi.mcp.sde.importer.compute_sha256")
-    @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
-    @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
-    @patch("aria_esi.mcp.sde.importer.httpx")
-    @patch("aria_esi.mcp.sde.importer.bz2")
+    @patch("aria_esi.store.sde.importer.update_sde_checksum")
+    @patch("aria_esi.store.sde.importer.verify_sde_integrity")
+    @patch("aria_esi.store.sde.importer.compute_sha256")
+    @patch("aria_esi.store.sde.importer.is_break_glass_enabled")
+    @patch("aria_esi.store.sde.importer.get_pinned_sde_url")
+    @patch("aria_esi.store.sde.importer.httpx")
+    @patch("aria_esi.store.sde.importer.bz2")
     def test_show_checksum_flag(
         self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, mock_update, importer
     ):
@@ -1241,13 +1240,13 @@ class TestDownloadSDE:
         importer.download_sde(show_checksum=True)
         assert importer._source_checksum == "the_sha256_hash"
 
-    @patch("aria_esi.mcp.sde.importer.update_sde_checksum")
-    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
-    @patch("aria_esi.mcp.sde.importer.compute_sha256")
-    @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
-    @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
-    @patch("aria_esi.mcp.sde.importer.httpx")
-    @patch("aria_esi.mcp.sde.importer.bz2")
+    @patch("aria_esi.store.sde.importer.update_sde_checksum")
+    @patch("aria_esi.store.sde.importer.verify_sde_integrity")
+    @patch("aria_esi.store.sde.importer.compute_sha256")
+    @patch("aria_esi.store.sde.importer.is_break_glass_enabled")
+    @patch("aria_esi.store.sde.importer.get_pinned_sde_url")
+    @patch("aria_esi.store.sde.importer.httpx")
+    @patch("aria_esi.store.sde.importer.bz2")
     def test_progress_callback_called(
         self, mock_bz2, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, mock_update, importer
     ):
@@ -1280,11 +1279,11 @@ class TestDownloadSDE:
         assert progress_calls[0] == (100, 200)
         assert progress_calls[1] == (200, 200)
 
-    @patch("aria_esi.mcp.sde.importer.verify_sde_integrity")
-    @patch("aria_esi.mcp.sde.importer.compute_sha256")
-    @patch("aria_esi.mcp.sde.importer.is_break_glass_enabled")
-    @patch("aria_esi.mcp.sde.importer.get_pinned_sde_url")
-    @patch("aria_esi.mcp.sde.importer.httpx")
+    @patch("aria_esi.store.sde.importer.verify_sde_integrity")
+    @patch("aria_esi.store.sde.importer.compute_sha256")
+    @patch("aria_esi.store.sde.importer.is_break_glass_enabled")
+    @patch("aria_esi.store.sde.importer.get_pinned_sde_url")
+    @patch("aria_esi.store.sde.importer.httpx")
     def test_checksum_case_insensitive(
         self, mock_httpx, mock_get_url, mock_break_glass, mock_sha256, mock_verify, importer
     ):
@@ -1302,7 +1301,7 @@ class TestDownloadSDE:
 
         # Should not raise - case-insensitive comparison should pass
         # We need to mock bz2 for the decompression step
-        with patch("aria_esi.mcp.sde.importer.bz2") as mock_bz2:
+        with patch("aria_esi.store.sde.importer.bz2") as mock_bz2:
             mock_bz2_file = MagicMock()
             mock_bz2_file.read.side_effect = [b"data", b""]
             mock_bz2.open.return_value.__enter__ = MagicMock(return_value=mock_bz2_file)
@@ -1487,7 +1486,7 @@ class TestSQLInterpolationSafety:
         """Every {xxx_col} in importer.py must be wrapped in _qi()."""
         import re
 
-        importer_path = Path(__file__).parent.parent.parent / "src" / "aria_esi" / "mcp" / "sde" / "importer.py"
+        importer_path = Path(__file__).parent.parent.parent / "src" / "aria_esi" / "store" / "sde" / "importer.py"
         source = importer_path.read_text()
 
         # Pattern: find {some_col} that is NOT inside _qi(...)

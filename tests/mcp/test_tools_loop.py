@@ -13,8 +13,6 @@ import igraph as ig
 import numpy as np
 import pytest
 
-from aria_esi.mcp.errors import InsufficientBordersError, InvalidParameterError, SystemNotFoundError
-from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.dispatchers.universe import (
     _build_loop_result,
     _expand_tour_matrix,
@@ -24,6 +22,8 @@ from aria_esi.mcp.dispatchers.universe import (
     _select_diverse_borders_matrix,
     register_loop_tools,
 )
+from aria_esi.mcp.errors import InsufficientBordersError, InvalidParameterError, SystemNotFoundError
+from aria_esi.mcp.tools import register_tools
 from aria_esi.universe import UniverseGraph
 
 # =============================================================================

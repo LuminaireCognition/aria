@@ -27,9 +27,9 @@ from aria_esi.services.redisq.notifications.commentary import (
     validate_preserved_tokens,
 )
 from aria_esi.services.redisq.notifications.llm_providers._protocol import LLMResponse
-from aria_esi.services.redisq.notifications.profiles import NotificationProfile
 from aria_esi.services.redisq.notifications.patterns import DetectedPattern, PatternContext
 from aria_esi.services.redisq.notifications.persona import PersonaLoader, PersonaVoiceSummary
+from aria_esi.services.redisq.notifications.profiles import NotificationProfile
 from aria_esi.services.redisq.notifications.prompts import (
     build_system_prompt,
 )
@@ -1886,7 +1886,9 @@ class TestProviderGenerate:
         mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         with patch("anthropic.AsyncAnthropic", return_value=mock_client):
-            from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+            from aria_esi.services.redisq.notifications.llm_providers._anthropic import (
+                AnthropicProvider,
+            )
 
             provider = AnthropicProvider(api_key="test-key")
 
@@ -1913,7 +1915,9 @@ class TestProviderGenerate:
         mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         with patch("anthropic.AsyncAnthropic", return_value=mock_client):
-            from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+            from aria_esi.services.redisq.notifications.llm_providers._anthropic import (
+                AnthropicProvider,
+            )
 
             provider = AnthropicProvider(api_key="test-key")
 
@@ -2048,19 +2052,25 @@ class TestProviderGenerate:
         with patch.dict(sys.modules, {"anthropic": None}):
             # Need to reload to pick up the missing module
             with pytest.raises((RuntimeError, ImportError)):
-                from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+                from aria_esi.services.redisq.notifications.llm_providers._anthropic import (
+                    AnthropicProvider,
+                )
                 AnthropicProvider(api_key="test-key")
 
     def test_openai_provider_missing_package(self):
         """Test OpenAIProvider raises RuntimeError when package not installed."""
         with patch.dict(sys.modules, {"openai": None}):
             with pytest.raises((RuntimeError, ImportError)):
-                from aria_esi.services.redisq.notifications.llm_providers._openai import OpenAIProvider
+                from aria_esi.services.redisq.notifications.llm_providers._openai import (
+                    OpenAIProvider,
+                )
                 OpenAIProvider(api_key="test-key")
 
     def test_gemini_provider_missing_package(self):
         """Test GeminiProvider raises RuntimeError when package not installed."""
         with patch.dict(sys.modules, {"google": None, "google.genai": None}):
             with pytest.raises((RuntimeError, ImportError)):
-                from aria_esi.services.redisq.notifications.llm_providers._gemini import GeminiProvider
+                from aria_esi.services.redisq.notifications.llm_providers._gemini import (
+                    GeminiProvider,
+                )
                 GeminiProvider(api_key="test-key")

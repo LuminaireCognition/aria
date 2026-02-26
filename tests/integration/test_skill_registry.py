@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-from aria_esi.mcp.market.database import get_market_database
+from aria_esi.store.market.database import get_market_database
 
 
 def sde_is_seeded() -> bool:
@@ -44,7 +44,7 @@ class TestSkillRegistryGolden:
     def test_all_skill_names_resolve_against_sde(self):
         """Every name in ALL_SKILL_NAMES resolves to a real type_id."""
         from aria_esi.fitting.skill_registry import ALL_SKILL_NAMES
-        from aria_esi.mcp.sde.queries import get_sde_query_service
+        from aria_esi.store.sde.queries import get_sde_query_service
 
         sde = get_sde_query_service()
         resolved = sde.resolve_skill_ids(ALL_SKILL_NAMES)

@@ -13,13 +13,13 @@ import igraph as ig
 import numpy as np
 import pytest
 
-from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
-from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.dispatchers.universe import (
     _build_border_system,
     _find_border_systems,
     register_borders_tools,
 )
+from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
+from aria_esi.mcp.tools import register_tools
 from aria_esi.universe import UniverseGraph
 
 # =============================================================================

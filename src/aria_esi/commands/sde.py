@@ -37,8 +37,8 @@ def cmd_sde_seed(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.market.database import MarketDatabase
-        from ..mcp.sde.importer import SDEImporter, seed_sde
+        from ..store.market.database import MarketDatabase
+        from ..store.sde.importer import SDEImporter, seed_sde
     except ImportError as e:
         return {
             "error": "import_error",
@@ -171,8 +171,8 @@ def cmd_sde_status(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.market.database import MarketDatabase
-        from ..mcp.sde.importer import SDEImporter
+        from ..store.market.database import MarketDatabase
+        from ..store.sde.importer import SDEImporter
     except ImportError as e:
         return {
             "error": "import_error",
@@ -241,8 +241,8 @@ def cmd_sde_item(args: argparse.Namespace) -> dict:
     item_name = " ".join(args.item_name) if isinstance(args.item_name, list) else args.item_name
 
     try:
-        from ..mcp.market.database import MarketDatabase
         from ..models.sde import CATEGORY_BLUEPRINT
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",
@@ -357,7 +357,7 @@ def cmd_sde_blueprint(args: argparse.Namespace) -> dict:
     item_name = " ".join(args.item_name) if isinstance(args.item_name, list) else args.item_name
 
     try:
-        from ..mcp.market.database import MarketDatabase
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",

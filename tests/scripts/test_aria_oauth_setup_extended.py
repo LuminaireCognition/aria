@@ -17,7 +17,6 @@ from unittest.mock import patch
 
 import pytest
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / ".claude" / "scripts" / "aria-oauth-setup.py"
 

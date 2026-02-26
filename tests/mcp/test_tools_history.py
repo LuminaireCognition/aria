@@ -519,7 +519,7 @@ class TestMarketHistoryTool:
             "aria_esi.mcp.market.tools_history.get_market_database",
             return_value=mock_market_db,
         ), patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new=AsyncMock(return_value=mock_async_esi_client),
         ):
             result = await captured_tool(item="Tritanium", days=30)
@@ -543,7 +543,7 @@ class TestMarketHistoryTool:
             "aria_esi.mcp.market.tools_history.get_market_database",
             return_value=mock_market_db,
         ), patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new=AsyncMock(return_value=mock_async_esi_client),
         ):
             result = await captured_tool(item="Tritanium")

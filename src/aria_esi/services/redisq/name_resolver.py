@@ -121,7 +121,7 @@ def _resolve_type_name_cached(type_id: int) -> str | None:
     Uses LRU cache to avoid repeated DB queries for common types.
     """
     try:
-        from ...mcp.market.database import get_market_database
+        from aria_esi.store.market.database import get_market_database
 
         db = get_market_database()
         conn = db._get_connection()

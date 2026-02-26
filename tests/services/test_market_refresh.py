@@ -23,7 +23,6 @@ from aria_esi.services.market_refresh import (
     reset_refresh_service,
 )
 
-
 # =============================================================================
 # RegionRefreshStatus Tests
 # =============================================================================

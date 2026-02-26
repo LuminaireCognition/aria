@@ -15,9 +15,9 @@ from __future__ import annotations
 import math
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
+from aria_esi.store.market.database import get_market_database
+from aria_esi.store.sde.queries import get_sde_query_service
 
-from .queries import get_sde_query_service
 from .tools_easy80 import (
     detect_ship_roles,
     load_breakpoint_skills,

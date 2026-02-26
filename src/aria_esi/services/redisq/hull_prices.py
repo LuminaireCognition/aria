@@ -112,7 +112,7 @@ class ShipPriceLookup:
             Set of type_ids for ships (category_id=6)
         """
         try:
-            from ...mcp.market.database import get_market_database
+            from aria_esi.store.market.database import get_market_database
 
             db = get_market_database()
             conn = db._get_connection()

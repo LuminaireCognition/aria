@@ -581,7 +581,7 @@ class SDEImporter:
 
             # Explicit cache invalidation for same-process callers
             try:
-                from aria_esi.mcp.sde.queries import get_sde_query_service
+                from aria_esi.store.sde.queries import get_sde_query_service
 
                 get_sde_query_service().invalidate_all()
                 logger.info("SDE query caches invalidated")

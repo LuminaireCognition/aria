@@ -14,14 +14,14 @@ from typing import TYPE_CHECKING, Literal
 import httpx
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.cache import MarketCache, get_market_cache
-from aria_esi.mcp.market.database import get_market_database
 from aria_esi.models.market import (
     MarketFindNearbyResult,
     NearbyMarketSource,
     SourceFilter,
 )
 from aria_esi.models.sde import CATEGORY_BLUEPRINT, CATEGORY_SKILL
+from aria_esi.store.market.cache import MarketCache, get_market_cache
+from aria_esi.store.market.database import get_market_database
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
@@ -435,7 +435,7 @@ async def _find_nearby_impl(
     # Step 6: Get Jita reference price for anomaly detection
     jita_reference_price: float | None = None
     try:
-        from aria_esi.mcp.market.cache import get_market_cache
+        from aria_esi.store.market.cache import get_market_cache
 
         cache = get_market_cache()
         jita_prices = await cache.get_prices([type_id], {type_id: type_name})

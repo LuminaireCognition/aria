@@ -23,7 +23,7 @@ from aria_esi.core.logging import get_logger
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-from aria_esi.mcp.market.database_async import AsyncMarketDatabase, get_async_market_database
+from aria_esi.store.market.database_async import AsyncMarketDatabase, get_async_market_database
 
 logger = get_logger("aria_market.history_cache")
 
@@ -288,7 +288,7 @@ class HistoryCacheService:
             Dict with daily_volume, daily_isk, volatility_pct or None
         """
         try:
-            from aria_esi.mcp.market.clients import create_client
+            from aria_esi.store.market.clients import create_client
 
             async with create_client() as client:
                 # ESI market history endpoint

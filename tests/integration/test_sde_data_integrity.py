@@ -15,8 +15,8 @@ from __future__ import annotations
 
 import pytest
 
-from aria_esi.mcp.market.database import get_market_database
-from aria_esi.mcp.sde.queries import (
+from aria_esi.store.market.database import get_market_database
+from aria_esi.store.sde.queries import (
     get_sde_query_service,
     reset_sde_query_service,
 )

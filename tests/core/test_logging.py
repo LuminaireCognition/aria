@@ -7,10 +7,9 @@ Tests logger configuration, formatters, and utility functions.
 from __future__ import annotations
 
 import logging
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # =============================================================================
 # AriaFormatter Tests

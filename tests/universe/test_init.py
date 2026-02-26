@@ -6,7 +6,6 @@ Tests module exports and accessibility of universe components.
 
 from __future__ import annotations
 
-
 # =============================================================================
 # Module Exports Tests
 # =============================================================================

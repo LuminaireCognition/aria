@@ -24,9 +24,6 @@ from aria_esi.core.logging import get_logger
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-from aria_esi.mcp.market.clients import FuzzworkAggregate, FuzzworkClient, create_client
-from aria_esi.mcp.market.database import MarketDatabase, get_market_database
-from aria_esi.mcp.market.database_async import AsyncMarketDatabase, get_async_market_database
 from aria_esi.models.market import (
     TRADE_HUBS,
     FreshnessLevel,
@@ -35,6 +32,9 @@ from aria_esi.models.market import (
     RegionConfig,
     resolve_trade_hub,
 )
+from aria_esi.store.market.clients import FuzzworkAggregate, FuzzworkClient, create_client
+from aria_esi.store.market.database import MarketDatabase, get_market_database
+from aria_esi.store.market.database_async import AsyncMarketDatabase, get_async_market_database
 
 logger = get_logger("aria_market.cache")
 
@@ -375,7 +375,7 @@ class MarketCache:
         Internal method - use get_regional_orders() for cached access.
         """
         try:
-            from aria_esi.mcp.esi_client import get_async_esi_client
+            from aria_esi.store.esi_client import get_async_esi_client
 
             client = await get_async_esi_client()
         except Exception as e:  # noqa: BLE001 -- MCP handler
@@ -520,7 +520,7 @@ class MarketCache:
         Fetches raw orders and aggregates them into buy/sell stats.
         """
         try:
-            from aria_esi.mcp.esi_client import get_async_esi_client
+            from aria_esi.store.esi_client import get_async_esi_client
 
             client = await get_async_esi_client()
         except Exception as e:  # noqa: BLE001 -- MCP handler

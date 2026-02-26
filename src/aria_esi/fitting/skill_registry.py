@@ -166,7 +166,7 @@ def get_skill_registry() -> SkillRegistry | None:
             return None  # already failed, don't retry until restart
 
         try:
-            from aria_esi.mcp.sde.queries import (
+            from aria_esi.store.sde.queries import (
                 SDEResolutionError,
                 get_sde_query_service,
             )

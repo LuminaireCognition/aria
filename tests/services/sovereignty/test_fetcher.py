@@ -3,14 +3,14 @@
 import pytest
 
 from aria_esi.services.sovereignty.fetcher import (
-    fetch_sovereignty_map,
-    fetch_alliance_info,
-    fetch_alliances_batch,
-    fetch_sovereignty_map_sync,
-    fetch_alliances_batch_sync,
+    ALLIANCE_ENDPOINT,
     ESI_BASE_URL,
     SOV_MAP_ENDPOINT,
-    ALLIANCE_ENDPOINT,
+    fetch_alliance_info,
+    fetch_alliances_batch,
+    fetch_alliances_batch_sync,
+    fetch_sovereignty_map,
+    fetch_sovereignty_map_sync,
 )
 
 

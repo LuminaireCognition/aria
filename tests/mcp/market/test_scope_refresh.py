@@ -20,9 +20,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from aria_esi.core.client import ESIError, ESIResponse
-from aria_esi.mcp.market.database import MarketDatabase, MarketScope, WatchlistItem
-from aria_esi.mcp.market.database_async import AsyncMarketDatabase
-from aria_esi.mcp.market.scope_refresh import AggregatedPrice, MarketScopeFetcher
+from aria_esi.store.market.database import MarketDatabase, MarketScope, WatchlistItem
+from aria_esi.store.market.database_async import AsyncMarketDatabase
+from aria_esi.store.market.scope_refresh import AggregatedPrice, MarketScopeFetcher
 
 # =============================================================================
 # Fixtures
@@ -854,7 +854,7 @@ class TestMarketScopeRefreshTool:
 
             # Patch at module level where it's imported from
             with patch(
-                "aria_esi.mcp.market.database_async.get_async_market_database"
+                "aria_esi.store.market.database_async.get_async_market_database"
             ) as mock_get_db:
                 mock_get_db.return_value = async_db
                 register_scope_refresh_tools(server)

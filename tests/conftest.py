@@ -821,7 +821,7 @@ def reset_all_singletons():
 
         # Market database
         try:
-            from aria_esi.mcp.market.database import reset_market_database
+            from aria_esi.store.market.database import reset_market_database
 
             reset_market_database()
         except ImportError:
@@ -829,7 +829,7 @@ def reset_all_singletons():
 
         # Async market database (sync reset for non-async context)
         try:
-            from aria_esi.mcp.market.database_async import reset_async_market_database_sync
+            from aria_esi.store.market.database_async import reset_async_market_database_sync
 
             reset_async_market_database_sync()
         except ImportError:
@@ -837,7 +837,7 @@ def reset_all_singletons():
 
         # Market cache
         try:
-            from aria_esi.mcp.market.cache import reset_market_cache
+            from aria_esi.store.market.cache import reset_market_cache
 
             reset_market_cache()
         except ImportError:
@@ -909,7 +909,7 @@ def reset_all_singletons():
 
         # MCP activity cache
         try:
-            from aria_esi.mcp.activity import reset_activity_cache
+            from aria_esi.store.activity import reset_activity_cache
 
             reset_activity_cache()
         except ImportError:
@@ -941,7 +941,7 @@ def reset_all_singletons():
 
         # SDE query service
         try:
-            from aria_esi.mcp.sde.queries import reset_sde_query_service
+            from aria_esi.store.sde.queries import reset_sde_query_service
 
             reset_sde_query_service()
         except ImportError:
@@ -965,7 +965,7 @@ def reset_all_singletons():
 
         # Async ESI client singleton
         try:
-            from aria_esi.mcp.esi_client import reset_async_esi_client
+            from aria_esi.store.esi_client import reset_async_esi_client
 
             reset_async_esi_client()
         except ImportError:
@@ -1190,15 +1190,15 @@ def mock_sde_service(mock_sde_db, monkeypatch):
     pointed at the mock DB, so new cache attributes added to __init__
     are automatically initialized.
     """
-    from aria_esi.mcp.market.database import MarketDatabase
-    from aria_esi.mcp.sde.queries import SDEQueryService
+    from aria_esi.store.market.database import MarketDatabase
+    from aria_esi.store.sde.queries import SDEQueryService
 
     db = MarketDatabase(db_path=mock_sde_db)
     db._initialized = True  # Skip market schema init on first connect
 
     service = SDEQueryService(db)
 
-    monkeypatch.setattr("aria_esi.mcp.sde.queries._sde_query_service", service)
+    monkeypatch.setattr("aria_esi.store.sde.queries._sde_query_service", service)
     yield service
     db.close()
 

@@ -13,9 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.activity import ActivityCache, ActivityData
 from aria_esi.mcp.errors import InvalidParameterError
-from aria_esi.mcp.activity import FWSystemData
 from aria_esi.mcp.models import (
     EscapeRoute,
     FWLocalStatus,
@@ -24,6 +22,7 @@ from aria_esi.mcp.models import (
     SecurityBorder,
     ThreatSummary,
 )
+from aria_esi.store.activity import ActivityCache, ActivityData, FWSystemData
 
 from .conftest import STANDARD_EDGES, STANDARD_SYSTEMS, create_mock_universe
 
@@ -1028,31 +1027,31 @@ class TestActivityClassification:
 
     def test_classify_zero_kills(self):
         """Zero kills classifies as 'none'."""
-        from aria_esi.mcp.activity import classify_activity
+        from aria_esi.store.activity import classify_activity
 
         assert classify_activity(0, "kills") == "none"
 
     def test_classify_low_kills(self):
         """Low kills classify correctly."""
-        from aria_esi.mcp.activity import classify_activity
+        from aria_esi.store.activity import classify_activity
 
         assert classify_activity(3, "kills") == "low"
 
     def test_classify_medium_kills(self):
         """Medium kills classify correctly."""
-        from aria_esi.mcp.activity import classify_activity
+        from aria_esi.store.activity import classify_activity
 
         assert classify_activity(10, "kills") == "medium"
 
     def test_classify_high_kills(self):
         """High kills classify correctly."""
-        from aria_esi.mcp.activity import classify_activity
+        from aria_esi.store.activity import classify_activity
 
         assert classify_activity(25, "kills") == "high"
 
     def test_classify_extreme_kills(self):
         """Extreme kills classify correctly."""
-        from aria_esi.mcp.activity import classify_activity
+        from aria_esi.store.activity import classify_activity
 
         assert classify_activity(100, "kills") == "extreme"
 

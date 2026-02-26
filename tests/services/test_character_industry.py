@@ -2,18 +2,19 @@
 Tests for Character Industry Service.
 """
 
+from unittest.mock import Mock
+
 import httpx
 import pytest
-from unittest.mock import Mock
 
 from aria_esi.services.character_industry import (
     INDUSTRY_SKILL_IDS,
     SKILL_ID_TO_NAME,
-    get_character_blueprints,
+    calculate_character_invention_bonus,
     find_blueprint_for_item,
+    get_character_blueprints,
     get_character_industry_skills,
     get_invention_skills_for_item,
-    calculate_character_invention_bonus,
     summarize_industry_capabilities,
 )
 

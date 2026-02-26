@@ -94,7 +94,7 @@ class EntityWatchlistManager:
         """Get or create database connection."""
         if self._conn is None:
             # Ensure schema via MarketDatabase
-            from ...mcp.market.database import MarketDatabase
+            from aria_esi.store.market.database import MarketDatabase
 
             market_db = MarketDatabase(self.db_path)
             market_db._get_connection()

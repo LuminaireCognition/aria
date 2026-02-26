@@ -548,8 +548,8 @@ from aria_esi.mcp.models import (
     FWSystem,
     GatecampRisk,
     GatecampRiskResult,
-    HotspotSystem,
     HotspotsResult,
+    HotspotSystem,
     LocalAreaResult,
     LocalSystemActivity,
     OptimizedWaypointResult,
@@ -560,7 +560,6 @@ from aria_esi.mcp.models import (
     ThreatSummary,
     WaypointInfo,
 )
-
 
 # =============================================================================
 # WaypointInfo Tests

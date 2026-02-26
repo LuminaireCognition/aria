@@ -23,7 +23,6 @@ from aria_esi.commands.sync_esi import (
 )
 from aria_esi.core import CredentialsError, ESIError
 
-
 # =============================================================================
 # Helpers
 # =============================================================================

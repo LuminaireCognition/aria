@@ -1,5 +1,5 @@
 """
-Tests for aria_esi.mcp.market.cache
+Tests for aria_esi.store.market.cache
 
 Tests market cache logic including freshness, TTL, and fallback behavior.
 """
@@ -14,7 +14,7 @@ class TestCacheLayer:
     """Tests for CacheLayer dataclass."""
 
     def test_default_state(self):
-        from aria_esi.mcp.market.cache import CacheLayer
+        from aria_esi.store.market.cache import CacheLayer
 
         layer = CacheLayer(name="test")
 
@@ -24,7 +24,7 @@ class TestCacheLayer:
         assert layer.is_stale() is True  # No data = stale
 
     def test_is_stale_fresh(self):
-        from aria_esi.mcp.market.cache import CacheLayer
+        from aria_esi.store.market.cache import CacheLayer
 
         layer = CacheLayer(name="test", ttl_seconds=300)
         layer.timestamp = time.time()  # Just set
@@ -32,7 +32,7 @@ class TestCacheLayer:
         assert layer.is_stale() is False
 
     def test_is_stale_expired(self):
-        from aria_esi.mcp.market.cache import CacheLayer
+        from aria_esi.store.market.cache import CacheLayer
 
         layer = CacheLayer(name="test", ttl_seconds=300)
         layer.timestamp = time.time() - 400  # 400 seconds ago (> 300 TTL)
@@ -40,14 +40,14 @@ class TestCacheLayer:
         assert layer.is_stale() is True
 
     def test_get_age_seconds_no_data(self):
-        from aria_esi.mcp.market.cache import CacheLayer
+        from aria_esi.store.market.cache import CacheLayer
 
         layer = CacheLayer(name="test")
 
         assert layer.get_age_seconds() is None
 
     def test_get_age_seconds_with_data(self):
-        from aria_esi.mcp.market.cache import CacheLayer
+        from aria_esi.store.market.cache import CacheLayer
 
         layer = CacheLayer(name="test")
         layer.timestamp = time.time() - 100  # 100 seconds ago
@@ -61,7 +61,7 @@ class TestMarketCacheInit:
     """Tests for MarketCache initialization."""
 
     def test_default_init(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache()
 
@@ -70,7 +70,7 @@ class TestMarketCacheInit:
         assert cache._station_only is True
 
     def test_init_with_region(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache(region="amarr")
 
@@ -78,14 +78,14 @@ class TestMarketCacheInit:
         assert cache._station_id == 60008494  # Amarr
 
     def test_init_without_station_filter(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache(station_only=False)
 
         assert cache._station_id is None
 
     def test_init_unknown_region_defaults_to_jita(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache(region="nonexistent")
 
@@ -97,7 +97,7 @@ class TestMarketCacheFreshness:
     """Tests for freshness classification."""
 
     def test_fresh_threshold(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache()
         now = time.time()
@@ -107,7 +107,7 @@ class TestMarketCacheFreshness:
         assert cache.get_freshness(now - 299) == "fresh"
 
     def test_recent_threshold(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache()
         now = time.time()
@@ -118,7 +118,7 @@ class TestMarketCacheFreshness:
         assert cache.get_freshness(now - 1799) == "recent"
 
     def test_stale_threshold(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache()
         now = time.time()
@@ -132,7 +132,7 @@ class TestMarketCacheStatus:
     """Tests for cache status reporting."""
 
     def test_get_cache_status_empty(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache()
         status = cache.get_cache_status()
@@ -143,7 +143,7 @@ class TestMarketCacheStatus:
         assert status["fuzzwork"]["stale"] is True
 
     def test_get_cache_status_with_data(self):
-        from aria_esi.mcp.market.cache import CachedPrice, MarketCache, PriceAggregate
+        from aria_esi.store.market.cache import CachedPrice, MarketCache, PriceAggregate
 
         cache = MarketCache()
 
@@ -172,7 +172,7 @@ class TestMarketCacheGetPrices:
 
     @pytest.mark.asyncio
     async def test_get_prices_empty_input(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache()
         result = await cache.get_prices([])
@@ -181,7 +181,7 @@ class TestMarketCacheGetPrices:
 
     @pytest.mark.asyncio
     async def test_get_price_single_item(self):
-        from aria_esi.mcp.market.cache import MarketCache
+        from aria_esi.store.market.cache import MarketCache
 
         cache = MarketCache()
 
@@ -209,7 +209,7 @@ class TestMarketCacheSingleton:
     """Tests for singleton pattern."""
 
     def test_get_market_cache_singleton(self):
-        from aria_esi.mcp.market.cache import get_market_cache, reset_market_cache
+        from aria_esi.store.market.cache import get_market_cache, reset_market_cache
 
         # Reset first to ensure clean state
         reset_market_cache()
@@ -220,7 +220,7 @@ class TestMarketCacheSingleton:
         assert cache1 is cache2
 
     def test_reset_market_cache(self):
-        from aria_esi.mcp.market.cache import get_market_cache, reset_market_cache
+        from aria_esi.store.market.cache import get_market_cache, reset_market_cache
 
         cache1 = get_market_cache()
         reset_market_cache()
@@ -233,8 +233,8 @@ class TestAggregateToItemPrice:
     """Tests for converting Fuzzwork aggregates to ItemPrice."""
 
     def test_full_aggregate(self):
-        from aria_esi.mcp.market.cache import MarketCache
-        from aria_esi.mcp.market.clients import FuzzworkAggregate
+        from aria_esi.store.market.cache import MarketCache
+        from aria_esi.store.market.clients import FuzzworkAggregate
 
         cache = MarketCache()
 
@@ -271,8 +271,8 @@ class TestAggregateToItemPrice:
 
     def test_aggregate_with_zero_values(self):
         """Handle aggregates where some values are zero."""
-        from aria_esi.mcp.market.cache import MarketCache
-        from aria_esi.mcp.market.clients import FuzzworkAggregate
+        from aria_esi.store.market.cache import MarketCache
+        from aria_esi.store.market.clients import FuzzworkAggregate
 
         cache = MarketCache()
 

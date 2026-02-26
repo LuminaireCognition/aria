@@ -6,13 +6,13 @@ from collections import deque
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from ...activity import classify_activity
+from aria_esi.store.activity import classify_activity
+
 from ...models import BorderSystem, SystemSearchResult
 
 if TYPE_CHECKING:
+    from aria_esi.store.activity import ActivityData
     from aria_esi.universe.graph import UniverseGraph
-
-    from ...activity import ActivityData
 
 
 # =============================================================================

@@ -24,9 +24,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.activity import FWSystemData
 from aria_esi.mcp.errors import InvalidParameterError
-
+from aria_esi.store.activity import FWSystemData
 
 # =============================================================================
 # Route Action Tests
@@ -586,7 +585,7 @@ class TestActivityAction:
 
     def test_activity_basic(self, universe_dispatcher, mock_activity_cache):
         """Basic activity lookup."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="activity", systems=["Jita"])
             )
@@ -608,7 +607,7 @@ class TestActivityAction:
         }
         mock_cache = mock_activity_with_data(activity_data)
 
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_cache):
             result = asyncio.run(
                 universe_dispatcher(action="activity", systems=["Jita", "Perimeter"])
             )
@@ -617,7 +616,7 @@ class TestActivityAction:
 
     def test_activity_includes_cache_age(self, universe_dispatcher, mock_activity_cache):
         """Activity result includes cache age."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="activity", systems=["Jita"])
             )
@@ -635,7 +634,7 @@ class TestHotspotsAction:
 
     def test_hotspots_basic(self, universe_dispatcher, mock_activity_cache):
         """Basic hotspots search."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="hotspots", origin="Jita")
             )
@@ -652,7 +651,7 @@ class TestHotspotsAction:
 
     def test_hotspots_activity_type_kills(self, universe_dispatcher, mock_activity_cache):
         """Hotspots filtered by kills."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(
                     action="hotspots",
@@ -665,7 +664,7 @@ class TestHotspotsAction:
 
     def test_hotspots_activity_type_jumps(self, universe_dispatcher, mock_activity_cache):
         """Hotspots filtered by jumps."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(
                     action="hotspots",
@@ -700,7 +699,7 @@ class TestGatecampRiskAction:
 
     def test_gatecamp_risk_with_route(self, universe_dispatcher, mock_activity_cache):
         """Gatecamp risk for explicit route."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(
                     action="gatecamp_risk",
@@ -713,7 +712,7 @@ class TestGatecampRiskAction:
 
     def test_gatecamp_risk_with_origin_destination(self, universe_dispatcher, mock_activity_cache):
         """Gatecamp risk calculated from origin/destination."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(
                     action="gatecamp_risk",
@@ -733,7 +732,7 @@ class TestGatecampRiskAction:
 
     def test_gatecamp_risk_includes_recommendation(self, universe_dispatcher, mock_activity_cache):
         """Gatecamp risk includes recommendation."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(
                     action="gatecamp_risk",
@@ -754,7 +753,7 @@ class TestFWFrontlinesAction:
 
     def test_fw_frontlines_basic(self, universe_dispatcher, mock_activity_cache):
         """Basic FW frontlines query."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="fw_frontlines")
             )
@@ -765,7 +764,7 @@ class TestFWFrontlinesAction:
 
     def test_fw_frontlines_with_faction_filter(self, universe_dispatcher, mock_activity_cache):
         """FW frontlines filtered by faction."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="fw_frontlines", faction="caldari")
             )
@@ -792,7 +791,7 @@ class TestLocalAreaAction:
 
     def test_local_area_basic(self, universe_dispatcher, mock_activity_cache):
         """Basic local area query."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="local_area", origin="Jita")
             )
@@ -809,7 +808,7 @@ class TestLocalAreaAction:
 
     def test_local_area_includes_hotspots(self, universe_dispatcher, mock_activity_cache):
         """Local area includes hotspots."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="local_area", origin="Jita")
             )
@@ -818,7 +817,7 @@ class TestLocalAreaAction:
 
     def test_local_area_includes_quiet_zones(self, universe_dispatcher, mock_activity_cache):
         """Local area includes quiet zones."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="local_area", origin="Jita")
             )
@@ -827,7 +826,7 @@ class TestLocalAreaAction:
 
     def test_local_area_includes_escape_routes(self, universe_dispatcher, mock_activity_cache):
         """Local area includes escape routes."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(action="local_area", origin="Sivala")
             )
@@ -836,7 +835,7 @@ class TestLocalAreaAction:
 
     def test_local_area_with_max_jumps(self, universe_dispatcher, mock_activity_cache):
         """Local area respects max_jumps."""
-        with patch("aria_esi.mcp.activity.get_activity_cache", return_value=mock_activity_cache):
+        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
             result = asyncio.run(
                 universe_dispatcher(
                     action="local_area",

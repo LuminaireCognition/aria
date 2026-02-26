@@ -20,8 +20,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.market.database import MarketDatabase
 from aria_esi.mcp.market.tools_management import register_management_tools
+from aria_esi.store.market.database import MarketDatabase
 
 # =============================================================================
 # Fixtures
