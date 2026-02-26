@@ -60,6 +60,22 @@ MULTIPLIER_SKILLS = {
         "impact": "high",
         "priority": 1,
     },
+    # Drone operation - 5% drone damage per level (size-specific)
+    "Heavy Drone Operation": {
+        "effect": "5% heavy drone damage per level",
+        "impact": "medium",
+        "priority": 2,
+    },
+    "Medium Drone Operation": {
+        "effect": "5% medium drone damage per level",
+        "impact": "medium",
+        "priority": 2,
+    },
+    "Light Drone Operation": {
+        "effect": "5% light drone damage per level",
+        "impact": "medium",
+        "priority": 2,
+    },
     # Turret damage
     "Surgical Strike": {
         "effect": "3% turret damage per level",
