@@ -29,15 +29,15 @@ Tier 3 — Test Harness (from Test Harness, Coverage reviews)
       ✅ AsyncMarketDatabase tests — 62 tests, 10 classes, 33%→92% (e4b6ccc9)
 
 Remaining — prioritized by value
-  High — immediate ROI, low risk:
+  High — immediate ROI, low risk: ✅ ALL COMPLETE
     A. ✅ Legacy cache module parallel to universe — removed entirely (faca452b)
-    B. ✅ Organize ~30 root-level test files into subdirectories (Test Harness R11)
+    B. ✅ Organize ~30 root-level test files into subdirectories (Test Harness R11) (4d3cae8c)
        3 deleted (superseded), 21 moved to subdirectories, 1 path fix
     C. ✅ Remove reference data without consumers — KEPT: both have active consumers (Accretion #7)
        reference/fittings/MODULE_NAMES.md → used by .claude/skills/fitting/; reference/sites/ → used by cmd_validate_sites
-    D. Hook script deduplication — aria-esi-sync.py duplicates commands/sync_profile.py (Accretion #5)
+    D. ✅ Hook script deduplication — aria-esi-sync.py moved to CLI command (b0465a9a)
     E. ✅ Eager import in commands/__init__.py — lazy __getattr__ + deferred heavy imports in 9 modules
-       + compact build_parser() loop + benchmark script (uncommitted, fix/benchmark-coverage-failure)
+       + compact build_parser() loop + benchmark script (1cfe8c2e)
 
   Medium — meaningful improvement, more effort:
     F. MCP as hybrid transport+data layer — extract data access to core/ (System Design H2)
@@ -63,4 +63,4 @@ Remaining — prioritized by value
 Also completed (not in original tracking):
   - Skill exercise fixes: 20 SKILL.md guidance improvements + 3 code fixes (bfe907b6, 54d30c1e)
 
-Summary: 34/42 original items complete (1 dropped). 8 remaining, prioritized D–M.
+Summary: 35/42 original items complete (1 dropped). 7 remaining: F–M.

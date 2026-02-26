@@ -1,6 +1,6 @@
 # Contributing to ARIA
 
-Thank you for your interest in contributing to ARIA! This project aims to create an immersive tactical advisory AI experience for all Eve Online players.
+Thank you for your interest in contributing to ARIA! This project aims to create an immersive tactical advisory AI experience for all EVE Online players.
 
 ## Licensing Notice
 
@@ -83,7 +83,7 @@ Help make ARIA more accessible:
 ### Keep It In-Universe
 
 ARIA maintains immersion. When contributing:
-- Use Eve Online terminology
+- Use EVE Online terminology
 - Frame advice through in-universe context
 - Respect faction lore and cultural differences
 
@@ -128,7 +128,7 @@ When contributing Python code:
 ## Code of Conduct
 
 Be respectful and constructive:
-- Welcome newcomers to Eve Online
+- Welcome newcomers to EVE Online
 - Don't mock playstyles different from your own
 - Keep discussions focused on improving ARIA
 - Remember: we're all capsuleers here

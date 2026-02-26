@@ -108,8 +108,8 @@ ARIA never presents unverified training data as fact. All game mechanics data is
 
 ### MCP-Powered Backend
 
-Real-time data through 6 MCP dispatchers covering universe navigation, market data, static game data, skill planning, and ship fitting calculations.
+Real-time data through 8 MCP dispatchers covering universe navigation, market data, static game data, skill planning, ship fitting, killmails, pilot data, and system status.
 
 ---
 
-*48 commands across 7 categories. See [COMMANDS.md](COMMANDS.md) for the full reference.*
+*48 commands across 5 categories. See [COMMANDS.md](COMMANDS.md) for the full reference.*
