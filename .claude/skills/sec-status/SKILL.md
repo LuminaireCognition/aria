@@ -119,12 +119,14 @@ Faction police will:
 
 Tags can be turned in at CONCORD stations to raise security status.
 
-| Tag | Sec Gain | Approximate Price |
-|-----|----------|-------------------|
-| Clone Soldier Trainer | +0.05 | ~3M ISK |
-| Clone Soldier Recruiter | +0.10 | ~8M ISK |
-| Clone Soldier Transporter | +0.15 | ~15M ISK |
-| Clone Soldier Negotiator | +0.20 | ~25M ISK |
+| Tag | Sec Gain |
+|-----|----------|
+| Clone Soldier Trainer | +0.05 |
+| Clone Soldier Recruiter | +0.10 |
+| Clone Soldier Transporter | +0.15 |
+| Clone Soldier Negotiator | +0.20 |
+
+**Always use `market(action="prices")` for current tag prices.** Lower-tier tags are often cheaper per sec-point than higher-tier ones.
 
 ### Tag Farming
 
@@ -148,16 +150,16 @@ Example: -4.2 to -2.0 (full high-sec access)
 
 Sec gain needed: 2.2
 
-Option 1 (Negotiators only):
-  2.2 / 0.20 = 11 tags
-  11 x 25M = 275M ISK
+Step 1: Fetch live tag prices via market(action="prices",
+        items=["Clone Soldier Trainer", "Clone Soldier Recruiter",
+               "Clone Soldier Transporter", "Clone Soldier Negotiator"])
 
-Option 2 (Mixed tags):
-  8 Negotiators (1.6) + 4 Transporters (0.6)
-  8x25M + 4x15M = 260M ISK
+Step 2: Calculate ISK-per-sec-point for each tag:
+  price / sec_gain = ISK per 0.01 sec
 
-Option 3 (Tag farming):
-  Farm clone soldiers in low-sec
+Step 3: Recommend cheapest tags first (often Trainer or Recruiter).
+
+Alternative: Tag farming in low-sec belts
   Time cost: Several hours
   ISK cost: Ship + ammo only
 ```

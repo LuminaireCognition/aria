@@ -1621,11 +1621,12 @@ class TestAssetsCommand:
             },
         ]
 
-        mock_client.get.return_value = mock_assets
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_assets,
         ):
             with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                 mock_public = create_mock_public_client()
@@ -1678,12 +1679,13 @@ class TestAssetsCommand:
             },
         ]
 
-        mock_client.get.return_value = mock_assets
-
         # Mock SHIP_GROUP_IDS to include 25 (Frigate)
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_assets,
         ):
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
@@ -1729,11 +1731,12 @@ class TestAssetsCommand:
             },
         ]
 
-        mock_client.get.return_value = mock_assets
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_assets,
         ):
             with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                 mock_public = create_mock_public_client()
@@ -1779,11 +1782,12 @@ class TestAssetsCommand:
             },
         ]
 
-        mock_client.get.return_value = mock_assets
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_assets,
         ):
             with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                 mock_public = create_mock_public_client()
@@ -1830,11 +1834,12 @@ class TestAssetsCommand:
             for i in range(150)
         ]
 
-        mock_client.get.return_value = mock_assets
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_assets,
         ):
             with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                 mock_public = create_mock_public_client()
@@ -1899,11 +1904,12 @@ class TestFittingCommand:
             }
         ]
 
-        mock_client.get.return_value = mock_assets
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_assets,
         ):
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
@@ -1923,11 +1929,12 @@ class TestFittingCommand:
 
         empty_args.ship = "Rifter"
 
-        mock_client.get.return_value = mock_fitting_assets_response
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_fitting_assets_response,
         ):
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
@@ -1969,11 +1976,12 @@ class TestFittingCommand:
 
         empty_args.ship = "1001"  # Item ID as string
 
-        mock_client.get.return_value = mock_fitting_assets_response
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_fitting_assets_response,
         ):
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
@@ -1993,11 +2001,12 @@ class TestFittingCommand:
 
         empty_args.ship = "Rifter"
 
-        mock_client.get.return_value = mock_fitting_assets_response
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_fitting_assets_response,
         ):
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
@@ -2030,11 +2039,12 @@ class TestFittingCommand:
 
         empty_args.ship = "Rifter"
 
-        mock_client.get.return_value = mock_fitting_assets_response
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_fitting_assets_response,
         ):
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
@@ -2067,11 +2077,12 @@ class TestFittingCommand:
 
         empty_args.ship = "Rifter"
 
-        mock_client.get.return_value = mock_fitting_assets_response
-
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands.assets._fetch_all_assets",
+            return_value=mock_fitting_assets_response,
         ):
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:

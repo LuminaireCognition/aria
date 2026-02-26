@@ -51,6 +51,27 @@ def _get_snapshot_service():
 # =============================================================================
 
 
+def _fetch_all_assets(client: ESIClient, char_id: int) -> list:
+    """Fetch all character assets with ESI pagination."""
+    all_assets: list = []
+    page = 1
+    while True:
+        resp = client.get_with_headers(
+            f"/characters/{char_id}/assets/", auth=True, params={"page": page}
+        )
+        data = resp.data
+        if not isinstance(data, list) or not data:
+            break
+        all_assets.extend(data)
+        total_pages = resp.x_pages or 1
+        if page >= total_pages:
+            break
+        page += 1
+        if page > 20:  # Safety cap
+            break
+    return all_assets
+
+
 def cmd_assets(args: argparse.Namespace) -> dict:
     """
     Fetch character asset inventory.
@@ -101,9 +122,9 @@ def cmd_assets(args: argparse.Namespace) -> dict:
     if show_insights:
         return _handle_asset_insights(creds, query_ts, save_snapshot=save_snapshot)
 
-    # Fetch assets
+    # Fetch assets (paginated)
     try:
-        assets = client.get(f"/characters/{char_id}/assets/", auth=True)
+        assets = _fetch_all_assets(client, char_id)
     except ESIError as e:
         return {
             "error": "esi_error",
@@ -111,9 +132,6 @@ def cmd_assets(args: argparse.Namespace) -> dict:
             "hint": "Ensure esi-assets.read_assets.v1 scope is authorized",
             "query_timestamp": query_ts,
         }
-
-    if not isinstance(assets, list):
-        assets = []
 
     if not assets:
         return {
@@ -454,9 +472,9 @@ def _handle_asset_insights(creds: Any, query_ts: str, save_snapshot: bool = Fals
     client, _ = get_authenticated_client()
     public_client = ESIClient()
 
-    # Fetch assets
+    # Fetch assets (paginated)
     try:
-        assets = client.get(f"/characters/{char_id}/assets/", auth=True)
+        assets = _fetch_all_assets(client, char_id)
     except ESIError as e:
         return {
             "error": "esi_error",
@@ -464,7 +482,7 @@ def _handle_asset_insights(creds: Any, query_ts: str, save_snapshot: bool = Fals
             "query_timestamp": query_ts,
         }
 
-    if not isinstance(assets, list) or not assets:
+    if not assets:
         return {
             "query_timestamp": query_ts,
             "insights": {
@@ -753,18 +771,15 @@ def cmd_fitting(args: argparse.Namespace) -> dict:
     char_id = creds.character_id
     public_client = ESIClient()
 
-    # Fetch all assets
+    # Fetch all assets (paginated)
     try:
-        assets = client.get(f"/characters/{char_id}/assets/", auth=True)
+        assets = _fetch_all_assets(client, char_id)
     except ESIError as e:
         return {
             "error": "esi_error",
             "message": f"Could not fetch assets: {e.message}",
             "query_timestamp": query_ts,
         }
-
-    if not isinstance(assets, list):
-        assets = []
 
     # Resolve type names for all assets
     type_ids = set(a["type_id"] for a in assets)

@@ -272,7 +272,12 @@ async def _gatecamp_risk(
         )
 
     if len(indices) < 2:
-        raise InvalidParameterError("route", route, "Route must have at least 2 systems")
+        raise InvalidParameterError(
+            "route",
+            route,
+            "Route must have at least 2 systems. "
+            "For single-system intel, use activity or local_area instead.",
+        )
 
     # Find chokepoints and analyze risk
     chokepoints: list[GatecampRisk] = []

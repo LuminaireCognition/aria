@@ -167,12 +167,9 @@ sde(action="resolve_names", names=["Pandemic Horde"])
 uv run aria-esi watchlist-add "Hostiles" 99003214 --type alliance --entity-name "Pandemic Horde"
 ```
 
-**MCP unavailable fallback:**
-```bash
-uv run aria-esi resolve-names "Pandemic Horde"
-```
+**MCP unavailable fallback:** No CLI equivalent exists. Use the ESI Swagger UI or ask the pilot for the entity ID directly.
 
-**Note:** The SDE `corporation_info` action only indexes NPC corporations. Player corps and alliances must be resolved via `resolve_names` (which calls ESI `POST /universe/ids/`).
+**Note:** The SDE `corporation_info` action only indexes NPC corporations. Player corps and alliances must be resolved via `sde(action="resolve_names")` (which calls ESI `POST /universe/ids/`). This action is MCP-only.
 
 ## Integration with Threat Assessment
 

@@ -48,7 +48,6 @@ class TestCmdAssets:
         from aria_esi.commands.assets import cmd_assets
 
         mock_client, mock_creds = mock_authenticated_client
-        mock_client.get.return_value = []
 
         args = argparse.Namespace(
             filter_type=None,
@@ -62,6 +61,7 @@ class TestCmdAssets:
         )
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
+             patch("aria_esi.commands.assets._fetch_all_assets", return_value=[]), \
              patch("aria_esi.commands.assets.ESIClient") as mock_public:
             mock_public.return_value = MagicMock()
             result = cmd_assets(args)
@@ -75,7 +75,6 @@ class TestCmdAssets:
         from aria_esi.core import ESIError
 
         mock_client, mock_creds = mock_authenticated_client
-        mock_client.get.side_effect = ESIError("Service unavailable", status_code=503)
 
         args = argparse.Namespace(
             filter_type=None,
@@ -88,7 +87,8 @@ class TestCmdAssets:
             insights=False,
         )
 
-        with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)):
+        with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
+             patch("aria_esi.commands.assets._fetch_all_assets", side_effect=ESIError("Service unavailable", status_code=503)):
             result = cmd_assets(args)
 
         assert result["error"] == "esi_error"
@@ -98,7 +98,7 @@ class TestCmdAssets:
         from aria_esi.commands.assets import cmd_assets
 
         mock_client, mock_creds = mock_authenticated_client
-        mock_client.get.return_value = [
+        mock_assets = [
             {"item_id": 1, "type_id": 587, "location_id": 60003760, "location_type": "station", "quantity": 1, "is_singleton": True},
             {"item_id": 2, "type_id": 34, "location_id": 60003760, "location_type": "station", "quantity": 1000, "is_singleton": False},
         ]
@@ -123,6 +123,7 @@ class TestCmdAssets:
         }.get(url, {})
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
+             patch("aria_esi.commands.assets._fetch_all_assets", return_value=mock_assets), \
              patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client):
             result = cmd_assets(args)
 
@@ -179,7 +180,7 @@ class TestAssetsInsights:
         from aria_esi.commands.assets import cmd_assets
 
         mock_client, mock_creds = mock_authenticated_client
-        mock_client.get.return_value = [
+        mock_assets = [
             {"item_id": 1, "type_id": 587, "location_id": 60003760, "location_type": "station", "quantity": 1, "is_singleton": True},
         ]
 
@@ -198,6 +199,7 @@ class TestAssetsInsights:
         mock_public_client.get_dict_safe.return_value = {"name": "Rifter", "group_id": 25}
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
+             patch("aria_esi.commands.assets._fetch_all_assets", return_value=mock_assets), \
              patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client), \
              patch("aria_esi.services.asset_insights.generate_insights_summary") as mock_insights, \
              patch("aria_esi.services.asset_insights.find_duplicate_ships", return_value=[]), \
@@ -224,7 +226,7 @@ class TestAssetsTypeFilter:
         from aria_esi.commands.assets import cmd_assets
 
         mock_client, mock_creds = mock_authenticated_client
-        mock_client.get.return_value = [
+        mock_assets = [
             {"item_id": 1, "type_id": 587, "location_id": 60003760, "location_type": "station", "quantity": 1, "is_singleton": True},
             {"item_id": 2, "type_id": 34, "location_id": 60003760, "location_type": "station", "quantity": 1000, "is_singleton": False},
         ]
@@ -248,6 +250,7 @@ class TestAssetsTypeFilter:
         }.get(url, {})
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
+             patch("aria_esi.commands.assets._fetch_all_assets", return_value=mock_assets), \
              patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client):
             result = cmd_assets(args)
 
@@ -268,7 +271,7 @@ class TestAssetsLocationFilter:
         from aria_esi.commands.assets import cmd_assets
 
         mock_client, mock_creds = mock_authenticated_client
-        mock_client.get.return_value = [
+        mock_assets = [
             {"item_id": 1, "type_id": 587, "location_id": 60003760, "location_type": "station", "quantity": 1, "is_singleton": True},
             {"item_id": 2, "type_id": 34, "location_id": 60004588, "location_type": "station", "quantity": 1000, "is_singleton": False},
         ]
@@ -293,6 +296,7 @@ class TestAssetsLocationFilter:
         }.get(url, {})
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
+             patch("aria_esi.commands.assets._fetch_all_assets", return_value=mock_assets), \
              patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client):
             result = cmd_assets(args)
 

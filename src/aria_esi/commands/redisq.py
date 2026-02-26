@@ -721,14 +721,31 @@ def cmd_sync_wars(args: argparse.Namespace) -> dict:
         get_entity_watchlist_manager,
     )
 
-    # Get character and corporation IDs
+    # Get character and corporation IDs (auto-detect from active pilot if not specified)
     character_id = args.character_id if hasattr(args, "character_id") else None
     corporation_id = args.corporation_id if hasattr(args, "corporation_id") else None
 
     if character_id is None or corporation_id is None:
+        try:
+            from ..core import get_authenticated_client
+
+            client, creds = get_authenticated_client()
+            if character_id is None:
+                character_id = creds.character_id
+            if corporation_id is None:
+                char_info = client.get_dict_safe(f"/characters/{character_id}/")
+                if char_info:
+                    corporation_id = char_info.get("corporation_id")
+        except (ImportError, OSError, KeyError, ValueError):
+            pass
+
+    if character_id is None or corporation_id is None:
         return {
             "status": "error",
-            "error": "Both --character-id and --corporation-id are required",
+            "error": (
+                "Could not determine character/corporation ID. "
+                "Provide --character-id and --corporation-id, or configure an active pilot."
+            ),
             "query_timestamp": get_utc_timestamp(),
         }
 

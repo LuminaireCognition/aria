@@ -45,8 +45,8 @@ Sites are named by faction, indicating loot type:
 | Item Type | Value | Used For |
 |-----------|-------|----------|
 | Intact Armor Plates | High | T2 Rig manufacturing |
-| Power Circuits | Medium | T2 Rig manufacturing |
-| Burned Logic Circuits | Low | T2 Rig manufacturing |
+| Power Circuit | Medium | T2 Rig manufacturing |
+| Burned Logic Circuit | Low | T2 Rig manufacturing |
 | T2 Rig BPCs | Variable | Direct use/sale |
 | Faction salvage | Medium | Faction rig manufacturing |
 
