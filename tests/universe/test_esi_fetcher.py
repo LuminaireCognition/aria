@@ -1,5 +1,5 @@
 """
-Tests for Universe Cache Builder.
+Tests for Universe ESI Fetcher (cache builder).
 
 Tests the build_universe_cache function and main() entry point,
 including happy path, error handling, and output format validation.
@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria_esi.cache.builder import build_universe_cache, main
+from aria_esi.universe.esi_fetcher import build_universe_cache, main
 
 # =============================================================================
 # Fixtures
@@ -80,11 +80,11 @@ def _make_mock_client(
 
 class TestBuildUniverseCache:
     def test_happy_path(self, tmp_path: Path) -> None:
-        """Builds complete cache from region→constellation→system→stargate chain."""
+        """Builds complete cache from region->constellation->system->stargate chain."""
         output = tmp_path / "universe.json"
         client = _make_mock_client()
 
-        with patch("aria_esi.cache.builder.ESIClient", return_value=client):
+        with patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client):
             cache = build_universe_cache(output, verbose=False)
 
         assert "10000002" in cache["regions"]
@@ -100,7 +100,7 @@ class TestBuildUniverseCache:
         output = tmp_path / "universe.json"
         client = _make_mock_client()
 
-        with patch("aria_esi.cache.builder.ESIClient", return_value=client):
+        with patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client):
             build_universe_cache(output, verbose=False)
 
         with open(output) as f:
@@ -123,7 +123,7 @@ class TestBuildUniverseCache:
             stargates={},
         )
 
-        with patch("aria_esi.cache.builder.ESIClient", return_value=client):
+        with patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client):
             cache = build_universe_cache(output, verbose=False)
 
         assert cache["systems"]["30000142"]["security"] == 0.9459
@@ -135,7 +135,7 @@ class TestBuildUniverseCache:
         client.get.return_value = "not a list"
 
         with (
-            patch("aria_esi.cache.builder.ESIClient", return_value=client),
+            patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client),
             pytest.raises(RuntimeError, match="Failed to fetch region list"),
         ):
             build_universe_cache(output, verbose=False)
@@ -146,7 +146,7 @@ class TestBuildUniverseCache:
         client = _make_mock_client(region_ids=[10000002, 10000099])
         # 10000099 returns None from get_dict_safe (not in regions dict)
 
-        with patch("aria_esi.cache.builder.ESIClient", return_value=client):
+        with patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client):
             cache = build_universe_cache(output, verbose=False)
 
         assert "10000002" in cache["regions"]
@@ -157,7 +157,7 @@ class TestBuildUniverseCache:
         output = tmp_path / "universe.json"
         client = _make_mock_client()
 
-        with patch("aria_esi.cache.builder.ESIClient", return_value=client):
+        with patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client):
             build_universe_cache(output, verbose=False)
 
         content = output.read_text()
@@ -171,7 +171,7 @@ class TestBuildUniverseCache:
         output = tmp_path / "nested" / "dir" / "universe.json"
         client = _make_mock_client()
 
-        with patch("aria_esi.cache.builder.ESIClient", return_value=client):
+        with patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client):
             build_universe_cache(output, verbose=False)
 
         assert output.exists()
@@ -181,7 +181,7 @@ class TestBuildUniverseCache:
         output = tmp_path / "universe.json"
         client = _make_mock_client()
 
-        with patch("aria_esi.cache.builder.ESIClient", return_value=client):
+        with patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client):
             cache = build_universe_cache(output, verbose=False)
 
         assert "generated" in cache
@@ -195,7 +195,7 @@ class TestMain:
         client = _make_mock_client()
 
         with (
-            patch("aria_esi.cache.builder.ESIClient", return_value=client),
+            patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client),
             patch("sys.argv", ["builder", "--output", str(output), "--quiet"]),
         ):
             result = main()
@@ -208,7 +208,7 @@ class TestMain:
         client.get.return_value = "not a list"
 
         with (
-            patch("aria_esi.cache.builder.ESIClient", return_value=client),
+            patch("aria_esi.universe.esi_fetcher.ESIClient", return_value=client),
             patch("sys.argv", ["builder", "--output", str(tmp_path / "out.json"), "--quiet"]),
         ):
             # RuntimeError is not caught by main() - only json/key/value errors are
@@ -219,7 +219,7 @@ class TestMain:
         """main() returns 1 on JSONDecodeError."""
         with (
             patch(
-                "aria_esi.cache.builder.build_universe_cache",
+                "aria_esi.universe.esi_fetcher.build_universe_cache",
                 side_effect=json.JSONDecodeError("bad json", "", 0),
             ),
             patch("sys.argv", ["builder", "--output", str(tmp_path / "out.json"), "--quiet"]),
@@ -232,7 +232,7 @@ class TestMain:
         """main() returns 1 on ValueError."""
         with (
             patch(
-                "aria_esi.cache.builder.build_universe_cache",
+                "aria_esi.universe.esi_fetcher.build_universe_cache",
                 side_effect=ValueError("bad value"),
             ),
             patch("sys.argv", ["builder", "--output", str(tmp_path / "out.json"), "--quiet"]),

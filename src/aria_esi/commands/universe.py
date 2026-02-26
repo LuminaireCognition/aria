@@ -1,8 +1,7 @@
 """
 ARIA ESI Universe Commands
 
-Cached universe queries for fast local lookups.
-Graph management commands for MCP server.
+Universe graph queries and management commands.
 No authentication required.
 """
 
@@ -10,15 +9,8 @@ import argparse
 import time
 from pathlib import Path
 
-from ..cache import (
-    find_border_systems_in_region,
-    find_nearest_border_systems,
-    get_cache_info,
-    get_system_by_name,
-    get_system_full_info,
-    is_cache_available,
-)
 from ..core import get_utc_timestamp
+from ..core.exceptions import AriaError
 from ..mcp.context_policy import UNIVERSE
 
 # Constants for loop command - imported from service to avoid duplication
@@ -36,6 +28,18 @@ LOOP_MIN_BORDERS = UNIVERSE.LOOP_MIN_BORDERS
 LOOP_MAX_BORDERS = UNIVERSE.LOOP_MAX_BORDERS
 
 
+def _load_graph():
+    """Load universe graph, returning (graph, None) or (None, error_dict)."""
+    try:
+        return load_universe_graph(DEFAULT_GRAPH_PATH), None
+    except (AriaError, OSError):
+        return None, {
+            "error": "graph_not_found",
+            "message": "Universe graph not available",
+            "hint": "Run 'aria-esi graph-build' to generate it",
+        }
+
+
 def cmd_borders(args: argparse.Namespace) -> dict:
     """
     Find high-sec systems bordering low-sec.
@@ -44,13 +48,9 @@ def cmd_borders(args: argparse.Namespace) -> dict:
     """
     query_ts = get_utc_timestamp()
 
-    if not is_cache_available():
-        return {
-            "error": "cache_not_found",
-            "message": "Universe cache not available",
-            "hint": "Run 'python -m aria_esi.cache.builder' to generate it",
-            "query_timestamp": query_ts,
-        }
+    universe, err = _load_graph()
+    if err:
+        return {**err, "query_timestamp": query_ts}
 
     region = getattr(args, "region", None)
     system = getattr(args, "system", None)
@@ -58,7 +58,38 @@ def cmd_borders(args: argparse.Namespace) -> dict:
 
     if region:
         # Search by region
-        borders = find_border_systems_in_region(region)
+        region_id = universe.resolve_region(region)
+        if region_id is None:
+            return {
+                "error": "no_results",
+                "message": f"No border systems found in region '{region}'",
+                "hint": "Check region name spelling or try a different region",
+                "query_timestamp": query_ts,
+            }
+
+        borders = []
+        for idx in universe.border_systems:
+            if int(universe.region_ids[idx]) != region_id:
+                continue
+            borders.append(
+                {
+                    "system_id": int(universe.system_ids[idx]),
+                    "name": universe.idx_to_name[idx],
+                    "security": round(float(universe.security[idx]), 2),
+                    "borders_lowsec": [
+                        {
+                            "system_id": int(universe.system_ids[n]),
+                            "name": universe.idx_to_name[n],
+                            "security": round(float(universe.security[n]), 2),
+                        }
+                        for n in universe.graph.neighbors(idx)
+                        if universe.security[n] < 0.45
+                    ],
+                }
+            )
+
+        borders.sort(key=lambda x: x["name"])
+
         if not borders:
             return {
                 "error": "no_results",
@@ -78,24 +109,55 @@ def cmd_borders(args: argparse.Namespace) -> dict:
 
     elif system:
         # Search by proximity to system
-        borders = find_nearest_border_systems(system, limit=limit)
-        if not borders:
-            # Check if system exists
-            sys_match = get_system_by_name(system)
-            if not sys_match:
-                return {
-                    "error": "system_not_found",
-                    "message": f"System '{system}' not found",
-                    "query_timestamp": query_ts,
-                }
+        origin_idx = universe.resolve_name(system)
+        if origin_idx is None:
+            return {
+                "error": "system_not_found",
+                "message": f"System '{system}' not found",
+                "query_timestamp": query_ts,
+            }
+
+        # Use igraph shortest paths from origin to all border systems
+        border_list = sorted(universe.border_systems)
+        if not border_list:
             return {
                 "error": "no_results",
                 "message": f"No border systems found near '{system}'",
                 "query_timestamp": query_ts,
             }
 
-        # Get origin system info
-        origin_info = get_system_full_info(get_system_by_name(system)[0])
+        distances = universe.graph.shortest_paths(source=origin_idx, target=border_list)[0]
+        # Pair distances with border indices, sort by distance
+        border_dists = sorted(zip(distances, border_list), key=lambda x: x[0])
+
+        borders = []
+        for dist, idx in border_dists[:limit]:
+            if dist == float("inf"):
+                break
+            borders.append(
+                {
+                    "system_id": int(universe.system_ids[idx]),
+                    "name": universe.idx_to_name[idx],
+                    "security": round(float(universe.security[idx]), 2),
+                    "approx_jumps": int(dist),
+                    "borders": universe.get_adjacent_lowsec(idx)[:3],
+                }
+            )
+
+        if not borders:
+            return {
+                "error": "no_results",
+                "message": f"No border systems found near '{system}'",
+                "query_timestamp": query_ts,
+            }
+
+        origin_info = {
+            "system_id": int(universe.system_ids[origin_idx]),
+            "name": universe.idx_to_name[origin_idx],
+            "security": round(float(universe.security[origin_idx]), 2),
+            "constellation": universe.get_constellation_name(origin_idx),
+            "region": universe.get_region_name(origin_idx),
+        }
 
         return {
             "query_timestamp": query_ts,
@@ -268,53 +330,39 @@ def cmd_loop(args: argparse.Namespace) -> dict:
         }
 
 
-def cmd_cache_info(args: argparse.Namespace) -> dict:
-    """Show universe cache status."""
-    query_ts = get_utc_timestamp()
-    info = get_cache_info()
-
-    return {
-        "query_timestamp": query_ts,
-        **info,
-    }
-
-
 def cmd_system_info(args: argparse.Namespace) -> dict:
-    """Look up system information from cache."""
+    """Look up system information from universe graph."""
     query_ts = get_utc_timestamp()
 
-    if not is_cache_available():
-        return {
-            "error": "cache_not_found",
-            "message": "Universe cache not available",
-            "hint": "Run 'python -m aria_esi.cache.builder' to generate it",
-            "query_timestamp": query_ts,
-        }
+    universe, err = _load_graph()
+    if err:
+        return {**err, "query_timestamp": query_ts}
 
     system_name = args.system
 
-    sys_match = get_system_by_name(system_name)
-    if not sys_match:
+    idx = universe.resolve_name(system_name)
+    if idx is None:
         return {
             "error": "system_not_found",
             "message": f"System '{system_name}' not found",
             "query_timestamp": query_ts,
         }
 
-    sys_id, _ = sys_match
-    info = get_system_full_info(sys_id)
-
-    # Add neighbor info
-    from ..cache import get_system_neighbors
+    info = {
+        "system_id": int(universe.system_ids[idx]),
+        "name": universe.idx_to_name[idx],
+        "security": round(float(universe.security[idx]), 2),
+        "constellation": universe.get_constellation_name(idx),
+        "region": universe.get_region_name(idx),
+    }
 
     neighbors = []
-    for _neighbor_id, neighbor in get_system_neighbors(sys_id):
-        sec = neighbor.get("security", 0)
-        sec_class = "HIGH" if sec >= 0.45 else "LOW" if sec > 0 else "NULL"
+    for n_idx, n_sec in universe.neighbors_with_security(idx):
+        sec_class = "HIGH" if n_sec >= 0.45 else "LOW" if n_sec > 0 else "NULL"
         neighbors.append(
             {
-                "name": neighbor["name"],
-                "security": round(sec, 2),
+                "name": universe.idx_to_name[n_idx],
+                "security": round(n_sec, 2),
                 "class": sec_class,
             }
         )
@@ -357,7 +405,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
         return {
             "error": "cache_not_found",
             "message": f"Cache file not found: {cache_path}",
-            "hint": "Run cache builder first to generate universe_cache.json",
+            "hint": "Run 'aria-esi cache-fetch' to download universe data",
             "query_timestamp": query_ts,
         }
 
@@ -1839,17 +1887,10 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     )
     loop_parser.set_defaults(func=cmd_loop)
 
-    # Cache info command
-    cache_parser = subparsers.add_parser(
-        "cache-info",
-        help="Show universe cache status",
-    )
-    cache_parser.set_defaults(func=cmd_cache_info)
-
-    # System info command (cached)
+    # System info command
     sysinfo_parser = subparsers.add_parser(
         "sysinfo",
-        help="Look up system info from cache",
+        help="Look up system info",
     )
     sysinfo_parser.add_argument(
         "system",

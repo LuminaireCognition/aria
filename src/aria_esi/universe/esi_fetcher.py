@@ -1,11 +1,14 @@
 """
-Universe Cache Builder
+Universe Cache Builder (ESI Fetcher)
 
-Downloads static universe data from ESI and caches it locally.
+Downloads static universe data from ESI and caches it locally as JSON.
+This is step 1 of the graph build pipeline:
+    esi_fetcher.py → universe_cache.json → builder.py → .universe binary
+
 Run periodically (monthly or after expansions) to refresh.
 
 Usage:
-    python -m aria_esi.cache.builder [--output PATH]
+    uv run aria-esi cache-fetch [--output PATH]
 """
 
 import argparse
@@ -14,10 +17,6 @@ import sys
 import time
 from pathlib import Path
 from typing import Any
-
-# Add parent to path for imports when run directly
-if __name__ == "__main__":
-    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from aria_esi.core import ESIClient, get_utc_timestamp
 

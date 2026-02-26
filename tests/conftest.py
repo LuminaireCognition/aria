@@ -955,14 +955,6 @@ def reset_all_singletons():
         except ImportError:
             pass
 
-        # Universe JSON cache
-        try:
-            from aria_esi.cache import clear_cache
-
-            clear_cache()
-        except ImportError:
-            pass
-
         # Context budget
         try:
             from aria_esi.mcp.context_budget import reset_context_budget
