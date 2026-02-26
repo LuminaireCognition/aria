@@ -12,14 +12,14 @@ from pathlib import Path
 import pytest
 
 # Add scripts directory to path for imports
-sys.path.insert(0, str(Path(__file__).parents[1] / ".claude" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parents[2] / ".claude" / "scripts"))
 
 # Import the module under test
 import importlib.util
 
 spec = importlib.util.spec_from_file_location(
     "aria_skill_preflight",
-    Path(__file__).parents[1] / ".claude" / "scripts" / "aria-skill-preflight.py",
+    Path(__file__).parents[2] / ".claude" / "scripts" / "aria-skill-preflight.py",
 )
 preflight = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(preflight)
