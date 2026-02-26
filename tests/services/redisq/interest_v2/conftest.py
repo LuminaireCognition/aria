@@ -9,35 +9,21 @@ from typing import Any
 
 import pytest
 
+from aria_esi.services.redisq.models import ProcessedKill
 
-@dataclass
-class MockProcessedKill:
-    """Mock ProcessedKill for testing."""
-
-    kill_id: int = 12345678
-    solar_system_id: int = 30000142  # Jita
-    victim_ship_type_id: int | None = 24690  # Vexor
-    victim_corporation_id: int | None = 98000001
-    victim_alliance_id: int | None = 99001234
-    is_pod_kill: bool = False
-    attacker_count: int = 3
-    attacker_corps: list[int] = field(default_factory=lambda: [98000002, 98000003])
-    attacker_alliances: list[int] = field(default_factory=lambda: [99005678])
-    attacker_ship_types: list[int] = field(default_factory=lambda: [17703, 17703])  # Astero
-    final_blow_ship_type_id: int | None = 17703
-    total_value: float = 150_000_000.0  # 150M ISK
+from .factories import make_processed_kill
 
 
 @pytest.fixture
-def mock_kill() -> MockProcessedKill:
+def mock_kill() -> ProcessedKill:
     """Create a basic mock kill for testing."""
-    return MockProcessedKill()
+    return make_processed_kill()
 
 
 @pytest.fixture
-def high_value_kill() -> MockProcessedKill:
+def high_value_kill() -> ProcessedKill:
     """Create a high-value mock kill."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345679,
         victim_ship_type_id=28606,  # Orca
         total_value=3_500_000_000.0,  # 3.5B ISK
@@ -45,9 +31,9 @@ def high_value_kill() -> MockProcessedKill:
 
 
 @pytest.fixture
-def pod_kill() -> MockProcessedKill:
+def pod_kill() -> ProcessedKill:
     """Create a pod kill."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345680,
         victim_ship_type_id=670,  # Capsule
         is_pod_kill=True,
@@ -56,9 +42,9 @@ def pod_kill() -> MockProcessedKill:
 
 
 @pytest.fixture
-def npc_only_kill() -> MockProcessedKill:
+def npc_only_kill() -> ProcessedKill:
     """Create a kill with only NPC attackers."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345681,
         attacker_count=5,
         attacker_corps=[1000125, 1000127],  # NPC corps (< 2M)
@@ -68,9 +54,9 @@ def npc_only_kill() -> MockProcessedKill:
 
 
 @pytest.fixture
-def solo_kill() -> MockProcessedKill:
+def solo_kill() -> ProcessedKill:
     """Create a solo kill."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345682,
         attacker_count=1,
         attacker_corps=[98000002],

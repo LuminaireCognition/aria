@@ -5,8 +5,9 @@ from __future__ import annotations
 import pytest
 
 from aria_esi.services.redisq.interest_v2.signals.ship import SHIP_CLASSES, ShipSignal
+from aria_esi.services.redisq.models import ProcessedKill
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestShipSignalScore:
@@ -27,20 +28,20 @@ class TestShipSignalScore:
 
     def test_score_unknown_ship_type(self, signal: ShipSignal) -> None:
         """Test kill with unknown ship type returns default score."""
-        kill = MockProcessedKill(victim_ship_type_id=None)
+        kill = make_processed_kill(victim_ship_type_id=None)
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.5  # DEFAULT_SCORE
         assert "Unknown ship type" in result.reason
 
     def test_score_default_no_match(self, signal: ShipSignal) -> None:
         """Test scoring with no config returns default score."""
-        kill = MockProcessedKill(victim_ship_type_id=24690)  # Vexor - not in any class
+        kill = make_processed_kill(victim_ship_type_id=24690)  # Vexor - not in any class
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.5  # DEFAULT_SCORE
         assert "No ship class match" in result.reason
 
     def test_score_prefer_freighter(
-        self, signal: ShipSignal, mock_kill_freighter: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_freighter: ProcessedKill
     ) -> None:
         """Test preferred ship class scores high."""
         config = {"prefer": ["freighter"]}
@@ -49,7 +50,7 @@ class TestShipSignalScore:
         assert "Preferred ship class: freighter" in result.reason
 
     def test_score_prefer_with_custom_score(
-        self, signal: ShipSignal, mock_kill_freighter: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_freighter: ProcessedKill
     ) -> None:
         """Test preferred ship class with custom score."""
         config = {"prefer": ["freighter"], "prefer_score": 0.8}
@@ -58,7 +59,7 @@ class TestShipSignalScore:
         assert "Preferred" in result.reason
 
     def test_score_exclude_capsule(
-        self, signal: ShipSignal, mock_kill_pod: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_pod: ProcessedKill
     ) -> None:
         """Test excluded ship class scores low."""
         config = {"exclude": ["capsule"]}
@@ -67,7 +68,7 @@ class TestShipSignalScore:
         assert "Excluded ship class: capsule" in result.reason
 
     def test_score_exclude_with_custom_score(
-        self, signal: ShipSignal, mock_kill_pod: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_pod: ProcessedKill
     ) -> None:
         """Test excluded ship class with custom score."""
         config = {"exclude": ["capsule"], "exclude_score": 0.1}
@@ -75,7 +76,7 @@ class TestShipSignalScore:
         assert result.score == 0.1
 
     def test_score_exclude_takes_precedence(
-        self, signal: ShipSignal, mock_kill_freighter: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_freighter: ProcessedKill
     ) -> None:
         """Test exclusion takes precedence over preference."""
         config = {"prefer": ["freighter"], "exclude": ["freighter"]}
@@ -84,7 +85,7 @@ class TestShipSignalScore:
         assert "Excluded" in result.reason
 
     def test_score_capitals_only_carrier(
-        self, signal: ShipSignal, mock_kill_capital: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_capital: ProcessedKill
     ) -> None:
         """Test capitals_only matches carrier."""
         config = {"capitals_only": True}
@@ -93,7 +94,7 @@ class TestShipSignalScore:
         assert "Capital ship" in result.reason
 
     def test_score_capitals_only_rorqual(
-        self, signal: ShipSignal, mock_kill_rorqual: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_rorqual: ProcessedKill
     ) -> None:
         """Test capitals_only matches Rorqual."""
         config = {"capitals_only": True}
@@ -103,7 +104,7 @@ class TestShipSignalScore:
 
     def test_score_capitals_only_non_capital(self, signal: ShipSignal) -> None:
         """Test capitals_only rejects non-capital ships."""
-        kill = MockProcessedKill(victim_ship_type_id=24690)  # Vexor
+        kill = make_processed_kill(victim_ship_type_id=24690)  # Vexor
         config = {"capitals_only": True}
         result = signal.score(kill, 30000142, config)
         assert result.score == 0.0
@@ -111,13 +112,13 @@ class TestShipSignalScore:
 
     def test_score_custom_default_score(self, signal: ShipSignal) -> None:
         """Test custom default score for unmatched ships."""
-        kill = MockProcessedKill(victim_ship_type_id=24690)  # Vexor
+        kill = make_processed_kill(victim_ship_type_id=24690)  # Vexor
         config = {"default_score": 0.7}
         result = signal.score(kill, 30000142, config)
         assert result.score == 0.7
 
     def test_score_jump_freighter(
-        self, signal: ShipSignal, mock_kill_jump_freighter: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_jump_freighter: ProcessedKill
     ) -> None:
         """Test jump freighter detection."""
         config = {"prefer": ["jump_freighter"]}
@@ -126,7 +127,7 @@ class TestShipSignalScore:
         assert "jump_freighter" in result.reason.lower()
 
     def test_score_mining_barge(
-        self, signal: ShipSignal, mock_kill_mining_barge: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_mining_barge: ProcessedKill
     ) -> None:
         """Test mining barge detection."""
         config = {"prefer": ["mining_barge"]}
@@ -136,7 +137,7 @@ class TestShipSignalScore:
 
     def test_score_multiple_prefer(self, signal: ShipSignal) -> None:
         """Test multiple preferred classes."""
-        kill = MockProcessedKill(victim_ship_type_id=17478)  # Retriever
+        kill = make_processed_kill(victim_ship_type_id=17478)  # Retriever
         config = {"prefer": ["freighter", "mining_barge", "orca"]}
         result = signal.score(kill, 30000142, config)
         assert result.score == 1.0
@@ -144,13 +145,13 @@ class TestShipSignalScore:
 
     def test_score_class_normalization(self, signal: ShipSignal) -> None:
         """Test ship class name normalization (spaces, hyphens)."""
-        kill = MockProcessedKill(victim_ship_type_id=28844)  # JF
+        kill = make_processed_kill(victim_ship_type_id=28844)  # JF
         config = {"prefer": ["jump-freighter"]}  # With hyphen
         result = signal.score(kill, 30000142, config)
         assert result.score == 1.0
 
     def test_score_raw_value_included(
-        self, signal: ShipSignal, mock_kill_freighter: MockProcessedKill
+        self, signal: ShipSignal, mock_kill_freighter: ProcessedKill
     ) -> None:
         """Test raw_value includes ship type info."""
         config = {"prefer": ["freighter"]}

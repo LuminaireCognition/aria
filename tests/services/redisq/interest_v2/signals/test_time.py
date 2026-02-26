@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from datetime import time as dt_time
 
 import pytest
@@ -12,8 +12,9 @@ from aria_esi.services.redisq.interest_v2.signals.time import (
     _parse_time,
     _time_in_window,
 )
+from aria_esi.services.redisq.models import ProcessedKill
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestTimeSignalScore:
@@ -26,14 +27,14 @@ class TestTimeSignalScore:
 
     def test_score_no_windows(self, signal: TimeSignal) -> None:
         """Test scoring with no windows configured returns 1.0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {})
         assert result.score == 1.0
         assert "No time windows configured" in result.reason
 
     def test_score_empty_windows(self, signal: TimeSignal) -> None:
         """Test scoring with empty windows list returns 1.0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {"windows": []})
         assert result.score == 1.0
 
@@ -48,7 +49,7 @@ class TestTimeSignalScore:
         assert result.score == 0.8  # Should match the all-day window
 
     def test_score_in_window(
-        self, signal: TimeSignal, mock_kill_primetime: MockProcessedKill
+        self, signal: TimeSignal, mock_kill_primetime: ProcessedKill
     ) -> None:
         """Test scoring when kill is within a configured window."""
         config = {
@@ -61,7 +62,7 @@ class TestTimeSignalScore:
         assert "Prime time" in result.reason
 
     def test_score_outside_window(
-        self, signal: TimeSignal, mock_kill_offhours: MockProcessedKill
+        self, signal: TimeSignal, mock_kill_offhours: ProcessedKill
     ) -> None:
         """Test scoring when kill is outside all windows."""
         config = {
@@ -76,8 +77,8 @@ class TestTimeSignalScore:
 
     def test_score_default_outside_window(self, signal: TimeSignal) -> None:
         """Test default score (0.5) when outside windows."""
-        kill = MockProcessedKill(
-            kill_time=datetime(2024, 1, 15, 4, 0, 0, tzinfo=timezone.utc)  # 04:00
+        kill = make_processed_kill(
+            kill_time=datetime(2024, 1, 15, 4, 0, 0, tzinfo=UTC)  # 04:00
         )
         config = {
             "windows": [
@@ -89,8 +90,8 @@ class TestTimeSignalScore:
 
     def test_score_overnight_window_before_midnight(self, signal: TimeSignal) -> None:
         """Test overnight window with kill before midnight."""
-        kill = MockProcessedKill(
-            kill_time=datetime(2024, 1, 15, 23, 30, 0, tzinfo=timezone.utc)  # 23:30
+        kill = make_processed_kill(
+            kill_time=datetime(2024, 1, 15, 23, 30, 0, tzinfo=UTC)  # 23:30
         )
         config = {
             "windows": [
@@ -102,7 +103,7 @@ class TestTimeSignalScore:
         assert "Late night" in result.reason
 
     def test_score_overnight_window_after_midnight(
-        self, signal: TimeSignal, mock_kill_midnight: MockProcessedKill
+        self, signal: TimeSignal, mock_kill_midnight: ProcessedKill
     ) -> None:
         """Test overnight window with kill after midnight."""
         config = {
@@ -116,8 +117,8 @@ class TestTimeSignalScore:
 
     def test_score_multiple_windows_first_match(self, signal: TimeSignal) -> None:
         """Test first matching window is used."""
-        kill = MockProcessedKill(
-            kill_time=datetime(2024, 1, 15, 14, 0, 0, tzinfo=timezone.utc)  # 14:00
+        kill = make_processed_kill(
+            kill_time=datetime(2024, 1, 15, 14, 0, 0, tzinfo=UTC)  # 14:00
         )
         config = {
             "windows": [
@@ -132,8 +133,8 @@ class TestTimeSignalScore:
     def test_score_timezone_conversion(self, signal: TimeSignal) -> None:
         """Test timezone conversion."""
         # Kill at 15:00 UTC = 10:00 US/Eastern (assuming standard time)
-        kill = MockProcessedKill(
-            kill_time=datetime(2024, 1, 15, 15, 0, 0, tzinfo=timezone.utc)  # 15:00 UTC
+        kill = make_processed_kill(
+            kill_time=datetime(2024, 1, 15, 15, 0, 0, tzinfo=UTC)  # 15:00 UTC
         )
         config = {
             "timezone": "America/New_York",
@@ -146,8 +147,8 @@ class TestTimeSignalScore:
 
     def test_score_invalid_timezone_fallback(self, signal: TimeSignal) -> None:
         """Test invalid timezone falls back to UTC."""
-        kill = MockProcessedKill(
-            kill_time=datetime(2024, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+        kill = make_processed_kill(
+            kill_time=datetime(2024, 1, 15, 12, 0, 0, tzinfo=UTC)
         )
         config = {
             "timezone": "Invalid/Timezone",
@@ -161,8 +162,8 @@ class TestTimeSignalScore:
 
     def test_score_raw_value_includes_time(self, signal: TimeSignal) -> None:
         """Test raw_value includes the evaluated time."""
-        kill = MockProcessedKill(
-            kill_time=datetime(2024, 1, 15, 12, 30, 0, tzinfo=timezone.utc)
+        kill = make_processed_kill(
+            kill_time=datetime(2024, 1, 15, 12, 30, 0, tzinfo=UTC)
         )
         config = {
             "windows": [
@@ -175,8 +176,8 @@ class TestTimeSignalScore:
 
     def test_score_window_boundary_start(self, signal: TimeSignal) -> None:
         """Test kill exactly at window start is included."""
-        kill = MockProcessedKill(
-            kill_time=datetime(2024, 1, 15, 18, 0, 0, tzinfo=timezone.utc)
+        kill = make_processed_kill(
+            kill_time=datetime(2024, 1, 15, 18, 0, 0, tzinfo=UTC)
         )
         config = {
             "windows": [
@@ -188,8 +189,8 @@ class TestTimeSignalScore:
 
     def test_score_window_boundary_end(self, signal: TimeSignal) -> None:
         """Test kill exactly at window end is included."""
-        kill = MockProcessedKill(
-            kill_time=datetime(2024, 1, 15, 20, 0, 0, tzinfo=timezone.utc)
+        kill = make_processed_kill(
+            kill_time=datetime(2024, 1, 15, 20, 0, 0, tzinfo=UTC)
         )
         config = {
             "windows": [

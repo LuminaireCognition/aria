@@ -6,8 +6,6 @@ Tests the template registry, rule provider classes, and factory function.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-
 import pytest
 
 from aria_esi.services.redisq.interest_v2.rules.templates import (
@@ -26,23 +24,7 @@ from aria_esi.services.redisq.interest_v2.rules.templates import (
     validate_template_params,
 )
 
-
-@dataclass
-class MockProcessedKill:
-    """Mock ProcessedKill for testing rule evaluation."""
-
-    kill_id: int = 12345678
-    solar_system_id: int = 30000142  # Jita
-    victim_ship_type_id: int | None = 24690  # Vexor
-    victim_corporation_id: int | None = 98000001
-    victim_alliance_id: int | None = 99001234
-    is_pod_kill: bool = False
-    attacker_count: int = 3
-    attacker_corps: list[int] = field(default_factory=lambda: [98000002, 98000003])
-    attacker_alliances: list[int] = field(default_factory=lambda: [99005678])
-    attacker_ship_types: list[int] = field(default_factory=lambda: [17703, 17703])
-    final_blow_ship_type_id: int | None = 17703
-    total_value: float = 150_000_000.0  # 150M ISK
+from ..factories import make_processed_kill
 
 
 class TestTemplateSpec:
@@ -177,7 +159,7 @@ class TestValueAboveRule:
     def test_evaluate_matches_above(self) -> None:
         """Test rule matches when value is above threshold."""
         rule = ValueAboveRule({"min": 100_000_000})
-        kill = MockProcessedKill(total_value=150_000_000)
+        kill = make_processed_kill(total_value=150_000_000)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
@@ -188,7 +170,7 @@ class TestValueAboveRule:
     def test_evaluate_matches_equal(self) -> None:
         """Test rule matches when value equals threshold."""
         rule = ValueAboveRule({"min": 150_000_000})
-        kill = MockProcessedKill(total_value=150_000_000)
+        kill = make_processed_kill(total_value=150_000_000)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
@@ -196,7 +178,7 @@ class TestValueAboveRule:
     def test_evaluate_no_match_below(self) -> None:
         """Test rule does not match when value is below threshold."""
         rule = ValueAboveRule({"min": 200_000_000})
-        kill = MockProcessedKill(total_value=150_000_000)
+        kill = make_processed_kill(total_value=150_000_000)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
@@ -242,7 +224,7 @@ class TestValueBelowRule:
     def test_evaluate_matches_below(self) -> None:
         """Test rule matches when value is below threshold."""
         rule = ValueBelowRule({"max": 200_000_000})
-        kill = MockProcessedKill(total_value=150_000_000)
+        kill = make_processed_kill(total_value=150_000_000)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
@@ -252,7 +234,7 @@ class TestValueBelowRule:
     def test_evaluate_no_match_above(self) -> None:
         """Test rule does not match when value is above threshold."""
         rule = ValueBelowRule({"max": 100_000_000})
-        kill = MockProcessedKill(total_value=150_000_000)
+        kill = make_processed_kill(total_value=150_000_000)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
@@ -261,7 +243,7 @@ class TestValueBelowRule:
     def test_evaluate_no_match_equal(self) -> None:
         """Test rule does not match when value equals threshold."""
         rule = ValueBelowRule({"max": 150_000_000})
-        kill = MockProcessedKill(total_value=150_000_000)
+        kill = make_processed_kill(total_value=150_000_000)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
@@ -291,7 +273,7 @@ class TestSoloKillRule:
     def test_evaluate_matches_solo(self) -> None:
         """Test rule matches when single attacker."""
         rule = SoloKillRule()
-        kill = MockProcessedKill(attacker_count=1)
+        kill = make_processed_kill(attacker_count=1)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
@@ -301,7 +283,7 @@ class TestSoloKillRule:
     def test_evaluate_no_match_multiple(self) -> None:
         """Test rule does not match with multiple attackers."""
         rule = SoloKillRule()
-        kill = MockProcessedKill(attacker_count=3)
+        kill = make_processed_kill(attacker_count=3)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
@@ -311,7 +293,7 @@ class TestSoloKillRule:
     def test_evaluate_no_match_zero(self) -> None:
         """Test rule does not match with zero attackers."""
         rule = SoloKillRule()
-        kill = MockProcessedKill(attacker_count=0)
+        kill = make_processed_kill(attacker_count=0)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
@@ -344,7 +326,7 @@ class TestAttackerCountRule:
     def test_evaluate_matches_in_range(self) -> None:
         """Test rule matches when count in range."""
         rule = AttackerCountRule({"min": 2, "max": 5})
-        kill = MockProcessedKill(attacker_count=3)
+        kill = make_processed_kill(attacker_count=3)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
@@ -354,7 +336,7 @@ class TestAttackerCountRule:
     def test_evaluate_matches_at_min(self) -> None:
         """Test rule matches when count equals min."""
         rule = AttackerCountRule({"min": 3, "max": 10})
-        kill = MockProcessedKill(attacker_count=3)
+        kill = make_processed_kill(attacker_count=3)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
@@ -362,7 +344,7 @@ class TestAttackerCountRule:
     def test_evaluate_matches_at_max(self) -> None:
         """Test rule matches when count equals max."""
         rule = AttackerCountRule({"min": 1, "max": 3})
-        kill = MockProcessedKill(attacker_count=3)
+        kill = make_processed_kill(attacker_count=3)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
@@ -370,7 +352,7 @@ class TestAttackerCountRule:
     def test_evaluate_no_match_below(self) -> None:
         """Test rule does not match when count below min."""
         rule = AttackerCountRule({"min": 5, "max": 10})
-        kill = MockProcessedKill(attacker_count=3)
+        kill = make_processed_kill(attacker_count=3)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
@@ -379,7 +361,7 @@ class TestAttackerCountRule:
     def test_evaluate_no_match_above(self) -> None:
         """Test rule does not match when count above max."""
         rule = AttackerCountRule({"min": 1, "max": 2})
-        kill = MockProcessedKill(attacker_count=3)
+        kill = make_processed_kill(attacker_count=3)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
@@ -387,7 +369,7 @@ class TestAttackerCountRule:
     def test_evaluate_min_only(self) -> None:
         """Test rule with only min specified."""
         rule = AttackerCountRule({"min": 10})
-        kill = MockProcessedKill(attacker_count=15)
+        kill = make_processed_kill(attacker_count=15)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
@@ -395,7 +377,7 @@ class TestAttackerCountRule:
     def test_evaluate_max_only(self) -> None:
         """Test rule with only max specified."""
         rule = AttackerCountRule({"max": 5})
-        kill = MockProcessedKill(attacker_count=3)
+        kill = make_processed_kill(attacker_count=3)
 
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True

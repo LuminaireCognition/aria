@@ -8,7 +8,8 @@ import pytest
 
 from aria_esi.services.redisq.interest_v2.signals.activity import ActivitySignal
 
-from .conftest import MockGatecampStatus, MockProcessedKill
+from ..factories import make_processed_kill
+from .conftest import MockGatecampStatus
 
 
 class TestActivitySignalScore:
@@ -21,7 +22,7 @@ class TestActivitySignalScore:
 
     def test_score_no_activity_data(self, signal: ActivitySignal) -> None:
         """Test scoring with no activity data returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         # All signals disabled = no self-sufficient querying, no pre-injected data
         config = {
             "spike": {"enabled": False},

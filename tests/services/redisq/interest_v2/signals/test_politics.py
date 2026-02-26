@@ -8,8 +8,9 @@ from aria_esi.services.redisq.interest_v2.signals.politics import (
     DEFAULT_ROLE_WEIGHTS,
     PoliticsSignal,
 )
+from aria_esi.services.redisq.models import ProcessedKill
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestPoliticsSignalScore:
@@ -22,7 +23,7 @@ class TestPoliticsSignalScore:
 
     def test_score_no_groups_configured(self, signal: PoliticsSignal) -> None:
         """Test scoring with no groups configured returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
         assert "No political groups configured" in result.reason
@@ -37,7 +38,7 @@ class TestPoliticsSignalScore:
         assert "No kill data" in result.reason
 
     def test_score_victim_corp_match(
-        self, signal: PoliticsSignal, mock_kill_corp_victim: MockProcessedKill
+        self, signal: PoliticsSignal, mock_kill_corp_victim: ProcessedKill
     ) -> None:
         """Test scoring when victim corporation matches."""
         config = {
@@ -49,7 +50,7 @@ class TestPoliticsSignalScore:
 
     def test_score_victim_alliance_match(self, signal: PoliticsSignal) -> None:
         """Test scoring when victim alliance matches."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000099,  # Not in group
             victim_alliance_id=99001234,  # In group
         )
@@ -61,7 +62,7 @@ class TestPoliticsSignalScore:
         assert "Victim matches group" in result.reason
 
     def test_score_attacker_corp_match(
-        self, signal: PoliticsSignal, mock_kill_corp_attacker: MockProcessedKill
+        self, signal: PoliticsSignal, mock_kill_corp_attacker: ProcessedKill
     ) -> None:
         """Test scoring when attacker corporation matches."""
         config = {
@@ -74,7 +75,7 @@ class TestPoliticsSignalScore:
 
     def test_score_attacker_alliance_match(self, signal: PoliticsSignal) -> None:
         """Test scoring when attacker alliance matches."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000099,
             attacker_corps=[98000055],
             attacker_alliances=[99005678],  # In group
@@ -86,7 +87,7 @@ class TestPoliticsSignalScore:
         assert result.score == 0.6  # Attacker role weight
 
     def test_score_solo_modifier(
-        self, signal: PoliticsSignal, mock_kill_solo: MockProcessedKill
+        self, signal: PoliticsSignal, mock_kill_solo: ProcessedKill
     ) -> None:
         """Test solo modifier is applied for single attacker."""
         # Solo kill with attacker in group - but default fixture has victim_corp matching
@@ -103,7 +104,7 @@ class TestPoliticsSignalScore:
 
     def test_score_custom_role_weights(self, signal: PoliticsSignal) -> None:
         """Test custom role weights override defaults."""
-        kill = MockProcessedKill()  # Victim corp 98000001
+        kill = make_processed_kill()  # Victim corp 98000001
         config = {
             "groups": {"my_corp": {"corporations": [98000001]}},
             "role_weights": {"victim": 0.5},
@@ -113,7 +114,7 @@ class TestPoliticsSignalScore:
 
     def test_score_no_group_matches(self, signal: PoliticsSignal) -> None:
         """Test scoring when no groups match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000099,
             attacker_corps=[98000055],
         )
@@ -126,7 +127,7 @@ class TestPoliticsSignalScore:
 
     def test_score_require_all_met(self, signal: PoliticsSignal) -> None:
         """Test require_all when all groups match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,  # Group A
             attacker_corps=[98000002],  # Group B
         )
@@ -143,7 +144,7 @@ class TestPoliticsSignalScore:
 
     def test_score_require_all_not_met(self, signal: PoliticsSignal) -> None:
         """Test require_all when not all groups match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,  # Group A only
             attacker_corps=[98000055],  # Not in groups
         )
@@ -161,7 +162,7 @@ class TestPoliticsSignalScore:
 
     def test_score_require_any_met(self, signal: PoliticsSignal) -> None:
         """Test require_any when at least one group matches."""
-        kill = MockProcessedKill(victim_corporation_id=98000001)  # Group A
+        kill = make_processed_kill(victim_corporation_id=98000001)  # Group A
         config = {
             "groups": {
                 "group_a": {"corporations": [98000001]},
@@ -174,7 +175,7 @@ class TestPoliticsSignalScore:
 
     def test_score_require_any_not_met(self, signal: PoliticsSignal) -> None:
         """Test require_any when no groups match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000099,
             victim_alliance_id=None,
             attacker_corps=[98000055],
@@ -193,7 +194,7 @@ class TestPoliticsSignalScore:
         assert "No group matches" in result.reason or "require_any not met" in result.reason
 
     def test_score_penalty_is_pod(
-        self, signal: PoliticsSignal, mock_kill_pod: MockProcessedKill
+        self, signal: PoliticsSignal, mock_kill_pod: ProcessedKill
     ) -> None:
         """Test is_pod penalty condition."""
         # Pod kill victim in tracked corp
@@ -208,7 +209,7 @@ class TestPoliticsSignalScore:
         assert "is_pod" in result.reason
 
     def test_score_penalty_is_solo(
-        self, signal: PoliticsSignal, mock_kill_solo: MockProcessedKill
+        self, signal: PoliticsSignal, mock_kill_solo: ProcessedKill
     ) -> None:
         """Test is_solo penalty condition."""
         mock_kill_solo.victim_corporation_id = 98000001
@@ -221,7 +222,7 @@ class TestPoliticsSignalScore:
         assert result.score == pytest.approx(0.8, abs=0.01)
 
     def test_score_penalty_is_npc_only(
-        self, signal: PoliticsSignal, mock_kill_npc_only: MockProcessedKill
+        self, signal: PoliticsSignal, mock_kill_npc_only: ProcessedKill
     ) -> None:
         """Test is_npc_only penalty condition."""
         mock_kill_npc_only.victim_corporation_id = 98000001
@@ -235,7 +236,7 @@ class TestPoliticsSignalScore:
 
     def test_score_multiple_penalties(self, signal: PoliticsSignal) -> None:
         """Test multiple penalties stack."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             is_pod_kill=True,
             attacker_count=1,  # Solo
@@ -253,7 +254,7 @@ class TestPoliticsSignalScore:
 
     def test_score_penalty_clamped(self, signal: PoliticsSignal) -> None:
         """Test penalty factor is clamped to [0, 1]."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             is_pod_kill=True,
         )
@@ -269,7 +270,7 @@ class TestPoliticsSignalScore:
 
     def test_score_unknown_penalty_condition(self, signal: PoliticsSignal) -> None:
         """Test unknown penalty condition is ignored."""
-        kill = MockProcessedKill(victim_corporation_id=98000001)
+        kill = make_processed_kill(victim_corporation_id=98000001)
         config = {
             "groups": {"my_corp": {"corporations": [98000001]}},
             "penalties": [{"condition": "unknown_condition", "penalty": 0.5}],
@@ -279,7 +280,7 @@ class TestPoliticsSignalScore:
 
     def test_score_multiple_groups_max(self, signal: PoliticsSignal) -> None:
         """Test maximum score from multiple matched groups."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             victim_alliance_id=99001234,
         )
@@ -296,7 +297,7 @@ class TestPoliticsSignalScore:
 
     def test_score_raw_value(self, signal: PoliticsSignal) -> None:
         """Test raw_value includes matched groups and penalty factor."""
-        kill = MockProcessedKill(victim_corporation_id=98000001)
+        kill = make_processed_kill(victim_corporation_id=98000001)
         config = {
             "groups": {"my_corp": {"corporations": [98000001]}},
         }

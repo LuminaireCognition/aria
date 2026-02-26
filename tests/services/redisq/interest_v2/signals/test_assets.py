@@ -5,8 +5,9 @@ from __future__ import annotations
 import pytest
 
 from aria_esi.services.redisq.interest_v2.signals.assets import AssetSignal
+from aria_esi.services.redisq.models import ProcessedKill
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestAssetSignalScore:
@@ -19,7 +20,7 @@ class TestAssetSignalScore:
 
     def test_score_no_assets_configured(self, signal: AssetSignal) -> None:
         """Test scoring with no assets configured returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
         assert "No asset systems configured" in result.reason
@@ -27,13 +28,13 @@ class TestAssetSignalScore:
 
     def test_score_empty_asset_lists(self, signal: AssetSignal) -> None:
         """Test scoring with empty asset lists returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {"structure_systems": [], "office_systems": []}
         result = signal.score(kill, 30000142, config)
         assert result.score == 0.0
 
     def test_score_structure_match(
-        self, signal: AssetSignal, mock_kill_near_structure: MockProcessedKill
+        self, signal: AssetSignal, mock_kill_near_structure: ProcessedKill
     ) -> None:
         """Test scoring when system has corp structure."""
         config = {"structure_systems": [30000142]}  # Jita
@@ -42,7 +43,7 @@ class TestAssetSignalScore:
         assert "corp structure" in result.reason.lower()
 
     def test_score_office_match(
-        self, signal: AssetSignal, mock_kill_near_office: MockProcessedKill
+        self, signal: AssetSignal, mock_kill_near_office: ProcessedKill
     ) -> None:
         """Test scoring when system has corp office."""
         config = {"office_systems": [30002187]}  # Amarr
@@ -52,7 +53,7 @@ class TestAssetSignalScore:
 
     def test_score_structure_takes_precedence(self, signal: AssetSignal) -> None:
         """Test structure match takes precedence over office."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "structure_systems": [30000142],
             "office_systems": [30000142],  # Same system
@@ -63,7 +64,7 @@ class TestAssetSignalScore:
 
     def test_score_no_asset_in_system(self, signal: AssetSignal) -> None:
         """Test scoring when no assets in kill system."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "structure_systems": [30002187],
             "office_systems": [30002659],
@@ -74,7 +75,7 @@ class TestAssetSignalScore:
 
     def test_score_custom_structure_score(self, signal: AssetSignal) -> None:
         """Test custom structure score."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "structure_systems": [30000142],
             "structures": {"enabled": True, "score": 0.9},
@@ -84,7 +85,7 @@ class TestAssetSignalScore:
 
     def test_score_custom_office_score(self, signal: AssetSignal) -> None:
         """Test custom office score."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "office_systems": [30000142],
             "offices": {"enabled": True, "score": 0.6},
@@ -94,7 +95,7 @@ class TestAssetSignalScore:
 
     def test_score_structures_disabled(self, signal: AssetSignal) -> None:
         """Test structures disabled falls through to offices."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "structure_systems": [30000142],
             "office_systems": [30000142],
@@ -106,7 +107,7 @@ class TestAssetSignalScore:
 
     def test_score_offices_disabled(self, signal: AssetSignal) -> None:
         """Test offices disabled returns 0 when no structure."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "office_systems": [30000142],
             "offices": {"enabled": False},
@@ -116,7 +117,7 @@ class TestAssetSignalScore:
 
     def test_score_both_disabled(self, signal: AssetSignal) -> None:
         """Test both structures and offices disabled."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "structure_systems": [30000142],
             "office_systems": [30000142],
@@ -128,7 +129,7 @@ class TestAssetSignalScore:
 
     def test_score_raw_value_structure(self, signal: AssetSignal) -> None:
         """Test raw_value for structure match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {"structure_systems": [30000142]}
         result = signal.score(kill, 30000142, config)
         assert result.raw_value is not None
@@ -136,7 +137,7 @@ class TestAssetSignalScore:
 
     def test_score_raw_value_office(self, signal: AssetSignal) -> None:
         """Test raw_value for office match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {"office_systems": [30000142]}
         result = signal.score(kill, 30000142, config)
         assert result.raw_value is not None
@@ -151,14 +152,14 @@ class TestAssetSignalScore:
 
     def test_score_multiple_structure_systems(self, signal: AssetSignal) -> None:
         """Test multiple structure systems."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {"structure_systems": [30002187, 30000142, 30002659]}
         result = signal.score(kill, 30000142, config)
         assert result.score == 1.0
 
     def test_score_set_conversion(self, signal: AssetSignal) -> None:
         """Test system lists are converted to sets for efficient lookup."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         # This should work even with duplicates
         config = {"structure_systems": [30000142, 30000142, 30000142]}
         result = signal.score(kill, 30000142, config)

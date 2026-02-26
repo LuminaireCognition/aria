@@ -5,8 +5,9 @@ from __future__ import annotations
 import pytest
 
 from aria_esi.services.redisq.interest_v2.signals.value import ValueSignal
+from aria_esi.services.redisq.models import ProcessedKill
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestValueSignalScore:
@@ -27,7 +28,7 @@ class TestValueSignalScore:
 
     def test_score_below_minimum(self, signal: ValueSignal) -> None:
         """Test kill below minimum threshold scores 0."""
-        kill = MockProcessedKill(total_value=10_000_000.0)  # 10M
+        kill = make_processed_kill(total_value=10_000_000.0)  # 10M
         config = {"min": 50_000_000}  # 50M minimum
 
         result = signal.score(kill, 30000142, config)
@@ -37,7 +38,7 @@ class TestValueSignalScore:
 
     def test_score_at_minimum(self, signal: ValueSignal) -> None:
         """Test kill at exactly minimum threshold."""
-        kill = MockProcessedKill(total_value=50_000_000.0)  # 50M
+        kill = make_processed_kill(total_value=50_000_000.0)  # 50M
         config = {"min": 50_000_000}  # 50M minimum
 
         result = signal.score(kill, 30000142, config)
@@ -48,7 +49,7 @@ class TestValueSignalScore:
     def test_score_sigmoid_default(self, signal: ValueSignal) -> None:
         """Test sigmoid scaling with default config."""
         # 500M is default pivot point
-        kill = MockProcessedKill(total_value=500_000_000.0)  # 500M
+        kill = make_processed_kill(total_value=500_000_000.0)  # 500M
         config = {"scale": "sigmoid"}
 
         result = signal.score(kill, 30000142, config)
@@ -57,7 +58,7 @@ class TestValueSignalScore:
         assert result.prefetch_capable is True
 
     def test_score_sigmoid_high_value(
-        self, signal: ValueSignal, mock_kill_high_value: MockProcessedKill
+        self, signal: ValueSignal, mock_kill_high_value: ProcessedKill
     ) -> None:
         """Test sigmoid scaling with high value kill."""
         config = {"scale": "sigmoid"}
@@ -68,7 +69,7 @@ class TestValueSignalScore:
 
     def test_score_linear(self, signal: ValueSignal) -> None:
         """Test linear scaling."""
-        kill = MockProcessedKill(total_value=500_000_000.0)  # 500M
+        kill = make_processed_kill(total_value=500_000_000.0)  # 500M
         config = {
             "scale": "linear",
             "min": 0,
@@ -81,7 +82,7 @@ class TestValueSignalScore:
 
     def test_score_linear_at_max(self, signal: ValueSignal) -> None:
         """Test linear scaling at maximum."""
-        kill = MockProcessedKill(total_value=2_000_000_000.0)  # 2B
+        kill = make_processed_kill(total_value=2_000_000_000.0)  # 2B
         config = {
             "scale": "linear",
             "min": 0,
@@ -94,7 +95,7 @@ class TestValueSignalScore:
 
     def test_score_log(self, signal: ValueSignal) -> None:
         """Test logarithmic scaling."""
-        kill = MockProcessedKill(total_value=100_000_000.0)  # 100M
+        kill = make_processed_kill(total_value=100_000_000.0)  # 100M
         config = {
             "scale": "log",
             "min": 0,
@@ -117,21 +118,21 @@ class TestValueSignalScore:
         }
 
         # Test each tier
-        low_kill = MockProcessedKill(total_value=50_000_000.0)  # 50M
+        low_kill = make_processed_kill(total_value=50_000_000.0)  # 50M
         result = signal.score(low_kill, 30000142, config)
         assert result.score == 0.3
 
-        mid_kill = MockProcessedKill(total_value=500_000_000.0)  # 500M
+        mid_kill = make_processed_kill(total_value=500_000_000.0)  # 500M
         result = signal.score(mid_kill, 30000142, config)
         assert result.score == 0.7
 
-        high_kill = MockProcessedKill(total_value=2_000_000_000.0)  # 2B
+        high_kill = make_processed_kill(total_value=2_000_000_000.0)  # 2B
         result = signal.score(high_kill, 30000142, config)
         assert result.score == 1.0
 
     def test_score_custom_pivot(self, signal: ValueSignal) -> None:
         """Test sigmoid with custom pivot point."""
-        kill = MockProcessedKill(total_value=1_000_000_000.0)  # 1B
+        kill = make_processed_kill(total_value=1_000_000_000.0)  # 1B
         config = {
             "scale": "sigmoid",
             "pivot": 1_000_000_000,  # 1B pivot
@@ -143,7 +144,7 @@ class TestValueSignalScore:
 
     def test_score_custom_steepness(self, signal: ValueSignal) -> None:
         """Test sigmoid with custom steepness."""
-        kill = MockProcessedKill(total_value=600_000_000.0)  # 600M
+        kill = make_processed_kill(total_value=600_000_000.0)  # 600M
         config_gentle = {
             "scale": "sigmoid",
             "pivot": 500_000_000,
@@ -170,13 +171,13 @@ class TestValueSignalScore:
         ]
 
         for value, expected_suffix in configs:
-            kill = MockProcessedKill(total_value=value)
+            kill = make_processed_kill(total_value=value)
             result = signal.score(kill, 30000142, {})
             assert expected_suffix in result.reason, f"Expected '{expected_suffix}' for {value}"
 
     def test_score_zero_value(self, signal: ValueSignal) -> None:
         """Test kill with zero value."""
-        kill = MockProcessedKill(total_value=0.0)
+        kill = make_processed_kill(total_value=0.0)
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
 

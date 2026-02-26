@@ -6,7 +6,7 @@ import pytest
 
 from aria_esi.services.redisq.interest_v2.signals.hull_value import HullValueSignal
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestHullValueSignalScore:
@@ -27,14 +27,14 @@ class TestHullValueSignalScore:
 
     def test_score_none_hull_value(self, signal: HullValueSignal) -> None:
         """Test scoring with None hull_value returns 0."""
-        kill = MockProcessedKill(hull_value=None)
+        kill = make_processed_kill(hull_value=None)
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
         assert "No hull price data" in result.reason
 
     def test_score_below_minimum(self, signal: HullValueSignal) -> None:
         """Test hull value below minimum threshold scores 0."""
-        kill = MockProcessedKill(hull_value=50_000_000.0)  # 50M hull
+        kill = make_processed_kill(hull_value=50_000_000.0)  # 50M hull
         config = {"min": 500_000_000}  # 500M minimum
 
         result = signal.score(kill, 30000142, config)
@@ -45,7 +45,7 @@ class TestHullValueSignalScore:
     def test_score_sigmoid_default(self, signal: HullValueSignal) -> None:
         """Test sigmoid scaling with default config at pivot."""
         # 2B is default pivot for hull_value
-        kill = MockProcessedKill(hull_value=2_000_000_000.0)  # 2B
+        kill = make_processed_kill(hull_value=2_000_000_000.0)  # 2B
         config = {"scale": "sigmoid"}
 
         result = signal.score(kill, 30000142, config)
@@ -55,7 +55,7 @@ class TestHullValueSignalScore:
 
     def test_score_sigmoid_high_value(self, signal: HullValueSignal) -> None:
         """Test sigmoid scaling with expensive hull."""
-        kill = MockProcessedKill(hull_value=5_000_000_000.0)  # 5B hull (e.g. capital)
+        kill = make_processed_kill(hull_value=5_000_000_000.0)  # 5B hull (e.g. capital)
         config = {"scale": "sigmoid"}
 
         result = signal.score(kill, 30000142, config)
@@ -63,7 +63,7 @@ class TestHullValueSignalScore:
 
     def test_score_linear(self, signal: HullValueSignal) -> None:
         """Test linear scaling."""
-        kill = MockProcessedKill(hull_value=1_000_000_000.0)  # 1B
+        kill = make_processed_kill(hull_value=1_000_000_000.0)  # 1B
         config = {
             "scale": "linear",
             "min": 0,
@@ -76,20 +76,20 @@ class TestHullValueSignalScore:
 
     def test_score_reason_formatting(self, signal: HullValueSignal) -> None:
         """Test ISK value formatting in reason."""
-        kill = MockProcessedKill(hull_value=1_500_000_000.0)  # 1.5B
+        kill = make_processed_kill(hull_value=1_500_000_000.0)  # 1.5B
         result = signal.score(kill, 30000142, {})
         assert "B" in result.reason
         assert "Hull value:" in result.reason
 
     def test_score_zero_hull_value(self, signal: HullValueSignal) -> None:
         """Test hull with zero value scores 0 (below any meaningful threshold)."""
-        kill = MockProcessedKill(hull_value=0.0)
+        kill = make_processed_kill(hull_value=0.0)
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
 
     def test_score_at_minimum(self, signal: HullValueSignal) -> None:
         """Test hull value at exactly minimum threshold."""
-        kill = MockProcessedKill(hull_value=500_000_000.0)  # 500M
+        kill = make_processed_kill(hull_value=500_000_000.0)  # 500M
         config = {"min": 500_000_000}  # 500M minimum
 
         result = signal.score(kill, 30000142, config)
@@ -98,7 +98,7 @@ class TestHullValueSignalScore:
 
     def test_score_log(self, signal: HullValueSignal) -> None:
         """Test logarithmic scaling."""
-        kill = MockProcessedKill(hull_value=500_000_000.0)  # 500M
+        kill = make_processed_kill(hull_value=500_000_000.0)  # 500M
         config = {
             "scale": "log",
             "min": 0,
@@ -119,21 +119,21 @@ class TestHullValueSignalScore:
             ],
         }
 
-        low_kill = MockProcessedKill(hull_value=200_000_000.0)  # 200M
+        low_kill = make_processed_kill(hull_value=200_000_000.0)  # 200M
         result = signal.score(low_kill, 30000142, config)
         assert result.score == 0.3
 
-        mid_kill = MockProcessedKill(hull_value=1_000_000_000.0)  # 1B
+        mid_kill = make_processed_kill(hull_value=1_000_000_000.0)  # 1B
         result = signal.score(mid_kill, 30000142, config)
         assert result.score == 0.7
 
-        high_kill = MockProcessedKill(hull_value=3_000_000_000.0)  # 3B
+        high_kill = make_processed_kill(hull_value=3_000_000_000.0)  # 3B
         result = signal.score(high_kill, 30000142, config)
         assert result.score == 1.0
 
     def test_score_custom_pivot(self, signal: HullValueSignal) -> None:
         """Test sigmoid with custom pivot point."""
-        kill = MockProcessedKill(hull_value=1_000_000_000.0)  # 1B
+        kill = make_processed_kill(hull_value=1_000_000_000.0)  # 1B
         config = {
             "scale": "sigmoid",
             "pivot": 1_000_000_000,  # 1B pivot
@@ -144,7 +144,7 @@ class TestHullValueSignalScore:
 
     def test_score_custom_steepness(self, signal: HullValueSignal) -> None:
         """Test sigmoid with custom steepness."""
-        kill = MockProcessedKill(hull_value=2_500_000_000.0)  # 2.5B
+        kill = make_processed_kill(hull_value=2_500_000_000.0)  # 2.5B
         config_gentle = {
             "scale": "sigmoid",
             "pivot": 2_000_000_000,
@@ -163,7 +163,7 @@ class TestHullValueSignalScore:
 
     def test_score_raw_value_set(self, signal: HullValueSignal) -> None:
         """Test raw_value is set in result."""
-        kill = MockProcessedKill(hull_value=1_500_000_000.0)
+        kill = make_processed_kill(hull_value=1_500_000_000.0)
         result = signal.score(kill, 30000142, {})
         assert result.raw_value == 1_500_000_000.0
 

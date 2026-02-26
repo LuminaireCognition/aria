@@ -60,6 +60,7 @@ venv/
 .mypy_cache/
 .ruff_cache/
 .coverage
+coverage.json
 coverage.xml
 htmlcov/
 .benchmarks/
