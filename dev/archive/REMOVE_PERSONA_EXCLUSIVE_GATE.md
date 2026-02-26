@@ -181,7 +181,7 @@ These files contain historical references. No code depends on them:
 - `dev/planning/REMEDIATION_BACKLOG.md` — completed remediation record (superseded)
 - `CHANGELOG.md` — historical changelog entry for when function was added
 - `dev/archive/*` — already archived
-- `dev/proposals/SKILL_ROUND2_REMAINING_ISSUES.md` — historical
+- SKILL_ROUND2_REMAINING_ISSUES.md — historical (deleted)
 
 ---
 

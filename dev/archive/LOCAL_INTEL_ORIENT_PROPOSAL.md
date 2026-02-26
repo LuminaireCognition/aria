@@ -415,5 +415,5 @@ If origin is a wormhole system:
 ## References
 
 - [CONTEXT_AWARE_TOPOLOGY_PROPOSAL.md](./CONTEXT_AWARE_TOPOLOGY_PROPOSAL.md) - Topology layer architecture
-- [REDISQ_REALTIME_INTEL_PROPOSAL.md](./REDISQ_REALTIME_INTEL_PROPOSAL.md) - Real-time gatecamp detection
+- REDISQ_REALTIME_INTEL_PROPOSAL.md (deleted) - Real-time gatecamp detection
 - `docs/CONTEXT_AWARE_TOPOLOGY.md` - Current topology documentation

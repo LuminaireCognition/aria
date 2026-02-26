@@ -223,7 +223,7 @@ Create `dev/evidence/phase0_workbench_validation.md`:
 
 **References:**
 - Evidence: `dev/evidence/phase0_workbench_validation.md`
-- Proposal (marked blocked): `dev/proposals/UNIFIED_FIT_SOURCES_PROPOSAL.md`
+- Proposal (marked blocked): UNIFIED_FIT_SOURCES_PROPOSAL.md (deleted)
 - API docs: https://devblog.eveworkbench.com/docs/api/
 - v2.0 changelog: https://devblog.eveworkbench.com/changelog/eve-workbench-2-0-live/
 

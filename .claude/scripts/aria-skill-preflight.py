@@ -232,7 +232,7 @@ def validate_skill(
 
     # Check data sources
     for source in data_sources:
-        # Skip wildcard patterns (e.g., reference/ships/fittings/*.md)
+        # Skip wildcard patterns (e.g., reference/mechanics/*.json)
         if "*" in source:
             continue
 

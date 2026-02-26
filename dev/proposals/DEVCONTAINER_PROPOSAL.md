@@ -3,7 +3,7 @@
 **Status:** IMPLEMENTED (initial draft 2026-02-21, implemented 2026-02-21)
 **Owner:** DX
 **Scope:** DevContainer configuration, Docker Desktop onboarding, MCP-in-container topology
-**Related:** `dev/proposals/LINUX_VM_DOCKER_RUNTIME_PROPOSAL.md` (historical — Docker was deferred), `docs/FIRST_RUN.md`, `CLAUDE.md`, `.mcp.json`
+**Related:** `docs/FIRST_RUN.md`, `CLAUDE.md`, `.mcp.json`
 
 ---
 

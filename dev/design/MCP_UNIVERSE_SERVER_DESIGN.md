@@ -2,7 +2,7 @@
 
 **Status:** Draft
 **Date:** 2026-01-16
-**Based On:** [MCP Universe Server Proposal](MCP_UNIVERSE_SERVER_PROPOSAL.md)
+**Based On:** MCP Universe Server Proposal (superseded by this design document)
 
 ## Overview
 
@@ -947,4 +947,4 @@ uv run pytest tests/benchmarks/ -v --benchmark-enable
 - [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
 - [igraph Python Documentation](https://python.igraph.org/en/stable/)
 - [EVE Universe Data](https://esi.evetech.net/ui/#/Universe)
-- [Proposal Document](MCP_UNIVERSE_SERVER_PROPOSAL.md)
+- Proposal Document (superseded by this design document)

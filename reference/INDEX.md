@@ -81,18 +81,6 @@ Personal operational files are stored in `userdata/pilots/{active_pilot}/`:
 
 ---
 
-## Lore Database
-
-Background intelligence on New Eden.
-
-| File | Contents |
-|------|----------|
-| [lore/gallente.md](lore/gallente.md) | Federation history, culture, values |
-| [lore/factions.md](lore/factions.md) | Major factions overview |
-| [lore/regions.md](lore/regions.md) | Regional information |
-
----
-
 ## System Files
 
 | File | Purpose |
@@ -144,16 +132,8 @@ reference/
 ├── skills/                     [Training]
 │   └── training_optimization.md
 │
-├── sites/                      [Combat & Exploration Sites]
-│   └── INDEX.md
-│
-└── lore/                       [Background Intel]
-    ├── gallente.md
-    ├── caldari.md
-    ├── minmatar.md
-    ├── amarr.md
-    ├── factions.md
-    └── regions.md
+└── sites/                      [Combat & Exploration Sites]
+    └── INDEX.md
 ```
 
 **Pilot data** is stored separately in `userdata/pilots/{character_id}_{name}/`.

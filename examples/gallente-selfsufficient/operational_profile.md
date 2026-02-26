@@ -46,7 +46,7 @@ Where your key resources are located:
 
 | Asset Type | Location | Notes |
 |------------|----------|-------|
-| Blueprint Originals | Masalle | See [blueprint_library.md](industry/blueprint_library.md) |
+| Blueprint Originals | Masalle | See [blueprint_library.md](blueprint_library.md) |
 | Ore/Minerals | Masalle | Reprocessing available |
 | Mission Ships | Masalle | Close to agents |
 | Exploration Loot | Masalle | Pending analysis |

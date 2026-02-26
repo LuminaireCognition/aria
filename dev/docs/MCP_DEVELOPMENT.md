@@ -8,7 +8,7 @@ ARIA's MCP server exposes 6 dispatchers, each handling multiple actions via a si
 
 | Dispatcher | Source | Actions |
 |------------|--------|---------|
-| `universe()` | `src/aria_esi/mcp/dispatchers/universe.py` | 14 navigation/intel actions |
+| `universe()` | `src/aria_esi/mcp/dispatchers/universe/` | 14 navigation/intel actions |
 | `market()` | `src/aria_esi/mcp/dispatchers/market.py` | 18 market/trade actions |
 | `sde()` | `src/aria_esi/mcp/dispatchers/sde.py` | 9 static data actions |
 | `skills()` | `src/aria_esi/mcp/dispatchers/skills.py` | 10 skill planning actions |

@@ -44,6 +44,24 @@ coverage:
     mcp-sde:
       paths: ["src/aria_esi/mcp/sde/**"]
       target: 56%
+    store-market:
+      paths: ["src/aria_esi/store/market/**"]
+      target: 56%
+    store-sde:
+      paths: ["src/aria_esi/store/sde/**"]
+      target: 56%
+    services-redisq:
+      paths: ["src/aria_esi/services/redisq/**"]
+      target: 82%
+    services-navigation:
+      paths: ["src/aria_esi/services/navigation/**"]
+      target: 94%
+    services-killmail-store:
+      paths: ["src/aria_esi/services/killmail_store/**"]
+      target: 86%
+    services-loop-planning:
+      paths: ["src/aria_esi/services/loop_planning/**"]
+      target: 94%
     commands:
       paths: ["src/aria_esi/commands/**"]
       target: 44%

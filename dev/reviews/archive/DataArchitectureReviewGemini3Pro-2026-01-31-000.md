@@ -25,7 +25,7 @@ While most ephemeral data resides in `cache/` (e.g., `aria.db`, `eos-data/`), th
 ### 1. Unstructured Reference Data (`reference/ships/`)
 The project relies on Markdown files in `reference/ships/` for ship progression and some fitting data.
 *   **Problem:** Parsing structured data (like fittings or ship stats) from Markdown is brittle and error-prone. Tests (e.g., `tests/test_skill_preflight.py`) reference these files as data sources, suggesting programmatic reliance on this format.
-*   **Recommendation:** Accelerate the migration of "legacy fits" to a structured format (YAML/JSON) as proposed in `dev/proposals/ARCHETYPE_FITTINGS_LIBRARY.md`. Treat Markdown files strictly as documentation, not data sources.
+*   **Recommendation:** Accelerate the migration of "legacy fits" to a structured format (YAML/JSON) as proposed in ARCHETYPE_FITTINGS_LIBRARY.md (deleted). Treat Markdown files strictly as documentation, not data sources.
 
 ### 2. Standardize Validation Logic
 Notification profiles use a custom `validate()` method and manual checks in `ProfileLoader`.

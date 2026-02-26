@@ -195,7 +195,7 @@ class TestValidateSkill:
         skill = {
             "name": "test",
             "requires_pilot": False,
-            "data_sources": ["reference/ships/fittings/*.md"],
+            "data_sources": ["reference/mechanics/*.json"],
             "esi_scopes": [],
         }
         result = preflight.validate_skill(project_root, skill, "12345", "12345_test", [])
