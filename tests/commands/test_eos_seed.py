@@ -39,11 +39,11 @@ def _mock_subprocess_success(*args, **kwargs):
 class TestTagClone:
     """Tests for tag-based cloning (Strategy 1)."""
 
-    @patch("aria_esi.commands.fitting.verify_eos_commit", return_value=(True, "abc123def456"))
-    @patch("aria_esi.commands.fitting.get_pinned_eos_tag", return_value="v2.65.4")
-    @patch("aria_esi.commands.fitting.get_pinned_eos_commit", return_value="abc123def456")
-    @patch("aria_esi.commands.fitting.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
-    @patch("aria_esi.commands.fitting.is_break_glass_enabled", return_value=False)
+    @patch("aria_esi.core.data_integrity.verify_eos_commit", return_value=(True, "abc123def456"))
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_tag", return_value="v2.65.4")
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_commit", return_value="abc123def456")
+    @patch("aria_esi.core.data_integrity.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
+    @patch("aria_esi.core.data_integrity.is_break_glass_enabled", return_value=False)
     def test_tag_clone_success(
         self, mock_bg, mock_repo, mock_commit, mock_tag, mock_verify, tmp_path
     ):
@@ -67,11 +67,11 @@ class TestTagClone:
         assert result.actual_commit == "abc123def456"
         assert result.warning is None
 
-    @patch("aria_esi.commands.fitting.verify_eos_commit", return_value=(False, "different123"))
-    @patch("aria_esi.commands.fitting.get_pinned_eos_tag", return_value="v2.65.4")
-    @patch("aria_esi.commands.fitting.get_pinned_eos_commit", return_value="expected123")
-    @patch("aria_esi.commands.fitting.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
-    @patch("aria_esi.commands.fitting.is_break_glass_enabled", return_value=False)
+    @patch("aria_esi.core.data_integrity.verify_eos_commit", return_value=(False, "different123"))
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_tag", return_value="v2.65.4")
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_commit", return_value="expected123")
+    @patch("aria_esi.core.data_integrity.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
+    @patch("aria_esi.core.data_integrity.is_break_glass_enabled", return_value=False)
     def test_tag_clone_commit_mismatch_warns(
         self, mock_bg, mock_repo, mock_commit, mock_tag, mock_verify, tmp_path
     ):
@@ -102,10 +102,10 @@ class TestTagClone:
 class TestCommitFallback:
     """Tests for commit checkout fallback (Strategy 2)."""
 
-    @patch("aria_esi.commands.fitting.get_pinned_eos_tag", return_value="v2.65.4")
-    @patch("aria_esi.commands.fitting.get_pinned_eos_commit", return_value="abc123def456")
-    @patch("aria_esi.commands.fitting.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
-    @patch("aria_esi.commands.fitting.is_break_glass_enabled", return_value=False)
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_tag", return_value="v2.65.4")
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_commit", return_value="abc123def456")
+    @patch("aria_esi.core.data_integrity.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
+    @patch("aria_esi.core.data_integrity.is_break_glass_enabled", return_value=False)
     def test_tag_fails_commit_succeeds(self, mock_bg, mock_repo, mock_commit, mock_tag, tmp_path):
         """Tag clone fails → falls back to commit checkout."""
         repo_dir = tmp_path / "pyfa"
@@ -140,10 +140,10 @@ class TestCommitFallback:
 class TestHeadFallback:
     """Tests for HEAD fallback (Strategy 3)."""
 
-    @patch("aria_esi.commands.fitting.get_pinned_eos_tag", return_value="v2.65.4")
-    @patch("aria_esi.commands.fitting.get_pinned_eos_commit", return_value="abc123def456")
-    @patch("aria_esi.commands.fitting.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
-    @patch("aria_esi.commands.fitting.is_break_glass_enabled", return_value=False)
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_tag", return_value="v2.65.4")
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_commit", return_value="abc123def456")
+    @patch("aria_esi.core.data_integrity.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
+    @patch("aria_esi.core.data_integrity.is_break_glass_enabled", return_value=False)
     def test_both_fail_head_fallback(self, mock_bg, mock_repo, mock_commit, mock_tag, tmp_path):
         """Both tag and commit fail → falls back to HEAD with warning."""
         repo_dir = tmp_path / "pyfa"
@@ -173,10 +173,10 @@ class TestHeadFallback:
         assert result.warning is not None
         assert "HEAD" in result.warning or "unavailable" in result.warning
 
-    @patch("aria_esi.commands.fitting.get_pinned_eos_tag", return_value="v2.65.4")
-    @patch("aria_esi.commands.fitting.get_pinned_eos_commit", return_value="abc123def456")
-    @patch("aria_esi.commands.fitting.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
-    @patch("aria_esi.commands.fitting.is_break_glass_enabled", return_value=False)
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_tag", return_value="v2.65.4")
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_commit", return_value="abc123def456")
+    @patch("aria_esi.core.data_integrity.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
+    @patch("aria_esi.core.data_integrity.is_break_glass_enabled", return_value=False)
     def test_strict_pin_prevents_head_fallback(
         self, mock_bg, mock_repo, mock_commit, mock_tag, tmp_path
     ):
@@ -208,10 +208,10 @@ class TestHeadFallback:
 class TestBreakGlass:
     """Tests for break-glass mode."""
 
-    @patch("aria_esi.commands.fitting.get_pinned_eos_tag", return_value="v2.65.4")
-    @patch("aria_esi.commands.fitting.get_pinned_eos_commit", return_value="abc123def456")
-    @patch("aria_esi.commands.fitting.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
-    @patch("aria_esi.commands.fitting.is_break_glass_enabled", return_value=False)
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_tag", return_value="v2.65.4")
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_commit", return_value="abc123def456")
+    @patch("aria_esi.core.data_integrity.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
+    @patch("aria_esi.core.data_integrity.is_break_glass_enabled", return_value=False)
     def test_break_glass_skips_to_head(self, mock_bg, mock_repo, mock_commit, mock_tag, tmp_path):
         """break_glass=True skips directly to HEAD clone."""
         repo_dir = tmp_path / "pyfa"
@@ -240,10 +240,10 @@ class TestBreakGlass:
 class TestNoPinConfigured:
     """Tests when no tag or commit is configured."""
 
-    @patch("aria_esi.commands.fitting.get_pinned_eos_tag", return_value=None)
-    @patch("aria_esi.commands.fitting.get_pinned_eos_commit", return_value=None)
-    @patch("aria_esi.commands.fitting.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
-    @patch("aria_esi.commands.fitting.is_break_glass_enabled", return_value=False)
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_tag", return_value=None)
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_commit", return_value=None)
+    @patch("aria_esi.core.data_integrity.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
+    @patch("aria_esi.core.data_integrity.is_break_glass_enabled", return_value=False)
     def test_no_pin_falls_to_head(self, mock_bg, mock_repo, mock_commit, mock_tag, tmp_path):
         """No tag or commit configured → HEAD fallback."""
         repo_dir = tmp_path / "pyfa"
@@ -261,10 +261,10 @@ class TestNoPinConfigured:
 
         assert result.pin_status == "head_fallback"
 
-    @patch("aria_esi.commands.fitting.get_pinned_eos_tag", return_value=None)
-    @patch("aria_esi.commands.fitting.get_pinned_eos_commit", return_value=None)
-    @patch("aria_esi.commands.fitting.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
-    @patch("aria_esi.commands.fitting.is_break_glass_enabled", return_value=False)
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_tag", return_value=None)
+    @patch("aria_esi.core.data_integrity.get_pinned_eos_commit", return_value=None)
+    @patch("aria_esi.core.data_integrity.get_eos_repository", return_value="https://github.com/pyfa-org/Pyfa.git")
+    @patch("aria_esi.core.data_integrity.is_break_glass_enabled", return_value=False)
     def test_strict_pin_no_config_raises(self, mock_bg, mock_repo, mock_commit, mock_tag, tmp_path):
         """strict_pin=True with no config raises immediately."""
         with patch("aria_esi.commands.fitting.subprocess.run"):

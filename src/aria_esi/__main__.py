@@ -10,8 +10,6 @@ import argparse
 import json
 import sys
 
-import httpx
-
 from .core import get_utc_timestamp
 
 
@@ -366,7 +364,7 @@ def cmd_test_core(args: argparse.Namespace) -> dict:
             results["checks"].append(
                 {"test": "esi_client_public", "status": "warning", "message": "Unexpected response"}
             )
-    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
+    except (ValueError, Exception) as e:  # noqa: BLE001 -- CLI test handler
         results["checks"].append(
             {"test": "esi_client_public", "status": "error", "message": str(e)}
         )
@@ -426,131 +424,45 @@ def build_parser() -> argparse.ArgumentParser:
     test_parser = subparsers.add_parser("test-core", help="Test core module imports")
     test_parser.set_defaults(func=cmd_test_core)
 
-    # Phase 2: Register public command parsers
-    from .commands import market, navigation, pilot
+    # Register all command module parsers
+    import importlib
 
-    navigation.register_parsers(subparsers)
-    market.register_parsers(subparsers)
-    pilot.register_parsers(subparsers)
+    _COMMAND_MODULES = [
+        "navigation",
+        "market",
+        "pilot",
+        "character",
+        "wallet",
+        "skills",
+        "industry",
+        "assets",
+        "corporation",
+        "loyalty",
+        "clones",
+        "killmails",
+        "killmail",
+        "contracts",
+        "agents_research",
+        "mining",
+        "orders",
+        "fittings",
+        "mail",
+        "universe",
+        "persona",
+        "sync_profile",
+        "sde",
+        "validation",
+        "fitting",
+        "redisq",
+        "notifications",
+        "pi",
+        "sovereignty",
+        "freshness",
+    ]
 
-    # Phase 3: Register personal command parsers (authentication required)
-    from .commands import assets, character, industry, skills, wallet
-
-    character.register_parsers(subparsers)
-    wallet.register_parsers(subparsers)
-    skills.register_parsers(subparsers)
-    industry.register_parsers(subparsers)
-    assets.register_parsers(subparsers)
-
-    # Phase 4: Corporation commands
-    from .commands import corporation
-
-    corporation.register_parsers(subparsers)
-
-    # Phase 5: Loyalty Points commands
-    from .commands import loyalty
-
-    loyalty.register_parsers(subparsers)
-
-    # Phase 6: Clone commands
-    from .commands import clones
-
-    clones.register_parsers(subparsers)
-
-    # Phase 7: Killmail commands
-    from .commands import killmails
-
-    killmails.register_parsers(subparsers)
-
-    # Phase 7b: Killmail analysis (zKillboard integration)
-    from .commands import killmail
-
-    killmail.register_parsers(subparsers)
-
-    # Phase 8: Contract commands
-    from .commands import contracts
-
-    contracts.register_parsers(subparsers)
-
-    # Phase 9: Research Agents commands
-    from .commands import agents_research
-
-    agents_research.register_parsers(subparsers)
-
-    # Phase 10: Mining commands
-    from .commands import mining
-
-    mining.register_parsers(subparsers)
-
-    # Phase 11: Market Orders commands
-    from .commands import orders
-
-    orders.register_parsers(subparsers)
-
-    # Phase 12: Saved Fittings commands
-    from .commands import fittings
-
-    fittings.register_parsers(subparsers)
-
-    # Phase 13: Mail commands
-    from .commands import mail
-
-    mail.register_parsers(subparsers)
-
-    # Phase 14: Universe cache commands
-    from .commands import universe
-
-    universe.register_parsers(subparsers)
-
-    # Phase 15: Persona context commands
-    from .commands import persona
-
-    persona.register_parsers(subparsers)
-
-    # Phase 16: Profile sync commands
-    from .commands import sync_profile
-
-    sync_profile.register_parsers(subparsers)
-
-    # Phase 17: SDE commands
-    from .commands import sde
-
-    sde.register_parsers(subparsers)
-
-    # Phase 18: Validation commands
-    from .commands import validation
-
-    validation.register_parsers(subparsers)
-
-    # Phase 20: Fitting commands (EOS)
-    from .commands import fitting
-
-    fitting.register_parsers(subparsers)
-
-    # Phase 23: RedisQ real-time intel commands
-    from .commands import redisq
-
-    redisq.register_parsers(subparsers)
-
-    # Phase 24: Notification profile commands
-    from .commands import notifications
-
-    notifications.register_parsers(subparsers)
-
-    # Phase 25: PI location planning commands
-    from .commands import pi
-
-    pi.register_parsers(subparsers)
-
-    # Phase 26: Sovereignty commands
-    from .commands import sovereignty
-
-    sovereignty.register_parsers(subparsers)
-
-    # Phase 27: Freshness commands
-    from .commands import freshness
-
-    freshness.register_parsers(subparsers)
+    for name in _COMMAND_MODULES:
+        mod = importlib.import_module(f".commands.{name}", "aria_esi")
+        mod.register_parsers(subparsers)
 
     return parser
 

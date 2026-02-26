@@ -11,8 +11,6 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-import requests  # type: ignore[import-untyped]
-
 from ..core import (
     SLOT_ORDER,
     CredentialsError,
@@ -22,14 +20,31 @@ from ..core import (
     get_ship_group_ids,
     get_utc_timestamp,
 )
-from ..services.asset_insights import (
-    find_duplicate_ships,
-    generate_insights_summary,
-    get_trade_hub_station_ids,  # noqa: F401 (used via patch in tests)
-    identify_forgotten_assets,
-    suggest_consolidations,
-)
-from ..services.asset_snapshots import get_snapshot_service
+
+
+def _get_asset_insights():
+    """Lazy import asset insight services."""
+    from ..services.asset_insights import (
+        find_duplicate_ships,
+        generate_insights_summary,
+        identify_forgotten_assets,
+        suggest_consolidations,
+    )
+
+    return (
+        find_duplicate_ships,
+        generate_insights_summary,
+        identify_forgotten_assets,
+        suggest_consolidations,
+    )
+
+
+def _get_snapshot_service():
+    """Lazy import asset snapshot service."""
+    from ..services.asset_snapshots import get_snapshot_service
+
+    return get_snapshot_service
+
 
 # =============================================================================
 # Assets Command
@@ -281,6 +296,7 @@ def _save_asset_snapshot(
         Dict with saved status, filename, and total_value
     """
     pilot_dir = _get_pilot_dir(creds)
+    get_snapshot_service = _get_snapshot_service()
     service = get_snapshot_service(pilot_dir)
 
     # Extract data from valuation
@@ -350,6 +366,7 @@ def _save_asset_snapshot(
 def _handle_snapshot_history(creds: Any, query_ts: str) -> dict:
     """List available snapshots."""
     pilot_dir = _get_pilot_dir(creds)
+    get_snapshot_service = _get_snapshot_service()
     service = get_snapshot_service(pilot_dir)
 
     dates = service.list_snapshots()
@@ -384,6 +401,7 @@ def _handle_snapshot_history(creds: Any, query_ts: str) -> dict:
 def _handle_snapshot_trends(creds: Any, query_ts: str, days: int = 7) -> dict:
     """Show asset value trends."""
     pilot_dir = _get_pilot_dir(creds)
+    get_snapshot_service = _get_snapshot_service()
     service = get_snapshot_service(pilot_dir)
 
     trends = service.calculate_trends(days=days)
@@ -422,6 +440,15 @@ def _handle_asset_insights(creds: Any, query_ts: str, save_snapshot: bool = Fals
         save_snapshot: If True, save insights with snapshot
     """
     from collections import defaultdict
+
+    import requests  # type: ignore[import-untyped]
+
+    (
+        find_duplicate_ships,
+        generate_insights_summary,
+        identify_forgotten_assets,
+        suggest_consolidations,
+    ) = _get_asset_insights()
 
     char_id = creds.character_id
     client, _ = get_authenticated_client()
@@ -636,6 +663,8 @@ def _calculate_asset_valuation(
 
     if not type_quantities:
         return {"total_value": 0, "item_values": [], "price_source": "none"}
+
+    import requests  # type: ignore[import-untyped]
 
     # Fetch prices from Fuzzwork API (Jita prices)
     type_ids_str = ",".join(str(tid) for tid in type_quantities.keys())

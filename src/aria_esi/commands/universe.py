@@ -11,25 +11,37 @@ from pathlib import Path
 
 from ..core import get_utc_timestamp
 from ..core.exceptions import AriaError
-from ..mcp.context_policy import UNIVERSE
 
-# Constants for loop command - imported from service to avoid duplication
-from ..services.loop_planning import VALID_SECURITY_FILTERS
-from ..universe.builder import (
-    DEFAULT_CACHE_PATH,
-    DEFAULT_GRAPH_PATH,
-    build_universe_graph,
-    load_universe_graph,
-)
 
-LOOP_MIN_TARGET_JUMPS = UNIVERSE.LOOP_MIN_TARGET_JUMPS
-LOOP_MAX_TARGET_JUMPS = UNIVERSE.LOOP_MAX_TARGET_JUMPS
-LOOP_MIN_BORDERS = UNIVERSE.LOOP_MIN_BORDERS
-LOOP_MAX_BORDERS = UNIVERSE.LOOP_MAX_BORDERS
+def _get_builder():
+    """Lazy import universe builder (pulls in igraph/numpy)."""
+    from ..universe.builder import (
+        DEFAULT_CACHE_PATH,
+        DEFAULT_GRAPH_PATH,
+        build_universe_graph,
+        load_universe_graph,
+    )
+
+    return DEFAULT_CACHE_PATH, DEFAULT_GRAPH_PATH, build_universe_graph, load_universe_graph
+
+
+def _get_loop_constants():
+    """Lazy import loop planning constants."""
+    from ..mcp.context_policy import UNIVERSE
+    from ..services.loop_planning import VALID_SECURITY_FILTERS
+
+    return (
+        VALID_SECURITY_FILTERS,
+        UNIVERSE.LOOP_MIN_TARGET_JUMPS,
+        UNIVERSE.LOOP_MAX_TARGET_JUMPS,
+        UNIVERSE.LOOP_MIN_BORDERS,
+        UNIVERSE.LOOP_MAX_BORDERS,
+    )
 
 
 def _load_graph():
     """Load universe graph, returning (graph, None) or (None, error_dict)."""
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     try:
         return load_universe_graph(DEFAULT_GRAPH_PATH), None
     except (AriaError, OSError):
@@ -184,6 +196,15 @@ def cmd_loop(args: argparse.Namespace) -> dict:
     Finds high-sec systems bordering low-sec and plans an optimized
     circular route to visit them, minimizing backtracking.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
+    (
+        VALID_SECURITY_FILTERS,
+        LOOP_MIN_TARGET_JUMPS,
+        LOOP_MAX_TARGET_JUMPS,
+        LOOP_MIN_BORDERS,
+        LOOP_MAX_BORDERS,
+    ) = _get_loop_constants()
+
     query_ts = get_utc_timestamp()
 
     # Validate parameters
@@ -386,6 +407,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
 
     Creates optimized .universe file for fast navigation queries.
     """
+    DEFAULT_CACHE_PATH, DEFAULT_GRAPH_PATH, build_universe_graph, _ = _get_builder()
     query_ts = get_utc_timestamp()
 
     cache_path = Path(args.cache) if args.cache else DEFAULT_CACHE_PATH
@@ -468,6 +490,7 @@ def cmd_graph_verify(args: argparse.Namespace) -> dict:
 
     Checks that the graph loads correctly and passes all validation checks.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     query_ts = get_utc_timestamp()
 
     graph_path = Path(args.graph) if args.graph else DEFAULT_GRAPH_PATH
@@ -612,6 +635,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
     Queries ESI for recent kills, jumps, and NPC activity.
     With --realtime flag, includes real-time kill data and gatecamp detection.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -740,6 +764,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
 
     Uses ESI activity data to find systems with high kills, jumps, or ratting.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -888,6 +913,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
     Combines static chokepoint analysis with live kill data.
     With --realtime flag, uses real-time kill data for active gatecamp detection.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -1138,6 +1164,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
     Uses real-time kill data from RedisQ for active camp detection.
     Falls back to hourly activity data if real-time unavailable.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -1282,6 +1309,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
 
     Returns contested and vulnerable systems where fighting is active.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -1445,6 +1473,7 @@ def cmd_graph_stats(args: argparse.Namespace) -> dict:
 
     Shows comprehensive statistics about the loaded graph.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     query_ts = get_utc_timestamp()
 
     graph_path = Path(args.graph) if args.graph else DEFAULT_GRAPH_PATH
@@ -1906,12 +1935,12 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_build_parser.add_argument(
         "--cache",
         "-c",
-        help=f"Path to universe_cache.json (default: {DEFAULT_CACHE_PATH})",
+        help="Path to universe_cache.json (default: data/universe_cache.json)",
     )
     graph_build_parser.add_argument(
         "--output",
         "-o",
-        help=f"Output path for universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
+        help="Output path for universe graph (.universe) (default: data/universe.universe)",
     )
     graph_build_parser.add_argument(
         "--force",
@@ -1934,7 +1963,7 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_verify_parser.add_argument(
         "--graph",
         "-g",
-        help=f"Path to universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
+        help="Path to universe graph (.universe) (default: data/universe.universe)",
     )
     graph_verify_parser.set_defaults(func=cmd_graph_verify)
 
@@ -1946,7 +1975,7 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_stats_parser.add_argument(
         "--graph",
         "-g",
-        help=f"Path to universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
+        help="Path to universe graph (.universe) (default: data/universe.universe)",
     )
     graph_stats_parser.add_argument(
         "--detailed",

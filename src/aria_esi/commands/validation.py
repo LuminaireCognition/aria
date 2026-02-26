@@ -13,8 +13,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from ..core import get_utc_timestamp
 
 # =============================================================================
@@ -293,6 +291,8 @@ def cmd_validate_sites(args: argparse.Namespace) -> dict:
             "hint": "Create the file at reference/sites/site-compositions.yaml",
             "query_timestamp": query_ts,
         }
+
+    import yaml
 
     # Load YAML data
     try:

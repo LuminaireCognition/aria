@@ -13,12 +13,24 @@ from pathlib import Path
 from typing import Any
 
 from ..core import ESIClient, get_utc_timestamp
-from ..services.planet_cache import (
-    fetch_system_planets_sync,
-    find_planets_for_product,
-    get_planet_cache_service,
-    get_resources_for_planet_type,
-)
+
+
+def _get_planet_cache():
+    """Lazy import planet cache services."""
+    from ..services.planet_cache import (
+        fetch_system_planets_sync,
+        find_planets_for_product,
+        get_planet_cache_service,
+        get_resources_for_planet_type,
+    )
+
+    return (
+        fetch_system_planets_sync,
+        find_planets_for_product,
+        get_planet_cache_service,
+        get_resources_for_planet_type,
+    )
+
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +41,7 @@ def cmd_cache_planets(args: argparse.Namespace) -> dict:
 
     Fetches planet data from ESI for specified systems or regions.
     """
+    fetch_system_planets_sync, _, get_planet_cache_service, _ = _get_planet_cache()
     query_ts = get_utc_timestamp()
     systems = getattr(args, "systems", None) or []
     region = getattr(args, "region", None)
@@ -152,6 +165,7 @@ def cmd_pi_near(args: argparse.Namespace) -> dict:
     Searches cached systems for planets that can produce the specified product.
     Now with distance-aware filtering and sorting.
     """
+    _, find_planets_for_product, get_planet_cache_service, _ = _get_planet_cache()
     query_ts = get_utc_timestamp()
     product = getattr(args, "product", None)
     max_jumps = getattr(args, "jumps", 10)
@@ -300,6 +314,9 @@ def cmd_pi_planets(args: argparse.Namespace) -> dict:
             "message": "System name required",
         }
 
+    fetch_system_planets_sync, _, get_planet_cache_service, get_resources_for_planet_type = (
+        _get_planet_cache()
+    )
     service = get_planet_cache_service()
     planets = service.get_system_planets(system)
 

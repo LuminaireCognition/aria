@@ -190,7 +190,7 @@ class TestNavigationCommands:
         route_args.origin = "Jita"
         route_args.destination = "Jita"
 
-        with patch('aria_esi.commands.navigation.load_universe_graph', return_value=mock_universe):
+        with patch('aria_esi.universe.load_universe_graph', return_value=mock_universe):
             result = cmd_route(route_args)
 
         assert result.get("error") == "same_system"
@@ -202,7 +202,7 @@ class TestNavigationCommands:
         route_args.origin = "NonexistentSystem"
         route_args.destination = "Jita"
 
-        with patch('aria_esi.commands.navigation.load_universe_graph', return_value=mock_universe):
+        with patch('aria_esi.universe.load_universe_graph', return_value=mock_universe):
             result = cmd_route(route_args)
 
         assert result.get("error") == "system_not_found"
@@ -214,7 +214,7 @@ class TestNavigationCommands:
         route_args.origin = "Jita"
         route_args.destination = "Amarr"
 
-        with patch('aria_esi.commands.navigation.load_universe_graph', return_value=mock_universe):
+        with patch('aria_esi.universe.load_universe_graph', return_value=mock_universe):
             result = cmd_route(route_args)
 
         assert "error" not in result
@@ -226,7 +226,7 @@ class TestNavigationCommands:
         from aria_esi.commands.navigation import cmd_route
         from aria_esi.universe import UniverseBuildError
 
-        with patch('aria_esi.commands.navigation.load_universe_graph',
+        with patch('aria_esi.universe.load_universe_graph',
                    side_effect=UniverseBuildError("Graph not found")):
             result = cmd_route(route_args)
 
@@ -767,7 +767,7 @@ class TestCommandConsistency:
         mock_universe = MagicMock()
         mock_universe.resolve_name = MagicMock(return_value=None)
 
-        with patch('aria_esi.commands.navigation.load_universe_graph', return_value=mock_universe):
+        with patch('aria_esi.universe.load_universe_graph', return_value=mock_universe):
             result = cmd_route(route_args)
 
         assert "query_timestamp" in result

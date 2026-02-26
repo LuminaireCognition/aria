@@ -16,8 +16,6 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-import httpx
-
 from ..core import (
     ESIClient,
     ESIError,
@@ -247,7 +245,7 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
     try:
         db = MarketDatabase()
         types_count, aggregates_count = db.import_fuzzwork_csv(csv_data)
-    except (httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError) as e:
+    except (KeyError, ValueError) as e:
         return {
             "error": "import_error",
             "message": f"Failed to import data: {e}",
@@ -285,7 +283,7 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
             if all_names:
                 names_resolved = db.update_type_names(all_names)
 
-    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
+    except (ValueError, Exception) as e:  # noqa: BLE001 -- CLI handler for network errors
         print(f"Warning: Failed to resolve type names: {e}", file=sys.stderr)
 
     db.close()
@@ -454,7 +452,7 @@ def cmd_price_batch(args: argparse.Namespace) -> dict:
     client = create_client(hub_name, station_only=True)
     try:
         aggregates = client.get_aggregates_sync(type_ids)
-    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
+    except (ValueError, Exception) as e:  # noqa: BLE001 -- CLI handler for network errors
         db.close()
         return {
             "error": "fuzzwork_error",

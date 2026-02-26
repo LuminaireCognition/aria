@@ -161,7 +161,7 @@ class TestAssetsSnapshotHistory:
         mock_service.list_snapshots.return_value = []
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
-             patch("aria_esi.commands.assets.get_snapshot_service", return_value=mock_service):
+             patch("aria_esi.services.asset_snapshots.get_snapshot_service", return_value=mock_service):
             result = cmd_assets(args)
 
         assert "snapshots" in result or "error" not in result
@@ -200,11 +200,11 @@ class TestAssetsInsights:
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
              patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client), \
-             patch("aria_esi.commands.assets.generate_insights_summary") as mock_insights, \
-             patch("aria_esi.commands.assets.find_duplicate_ships", return_value=[]), \
-             patch("aria_esi.commands.assets.identify_forgotten_assets", return_value=[]), \
-             patch("aria_esi.commands.assets.suggest_consolidations", return_value=[]), \
-             patch("aria_esi.commands.assets.get_trade_hub_station_ids", return_value=set()):
+             patch("aria_esi.services.asset_insights.generate_insights_summary") as mock_insights, \
+             patch("aria_esi.services.asset_insights.find_duplicate_ships", return_value=[]), \
+             patch("aria_esi.services.asset_insights.identify_forgotten_assets", return_value=[]), \
+             patch("aria_esi.services.asset_insights.suggest_consolidations", return_value=[]), \
+             patch("aria_esi.services.asset_insights.get_trade_hub_station_ids", return_value=set()):
             mock_insights.return_value = {"total_value": 1000000}
             result = cmd_assets(args)
 

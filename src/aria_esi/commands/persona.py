@@ -16,13 +16,10 @@ import re
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from ..core import get_pilot_directory, get_utc_timestamp
 from ..core.path_security import (
     validate_persona_path as validate_safe_path,
 )
-from ..persona.compiler import compile_persona_context, verify_persona_artifact
 
 # =============================================================================
 # Faction-to-Persona Mapping
@@ -181,6 +178,8 @@ def build_persona_context(
     rp_level = RP_LEVEL_MIGRATION.get(rp_level, rp_level)
     if rp_level not in VALID_RP_LEVELS:
         rp_level = "off"
+
+    import yaml
 
     # Handle persona override (manual selection via Persona: field)
     if persona_override:
@@ -417,6 +416,8 @@ def cmd_persona_context(args: argparse.Namespace) -> dict:
             profile_path.write_text(updated_content)
 
             # Compile persona context with untrusted-data wrapping
+            from ..persona.compiler import compile_persona_context
+
             compiled_artifact_path = pilot["path"] / ".persona-context-compiled.json"
             compile_persona_context(
                 persona_context=context,
@@ -466,6 +467,8 @@ def extract_persona_context_from_profile(content: str) -> dict | None:
     match = re.search(pattern, content, re.DOTALL)
     if not match:
         return None
+
+    import yaml
 
     try:
         parsed = yaml.safe_load(match.group(1))
@@ -970,6 +973,8 @@ def cmd_verify_persona_context(args: argparse.Namespace) -> dict:
             "status": "error",
             "message": "No pilot directory found",
         }
+
+    from ..persona.compiler import compile_persona_context, verify_persona_artifact
 
     # Path to compiled artifact
     artifact_path = pilot_dir / ".persona-context-compiled.json"

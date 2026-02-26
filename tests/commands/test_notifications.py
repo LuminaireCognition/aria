@@ -35,7 +35,7 @@ class TestCmdNotificationsList:
             "enabled_count": 1,
         }
 
-        with patch("aria_esi.commands.notifications.get_profiles_summary", return_value=mock_summary):
+        with patch("aria_esi.services.redisq.notifications.get_profiles_summary", return_value=mock_summary):
             result = cmd_notifications_list(args)
 
         assert result["status"] == "ok"
@@ -54,7 +54,7 @@ class TestCmdNotificationsList:
             "enabled_count": 0,
         }
 
-        with patch("aria_esi.commands.notifications.get_profiles_summary", return_value=mock_summary):
+        with patch("aria_esi.services.redisq.notifications.get_profiles_summary", return_value=mock_summary):
             result = cmd_notifications_list(args)
 
         assert result["status"] == "ok"
@@ -75,7 +75,7 @@ class TestCmdNotificationsShow:
 
         args = argparse.Namespace(name="nonexistent")
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.load_profile", side_effect=FileNotFoundError()):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.load_profile", side_effect=FileNotFoundError()):
             result = cmd_notifications_show(args)
 
         assert result["status"] == "error"
@@ -87,7 +87,7 @@ class TestCmdNotificationsShow:
 
         args = argparse.Namespace(name="invalid")
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.load_profile", side_effect=ValueError("Invalid YAML")):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.load_profile", side_effect=ValueError("Invalid YAML")):
             result = cmd_notifications_show(args)
 
         assert result["status"] == "error"
@@ -120,7 +120,7 @@ class TestCmdNotificationsShow:
         mock_profile.quiet_hours.timezone = "UTC"
         mock_profile.commentary = None
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.load_profile", return_value=mock_profile):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.load_profile", return_value=mock_profile):
             result = cmd_notifications_show(args)
 
         assert result["status"] == "ok"
@@ -164,7 +164,7 @@ class TestCmdNotificationsCreate:
             persona=None,
         )
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.profile_exists", return_value=True):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.profile_exists", return_value=True):
             result = cmd_notifications_create(args)
 
         assert result["status"] == "error"
@@ -181,8 +181,8 @@ class TestCmdNotificationsCreate:
             persona=None,
         )
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.profile_exists", return_value=False), \
-             patch("aria_esi.commands.notifications.ProfileLoader.list_templates", return_value=["basic", "market-hubs"]):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.profile_exists", return_value=False), \
+             patch("aria_esi.services.redisq.notifications.ProfileLoader.list_templates", return_value=["basic", "market-hubs"]):
             result = cmd_notifications_create(args)
 
         assert result["status"] == "error"
@@ -203,7 +203,7 @@ class TestCmdNotificationsTest:
 
         args = argparse.Namespace(name="nonexistent")
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.load_profile", side_effect=FileNotFoundError()):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.load_profile", side_effect=FileNotFoundError()):
             result = cmd_notifications_test(args)
 
         assert result["status"] == "error"
@@ -223,7 +223,7 @@ class TestCmdNotificationsTest:
         mock_profile.display_name = "Test Profile"
 
         # The test will fail HTTP call but profile should be found
-        with patch("aria_esi.commands.notifications.ProfileLoader.load_profile", return_value=mock_profile):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.load_profile", return_value=mock_profile):
             result = cmd_notifications_test(args)
 
         # Status can be ok or error depending on HTTP success, but profile was found
@@ -245,7 +245,7 @@ class TestCmdNotificationsValidate:
 
         args = argparse.Namespace()
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.list_profiles", return_value=[]):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.list_profiles", return_value=[]):
             result = cmd_notifications_validate(args)
 
         assert result["status"] == "ok"
@@ -267,9 +267,9 @@ class TestCmdNotificationsValidate:
         mock_profile.has_topology = False
         mock_profile.topology = {}
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.list_profiles", return_value=["valid-profile"]), \
-             patch("aria_esi.commands.notifications.ProfileLoader.load_profile", return_value=mock_profile), \
-             patch("aria_esi.commands.notifications.ProfileLoader.validate_profile", return_value=[]):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.list_profiles", return_value=["valid-profile"]), \
+             patch("aria_esi.services.redisq.notifications.ProfileLoader.load_profile", return_value=mock_profile), \
+             patch("aria_esi.services.redisq.notifications.ProfileLoader.validate_profile", return_value=[]):
             result = cmd_notifications_validate(args)
 
         assert result["status"] == "ok" or result["all_valid"] is True
@@ -280,8 +280,8 @@ class TestCmdNotificationsValidate:
 
         args = argparse.Namespace()
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.list_profiles", return_value=["broken-profile"]), \
-             patch("aria_esi.commands.notifications.ProfileLoader.load_profile", side_effect=ValueError("Invalid schema")):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.list_profiles", return_value=["broken-profile"]), \
+             patch("aria_esi.services.redisq.notifications.ProfileLoader.load_profile", side_effect=ValueError("Invalid schema")):
             result = cmd_notifications_validate(args)
 
         # Should report validation errors in results
@@ -307,7 +307,7 @@ class TestCmdNotificationsTemplates:
             {"name": "market-hubs", "description": "Market hub monitoring"},
         ]
 
-        with patch("aria_esi.commands.notifications.ProfileLoader.list_templates", return_value=mock_templates):
+        with patch("aria_esi.services.redisq.notifications.ProfileLoader.list_templates", return_value=mock_templates):
             result = cmd_notifications_templates(args)
 
         assert result["status"] == "ok"
