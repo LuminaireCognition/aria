@@ -20,7 +20,7 @@ Tests the individual action implementations in the universe dispatcher:
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -583,12 +583,11 @@ class TestOptimizeWaypointsAction:
 class TestActivityAction:
     """Tests for universe activity action."""
 
-    def test_activity_basic(self, universe_dispatcher, mock_activity_cache):
+    def test_activity_basic(self, universe_dispatcher):
         """Basic activity lookup."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="activity", systems=["Jita"])
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="activity", systems=["Jita"])
+        )
 
         assert "systems" in result
 
@@ -605,21 +604,19 @@ class TestActivityAction:
             30000142: {"ship_kills": 5, "pod_kills": 2},  # Jita
             30000144: {"ship_kills": 1, "pod_kills": 0},  # Perimeter
         }
-        mock_cache = mock_activity_with_data(activity_data)
+        mock_activity_with_data(activity_data)
 
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="activity", systems=["Jita", "Perimeter"])
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="activity", systems=["Jita", "Perimeter"])
+        )
 
         assert len(result["systems"]) == 2
 
-    def test_activity_includes_cache_age(self, universe_dispatcher, mock_activity_cache):
+    def test_activity_includes_cache_age(self, universe_dispatcher):
         """Activity result includes cache age."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="activity", systems=["Jita"])
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="activity", systems=["Jita"])
+        )
 
         assert "cache_age_seconds" in result
 
@@ -632,12 +629,11 @@ class TestActivityAction:
 class TestHotspotsAction:
     """Tests for universe hotspots action."""
 
-    def test_hotspots_basic(self, universe_dispatcher, mock_activity_cache):
+    def test_hotspots_basic(self, universe_dispatcher):
         """Basic hotspots search."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="hotspots", origin="Jita")
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="hotspots", origin="Jita")
+        )
 
         assert "origin" in result
         assert "hotspots" in result
@@ -649,29 +645,27 @@ class TestHotspotsAction:
 
         assert "origin" in str(exc.value).lower()
 
-    def test_hotspots_activity_type_kills(self, universe_dispatcher, mock_activity_cache):
+    def test_hotspots_activity_type_kills(self, universe_dispatcher):
         """Hotspots filtered by kills."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(
-                    action="hotspots",
-                    origin="Jita",
-                    activity_type="kills"
-                )
+        result = asyncio.run(
+            universe_dispatcher(
+                action="hotspots",
+                origin="Jita",
+                activity_type="kills"
             )
+        )
 
         assert result["activity_type"] == "kills"
 
-    def test_hotspots_activity_type_jumps(self, universe_dispatcher, mock_activity_cache):
+    def test_hotspots_activity_type_jumps(self, universe_dispatcher):
         """Hotspots filtered by jumps."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(
-                    action="hotspots",
-                    origin="Jita",
-                    activity_type="jumps"
-                )
+        result = asyncio.run(
+            universe_dispatcher(
+                action="hotspots",
+                origin="Jita",
+                activity_type="jumps"
             )
+        )
 
         assert result["activity_type"] == "jumps"
 
@@ -697,29 +691,27 @@ class TestHotspotsAction:
 class TestGatecampRiskAction:
     """Tests for universe gatecamp_risk action."""
 
-    def test_gatecamp_risk_with_route(self, universe_dispatcher, mock_activity_cache):
+    def test_gatecamp_risk_with_route(self, universe_dispatcher):
         """Gatecamp risk for explicit route."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(
-                    action="gatecamp_risk",
-                    route=["Jita", "Maurasi", "Sivala"]
-                )
+        result = asyncio.run(
+            universe_dispatcher(
+                action="gatecamp_risk",
+                route=["Jita", "Maurasi", "Sivala"]
             )
+        )
 
         assert "overall_risk" in result
         assert "chokepoints" in result
 
-    def test_gatecamp_risk_with_origin_destination(self, universe_dispatcher, mock_activity_cache):
+    def test_gatecamp_risk_with_origin_destination(self, universe_dispatcher):
         """Gatecamp risk calculated from origin/destination."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(
-                    action="gatecamp_risk",
-                    origin="Jita",
-                    destination="Sivala"
-                )
+        result = asyncio.run(
+            universe_dispatcher(
+                action="gatecamp_risk",
+                origin="Jita",
+                destination="Sivala"
             )
+        )
 
         assert "overall_risk" in result
 
@@ -730,15 +722,14 @@ class TestGatecampRiskAction:
 
         assert "route" in str(exc.value).lower() or "origin" in str(exc.value).lower()
 
-    def test_gatecamp_risk_includes_recommendation(self, universe_dispatcher, mock_activity_cache):
+    def test_gatecamp_risk_includes_recommendation(self, universe_dispatcher):
         """Gatecamp risk includes recommendation."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(
-                    action="gatecamp_risk",
-                    route=["Jita", "Perimeter"]
-                )
+        result = asyncio.run(
+            universe_dispatcher(
+                action="gatecamp_risk",
+                route=["Jita", "Perimeter"]
             )
+        )
 
         assert "recommendation" in result
 
@@ -751,23 +742,21 @@ class TestGatecampRiskAction:
 class TestFWFrontlinesAction:
     """Tests for universe fw_frontlines action."""
 
-    def test_fw_frontlines_basic(self, universe_dispatcher, mock_activity_cache):
+    def test_fw_frontlines_basic(self, universe_dispatcher):
         """Basic FW frontlines query."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="fw_frontlines")
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="fw_frontlines")
+        )
 
         assert "contested" in result
         assert "vulnerable" in result
         assert "stable" in result
 
-    def test_fw_frontlines_with_faction_filter(self, universe_dispatcher, mock_activity_cache):
+    def test_fw_frontlines_with_faction_filter(self, universe_dispatcher):
         """FW frontlines filtered by faction."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="fw_frontlines", faction="caldari")
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="fw_frontlines", faction="caldari")
+        )
 
         assert "faction_filter" in result
 
@@ -789,12 +778,11 @@ class TestFWFrontlinesAction:
 class TestLocalAreaAction:
     """Tests for universe local_area action."""
 
-    def test_local_area_basic(self, universe_dispatcher, mock_activity_cache):
+    def test_local_area_basic(self, universe_dispatcher):
         """Basic local area query."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="local_area", origin="Jita")
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="local_area", origin="Jita")
+        )
 
         assert "origin" in result
         assert "threat_summary" in result
@@ -806,43 +794,39 @@ class TestLocalAreaAction:
 
         assert "origin" in str(exc.value).lower()
 
-    def test_local_area_includes_hotspots(self, universe_dispatcher, mock_activity_cache):
+    def test_local_area_includes_hotspots(self, universe_dispatcher):
         """Local area includes hotspots."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="local_area", origin="Jita")
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="local_area", origin="Jita")
+        )
 
         assert "hotspots" in result
 
-    def test_local_area_includes_quiet_zones(self, universe_dispatcher, mock_activity_cache):
+    def test_local_area_includes_quiet_zones(self, universe_dispatcher):
         """Local area includes quiet zones."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="local_area", origin="Jita")
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="local_area", origin="Jita")
+        )
 
         assert "quiet_zones" in result
 
-    def test_local_area_includes_escape_routes(self, universe_dispatcher, mock_activity_cache):
+    def test_local_area_includes_escape_routes(self, universe_dispatcher):
         """Local area includes escape routes."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(action="local_area", origin="Sivala")
-            )
+        result = asyncio.run(
+            universe_dispatcher(action="local_area", origin="Sivala")
+        )
 
         assert "escape_routes" in result
 
-    def test_local_area_with_max_jumps(self, universe_dispatcher, mock_activity_cache):
+    def test_local_area_with_max_jumps(self, universe_dispatcher):
         """Local area respects max_jumps."""
-        with patch("aria_esi.store.activity.get_activity_cache", return_value=mock_activity_cache):
-            result = asyncio.run(
-                universe_dispatcher(
-                    action="local_area",
-                    origin="Jita",
-                    max_jumps=3
-                )
+        result = asyncio.run(
+            universe_dispatcher(
+                action="local_area",
+                origin="Jita",
+                max_jumps=3
             )
+        )
 
         assert result["search_radius"] == 3
 
@@ -974,17 +958,13 @@ class TestRouteFWWarnings:
         }
         mock_activity_cache.get_all_fw = AsyncMock(return_value=fw_data)
 
-        with (
-            patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache", return_value=mock_activity_cache),
-            patch("aria_esi.mcp.dispatchers.universe._helpers_route.get_activity_cache", return_value=mock_activity_cache),
-        ):
-            result = asyncio.run(
-                universe_dispatcher(
-                    action="route",
-                    origin="Maurasi",
-                    destination="Ala",
-                )
+        result = asyncio.run(
+            universe_dispatcher(
+                action="route",
+                origin="Maurasi",
+                destination="Ala",
             )
+        )
 
         warnings = result.get("warnings", [])
         fw_warnings = [w for w in warnings if "Faction Warfare" in w or "FW" in w]
@@ -995,17 +975,13 @@ class TestRouteFWWarnings:
         """Route not through FW systems has no FW warnings."""
         mock_activity_cache.get_all_fw = AsyncMock(return_value={})
 
-        with (
-            patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache", return_value=mock_activity_cache),
-            patch("aria_esi.mcp.dispatchers.universe._helpers_route.get_activity_cache", return_value=mock_activity_cache),
-        ):
-            result = asyncio.run(
-                universe_dispatcher(
-                    action="route",
-                    origin="Jita",
-                    destination="Perimeter",
-                )
+        result = asyncio.run(
+            universe_dispatcher(
+                action="route",
+                origin="Jita",
+                destination="Perimeter",
             )
+        )
 
         warnings = result.get("warnings", [])
         fw_warnings = [w for w in warnings if "Faction Warfare" in w or "FW" in w]

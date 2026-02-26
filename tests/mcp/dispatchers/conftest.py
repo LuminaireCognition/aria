@@ -144,13 +144,23 @@ def status_tool():
 # Activity Cache Mock Fixtures
 # =============================================================================
 
+# The two correct patch targets for get_activity_cache (top-level imports):
+_ACTIVITY_CACHE_PATCH_INTEL = (
+    "aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache"
+)
+_ACTIVITY_CACHE_PATCH_ROUTE = (
+    "aria_esi.mcp.dispatchers.universe._helpers_route.get_activity_cache"
+)
 
-@pytest.fixture
-def mock_activity_cache():
+
+@pytest.fixture(autouse=True)
+def _auto_mock_activity_cache():
     """
-    Create a mock activity cache with configurable data.
+    Autouse fixture that patches get_activity_cache at both correct import locations.
 
-    Returns a mock that can be patched into get_activity_cache().
+    This prevents any real ESI calls from universe dispatcher tests.
+    Tests that need to customize the cache should use mock_activity_cache
+    or mock_activity_with_data fixtures.
     """
     cache = MagicMock()
 
@@ -171,26 +181,29 @@ def mock_activity_cache():
     cache.get_all_activity = AsyncMock(return_value={})
     cache.get_all_fw = AsyncMock(return_value={})
 
-    return cache
+    with (
+        patch(_ACTIVITY_CACHE_PATCH_INTEL, return_value=cache),
+        patch(_ACTIVITY_CACHE_PATCH_ROUTE, return_value=cache),
+    ):
+        yield cache
 
 
 @pytest.fixture
-def mock_activity_with_data():
+def mock_activity_cache(_auto_mock_activity_cache):
+    """Return the shared autouse activity cache mock for explicit use in tests."""
+    return _auto_mock_activity_cache
+
+
+@pytest.fixture
+def mock_activity_with_data(_auto_mock_activity_cache):
     """
-    Create a mock activity cache factory with preset activity data.
+    Factory that configures the shared autouse activity cache with preset data.
 
-    Returns a factory function that creates mocks with specified activity levels.
+    Returns a callable that reconfigures the existing mock in-place.
     """
 
-    def _create_cache(activity_map: dict[int, dict]) -> MagicMock:
-        """
-        Create mock cache with specific activity data.
-
-        Args:
-            activity_map: Dict mapping system_id to activity dict
-                         e.g., {30000142: {"ship_kills": 5, "pod_kills": 2}}
-        """
-        cache = MagicMock()
+    def _configure(activity_map: dict[int, dict]) -> MagicMock:
+        cache = _auto_mock_activity_cache
 
         async def get_activity(system_id: int) -> ActivityData:
             data = activity_map.get(system_id, {})
@@ -221,7 +234,7 @@ def mock_activity_with_data():
 
         return cache
 
-    return _create_cache
+    return _configure
 
 
 # =============================================================================
