@@ -478,9 +478,9 @@ run_esi_sync() {
     # This updates ships.md, blueprints.md, and .esi-sync.json
     if [ -n "$ACTIVE_PILOT_ID" ]; then
         local creds_file="$CREDENTIALS_DIR/$ACTIVE_PILOT_ID.json"
-        if [ -f "$creds_file" ] && [ -x "$PROJECT_DIR/scripts/aria-esi-sync.py" ]; then
+        if [ -f "$creds_file" ]; then
             # Run in background with nohup to survive shell exit
-            (nohup uv run --quiet python "$PROJECT_DIR/scripts/aria-esi-sync.py" --quick --quiet >/dev/null 2>&1 &)
+            (nohup uv run --quiet aria-esi esi-sync --quick --quiet >/dev/null 2>&1 &)
         fi
 
         # Non-blocking standings refresh (background)

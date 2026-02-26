@@ -450,6 +450,7 @@ def build_parser() -> argparse.ArgumentParser:
         "universe",
         "persona",
         "sync_profile",
+        "sync_esi",
         "sde",
         "validation",
         "fitting",

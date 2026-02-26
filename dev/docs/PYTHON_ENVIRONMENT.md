@@ -118,7 +118,7 @@ For standalone scripts in `.claude/scripts/`:
 uv run python .claude/scripts/aria-oauth-setup.py
 
 # ESI sync
-uv run python .claude/scripts/aria-esi-sync.py
+uv run aria-esi esi-sync
 
 # Token refresh
 uv run python .claude/scripts/aria-token-refresh.py

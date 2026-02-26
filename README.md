@@ -296,8 +296,8 @@ uv sync --dev
 # Run tests
 uv run pytest
 
-# Run a script
-uv run python .claude/scripts/aria-esi-sync.py
+# Run ESI sync
+uv run aria-esi esi-sync
 ```
 
 ---
