@@ -341,37 +341,6 @@ uv run aria-esi notifications validate
 
 **Full documentation:** `docs/NOTIFICATION_PROFILES.md`
 
-## Route Display Standard
-
-When displaying route tables, use this standard column format:
-
-| System | Sec | Ships | Pods | Jumps | Notes |
-|--------|-----|------:|-----:|------:|-------|
-| Uedama | 0.50 | 3 | 2 | 913 | ⚠️ Gank pipe |
-
-**Column definitions:**
-
-| Column | Source | Description |
-|--------|--------|-------------|
-| System | `universe(action="route")` | System name |
-| Sec | `universe(action="route")` | Security status (2 decimal places) |
-| Ships | `universe(action="activity")` | Ship kills (last hour) |
-| Pods | `universe(action="activity")` | Pod kills (last hour) |
-| Jumps | `universe(action="activity")` | Ship jumps (last hour, traffic indicator) |
-| Notes | Derived | Border status, gank warnings, chokepoints |
-
-**When to include activity data:**
-- Route queries: Always fetch via `universe(action="activity")` for the route systems
-- System lookups: Include when tactical context is relevant
-- Loop planning: Include for border systems
-
-**Notes column content:**
-- Border systems: "Border system" or adjacent low-sec names
-- Known gank systems (Uedama, Niarja): "⚠️ Gank pipe"
-- Security transitions: "Entry to low-sec"
-- High traffic (>1000 jumps): "High traffic"
-- Starter/trade hubs: "Trade hub", "Starter system"
-
 ## Data Volatility
 
 **Never proactively mention volatile data** (location, wallet, current ship). Only reference when explicitly requested via `/esi-query`.
