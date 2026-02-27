@@ -2,7 +2,7 @@
 # ═══════════════════════════════════════════════════════════════════
 # ARIA Boot Module: Boot Operations
 # ═══════════════════════════════════════════════════════════════════
-# Handles validation, ESI sync, context assembly, and skill index operations.
+# Handles validation, ESI sync, and context assembly operations.
 #
 # Exports:
 #   - VALIDATION_OUTPUT, CONFIG_STATUS
@@ -15,7 +15,7 @@
 #   - run_validation() - Validate pilot configuration
 #   - run_esi_sync() - Trigger ESI data sync
 #   - run_context_assembly() - Assemble session context
-#   - run_skill_index_update() - Regenerate skill index (background)
+
 #
 # Requires:
 #   - PROJECT_DIR, CLAUDE_PROJECT_DIR (set by main boot script)
@@ -492,19 +492,6 @@ run_esi_sync() {
 }
 
 # ───────────────────────────────────────────────────────────────────
-# Skill Index Regeneration
-# ───────────────────────────────────────────────────────────────────
-
-run_skill_index_update() {
-    # Regenerate skill index to pick up any changes to SKILL.md files
-    # Runs in background - non-blocking for boot
-    local index_script="$PROJECT_DIR/scripts/aria-skill-index.py"
-    if [ -f "$index_script" ]; then
-        (nohup uv run --quiet python "$index_script" >/dev/null 2>&1 &)
-    fi
-}
-
-# ───────────────────────────────────────────────────────────────────
 # Session Context Assembly
 # ───────────────────────────────────────────────────────────────────
 
@@ -559,7 +546,6 @@ run_boot_operations_parallel() {
 
     # Start background operations (non-blocking)
     run_esi_sync
-    run_skill_index_update
 
     # Run config validation and context assembly in parallel
     # Use a subshell and wait to run both concurrently
