@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_by": "aria-skill-index.py",
-  "skill_count": 48,
+  "skill_count": 49,
   "skills": [
     {
       "name": "abyssal",
@@ -67,6 +67,26 @@
       "directory": "arbitrage",
       "prerequisite_files": [],
       "data_sources": [],
+      "external_sources": [],
+      "esi_scopes": []
+    },
+    {
+      "name": "aria-review",
+      "description": "Run standardized review prompts against skills, codebases, and other targets. Use when the user wants to audit, review, or analyze a skill or code directory using a named review template. Supports individual targets and ALL for batch execution.",
+      "model": "sonnet",
+      "category": "system",
+      "triggers": [
+        "/aria-review",
+        "review skill",
+        "audit skill",
+        "run skill review",
+        "review all skills"
+      ],
+      "requires_pilot": false,
+      "data_sources": [],
+      "path": ".claude/skills/aria-review/SKILL.md",
+      "directory": "aria-review",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -1231,6 +1251,7 @@
       "pi"
     ],
     "system": [
+      "aria-review",
       "esi-query",
       "first-run-setup",
       "help"
@@ -1276,6 +1297,11 @@
     "what can i haul for profit": "arbitrage",
     "cross-region trading": "arbitrage",
     "price gaps between hubs": "arbitrage",
+    "/aria-review": "aria-review",
+    "review skill": "aria-review",
+    "audit skill": "aria-review",
+    "run skill review": "aria-review",
+    "review all skills": "aria-review",
     "/aria-status": "aria-status",
     "status report": "aria-status",
     "sitrep": "aria-status",
