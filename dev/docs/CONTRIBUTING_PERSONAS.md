@@ -186,7 +186,7 @@ Skills that only exist for your persona.
 
 1. Create the full skill in `personas/{name}-exclusive/{skill-name}.md`
 2. Create a redirect stub in `.claude/skills/{skill-name}/SKILL.md`
-3. Register with `uv run python .claude/scripts/aria-skill-index.py`
+3. Register by adding an entry to `.claude/skills/_index.json`
 
 See [CONTRIBUTING_SKILLS.md](CONTRIBUTING_SKILLS.md) for the complete exclusive skill workflow.
 

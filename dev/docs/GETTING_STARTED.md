@@ -76,8 +76,7 @@ For the full architecture overview, see [docs/ARCHITECTURE.md](../../docs/ARCHIT
 # Type checking
 uv run mypy .
 
-# Regenerate skill index after modifying SKILL.md frontmatter
-uv run python .claude/scripts/aria-skill-index.py
+# Skill index is hand-maintained — edit .claude/skills/_index.json directly
 
 # Validate skill dependencies
 uv run python .claude/scripts/aria-skill-preflight.py --all

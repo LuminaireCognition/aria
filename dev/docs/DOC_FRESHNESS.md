@@ -34,11 +34,15 @@ uv run python .claude/scripts/generate-commands-md.py
 
 ### 3. Skill Index Consistency
 
+Verify that `_index.json` matches the actual skill directories on disk:
+
 ```bash
-uv run python .claude/scripts/aria-skill-index.py --check
+# Every directory in .claude/skills/ (except _shared) should have an _index.json entry
+diff <(ls -d .claude/skills/*/SKILL.md | sed 's|.*/skills/||;s|/.*||' | sort) \
+     <(python -c "import json; [print(s['directory']) for s in json.load(open('.claude/skills/_index.json'))['skills']]" | sort)
 ```
 
-Verifies that `_index.json` matches the actual skill directories on disk.
+The index is hand-maintained — if a skill is missing, add it manually.
 
 ### 4. Stale Terminology
 

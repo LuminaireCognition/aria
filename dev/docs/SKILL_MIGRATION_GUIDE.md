@@ -157,4 +157,4 @@ Skills under ~2,000 tokens are unlikely to have significant redundancy. Focus on
 - **Frontmatter** — triggers, prerequisite_files, data_sources, model, category. These are consumed by tooling.
 - **Persona overlays** — review separately; they have their own sync concerns.
 - **Response format templates** — these are the core unique value of each skill. Compress prose around them, not the templates themselves.
-- **_index.json** — auto-generated. Run `uv run python .claude/scripts/aria-skill-index.py` if frontmatter changes.
+- **_index.json** — hand-maintained. Update the entry manually if frontmatter changes.

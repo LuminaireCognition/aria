@@ -6,7 +6,7 @@ Step-by-step guide for creating a new ARIA skill (slash command).
 
 1. Create directory: `.claude/skills/{name}/`
 2. Create `SKILL.md` with YAML frontmatter and skill body
-3. Register: `uv run python .claude/scripts/aria-skill-index.py`
+3. Register: add an entry to `.claude/skills/_index.json` (hand-maintained)
 4. Validate: `uv run python .claude/scripts/aria-skill-preflight.py {name}`
 5. Test by invoking `/{name}` in a Claude Code session
 
@@ -129,13 +129,7 @@ For full overlay mechanics, see [skill-loading.md](../../personas/_shared/skill-
 
 ## Registering Your Skill
 
-After creating the skill files, regenerate the index:
-
-```bash
-uv run python .claude/scripts/aria-skill-index.py
-```
-
-This reads all `SKILL.md` files and produces `.claude/skills/_index.json` — the machine-readable skill registry used by the `/help` command and skill discovery.
+After creating the skill files, add an entry to `.claude/skills/_index.json` — the machine-readable skill registry used by the `/help` command and skill discovery. Copy an existing entry and update the fields to match your skill's frontmatter.
 
 ## Preflight Validation
 
