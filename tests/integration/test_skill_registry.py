@@ -24,10 +24,10 @@ def sde_is_seeded() -> bool:
     try:
         db = get_market_database()
         conn = db._get_connection()
-        cursor = conn.execute("SELECT COUNT(*) FROM types WHERE published = 1")
+        cursor = conn.execute("SELECT COUNT(*) FROM types")
         count = cursor.fetchone()[0]
         return count > 1000
-    except (OSError, RuntimeError):
+    except Exception:
         return False
 
 
