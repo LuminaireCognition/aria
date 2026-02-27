@@ -3,6 +3,9 @@ name: skill-review
 description: End-to-end audit of a Claude Code skill with grounding discipline focus
 target_type: skill
 target_required: true
+references:
+  - dev/decisions/ADR-006-skill-context-ownership.md
+  - dev/docs/SKILL_MIGRATION_GUIDE.md
 variables:
   SKILL_PATH:
     description: Absolute or relative path to the skill directory
@@ -76,8 +79,15 @@ If the skill does not use MCP, note this and reframe the axis around its actual 
 
 ### Dead Weight and Noise
 
-Actively look for content that should be removed or consolidated:
+Apply the ownership rules and named patterns (A–G) from the loaded references. Actively look for content that should be removed or consolidated:
 
+- **(A)** Inlined reference data that duplicates declared `prerequisite_files`
+- **(B)** Duplicated CLAUDE.md behaviors (pilot resolution, persona loading, MCP usage)
+- **(C)** Skill-specific protocols stranded in CLAUDE.md (flag for move-in)
+- **(D)** "Why X?" justification prose adjacent to protocols
+- **(E)** ASCII flowcharts convertible to numbered lists
+- **(F)** Checkbox-style checklists convertible to imperative steps
+- **(G)** Duplicate sections within the same file
 - Dead code paths (unreachable branches, commented-out blocks, unused helpers)
 - Redundant instructions that say the same thing in different ways
 - Defensive prompt language addressing failure modes that can't actually occur

@@ -41,11 +41,15 @@ Read `.claude/skills/aria-review/catalog.md`. Find the entry matching `prompt-na
 
 Load the template file from the catalog entry's **Template** path (relative to this skill's directory, e.g., `.claude/skills/aria-review/prompts/skill-review.md`). Parse the YAML front-matter to understand the variable contract.
 
-### Step 4 — Read shared conventions
+### Step 4 — Load references
+
+If the template front-matter contains a `references` list, read each file before proceeding. These provide the evaluation framework (e.g., ADR decisions, migration guides) that the template's criteria are built against. Treat them as read-only context — do not modify.
+
+### Step 5 — Read shared conventions
 
 Load `.claude/skills/aria-review/lib/conventions.md` for persistence rules and output standards that apply to all reviews.
 
-### Step 5 — Resolve variables
+### Step 6 — Resolve variables
 
 Process each variable declared in the template's front-matter, in dependency order:
 
@@ -57,7 +61,7 @@ Process each variable declared in the template's front-matter, in dependency ord
 
 Resolution order: `argument` variables first, then `resolve` in declared order, then `static`.
 
-### Step 6 — Handle ALL
+### Step 7 — Handle ALL
 
 If `target` is `ALL`:
 
@@ -67,7 +71,7 @@ If `target` is `ALL`:
 4. Execute the template once per target, each writing to its own file within the shared `REVIEW_DIR`.
 5. After all reviews complete, write `${REVIEW_DIR}/index.md` summarizing all findings.
 
-### Step 7 — Execute
+### Step 8 — Execute
 
 Follow the fully rendered prompt. Write results to the paths specified by the resolved variables.
 
