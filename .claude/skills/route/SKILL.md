@@ -16,19 +16,6 @@ requires_pilot: false
 
 # ARIA Route Planning Module
 
-## Purpose
-Calculate optimal routes between solar systems with security preferences. Uses ESI route endpoint (public, no auth required) to provide navigation intelligence.
-
-## Trigger Phrases
-- "/route"
-- "route from [origin] to [destination]"
-- "how do I get to [system]"
-- "path to [system]"
-- "navigate to [system]"
-- "safest route to [system]"
-- "shortest route to [system]"
-- "plot course to [system]"
-
 ## Command Syntax
 
 ```
@@ -50,50 +37,6 @@ Calculate optimal routes between solar systems with security preferences. Uses E
 | `--safe` | `secure` | Prefer high-sec routes, avoid low/null even if longer |
 | `--shortest` | `shortest` | Shortest path regardless of security (default) |
 | `--risky` | `insecure` | Prefer low-sec/null routes (faster through dangerous space) |
-
-## Data Sources (Fallback Chain)
-
-Route data can be obtained from multiple sources. Use in order of preference:
-
-### 1. MCP Tools (preferred if available)
-
-If the `aria-universe` MCP server is connected, use the `universe_route` tool:
-
-```
-universe_route(origin="Jita", destination="Amarr", mode="safe")
-```
-
-**Advantages:** Sub-millisecond response, security analysis included, system avoidance support.
-
-### 2. CLI Commands (fallback)
-
-If MCP tools are not available, use the `aria-esi route` CLI:
-
-```bash
-uv run aria-esi route Jita Amarr --safe
-```
-
-### 3. ESI Endpoint (last resort)
-
-For cases where local graph is unavailable:
-
-**Endpoint:** `GET /route/{origin}/{destination}/`
-**Authentication:** None required (public endpoint)
-**Cache:** 86400 seconds (24 hours)
-
-### Parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `origin` | integer | Origin solar system ID |
-| `destination` | integer | Destination solar system ID |
-| `flag` | string | Route preference: `shortest`, `secure`, `insecure` |
-| `avoid` | array | System IDs to avoid (max 100) |
-| `connections` | array | Additional connections to consider |
-
-### Response
-
-Returns array of solar system IDs representing the route, in order from origin to destination.
 
 ## Activity Data Integration
 
@@ -151,16 +94,6 @@ Format: `(kills in last 10 min, confidence level)`
 **When to Escalate Warnings:**
 - If any system has an active gatecamp, add a warning block at the top of the route response
 - Include suggested alternatives if the camped system is avoidable
-
-## System Name Resolution
-
-Users provide system names, not IDs. Resolution workflow:
-
-1. **Name to ID:** `POST /universe/ids/` with `["System Name"]`
-   - Returns: `{"systems": [{"id": 30000142, "name": "Jita"}]}`
-
-2. **ID to Info:** `GET /universe/systems/{id}/`
-   - Returns: System name, security status, constellation, region
 
 ## Response Format
 

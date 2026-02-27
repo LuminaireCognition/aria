@@ -25,18 +25,6 @@ data_sources:
 
 # ARIA Fitting Module
 
-## Purpose
-Provide ship fitting recommendations, export fittings in proper EFT format, analyze fitting performance, and suggest module alternatives appropriate to the capsuleer's faction and operational constraints.
-
-## Trigger Phrases
-- "fit my [ship]"
-- "export fitting"
-- "EFT format"
-- "fitting recommendations"
-- "tank analysis"
-- "survival fit"
-- "what modules for [ship]"
-
 ## Prerequisites (Load Before Building Fits)
 
 **MANDATORY:** Before constructing ANY EFT string, load these files:
@@ -54,15 +42,6 @@ These files MUST be loaded before the first `fitting(action="calculate_stats")` 
 - EFT format specification: [EFT-FORMAT.md](EFT-FORMAT.md)
 - Module naming issues: [MODULE_NAMES.md](../../../reference/fittings/MODULE_NAMES.md)
 - Fitting checklist: [CHECKLIST.md](CHECKLIST.md)
-
-## Pilot Resolution (First Step)
-
-Before accessing pilot files, resolve the active pilot path:
-1. Read `userdata/config.json` → get `active_pilot` character ID
-2. Read `userdata/pilots/_registry.json` → match ID to `directory` field
-3. Use that directory for all pilot paths below
-
-**Single-pilot shortcut:** If config is missing, read the registry - if only one pilot exists, use that pilot's directory.
 
 ## Building Fits
 
@@ -124,13 +103,6 @@ Ammo/charge lines (e.g., `Scourge Heavy Missile x1000`) in EFT format may be mis
 ## Fit Validation Protocol (MANDATORY)
 
 **CRITICAL:** Never present a fitting recommendation without EOS validation.
-
-### Why Validation is Required
-
-1. **Training data is not ground truth** - Module names and slot assignments from memory may be wrong
-2. **Many modules have non-standard names** - "Reactive Armor Hardener" (no "I" suffix), size-prefixed MWDs, etc.
-3. **Slot assignments must be verified** - Data Analyzer goes in mid slots, not high slots
-4. **Stats must be calculated, not estimated** - DPS, EHP, and cap stability depend on pilot skills
 
 ### Validation Steps
 
@@ -302,12 +274,7 @@ When exporting fittings, always provide:
 | Low | Damage Control, Damage Mods, Application mods | Armor Repairer, Armor Hardeners |
 | Rig | Core Defense Field Extender, Screen Reinforcer | Armor rigs |
 
-**Why This Matters:**
-- Shield modules become useless once shields are stripped (armor-tanked ships lose shields fast)
-- Armor rigs commit the ship to armor tanking—don't waste mid slots on shield
-- Damage Control is the one exception (provides hull resist, used in all tanks)
-
-**The tool now detects:**
+**The tool detects:**
 - Armor rigs + shield modules → warning
 - Shield rigs + armor modules → warning
 - Both active tank types → warning

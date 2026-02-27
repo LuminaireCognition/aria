@@ -16,10 +16,6 @@ esi_scopes:
 
 # ARIA Contracts Module
 
-## Purpose
-
-Monitor personal contracts in EVE Online. View item exchanges, courier contracts, and auctions that you've issued or received. Essential for tracking trades, deliveries, and transactions outside the market system.
-
 ## CRITICAL: Read-Only Limitation
 
 **ESI contract endpoints are READ-ONLY.** ARIA can:
@@ -37,15 +33,6 @@ Monitor personal contracts in EVE Online. View item exchanges, courier contracts
 - Interact with the EVE client in any way
 
 **Always clarify this when showing contract data.** If contracts need action, explicitly state this requires in-game action.
-
-## Why This Matters
-
-For self-sufficient pilots, contracts are often essential:
-- **Item Exchange:** Trade items outside the market (faction gear from LP stores, etc.)
-- **Courier:** Move goods between stations without market fees
-- **Auction:** Sell unique or valuable items to the highest bidder
-
-Without market trading, contracts become a key transaction method.
 
 ## Contract Types
 
@@ -70,18 +57,6 @@ Without market trading, contracts become a key transaction method.
 | `failed` | Courier failed (expired/items lost) |
 | `deleted` | Removed from system |
 | `reversed` | Transaction reversed |
-
-## Trigger Phrases
-
-- `/contracts`
-- "my contracts"
-- "show contracts"
-- "contract status"
-- "check contracts"
-- "pending contracts"
-- "courier contracts"
-- "auction status"
-- "what contracts do I have"
 
 ## ESI Requirement
 

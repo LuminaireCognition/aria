@@ -29,26 +29,6 @@ external_sources: []
 
 # ARIA Standings Module
 
-## Purpose
-
-Track faction and corporation standings, determine agent access levels, plan progression to target standings, and provide standing repair strategies. Integrates with ESI for live standings data and uses reference data for threshold calculations.
-
-## Trigger Phrases
-
-- "/standings"
-- "my standings"
-- "can I use L[N] agents"
-- "standing requirements"
-- "how to fix standings"
-- "agent access"
-- "faction standing"
-- "how to get L4 agents"
-- "path to 5.0 standing"
-- "how long to reach L4"
-- "standings grind"
-- "standing requirements for L[N]"
-- "fastest way to raise standings"
-
 ## Command Syntax
 
 ```

@@ -26,10 +26,6 @@ external_sources: []
 
 # ARIA Skill Planning Advisor
 
-## Purpose
-
-Provide skill requirement analysis and training time estimates for ships, modules, skills, and activities in EVE Online. Implements the "Easy 80%" philosophy - achieving ~80% effectiveness with ~20% of the training time by capping most skills at Level IV.
-
 ## Command Syntax
 
 ```
@@ -49,27 +45,11 @@ Provide skill requirement analysis and training time estimates for ships, module
 --tier <tier>   Specify tier: minimum, easy_80, or full
 ```
 
-## MCP Tools Required
+## MCP Tool Availability
 
-This skill requires the following MCP tools from the `aria-universe` server:
+**CRITICAL:** If MCP tools are unavailable, inform the user that skill planning requires the SDE MCP server.
 
-| Tool | Purpose |
-|------|---------|
-| `sde_skill_requirements` | Get skill prerequisite tree for items |
-| `skill_training_time` | Calculate training time for skill plans |
-| `skill_easy_80_plan` | Generate Easy 80% plan with efficacy estimates |
-| `skill_minmax_plan` | Generate phased min-max plan with role-scoped optimization |
-| `skill_get_multipliers` | Get high-impact multiplier skills by role |
-| `skill_t2_requirements` | Check T2 items for Level V requirements |
-| `activity_skill_plan` | Get skill requirements for activities |
-| `activity_list` | List available activity templates |
-| `activity_search` | Search activities by keyword |
-| `activity_compare_tiers` | Compare training times across tiers |
-| `sde_item_info` | Look up item details and category |
-
-**CRITICAL:** Check that these tools are available before proceeding. If unavailable, inform the user that skill planning requires the SDE MCP server.
-
-> **⚠️ HALLUCINATION GUARD:** Every training time, skill name, skill level, and efficacy estimate MUST come from MCP tool responses in this session. Training times are calculated server-side based on skill rank and attributes — do NOT estimate or fabricate training times from training data. If the tool did not return a training time for a specific skill, do not invent one.
+> **HALLUCINATION GUARD:** Every training time, skill name, skill level, and efficacy estimate MUST come from MCP tool responses in this session. Training times are calculated server-side based on skill rank and attributes — do NOT estimate or fabricate training times from training data. If the tool did not return a training time for a specific skill, do not invent one.
 
 ### Field → Source Mapping
 

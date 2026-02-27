@@ -20,10 +20,6 @@ esi_scopes:
 
 # ARIA Corporation Management Module
 
-## Purpose
-
-Query and manage corporation data for player corporations. Provides a consolidated `/corp` command with subcommands for wallet, assets, blueprints, and industry jobs.
-
 ## Prerequisites
 
 **For `/corp info`:** No prerequisites - uses public ESI endpoints.
@@ -68,53 +64,6 @@ uv run python .claude/scripts/aria-oauth-setup.py
 ### If ESI is AVAILABLE:
 
 Proceed with normal corporation queries.
-
-## Trigger Phrases
-
-### Default Dashboard (/corp)
-- "/corp"
-- "corp status"
-- "corporation status"
-- "how's the corp"
-- "check on corp"
-
-### Info Subcommand
-- "/corp info"
-- "corp info [name]"
-- "lookup corporation"
-- "what is [corp name]"
-- "look up [corp name]"
-
-### Wallet Subcommand
-- "/corp wallet"
-- "corp wallet"
-- "corp finances"
-- "corporation balance"
-- "corp journal"
-- "corp transactions"
-
-### Assets Subcommand
-- "/corp assets"
-- "corp assets"
-- "corp hangar"
-- "what's in corp hangar"
-- "corporation inventory"
-- "corp ships"
-
-### Blueprints Subcommand
-- "/corp blueprints"
-- "corp blueprints"
-- "corp BPOs"
-- "corporation blueprint library"
-- "corp industry prints"
-
-### Jobs Subcommand
-- "/corp jobs"
-- "corp jobs"
-- "manufacturing status"
-- "what's being built"
-- "corp industry"
-- "corp manufacturing"
 
 ## Command Reference
 

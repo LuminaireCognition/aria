@@ -24,20 +24,6 @@ external_sources: []
 
 # ARIA ISK/Hour Comparison Module
 
-## Purpose
-
-Help pilots make informed decisions about how to spend their gaming time by comparing ISK/hour across activities they can actually do with their current skills and ships.
-
-## The Problem This Solves
-
-"Should I do missions or mining or exploration?" Players waste time on inefficient activities because they don't know the math. A veteran once said: "I mined for a month in a Venture making 2M/hour when I could have been running L2s at 5M/hour. Nobody told me."
-
-## Target Audience
-
-- New players deciding how to make their first ISK
-- Intermediate players optimizing their income
-- Returning players catching up on current meta
-
 ## Command Syntax
 
 ```

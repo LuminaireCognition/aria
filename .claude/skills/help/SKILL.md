@@ -18,18 +18,6 @@ data_sources:
 
 # ARIA Help & Discovery Module
 
-## Purpose
-Surface available commands, capabilities, and reference data. Reduce the need for external documentation by making ARIA's features discoverable in-session.
-
-## Trigger Phrases
-- `/help`
-- "help"
-- "what can you do"
-- "commands"
-- "what commands are available"
-- "how do I..."
-- "show me the options"
-
 ## Response Format
 
 ### Default `/help` Output
