@@ -258,7 +258,7 @@ class RedisQPoller:
         self._entity_refresh_task = asyncio.create_task(self._entity_refresh_loop())
 
         # Start writer task for killmail store
-        if self._killmail_store and self._ingest_queue:
+        if self._killmail_store is not None and self._ingest_queue is not None:
             self._writer_task = asyncio.create_task(self._writer_loop())
 
         logger.info(
@@ -308,7 +308,7 @@ class RedisQPoller:
             self._writer_task = None
 
         # Flush remaining queue items before shutdown
-        if self._ingest_queue and self._killmail_store:
+        if self._ingest_queue is not None and self._killmail_store is not None:
             remaining = await self._ingest_queue.get_batch(max_batch=1000)
             if remaining:
                 await self._killmail_store.insert_kills_batch(remaining)
@@ -400,7 +400,7 @@ class RedisQPoller:
 
         # Get ingest metrics
         ingest_metrics = None
-        if self._ingest_queue:
+        if self._ingest_queue is not None:
             queue_metrics = self._ingest_queue.get_metrics()
             ingest_metrics = IngestMetrics(
                 received_total=queue_metrics.received_total,
@@ -506,7 +506,7 @@ class RedisQPoller:
                 return
 
             # Store ALL kills in the persistent store (no pre-filtering)
-            if self._ingest_queue:
+            if self._ingest_queue is not None:
                 record = queued_kill.to_killmail_record()
                 await self._ingest_queue.put(record)
                 logger.debug("Enqueued kill %d for storage", queued_kill.kill_id)
@@ -687,7 +687,7 @@ class RedisQPoller:
         """Background task to drain ingest queue to killmail store."""
         while self._running:
             try:
-                if not self._ingest_queue or not self._killmail_store:
+                if self._ingest_queue is None or self._killmail_store is None:
                     await asyncio.sleep(self._writer_interval_seconds)
                     continue
 
