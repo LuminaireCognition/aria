@@ -153,7 +153,7 @@ All data presented must cite source:
 | ESI | "Current: {value} (as of {timestamp})" |
 | Wiki | "Reference: wiki.eveuniversity.org" |
 
-See `dev/docs/ai-runtime/DATA_VERIFICATION.md` for the full trust hierarchy.
+See `dev/docs/ai-runtime/DATA_TRUST.md` for the full trust hierarchy.
 
 ## 6. Secret/PII Handling
 
@@ -275,8 +275,8 @@ Budget warnings are automatically added to `_meta` when limits are exceeded:
 
 ## Related Documentation
 
-- `dev/docs/ai-runtime/DATA_VERIFICATION.md` - Data trust hierarchy
-- `dev/docs/ai-runtime/DATA_FILES.md` - File paths and volatility
+- `dev/docs/ai-runtime/DATA_TRUST.md` - Data trust hierarchy and verification
+- `dev/docs/ai-runtime/SESSION_BEHAVIOR.md` - File paths and volatility
 - `src/aria_esi/mcp/context.py` - Output metadata utilities and route summarization
 - `src/aria_esi/mcp/context_budget.py` - Context budget tracking
 - `src/aria_esi/mcp/context_policy.py` - Centralized limit definitions

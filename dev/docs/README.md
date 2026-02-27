@@ -34,9 +34,5 @@ Documents in [ai-runtime/](ai-runtime/) are read by the LLM during sessions, not
 
 | Document | Description |
 |----------|-------------|
-| [DATA_VERIFICATION.md](ai-runtime/DATA_VERIFICATION.md) | Rules for verifying game data claims |
-| [DATA_AUTHORITY.md](ai-runtime/DATA_AUTHORITY.md) | Data source hierarchy for caching |
-| [PROTOCOLS.md](ai-runtime/PROTOCOLS.md) | Data volatility tiers and freshness rules |
-| [EXPERIENCE_ADAPTATION.md](ai-runtime/EXPERIENCE_ADAPTATION.md) | Calibrating explanation depth |
-| [COMMAND_SUGGESTIONS.md](ai-runtime/COMMAND_SUGGESTIONS.md) | Progressive disclosure for slash commands |
-| [DATA_FILES.md](ai-runtime/DATA_FILES.md) | File path reference for pilot data |
+| [DATA_TRUST.md](ai-runtime/DATA_TRUST.md) | Data trust hierarchy, verification rules, cache authority |
+| [SESSION_BEHAVIOR.md](ai-runtime/SESSION_BEHAVIOR.md) | Data volatility, file paths, experience adaptation, command suggestions |
