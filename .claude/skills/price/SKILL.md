@@ -207,15 +207,13 @@ Data cached for 5 minutes. Real-time conditions may vary.
 
 ## NES / PLEX Market Items
 
-Some items trade on the New Eden Store (NES) or PLEX market rather than regional markets:
-- **PLEX** (Pilot's License Extension)
-- **Multiple Pilot Training Certificate**
-- **Skill Extractors / Skill Injectors**
-- **SKINs** (Ship customization)
+PLEX, Skill Extractors, Skill Injectors, and Multiple Pilot Training Certificates all trade on the **regional market** with active order books. Query them normally with `market(action="prices")` and `market(action="orders")`.
 
-**Detection:** `market(action="prices")` returns data (from global averages) but `market(action="orders")` returns no regional orders.
+Some items (certain SKINs, apparel) are available only through the New Eden Store (NES) and have no regional market orders.
 
-**Response:** Inform the user that the item trades on the NES/PLEX market (accessible in-game via the New Eden Store). Provide the `average_price` from the global endpoint if available. Do not present empty order books as an error.
+**Detection:** `market(action="prices")` returns global average data, but `market(action="orders")` returns no results.
+
+**Response:** Inform the user that the item is NES-only and provide the `average_price` if available. Do not present empty order books as an error.
 
 ## Experience-Based Adaptation
 

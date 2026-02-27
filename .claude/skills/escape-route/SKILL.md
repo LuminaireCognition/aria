@@ -42,6 +42,32 @@ Calculate fastest routes to safe harbor when the pilot needs to disengage. Facto
 /escape-route --npc-null                # Nearest NPC null station
 ```
 
+## Required Tool Calls (MANDATORY)
+
+Every route and destination in the response MUST come from an actual tool call. Do NOT fabricate routes.
+
+| Step | Call | Required For |
+|------|------|-------------|
+| 1 | `universe(action="route", origin="...", destination="...", mode="safe")` | Every named route with jump count |
+| 2 | `universe(action="nearest", origin="...", security_min=..., security_max=...)` | Finding nearest safe harbors |
+| 3 | `universe(action="activity", systems=[...], include_realtime=True)` | Activity data for route systems (Route Display Standard) |
+
+**Every system name in the response MUST appear in a tool call response.** If a system was not returned by any MCP call, it cannot appear in the output.
+
+> **⚠️ HALLUCINATION GUARD:** Every route, system name, jump count, and security status in the response MUST come from MCP/CLI calls made in this session. NEVER name systems from training data memory. If you cannot make the route call, say so — do not guess a route.
+
+### Field → Source Mapping
+
+| Output Field | Required Source | Tool Call |
+|-------------|----------------|-----------|
+| Current system | ESI location or user input | `uv run aria-esi location` or user-provided |
+| Route system names | Universe route | `universe(action="route", origin="...", destination="...", mode="safe")` |
+| Jump count per route | Universe route | `universe(action="route", ...)` response `total_jumps` |
+| System security status | Universe route | Included in route response per system |
+| Nearest safe harbor | Universe nearest | `universe(action="nearest", origin="...", security_min=..., security_max=...)` |
+| Activity on route (kills, jumps) | Activity dispatcher | `universe(action="activity", systems=[...])` |
+| NPC null station names | Universe nearest/route | `universe(action="nearest", ...)` or `universe(action="route", ...)` |
+
 ## Response Format
 
 ```
@@ -227,6 +253,17 @@ Nearest harbor: [system] - [jumps] jumps
 - Note known danger points on route
 - Don't moralize - just get the pilot out
 - "Burn fast, Captain" as sign-off
+
+## Anti-Patterns
+
+❌ **WRONG:** Present "Route: Tama → Nourv → Hikkoken" without calling `universe(action="route")`
+✅ **RIGHT:** Call `universe(action="route", origin="Tama", destination="Hikkoken", mode="safe")` and present the returned path
+
+❌ **WRONG:** Claim "NPC null station is 12-25 jumps" without a route query
+✅ **RIGHT:** Call `universe(action="nearest")` or `universe(action="route")` for actual jump counts
+
+❌ **WRONG:** Name systems that appear in no MCP response (fabricated from training data)
+✅ **RIGHT:** Every system name must trace to a tool call response in this session
 
 ## DO NOT
 

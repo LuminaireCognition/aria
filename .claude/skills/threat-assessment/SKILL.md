@@ -33,6 +33,36 @@ When no system is specified, queries default to the pilot's current region:
 1. ESI location if available (requires `esi-location.read_location.v1` scope)
 2. Profile home region as fallback (from `operations.md`)
 
+## Required Tool Calls (MANDATORY)
+
+Every data point in a threat assessment MUST come from a tool call. Do NOT fabricate activity data, FW contestation percentages, or sovereignty information.
+
+| Query Type | Required Call | Data Provided |
+|------------|-------------|---------------|
+| System assessment | `universe(action="local_area", origin="...", include_realtime=True)` | Activity, security, nearby threats, FW status |
+| Route assessment | `universe(action="activity", systems=[...])` | Activity for each waypoint system |
+| FW warzone intel | `universe(action="fw_frontlines")` or check `fw_systems` in `local_area` response | Contested status, percentages |
+| Sovereignty | `universe(action="systems", systems=[...])` | Alliance, coalition (null-sec only) |
+
+**CRITICAL:** If you claim "5 MCP calls were made", document all 5. Every claimed data source must be verifiable.
+
+> ❌ **NEVER** use `include_realtime=False` — this disables real-time gatecamp detection and recent kill alerts. The MCP default is `false`, so you MUST explicitly set `include_realtime=True`.
+
+> **⚠️ HALLUCINATION GUARD:** Every kill count, jump count, FW contestation percentage, and sovereignty claim MUST come from an MCP call in this session. If `fw_frontlines` was not called, you have NO FW data — do not invent contestation percentages. If `local_area` was not called, you have NO activity data — do not estimate kill counts.
+
+### Field → Source Mapping
+
+| Output Field | Required Source | Tool Call |
+|-------------|----------------|-----------|
+| Threat level (MINIMAL/ELEVATED/HIGH/CRITICAL) | Derived from activity data | Must be based on actual kill/jump counts from tools |
+| Ship kills, pod kills, jumps | Activity dispatcher | `universe(action="local_area", ...)` or `universe(action="activity", ...)` |
+| NPC kills | Activity dispatcher | Same as above |
+| FW contested status, percentages | FW dispatcher | `universe(action="fw_frontlines")` or `fw_systems` in `local_area` response |
+| FW system owner/occupier | FW dispatcher | Same as above |
+| Sovereignty (alliance, coalition) | Systems dispatcher | `universe(action="systems", systems=[...])` → `sovereignty` field |
+| Active gatecamp alerts | Real-time data | `local_area` with `include_realtime=True` → `realtime.gatecamp` |
+| Watched entity activity | Watchlist tool | `uv run aria-esi redisq-watched --minutes 60` |
+
 ## Live Activity Intel
 
 **CRITICAL:** For specific system assessments, ARIA should query live activity data to enhance threat analysis.
@@ -482,6 +512,20 @@ After providing threat assessment, suggest ONE related command when contextually
 | Assessment involves exploration | "Use `/exploration` when you find sites" |
 
 Don't add suggestions to every assessment - only when clearly helpful.
+
+## Anti-Patterns
+
+❌ **WRONG:** Show "8 contested FW systems" with specific percentages without calling `fw_frontlines` or `local_area`
+✅ **RIGHT:** Call `universe(action="local_area")` or `universe(action="fw_frontlines")` — FW data comes from these calls only
+
+❌ **WRONG:** Claim "5 MCP calls made" but only document 2 in the response
+✅ **RIGHT:** Document every tool call. If only 2 calls were made, say 2.
+
+❌ **WRONG:** Use threat level "LOW" in the assessment
+✅ **RIGHT:** Use only defined threat levels: MINIMAL, ELEVATED, HIGH, CRITICAL
+
+❌ **WRONG:** Present sovereignty data ("Goonswarm / Imperium") without querying `universe(action="systems")`
+✅ **RIGHT:** Sovereignty data must come from the `sovereignty` field in a systems or local_area response
 
 ---
 

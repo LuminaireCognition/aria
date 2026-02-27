@@ -97,6 +97,34 @@ uv run aria-esi assets --trends
 uv run aria-esi assets --history
 ```
 
+## Required Tool Calls (MANDATORY)
+
+The following calls MUST be made before presenting any asset data. If a call fails or is unavailable, report the error — do NOT fabricate output.
+
+| Step | Call | Required For |
+|------|------|-------------|
+| 1 | `uv run aria-esi assets` (or `assets --value`, `--ships`, etc.) | All asset data: items, locations, counts, ships |
+| 2 | `market(action="valuation", items=[...])` | Price valuations (only after step 1 returns actual items) |
+
+**If step 1 is not called or returns an error, do NOT present any asset inventory, ship list, or item counts. Present only the error state or ESI unavailability message.**
+
+> **⚠️ HALLUCINATION GUARD:** Every item, location, quantity, ship name, and price in the response MUST come from a tool call made in this session. If ESI was not queried, you have ZERO asset data. NEVER fill in plausible-looking inventories from training data.
+
+### Field → Source Mapping
+
+Every field in the response must trace to a specific source. If the source was not queried, the field must show `[no data]` or be omitted.
+
+| Output Field | Required Source | Tool Call |
+|-------------|----------------|-----------|
+| Item names, quantities | ESI assets endpoint | `uv run aria-esi assets` |
+| Item locations (station names) | ESI assets endpoint | `uv run aria-esi assets` |
+| Ship names, assembled status | ESI assets endpoint | `uv run aria-esi assets --ships` |
+| Ship slot counts (H/M/L) | SDE item data | `sde(action="item_info", item="...")` |
+| Unit prices, total values | Market dispatcher | `market(action="valuation", items=[...])` |
+| Item count per location | Derived from ESI response | Count from `uv run aria-esi assets` output |
+| Jump distances between locations | Universe route | `universe(action="route", ...)` |
+| Wallet balance | ESI wallet endpoint | **Separate data — DO NOT include in asset total** |
+
 ## Response Patterns
 
 ### Basic Asset Overview
@@ -467,6 +495,20 @@ Home systems are read from `userdata/config.json`:
 - `Cargo` - In a ship's cargo
 - `DroneBay` - In a ship's drone bay
 - Various slot names for fitted modules
+
+## Anti-Patterns
+
+❌ **WRONG:** Present 1,214 items across 6 locations with detailed valuations without calling `uv run aria-esi assets`
+✅ **RIGHT:** Call `uv run aria-esi assets --value` first, present only what ESI returns
+
+❌ **WRONG:** Show ship slot counts (e.g., "6H/4M/7L") from memory
+✅ **RIGHT:** Call `sde(action="item_info", item="Gila")` to get verified slot layout
+
+❌ **WRONG:** Claim "Hek is 4 jumps from Jita" in consolidation suggestions without route query
+✅ **RIGHT:** Call `universe(action="route")` for actual jump distances
+
+❌ **WRONG:** Include wallet balance (107M ISK) in "Total Net Worth" alongside asset value
+✅ **RIGHT:** Wallet and assets are separate data — see DO NOT rules below
 
 ## DO NOT
 

@@ -38,6 +38,36 @@ Analyze solar systems for operational viability. Evaluate target availability, t
 /hunting-grounds --near <system>    # Systems within 5 jumps
 ```
 
+## Required Tool Calls (MANDATORY)
+
+Every activity metric in a hunting ground analysis MUST come from a tool call. Do NOT fabricate kill counts, jump counts, or system activity.
+
+| Query Type | Required Call | Data Provided |
+|------------|-------------|---------------|
+| System analysis | `universe(action="activity", systems=["..."], include_realtime=True)` | Kill/jump data for the specific system |
+| Area scan | `universe(action="hotspots", origin="...", max_jumps=N, activity_type="kills")` | Active systems within search radius |
+| Null-sec intel | `universe(action="systems", systems=[...])` | Sovereignty data |
+| Coalition intel | `universe(action="territory_analysis", coalition="...")` | Regional breakdown |
+
+**CRITICAL:** Systems outside the `max_jumps` search radius MUST NOT appear in results. If `hotspots` was called with `max_jumps=5`, do not present data for systems 9-10 jumps away.
+
+> **⚠️ HALLUCINATION GUARD:** Every system name, kill count, jump count, and activity level MUST come from MCP calls made in this session. Do NOT present activity data for systems that were not returned by any tool call. If `hotspots` returned 3 systems, present 3 systems — not 5.
+
+### Field → Source Mapping
+
+| Output Field | Required Source | Tool Call |
+|-------------|----------------|-----------|
+| System name and security | Hotspots or activity response | `universe(action="hotspots", ...)` or `universe(action="activity", ...)` |
+| Ship kills (last hour) | Activity dispatcher | `universe(action="activity", systems=[...], include_realtime=True)` |
+| Pod kills (last hour) | Activity dispatcher | `universe(action="activity", systems=[...], include_realtime=True)` |
+| NPC kills (last hour) | Activity dispatcher | `universe(action="activity", systems=[...], include_realtime=True)` |
+| Jumps (last hour) | Activity dispatcher | `universe(action="activity", systems=[...], include_realtime=True)` |
+| Top hunting grounds list | Hotspots dispatcher | `universe(action="hotspots", origin="...", max_jumps=N)` |
+| Sovereignty / alliance | Systems dispatcher | `universe(action="systems", systems=[...])` |
+| Coalition intel | Territory analysis | `universe(action="territory_analysis", coalition="...")` |
+| Viability assessment | Derived | Calculate from kill/jump metrics in response |
+| Competition assessment | Derived | Infer from ship kill counts in response |
+
 ## Live Activity Intel
 
 **CRITICAL:** For hunting ground analysis, query live activity data.
@@ -298,6 +328,17 @@ Note optimal hunting times:
 - Terse data presentation
 - Skip basic explanations
 - Focus on current conditions vs historical
+
+## Anti-Patterns
+
+❌ **WRONG:** Present activity data for Rancer (9j away) and Hevrice (10j away) when `hotspots` was called with `max_jumps=5`
+✅ **RIGHT:** Only present systems that appear in the MCP response — respect the search radius
+
+❌ **WRONG:** Show "Jumps: 1,247 | Kills: 47" for a system without calling `universe(action="activity")`
+✅ **RIGHT:** Call `activity` or `hotspots` first, present only returned data
+
+❌ **WRONG:** Claim "Known groups: Snuffed Out, locals" without any kill data showing those groups
+✅ **RIGHT:** Group identity comes from killmail data. If no killmails were queried, you don't know who's active.
 
 ## DO NOT
 

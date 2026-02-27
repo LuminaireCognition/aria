@@ -14,10 +14,13 @@ triggers:
 requires_pilot: true
 requires_eos_validation: true
 validation_tool: "fitting(action='calculate_stats')"
+prerequisite_files:
+  - .claude/skills/fitting/EFT-FORMAT.md
+  - reference/mechanics/drones.json
+  - reference/fittings/MODULE_NAMES.md
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
-  - reference/fittings/MODULE_NAMES.md
 ---
 
 # ARIA Fitting Module

@@ -42,7 +42,7 @@ Calculate appropriate ransom amounts for captured marks. Factor in ship value, l
 ═══════════════════════════════════════════════════════════════════
 RANSOM CALCULATION
 ───────────────────────────────────────────────────────────────────
-TARGET: Mackinaw (Mining Barge)
+TARGET: Mackinaw (Exhumer)
 ───────────────────────────────────────────────────────────────────
 SHIP VALUATION:
   Hull: 200M ISK

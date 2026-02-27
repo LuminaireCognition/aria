@@ -528,7 +528,23 @@ When a skill is invoked:
    - If not found and `overlay_fallback_path` is set, check that path
    - If found → append to skill context
 
-4. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
+4. **Pre-read prerequisite files (MANDATORY GATE)** — If the skill entry lists a `prerequisite_files` array, read ALL listed files NOW, before producing any output. These contain verified reference data that the skill depends on. **Do NOT proceed to generate a response until all prerequisite files have been read.** This is a blocking requirement — skipping it causes hallucination from training data.
+
+   ```
+   prerequisite_files → MUST read before any output (blocking gate)
+   data_sources       → Contextual files to read when relevant (pilot profiles, etc.)
+   ```
+
+   **Skills with prerequisite files:**
+
+   | Skill | Prerequisite Files | Prevents |
+   |-------|--------------------|----------|
+   | `exploration` | `exploration_sites.md`, `hacking_guide.md` | Wrong hacking mechanics, site prefixes |
+   | `mining-advisory` | `ore_database.md` | Wrong ore security bands |
+   | `fitting` | `EFT-FORMAT.md`, `drones.json`, `MODULE_NAMES.md` | Wrong module names, drone data |
+   | `skillplan` | `skill_plans.yaml`, `ship_efficacy_rules.yaml`, `meta_module_alternatives.yaml` | Wrong training recommendations |
+
+5. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
 
 ### Runtime Path Validation (SEC-001/SEC-002)
 

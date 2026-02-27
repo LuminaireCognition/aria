@@ -12,11 +12,12 @@ triggers:
   - "relic site"
   - "data site"
 requires_pilot: true
+prerequisite_files:
+  - reference/mechanics/exploration_sites.md
+  - reference/mechanics/hacking_guide.md
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/exploration.md
-  - reference/mechanics/exploration_sites.md
-  - reference/mechanics/hacking_guide.md
 ---
 
 # ARIA Exploration Analysis Module
@@ -30,6 +31,35 @@ Provide exploration site analysis, hacking strategies, and loot identification w
 - "hacking tips"
 - "what's this loot worth"
 - "relic site" / "data site"
+
+## Required Tool Calls (MANDATORY)
+
+Before presenting any exploration analysis, the following MUST happen:
+
+| Step | Call | Required For |
+|------|------|-------------|
+| 1 | Read `reference/mechanics/exploration_sites.md` | Site classification, loot tables, container types |
+| 2 | Read `reference/mechanics/hacking_guide.md` | Hacking mechanics, coherence rules, strategies |
+| 3 | `market(action="prices", items=[...])` | Loot valuations (only for specific items) |
+| 4 | `sde(action="item_info", item="...")` | Individual loot item details (NOT site names) |
+
+**Steps 1-2 are the `data_sources` for this skill and MUST be read before responding.** These files contain verified game mechanics. Do NOT rely on training data for hacking mechanics, container types, site prefixes, or loot tables.
+
+> **⚠️ HALLUCINATION GUARD:** Every mechanic, container name, loot table, and hacking strategy in the response MUST come from the reference files read in this session. Training data knowledge about EVE exploration is frequently wrong (e.g., coherence mechanics, site prefix meanings, container behaviors). Read the reference files FIRST, respond SECOND.
+
+### Field → Source Mapping
+
+| Output Field | Required Source | Source |
+|-------------|----------------|--------|
+| Site classification (Relic/Data) | `exploration_sites.md` | Prerequisite file (read before output) |
+| Site prefix meaning (Ruined/Decayed/etc.) | `exploration_sites.md` | Prerequisite file |
+| Security band for site type | `exploration_sites.md` | Prerequisite file |
+| Container types and counts | `exploration_sites.md` | Prerequisite file |
+| Probable loot categories | `exploration_sites.md` | Prerequisite file |
+| Hacking mechanics (coherence, nodes) | `hacking_guide.md` | Prerequisite file (read before output) |
+| Hacking strategy | `hacking_guide.md` | Prerequisite file |
+| Individual loot item details | SDE | `sde(action="item_info", item="...")` |
+| Loot market value | Market dispatcher | `market(action="prices", items=[...])` |
 
 ## Response Format
 
@@ -95,6 +125,20 @@ LORE CONTEXT:
 - **Decryptors** - Invention materials (valuable even for self-sufficient)
 - **Faction BPCs** - Can be manufactured without market
 - **Datacores** - Research materials
+
+## Anti-Patterns
+
+❌ **WRONG:** State "Coherence depletes with each probe attempt" from training data
+✅ **RIGHT:** Read `hacking_guide.md` — coherence is HP lost when defensive nodes attack you
+
+❌ **WRONG:** Claim "System Core eliminates dangerous subsystems"
+✅ **RIGHT:** Read `hacking_guide.md` — the Core is the objective you destroy to win the hack
+
+❌ **WRONG:** State "One attempt per container" for regular data sites
+✅ **RIGHT:** Only true for Ghost Sites. Regular sites allow retries. Read `exploration_sites.md`.
+
+❌ **WRONG:** Accept "Ruined Serpentis Temple" in high-sec without questioning
+✅ **RIGHT:** "Ruined" prefix = nullsec/WH sites. High-sec uses "Decayed" prefix. Read `exploration_sites.md`.
 
 ## Important: Site Names vs Items
 

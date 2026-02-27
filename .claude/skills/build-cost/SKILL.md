@@ -1045,5 +1045,5 @@ capabilities = summarize_industry_capabilities(skills)
 - Rigs and modules can reduce costs further (not calculated)
 - Always compare to market price before committing to production
 - Component materials (Seals, Backup Units, Regulators) are significant costs for ships
-- T2 BPCs from invention start at ME -2 (worse than researched T1 BPOs)
+- T2 BPCs from invention start at ME 2 / TE 4 (before decryptors)
 - Decryptor choice significantly affects profitability

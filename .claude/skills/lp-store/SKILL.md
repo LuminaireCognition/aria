@@ -82,6 +82,31 @@ Common corporation names have shortcuts for convenience:
 | `concord` | CONCORD | 1000125 |
 | `thukker` | Thukker Mix | 1000171 |
 
+## Required Tool Calls (MANDATORY)
+
+The following calls MUST be made before presenting LP data. Do NOT fabricate LP balances or store offers.
+
+| Query Type | Required Call | Notes |
+|------------|-------------|-------|
+| LP balance | `PYTHONPATH=.claude/scripts uv run python -m aria_esi lp` | Live ESI — no cache fallback |
+| LP store browse | `PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-offers "<corp>"` | Public endpoint, works without auth |
+| LP analysis | `PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-analyze "<corp>"` | Self-sufficiency filter |
+
+**CRITICAL: Corporation matching** — The corporation name in the query MUST match the user's request. If user asks for "Federation Navy", query Federation Navy (ID 1000120), NOT Caldari Navy or any other corporation.
+
+> **⚠️ HALLUCINATION GUARD:** Every LP balance, store offer, item name, and cost in the response MUST come from a CLI call made in this session. If the CLI was not called or returned an error, present only the error state. NEVER fill in offers from training data — corporation LP stores change and training data may show items from the wrong corporation.
+
+### Field → Source Mapping
+
+| Output Field | Required Source | Tool Call |
+|-------------|----------------|-----------|
+| LP balance per corporation | ESI loyalty endpoint | `uv run python -m aria_esi lp` |
+| Corporation names | ESI loyalty endpoint | `uv run python -m aria_esi lp` |
+| LP store offer names | ESI LP store endpoint | `uv run python -m aria_esi lp-offers "<corp>"` |
+| LP cost, ISK cost per offer | ESI LP store endpoint | `uv run python -m aria_esi lp-offers "<corp>"` |
+| Required items per offer | ESI LP store endpoint | `uv run python -m aria_esi lp-offers "<corp>"` |
+| Self-sufficient flag | LP analysis tool | `uv run python -m aria_esi lp-analyze "<corp>"` |
+
 ## Response Format
 
 ### LP Balance Report
@@ -259,6 +284,17 @@ Not all corporations offer loyalty rewards. Mission-giving NPC corps
 
 - `esi-characters.read_loyalty.v1` - Required for LP balance
 - LP store offers endpoint is **public** (no auth required)
+
+## Anti-Patterns
+
+❌ **WRONG:** Present Caldari Navy items (e.g., "Caldari Navy Hookbill") when user asked for Federation Navy LP store
+✅ **RIGHT:** Call `lp-offers "Federation Navy"` — match the exact corporation requested
+
+❌ **WRONG:** Describe CreoDron as a "Caldari ships" corporation
+✅ **RIGHT:** CreoDron is a Gallente drone manufacturer — verify corporation details via SDE if unsure
+
+❌ **WRONG:** Show LP store offers without making any `lp-offers` CLI call
+✅ **RIGHT:** Call the CLI, present only what it returns. LP store contents are per-corporation and change.
 
 ## ESI Availability Check (CRITICAL)
 

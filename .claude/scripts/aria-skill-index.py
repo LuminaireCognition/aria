@@ -177,6 +177,7 @@ def scan_skills(skills_dir: Path) -> list[dict[str, Any]]:
             # Set defaults for optional fields
             frontmatter.setdefault("triggers", [])
             frontmatter.setdefault("requires_pilot", False)
+            frontmatter.setdefault("prerequisite_files", [])
             frontmatter.setdefault("data_sources", [])
             frontmatter.setdefault("external_sources", [])
             frontmatter.setdefault("esi_scopes", [])
@@ -189,7 +190,7 @@ def scan_skills(skills_dir: Path) -> list[dict[str, Any]]:
 
             skills.append(frontmatter)
 
-        except Exception as e:
+        except (OSError, ValueError, KeyError) as e:
             warnings.append(f"  {skill_dir.name}: Error parsing - {e}")
 
     if warnings:

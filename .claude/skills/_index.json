@@ -23,6 +23,7 @@
       ],
       "path": ".claude/skills/abyssal/SKILL.md",
       "directory": "abyssal",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -44,6 +45,7 @@
       ],
       "path": ".claude/skills/agents-research/SKILL.md",
       "directory": "agents-research",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -63,6 +65,7 @@
       "requires_pilot": false,
       "path": ".claude/skills/arbitrage/SKILL.md",
       "directory": "arbitrage",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": []
@@ -89,6 +92,7 @@
       ],
       "path": ".claude/skills/aria-status/SKILL.md",
       "directory": "aria-status",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -111,6 +115,7 @@
       ],
       "path": ".claude/skills/assets/SKILL.md",
       "directory": "assets",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -130,6 +135,7 @@
       "requires_pilot": false,
       "path": ".claude/skills/build-cost/SKILL.md",
       "directory": "build-cost",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": []
@@ -155,6 +161,7 @@
       ],
       "path": ".claude/skills/clones/SKILL.md",
       "directory": "clones",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -176,6 +183,7 @@
       ],
       "path": ".claude/skills/contracts/SKILL.md",
       "directory": "contracts",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -201,6 +209,7 @@
       ],
       "path": ".claude/skills/corp/SKILL.md",
       "directory": "corp",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -226,6 +235,7 @@
       ],
       "path": ".claude/skills/escape-route/SKILL.md",
       "directory": "escape-route",
+      "prerequisite_files": [],
       "external_sources": []
     },
     {
@@ -259,6 +269,7 @@
       ],
       "path": ".claude/skills/esi-query/SKILL.md",
       "directory": "esi-query",
+      "prerequisite_files": [],
       "external_sources": []
     },
     {
@@ -276,11 +287,13 @@
         "data site"
       ],
       "requires_pilot": true,
-      "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/exploration.md",
+      "prerequisite_files": [
         "reference/mechanics/exploration_sites.md",
         "reference/mechanics/hacking_guide.md"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/exploration.md"
       ],
       "path": ".claude/skills/exploration/SKILL.md",
       "directory": "exploration",
@@ -303,6 +316,7 @@
       "requires_pilot": false,
       "path": ".claude/skills/find/SKILL.md",
       "directory": "find",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": []
@@ -323,6 +337,7 @@
       "requires_pilot": false,
       "path": ".claude/skills/first-run-setup/SKILL.md",
       "directory": "first-run-setup",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": []
@@ -351,7 +366,8 @@
       ],
       "external_sources": [],
       "path": ".claude/skills/fit-budget/SKILL.md",
-      "directory": "fit-budget"
+      "directory": "fit-budget",
+      "prerequisite_files": []
     },
     {
       "name": "fit-check",
@@ -377,7 +393,8 @@
       ],
       "external_sources": [],
       "path": ".claude/skills/fit-check/SKILL.md",
-      "directory": "fit-check"
+      "directory": "fit-check",
+      "prerequisite_files": []
     },
     {
       "name": "fitting",
@@ -396,10 +413,14 @@
       "requires_pilot": true,
       "requires_eos_validation": true,
       "validation_tool": "fitting(action='calculate_stats')",
+      "prerequisite_files": [
+        ".claude/skills/fitting/EFT-FORMAT.md",
+        "reference/mechanics/drones.json",
+        "reference/fittings/MODULE_NAMES.md"
+      ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/ships.md",
-        "reference/fittings/MODULE_NAMES.md"
+        "userdata/pilots/{active_pilot}/ships.md"
       ],
       "path": ".claude/skills/fitting/SKILL.md",
       "directory": "fitting",
@@ -425,6 +446,7 @@
       ],
       "path": ".claude/skills/fittings/SKILL.md",
       "directory": "fittings",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -444,6 +466,7 @@
       "has_persona_overlay": true,
       "path": ".claude/skills/gatecamp/SKILL.md",
       "directory": "gatecamp",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": []
@@ -468,6 +491,7 @@
       ],
       "path": ".claude/skills/help/SKILL.md",
       "directory": "help",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -490,6 +514,7 @@
       ],
       "path": ".claude/skills/hunting-grounds/SKILL.md",
       "directory": "hunting-grounds",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -512,6 +537,7 @@
       ],
       "path": ".claude/skills/industry-jobs/SKILL.md",
       "directory": "industry-jobs",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -541,7 +567,8 @@
       ],
       "external_sources": [],
       "path": ".claude/skills/isk-compare/SKILL.md",
-      "directory": "isk-compare"
+      "directory": "isk-compare",
+      "prerequisite_files": []
     },
     {
       "name": "journal",
@@ -565,6 +592,7 @@
       ],
       "path": ".claude/skills/journal/SKILL.md",
       "directory": "journal",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -585,6 +613,7 @@
       ],
       "path": ".claude/skills/killmail/SKILL.md",
       "directory": "killmail",
+      "prerequisite_files": [],
       "data_sources": [],
       "esi_scopes": []
     },
@@ -608,6 +637,7 @@
       ],
       "path": ".claude/skills/killmails/SKILL.md",
       "directory": "killmails",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -629,6 +659,7 @@
       ],
       "path": ".claude/skills/lp-store/SKILL.md",
       "directory": "lp-store",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -650,6 +681,7 @@
       ],
       "path": ".claude/skills/mail/SKILL.md",
       "directory": "mail",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -673,6 +705,7 @@
       ],
       "path": ".claude/skills/mark-assessment/SKILL.md",
       "directory": "mark-assessment",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -694,6 +727,7 @@
       ],
       "path": ".claude/skills/mining/SKILL.md",
       "directory": "mining",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -711,10 +745,12 @@
         "mining optimization"
       ],
       "requires_pilot": true,
+      "prerequisite_files": [
+        "reference/mechanics/ore_database.md"
+      ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/ships.md",
-        "reference/mechanics/ore_database.md"
+        "userdata/pilots/{active_pilot}/ships.md"
       ],
       "path": ".claude/skills/mining-advisory/SKILL.md",
       "directory": "mining-advisory",
@@ -754,6 +790,7 @@
       ],
       "path": ".claude/skills/mission-brief/SKILL.md",
       "directory": "mission-brief",
+      "prerequisite_files": [],
       "esi_scopes": [],
       "has_persona_overlay": true
     },
@@ -775,6 +812,7 @@
       ],
       "path": ".claude/skills/orders/SKILL.md",
       "directory": "orders",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -796,6 +834,7 @@
       "requires_pilot": false,
       "path": ".claude/skills/orient/SKILL.md",
       "directory": "orient",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": []
@@ -820,6 +859,7 @@
       ],
       "path": ".claude/skills/pi/SKILL.md",
       "directory": "pi",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -850,6 +890,7 @@
       ],
       "path": ".claude/skills/pilot/SKILL.md",
       "directory": "pilot",
+      "prerequisite_files": [],
       "external_sources": []
     },
     {
@@ -868,6 +909,7 @@
       "requires_pilot": false,
       "path": ".claude/skills/price/SKILL.md",
       "directory": "price",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
@@ -891,6 +933,7 @@
       ],
       "path": ".claude/skills/ransom-calc/SKILL.md",
       "directory": "ransom-calc",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -910,6 +953,7 @@
       "requires_pilot": false,
       "path": ".claude/skills/reactions/SKILL.md",
       "directory": "reactions",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": []
@@ -931,6 +975,7 @@
       "requires_pilot": false,
       "path": ".claude/skills/route/SKILL.md",
       "directory": "route",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
@@ -959,6 +1004,7 @@
       ],
       "path": ".claude/skills/sec-status/SKILL.md",
       "directory": "sec-status",
+      "prerequisite_files": [],
       "external_sources": []
     },
     {
@@ -986,7 +1032,8 @@
       ],
       "external_sources": [],
       "path": ".claude/skills/ship-next/SKILL.md",
-      "directory": "ship-next"
+      "directory": "ship-next",
+      "prerequisite_files": []
     },
     {
       "name": "skillplan",
@@ -1009,14 +1056,15 @@
       "esi_scopes": [
         "esi-skills.read_skills.v1"
       ],
-      "data_sources": [
+      "prerequisite_files": [
         "reference/activities/skill_plans.yaml",
         "reference/skills/ship_efficacy_rules.yaml",
         "reference/skills/meta_module_alternatives.yaml"
       ],
       "external_sources": [],
       "path": ".claude/skills/skillplan/SKILL.md",
-      "directory": "skillplan"
+      "directory": "skillplan",
+      "data_sources": []
     },
     {
       "name": "skillqueue",
@@ -1037,6 +1085,7 @@
       ],
       "path": ".claude/skills/skillqueue/SKILL.md",
       "directory": "skillqueue",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -1071,7 +1120,8 @@
       ],
       "external_sources": [],
       "path": ".claude/skills/standings/SKILL.md",
-      "directory": "standings"
+      "directory": "standings",
+      "prerequisite_files": []
     },
     {
       "name": "threat-assessment",
@@ -1092,6 +1142,7 @@
       ],
       "path": ".claude/skills/threat-assessment/SKILL.md",
       "directory": "threat-assessment",
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": [],
       "has_persona_overlay": true
@@ -1117,6 +1168,7 @@
       ],
       "path": ".claude/skills/wallet-journal/SKILL.md",
       "directory": "wallet-journal",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": []
     },
@@ -1136,6 +1188,7 @@
       "has_persona_overlay": true,
       "path": ".claude/skills/watchlist/SKILL.md",
       "directory": "watchlist",
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": []

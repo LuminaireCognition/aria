@@ -62,9 +62,9 @@ CARGO POTENTIAL:
 GANK MATH (0.5 system):
   CONCORD window: ~19 seconds
   Required DPS: ~1,000 (to kill in window)
-  Catalyst cost: ~8M ISK
+  Catalyst cost: ~1M ISK
   Expected loot: ~17M ISK (50% drop)
-  Profit margin: +9M ISK average
+  Profit margin: +16M ISK average
 
 ENGAGEMENT NOTES:
   * Slow align - easy tackle
@@ -131,7 +131,7 @@ Your call, Captain.
 
 | Ship | Cost | DPS | Alpha |
 |------|------|-----|-------|
-| Catalyst | 8M | 650-750 | 2,400 |
+| Catalyst | ~1M | 650-750 | 2,400 |
 | Thrasher | 6M | 400-500 | 3,000 |
 | Tornado | 80M | 1,200 | 8,000 |
 | Talos | 90M | 1,400 | 5,500 |
@@ -143,8 +143,8 @@ Expected Profit = (Fitted Value x 0.5) - Gank Ship Cost - (Security Tag Cost if 
 
 Example:
   Target: 50M fitted Retriever
-  Gank: 8M Catalyst
-  Expected: (50M x 0.5) - 8M = 17M profit
+  Gank: ~1M Catalyst
+  Expected: (50M x 0.5) - 1M = 24M profit
 ```
 
 ## Engagement Considerations

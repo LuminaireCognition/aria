@@ -59,13 +59,13 @@ uv run aria-esi watchlist-show "War Targets"
 uv run aria-esi watchlist-create "Hostiles" --description "Known hostile corps"
 
 # Add entity (corporation)
-uv run aria-esi watchlist-add "Hostiles" 98000001 --type corporation --entity-name "CODE."
+uv run aria-esi watchlist-add "Hostiles" 99002775 --type alliance --entity-name "CODE."
 
 # Add entity (alliance)
 uv run aria-esi watchlist-add "Hostiles" 99000001 --type alliance --entity-name "Goonswarm"
 
 # Remove entity
-uv run aria-esi watchlist-remove "Hostiles" 98000001 --type corporation
+uv run aria-esi watchlist-remove "Hostiles" 99002775 --type alliance
 
 # Delete watchlist
 uv run aria-esi watchlist-delete "Hostiles"
@@ -117,16 +117,18 @@ ARIA WATCHLIST: War Targets
 Type: war_targets | Entities: 3
 ---------------------------------------------------------------
 CORPORATIONS:
-  [98000001] CODE.
+  (none)
+
+ALLIANCES:
+  [99002775] CODE.
     Reason: War target
     Added: 2024-01-15
 
-ALLIANCES:
   [99000001] TEST Alliance Please Ignore
     Reason: War target
     Added: 2024-01-14
 
-  [99000002] Pandemic Horde
+  [99005338] Pandemic Horde
     Reason: War target
     Added: 2024-01-14
 ===============================================================
@@ -162,9 +164,9 @@ Before adding an entity by name, resolve it to a numeric ID:
 **Example:** Adding "Pandemic Horde" to a watchlist:
 ```
 sde(action="resolve_names", names=["Pandemic Horde"])
-→ {"alliances": [{"id": 99003214, "name": "Pandemic Horde"}]}
+→ {"alliances": [{"id": 99005338, "name": "Pandemic Horde"}]}
 
-uv run aria-esi watchlist-add "Hostiles" 99003214 --type alliance --entity-name "Pandemic Horde"
+uv run aria-esi watchlist-add "Hostiles" 99005338 --type alliance --entity-name "Pandemic Horde"
 ```
 
 **MCP unavailable fallback:** No CLI equivalent exists. Use the ESI Swagger UI or ask the pilot for the entity ID directly.

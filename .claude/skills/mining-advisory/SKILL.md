@@ -11,10 +11,11 @@ triggers:
   - "belt intel"
   - "mining optimization"
 requires_pilot: true
+prerequisite_files:
+  - reference/mechanics/ore_database.md
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
-  - reference/mechanics/ore_database.md
 ---
 
 # ARIA Mining Operations Module
@@ -28,6 +29,32 @@ Provide mining guidance optimized for self-sufficient gameplay, including ore pr
 - "ore recommendations"
 - "belt intel"
 - "mining optimization"
+
+## Required Tool Calls (MANDATORY)
+
+Before presenting any mining advisory, the following MUST happen:
+
+| Step | Call | Required For |
+|------|------|-------------|
+| 1 | Read `reference/mechanics/ore_database.md` | Ore types, security bands, mineral yields |
+| 2 | `universe(action="systems", systems=["..."])` | System security status verification |
+| 3 | `market(action="prices", items=[...])` | Current ore/mineral prices (if ISK comparison needed) |
+
+**Step 1 is a `data_source` for this skill and MUST be read before responding.** The ore database contains verified security band data. Do NOT rely on training data for which ores spawn in which security levels.
+
+> **⚠️ HALLUCINATION GUARD:** Every ore name, security band, and mineral yield in the response MUST come from `ore_database.md` or an MCP tool call in this session. Training data about ore availability by security level is frequently wrong. Read the reference file FIRST, respond SECOND.
+
+### Field → Source Mapping
+
+| Output Field | Required Source | Source |
+|-------------|----------------|--------|
+| Ore names available in system | `ore_database.md` | Prerequisite file (read before output) |
+| Ore security bands (min sec to spawn) | `ore_database.md` | Prerequisite file |
+| Mineral yields per ore | `ore_database.md` | Prerequisite file |
+| System security status | Universe dispatcher | `universe(action="systems", systems=["..."])` |
+| Current ore/mineral prices | Market dispatcher | `market(action="prices", items=[...])` |
+| ISK/m³ rankings | Derived | Calculate from `ore_database.md` yields × market prices |
+| Pilot ship/skills context | Pilot profile | `data_sources` pilot files |
 
 ## Response Format
 
@@ -75,10 +102,21 @@ SAFETY ADVISORY:
 
 ## Venture Optimization Tips
 - Fit Mining Laser Upgrade in low slot
-- Always fit Warp Core Stabilizers (or use natural +2 bonus wisely)
+- Use the Venture's built-in +2 warp core stabilization — no WCS module needed
 - Keep ore hold under 5000 m3 focus on dense ores
 - Align while mining in lower security
 - Use Survey Scanner to find best rocks
+
+## Anti-Patterns
+
+❌ **WRONG:** Claim "Kernite is available in 0.7 systems" from training data
+✅ **RIGHT:** Read `ore_database.md` for verified security bands per ore type
+
+❌ **WRONG:** Present ore ISK/m³ rankings without querying current market prices
+✅ **RIGHT:** Call `market(action="prices")` for current mineral prices, then calculate
+
+❌ **WRONG:** State mineral yields per ore unit from memory
+✅ **RIGHT:** Read `ore_database.md` for exact reprocessing outputs
 
 ## Behavior
 - Account for pilot's self-sufficient status - prioritize manufacturing utility over ISK/hour

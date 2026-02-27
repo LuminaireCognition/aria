@@ -17,7 +17,7 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-skills.read_skills.v1
-data_sources:
+prerequisite_files:
   - reference/activities/skill_plans.yaml
   - reference/skills/ship_efficacy_rules.yaml
   - reference/skills/meta_module_alternatives.yaml
@@ -68,6 +68,26 @@ This skill requires the following MCP tools from the `aria-universe` server:
 | `sde_item_info` | Look up item details and category |
 
 **CRITICAL:** Check that these tools are available before proceeding. If unavailable, inform the user that skill planning requires the SDE MCP server.
+
+> **⚠️ HALLUCINATION GUARD:** Every training time, skill name, skill level, and efficacy estimate MUST come from MCP tool responses in this session. Training times are calculated server-side based on skill rank and attributes — do NOT estimate or fabricate training times from training data. If the tool did not return a training time for a specific skill, do not invent one.
+
+### Field → Source Mapping
+
+| Output Field | Required Source | Tool Call |
+|-------------|----------------|-----------|
+| Pilot's current skill levels | ESI skills endpoint | `uv run aria-esi skills` |
+| Easy 80% plan (categorized skills) | Skills dispatcher | `skills(action="easy_80_plan", item="...", current_skills={...})` |
+| Easy 80% training time | Skills dispatcher response `easy_80_time` | `skills(action="easy_80_plan", ...)` |
+| Full mastery training time | Skills dispatcher response `full_mastery_time` | `skills(action="easy_80_plan", ...)` |
+| Time savings (Easy 80% vs full) | Skills dispatcher response `time_savings` | `skills(action="easy_80_plan", ...)` |
+| Efficacy estimate (% effectiveness) | Skills dispatcher response `efficacy_estimate` | `skills(action="easy_80_plan", ...)` |
+| Meta module alternatives | Skills dispatcher response `meta_suggestions` | `skills(action="easy_80_plan", ...)` |
+| Min-max phased plan | Skills dispatcher | `skills(action="minmax_plan", item="...", current_skills={...})` |
+| T2 Level V requirements | Skills dispatcher | `skills(action="t2_requirements", item="...")` |
+| Activity skill tiers | Skills dispatcher | `skills(action="activity_plan", activity="...", tier="all")` |
+| Item category/description | SDE dispatcher | `sde(action="item_info", item="...")` (optional) |
+| Ship efficacy rules | Prerequisite file | `reference/skills/ship_efficacy_rules.yaml` (pre-read) |
+| Meta alternatives reference | Prerequisite file | `reference/skills/meta_module_alternatives.yaml` (pre-read) |
 
 ## Pilot Skills — Mandatory for Accurate Training Times
 
@@ -486,6 +506,20 @@ For detailed efficacy rules, meta alternatives, and activity definitions:
 - `reference/skills/ship_efficacy_rules.yaml` - Per-role skill impact data
 - `reference/skills/meta_module_alternatives.yaml` - T2 → Meta 4 suggestions
 - `reference/activities/skill_plans.yaml` - Activity skill templates
+
+## Anti-Patterns
+
+❌ **WRONG:** Show "Gallente Cruiser V: 29d 11h" when no MCP response contained that training time
+✅ **RIGHT:** Training times come ONLY from `skills(action="easy_80_plan")` or `skills(action="training_time")` responses
+
+❌ **WRONG:** Call `sde(action="skill_requirements")` alongside `easy_80_plan` (the plan already includes prerequisites)
+✅ **RIGHT:** Follow the Golden Path — `easy_80_plan` returns the full categorized prerequisite tree
+
+❌ **WRONG:** Present per-skill training times that don't appear in any tool response field
+✅ **RIGHT:** The `easy_80_plan` response includes `easy_80_time` and `full_mastery_time` totals — use those
+
+❌ **WRONG:** Call `easy_80_plan` without `current_skills` and present times as accurate
+✅ **RIGHT:** Without `current_skills`, ALL times are from-scratch estimates. Show the ⚠️ ESI warning.
 
 ## Behavior Notes
 
