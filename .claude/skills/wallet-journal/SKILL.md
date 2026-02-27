@@ -19,9 +19,6 @@ esi_scopes:
 
 # ARIA Financial Intelligence Module (Wallet Journal)
 
-## Purpose
-Query wallet journal and transactions to provide detailed ISK flow analysis. Essential for self-sufficient pilots tracking manufacturing profit margins, bounty income, mission rewards, and identifying where ISK comes from and goes.
-
 ## CRITICAL: Data Volatility
 
 Wallet journal data is **semi-stable** - new transactions appear continuously but historical data is fixed:
@@ -30,18 +27,6 @@ Wallet journal data is **semi-stable** - new transactions appear continuously bu
 2. **No staleness warning needed** - historical transactions don't change
 3. **Can cache results** - useful for trend analysis
 4. **Recent entries may update** - very recent transactions might still be processing
-
-## Trigger Phrases
-
-- `/wallet-journal`
-- "where did my ISK go"
-- "ISK history" / "transaction history"
-- "wallet transactions"
-- "income breakdown"
-- "show me my finances"
-- "money coming in"
-- "profit and loss"
-- "what am I earning from"
 
 ## ESI Availability Check (CRITICAL)
 

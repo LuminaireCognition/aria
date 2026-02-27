@@ -17,19 +17,6 @@ data_sources:
 
 # Hunting Grounds Module
 
-## Purpose
-
-Analyze solar systems for operational viability. Evaluate target availability, traffic patterns, competition presence, and tactical considerations for hunting operations.
-
-## Trigger Phrases
-
-- "/hunting-grounds"
-- "hunting grounds"
-- "where should I hunt"
-- "good systems for piracy"
-- "find targets"
-- "what systems are busy"
-
 ## Command Syntax
 
 ```
@@ -70,22 +57,9 @@ Every activity metric in a hunting ground analysis MUST come from a tool call. D
 
 ## Live Activity Intel
 
-**CRITICAL:** For hunting ground analysis, query live activity data.
+**CRITICAL:** For hunting ground analysis, query live activity data via `universe(action="activity")` or `universe(action="hotspots")`.
 
-### Activity Intel Commands
-
-**MCP (preferred if available):**
-```
-universe(action="activity", systems=["Tama"], include_realtime=True)
-universe(action="hotspots", origin="Tama", max_jumps=10, activity_type="kills")
-```
-
-**CLI fallback:**
-```bash
-uv run aria-esi activity <system>
-```
-
-Returns (public endpoint, no auth):
+Activity data returned (public endpoint, no auth):
 - **Ship kills** - Player ship losses in last hour
 - **Pod kills** - Capsule losses in last hour
 - **NPC kills** - Indicates ratting/mission activity (potential marks)

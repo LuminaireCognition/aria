@@ -16,10 +16,6 @@ esi_scopes:
 
 # ARIA Mining Ledger
 
-## Purpose
-
-Query the capsuleer's mining ledger to display ore extraction history. Shows what was mined, in which systems, and when. Essential for tracking mining operations and planning resource acquisition.
-
 ## CRITICAL: Read-Only Limitation
 
 **ESI mining endpoints are READ-ONLY.** ARIA can:
@@ -45,17 +41,6 @@ Mining ledger data is **semi-stable** - updates as you mine:
 2. **Daily aggregation** - individual mining cycles are summed per day
 3. **30-day window** - older data is purged automatically
 4. **Safe to cache** - data only updates when actively mining
-
-## Trigger Phrases
-
-- `/mining`
-- "my mining ledger"
-- "what have I mined"
-- "mining history"
-- "ore extraction"
-- "how much ore"
-- "mining stats"
-- "mining summary"
 
 ## ESI Requirement
 
@@ -100,18 +85,9 @@ Proceed with normal mining ledger queries.
 
 ## Implementation
 
-### MCP (preferred if available)
-
 ```python
 pilot(action="mining_ledger", days=7)
 pilot(action="mining_ledger", days=30, system_filter="Masalle", ore_filter="Veldspar")
-```
-
-### CLI (fallback)
-
-```bash
-uv run python -m aria_esi mining [options]
-uv run python -m aria_esi mining-summary [options]
 ```
 
 ### Commands

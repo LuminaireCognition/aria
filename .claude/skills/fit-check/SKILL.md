@@ -22,21 +22,6 @@ external_sources: []
 
 # ARIA Fit Check Module
 
-## Purpose
-
-Provide comprehensive fit validation that answers two questions new players always ask:
-1. **Can I fly this?** - Check if pilot has the skills to use all modules
-2. **Can I afford this?** - Calculate total cost and compare to wallet
-
-Additionally suggests substitutions for modules the pilot can't use yet.
-
-## Target Audience
-
-New and intermediate pilots who:
-- Copy fits from the internet without knowing if they can use them
-- Don't want to buy a ship only to find they can't fit half the modules
-- Need to know the total cost before committing ISK
-
 ## Command Syntax
 
 ```
@@ -88,8 +73,6 @@ When skills are unavailable, still provide value:
 - Fit validation via EOS (fitting tools work)
 - Module list and slot assignments
 - Skip: skill check, wallet comparison, training time
-
-**Rationale:** Partial information now beats complete information never. A cost breakdown alone is still useful.
 
 ## Execution Flow
 

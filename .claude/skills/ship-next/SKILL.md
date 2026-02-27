@@ -23,22 +23,6 @@ external_sources: []
 
 # ARIA Ship Progression Advisor
 
-## Purpose
-
-Answer the #1 question from new EVE players: "What ship should I fly next?"
-
-This skill provides personalized ship recommendations based on:
-- Current skills (what can you fly soon?)
-- Wallet (what can you afford?)
-- Activity preference (what do you want to do?)
-- Faction alignment (stay in your skill tree or branch out?)
-
-## Target Audience
-
-- **New players** (0-1 month): Completing Career Agents, first ship upgrade
-- **Early intermediate** (1-3 months): Moving from frigates to cruisers
-- **Mid intermediate** (3-6 months): Battlecruisers, battleships, or specialization
-
 ## Command Syntax
 
 ```
@@ -85,8 +69,6 @@ Wallet is volatile and not in the freshness registry. Query it separately with a
 uv run aria-esi wallet
 ```
 If wallet query fails, skip budget-based filtering and recommend based on skills/profile only.
-
-**Rationale:** A fast answer from slightly stale profile data is infinitely better than a 5-minute timeout. Players will rage-quit before waiting for failed ESI calls.
 
 ## Execution Flow
 

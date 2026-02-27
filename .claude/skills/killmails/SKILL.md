@@ -18,29 +18,6 @@ esi_scopes:
 
 # ARIA Killmail Analysis Module
 
-## Purpose
-
-Analyze kills and losses to learn from combat. Every ship loss is a learning opportunity - understanding what damage types killed you, what attackers were involved, and what patterns emerge helps pilots improve their fits and tactics.
-
-## Why This Matters
-
-When you lose a ship, the killmail contains valuable intelligence:
-- **What damage types killed you** → Tank better next time
-- **Who/what killed you** → Adjust tactics for that threat
-- **What modules were destroyed** → Evaluate fit effectiveness
-- **Where it happened** → Avoid dangerous areas or prepare better
-
-**Learning from losses is how pilots improve.**
-
-## Trigger Phrases
-
-- "what killed me" / "how did I die"
-- "show my losses"
-- "analyze my last loss"
-- "killmail analysis"
-- "loss history"
-- `/killmails`
-
 ## Commands
 
 ### List Recent Kills/Losses
@@ -267,12 +244,6 @@ Reference past losses when suggesting fits:
 Based on your recent losses showing 60% kinetic damage,
 I've prioritized kinetic resistance in this fit.
 ```
-
-## Scopes Required
-
-- `esi-killmails.read_killmails.v1` - Access to kill/loss history
-
-Note: The killmail detail endpoint is **public** once you have the ID and hash - the scope just lets you see which killmails are yours.
 
 ## ESI Availability Check (CRITICAL)
 

@@ -17,9 +17,6 @@ esi_scopes:
 
 # ARIA Skill Queue Monitor
 
-## Purpose
-Query the capsuleer's skill training queue to display current training progress, upcoming skills, and queue completion estimates. This is **volatile data** - training progresses continuously.
-
 ## CRITICAL: Read-Only Limitation
 
 **ESI skill endpoints are READ-ONLY.** ARIA can:
@@ -45,18 +42,6 @@ Skill queue data is **VOLATILE** - it changes continuously as skills train:
 4. **Never reference results in future turns** without re-querying
 
 Skills can complete mid-conversation. Always re-query for current status.
-
-## Trigger Phrases
-
-- `/skillqueue`
-- "what am I training"
-- "skill queue"
-- "training queue"
-- "skill eta"
-- "when will [skill] finish"
-- "training status"
-- "check my skills" (when context suggests queue, not list)
-- "how long until skills done"
 
 ## ESI Requirement
 

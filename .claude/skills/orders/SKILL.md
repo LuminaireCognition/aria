@@ -16,10 +16,6 @@ esi_scopes:
 
 # ARIA Market Orders Monitor
 
-## Purpose
-
-Query the capsuleer's market orders to display active buy/sell orders and order history. Essential for market traders and pilots monitoring their market activity.
-
 ## CRITICAL: Read-Only Limitation
 
 **ESI market order endpoints are READ-ONLY.** ARIA can:
@@ -43,18 +39,6 @@ Market order data is **semi-stable** - orders update when filled or modified:
 2. **Active orders cached 20 minutes** - may not reflect very recent fills
 3. **Order history cached 1 hour** - historical data is stable
 4. **Escrow amounts are locked** - shown for buy orders
-
-## Trigger Phrases
-
-- `/orders`
-- "my market orders"
-- "active orders"
-- "sell orders"
-- "buy orders"
-- "order status"
-- "what am I selling"
-- "market activity"
-- "order history"
 
 ## ESI Requirement
 
