@@ -1211,7 +1211,6 @@
         "sync war targets"
       ],
       "requires_pilot": false,
-      "has_persona_overlay": true,
       "path": ".claude/skills/watchlist/SKILL.md",
       "directory": "watchlist",
       "prerequisite_files": [],
