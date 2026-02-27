@@ -32,7 +32,7 @@ jobs:
     name: Universe MCP Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
@@ -60,7 +60,7 @@ jobs:
     # Only run benchmarks on main branch or manual trigger
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
@@ -109,7 +109,7 @@ jobs:
     # Only verify on main branch
     if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set up uv
         uses: astral-sh/setup-uv@v7
