@@ -19,32 +19,6 @@ esi_scopes:
 
 # ARIA Clone Status Module
 
-## Purpose
-
-Track clone locations and implants - **safety-critical information** for mission running and PvP. Knowing where your medical clone is set and what implants you'll lose if podded helps pilots make informed risk decisions.
-
-## Why This Matters
-
-When your pod is destroyed:
-1. **You respawn at your medical clone location** - if it's 30 jumps away, you're stranded
-2. **All implants in your active clone are destroyed** - expensive hardwirings are lost forever
-3. **Jump clones preserve implants** - swap to a clean clone before risky ops
-
-**Check your clone status before:**
-- Low-sec or null-sec operations
-- Missions with high ship loss risk
-- PvP roams
-- Any activity where pod loss is possible
-
-## Trigger Phrases
-
-- "clone status" / "where's my clone"
-- "check my implants"
-- "jump clone status"
-- "can I jump clone"
-- "medical clone location"
-- `/clones`
-
 ## Commands
 
 ### Full Clone Status

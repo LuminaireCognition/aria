@@ -15,21 +15,6 @@ requires_pilot: false
 
 # ARIA Build Cost Calculator
 
-## Purpose
-
-Calculate manufacturing costs for T1 items by fetching blueprint bill of materials from SDE and current market prices. Helps pilots decide whether to build or buy, and optimize production with ME research.
-
-**Scope:** T1 manufacturing only. T2 invention chains (datacores, decryptors) are not covered in this version.
-
-## Trigger Phrases
-
-- "/build-cost"
-- "cost to build [item]"
-- "manufacturing cost"
-- "is it profitable to build [item]"
-- "build vs buy [item]"
-- "BOM for [item]"
-
 ## Command Syntax
 
 ```
@@ -374,14 +359,14 @@ At 10 units, that's 187M ISK saved.
 
 Before presenting build cost results, verify:
 
-- [ ] All materials from `blueprint_info` have corresponding prices
-- [ ] Component costs are included (not just minerals)
-- [ ] Total equals sum of ALL material categories
-- [ ] Profit calculation uses complete costs
-- [ ] Any missing data is prominently flagged
-- [ ] Complexity rating matches material types
+1. All materials from `blueprint_info` have corresponding prices
+2. Component costs are included (not just minerals)
+3. Total equals sum of ALL material categories
+4. Profit calculation uses complete costs
+5. Any missing data is prominently flagged
+6. Complexity rating matches material types
 
-**If any checkbox fails:** Do not present as complete. Show warning.
+**If any step fails:** Do not present as complete. Show warning.
 
 ## Edge Cases
 

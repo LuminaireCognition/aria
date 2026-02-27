@@ -17,16 +17,6 @@ data_sources:
 
 # ARIA Threat Assessment Module
 
-## Purpose
-Provide security analysis for systems, activities, and travel routes with emphasis on capsuleer safety.
-
-## Trigger Phrases
-- "threat assessment"
-- "is [system] safe"
-- "security analysis"
-- "can I go to [location]"
-- "what are the risks of [activity]"
-
 ## Default Behavior
 
 When no system is specified, queries default to the pilot's current region:
@@ -67,35 +57,7 @@ Every data point in a threat assessment MUST come from a tool call. Do NOT fabri
 
 **CRITICAL:** For specific system assessments, ARIA should query live activity data to enhance threat analysis.
 
-### Data Sources (Fallback Chain)
-
-Activity data can be obtained from multiple sources. Use in order of preference:
-
-#### 1. MCP Tools (preferred if available)
-
-If the `aria-universe` MCP server is connected, use the `universe` dispatcher:
-
-```
-universe(action="activity", systems=["Simela"], include_realtime=True)
-```
-
-**Response includes:** system name, security status, ship/pod/NPC kills, jumps, activity level.
-
-**Advantages:** Sub-millisecond response, security status included, batch queries supported.
-
 **Efficiency note:** `universe(action="local_area", origin="X")` already includes activity data for the origin system and nearby systems. Do NOT make a separate `universe(action="activity")` call for the origin — it duplicates data already in the local_area response. Only use separate `activity()` calls for systems outside the local_area radius.
-
-#### 2. CLI Commands (fallback)
-
-If MCP tools are not available, use the `aria-esi` CLI:
-
-```bash
-uv run aria-esi activity <system>
-```
-
-#### 3. How to Check MCP Availability
-
-If `universe` appears in your available tools, MCP is connected. Otherwise, fall back to CLI.
 
 ### Activity Data Fields
 
@@ -460,10 +422,6 @@ FACTION WARFARE: Active Warzone
 ## Experience-Based Adaptation
 
 Check the active pilot's profile for **EVE Experience** level and adapt explanations.
-
-**Pilot Resolution:** Read `userdata/config.json` for `active_pilot` ID, then `userdata/pilots/_registry.json` to get the `directory` field. Single-pilot shortcut: if config missing, use the sole pilot from registry.
-
-**Profile Location:** `userdata/pilots/{active_pilot}/profile.md` (where `{active_pilot}` is the resolved directory)
 
 ### Security Status Explanation
 
