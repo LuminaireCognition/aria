@@ -28,9 +28,6 @@ esi_scopes:
 
 # ARIA GalNet Interface Module (ESI Integration)
 
-## Purpose
-Query the EVE Swagger Interface (ESI) to retrieve **live** capsuleer data. This is the ONLY way to access volatile data (location, current ship, wallet).
-
 ## CRITICAL: Data Volatility
 
 This skill handles data that can become stale in **seconds**. ARIA must:
@@ -105,36 +102,9 @@ ESI adds convenience features:
 **When ESI is not configured**, guide the capsuleer to use manual data files
 rather than treating it as a problem to solve.
 
-## Pilot Resolution (First Step)
-
-Before accessing credentials or pilot files, resolve the active pilot:
-1. Read `userdata/config.json` → get `active_pilot` character ID
-2. Read `userdata/pilots/_registry.json` → match ID to `directory` field
-3. Credentials at: `credentials/{character_id}.json`
-4. Pilot files at: `userdata/pilots/{directory}/`
-
-**Single-pilot shortcut:** If config is missing, read the registry - if only one pilot exists, use that pilot.
-
 ## Prerequisites (When ESI Is Desired)
 If capsuleer wants live GalNet data, they need valid ESI credentials:
 - Path: `credentials/{character_id}.json`
-
-## Trigger Phrases
-
-### Volatile Data Queries (timestamp required)
-- "where am I" / "current location"
-- "what ship am I in"
-- "wallet balance" / "how much ISK"
-
-### Semi-Stable Data Queries
-- "check my skills"
-- "my standings"
-- "refresh standings"
-- "my blueprints" / "what BPOs do I have"
-- "refresh blueprint library"
-
-### Cache Refresh Triggers
-- "update profile" / "sync data"
 
 ## ESI Wrapper Commands
 

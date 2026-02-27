@@ -16,10 +16,6 @@ esi_scopes:
 
 # ARIA Research Agents Monitor
 
-## Purpose
-
-Query the capsuleer's active research agent partnerships to display accumulated research points (RP) and daily generation rates. Research agents provide passive RP accumulation for datacores used in invention.
-
 ## CRITICAL: Standings Freshness Gate
 
 **Before answering R&D agent eligibility questions**, this skill MUST ensure fresh standings data.
@@ -91,17 +87,6 @@ Research agent data is **stable** - RP accumulates on fixed timers:
 2. **RP is deterministic** - based on skill levels and time elapsed
 3. **Safe to cache** - partnerships rarely change
 4. **Calculate current RP** - use formula: `remainder_points + (points_per_day * days_elapsed)`
-
-## Trigger Phrases
-
-- `/agents-research`
-- "my research agents"
-- "research points"
-- "RP status"
-- "datacores"
-- "R&D agents"
-- "how much RP do I have"
-- "research agent status"
 
 ## ESI Requirement
 

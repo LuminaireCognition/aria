@@ -17,9 +17,6 @@ esi_scopes:
 
 # ARIA Industry Jobs Monitor
 
-## Purpose
-Query the capsuleer's personal industry jobs to display active manufacturing runs, research in progress, copying jobs, and invention attempts. Essential for self-sufficient pilots who manufacture their own equipment.
-
 ## CRITICAL: Read-Only Limitation
 
 **ESI industry endpoints are READ-ONLY.** ARIA can:
@@ -43,19 +40,6 @@ Industry job data is **semi-stable** - jobs progress on fixed timers:
 2. **Jobs have fixed completion times** - unlike skills, progress is deterministic
 3. **Can cache results** - job data doesn't change mid-run
 4. **Check "ready for delivery"** - completed jobs need manual delivery
-
-## Trigger Phrases
-
-- `/industry-jobs`
-- "my industry jobs"
-- "manufacturing jobs"
-- "what's being built"
-- "check my jobs"
-- "industry status"
-- "research progress"
-- "when will my job finish"
-- "am I building anything"
-- "manufacturing status"
 
 ## ESI Requirement
 

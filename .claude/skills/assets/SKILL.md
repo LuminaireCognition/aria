@@ -17,19 +17,6 @@ esi_scopes:
 
 # ARIA Asset Audit Module
 
-## Purpose
-
-View character asset inventory with optional market valuation. Query assets by location, type, or show total portfolio value. Integrates with ESI for live asset data and market dispatchers for pricing.
-
-## Trigger Phrases
-
-- "/assets"
-- "my assets"
-- "asset value"
-- "what do I own"
-- "inventory value"
-- "total net worth"
-
 ## ESI Availability Check (CRITICAL)
 
 **BEFORE making any ESI queries**, check the session hook output for ESI status:

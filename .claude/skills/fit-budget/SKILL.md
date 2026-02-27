@@ -22,24 +22,6 @@ external_sources: []
 
 # ARIA Budget Fit Generator
 
-## Purpose
-
-Take any EFT fit (typically T2/expensive) and generate a budget version that:
-1. Uses only modules the pilot can fly
-2. Stays within a target budget
-3. Maintains the fit's core purpose and role
-4. Shows the performance tradeoff
-
-## The Problem This Solves
-
-"All public fits assume T2 skills. New players need 'the same fit but with modules I can actually use' automatically generated."
-
-## Target Audience
-
-- New players copying fits from guides/Reddit/Discord
-- Pilots who can't afford T2 modules
-- Players who want to try a ship before investing in full T2 training
-
 ## Command Syntax
 
 ```
@@ -97,8 +79,6 @@ When ESI unavailable, use profile's `module_tier`:
 | `t1` | Downgrade all T2 → T1/Meta |
 | `t2` | Keep T2, downgrade faction/deadspace only |
 | Not specified | Default to T1 (safe assumption) |
-
-**Rationale:** A budget fit based on tier assumption is still useful. The pilot can verify in-game.
 
 ## Efficiency Target
 

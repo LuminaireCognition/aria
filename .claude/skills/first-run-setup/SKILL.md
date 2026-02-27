@@ -15,9 +15,6 @@ requires_pilot: false
 
 # ARIA First-Run Setup Module
 
-## Purpose
-Guide new capsuleers through initial profile configuration with an **ESI-first approach**. Connect to EVE first, auto-fill what we can from the API, then only ask for preferences that require human input.
-
 ## Boot Hook State (Skip Redundant Checks)
 
 The boot hook output includes a machine-readable state line:
@@ -48,20 +45,6 @@ limited. Run 'uv sync' to install all dependencies.
 ```
 
 Continue setup anyway - it's not blocking.
-
-## Design Philosophy
-
-**ESI-First Principle:** Don't ask questions that ESI can answer.
-
-| Data | Source | Ask User? |
-|------|--------|-----------|
-| Character name | ESI | NO - auto-fill |
-| Corporation | ESI | NO - auto-fill |
-| Alliance | ESI | NO - auto-fill |
-| Character birthday | ESI | NO - auto-fill |
-| Faction standings | ESI | Confirm suggestion |
-| RP preference | User choice | YES - always ask |
-| Experience level | User choice | YES - ask with hint |
 
 ## Conversation Flow
 

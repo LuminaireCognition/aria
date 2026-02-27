@@ -18,20 +18,6 @@ data_sources:
 
 # ARIA Planetary Interaction Module
 
-## Purpose
-
-Provide guidance on EVE Online Planetary Interaction (PI) production chains, planet resource availability, and colony planning. Uses static reference data for production schematics and can integrate with market prices for profit analysis.
-
-## Trigger Phrases
-
-- "/pi"
-- "PI production chain"
-- "what planet for [resource]"
-- "how to make [P1/P2/P3/P4 item]"
-- "planetary interaction"
-- "PI guide"
-- "what planets have [resource]"
-
 ## Command Syntax
 
 ```

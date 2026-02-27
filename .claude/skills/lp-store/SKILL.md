@@ -16,19 +16,6 @@ esi_scopes:
 
 # ARIA Loyalty Points Module
 
-## Purpose
-
-Track Loyalty Points (LP) earned from mission running and browse LP store offers. For self-sufficient pilots, the LP store is the **primary way to acquire faction modules, implants, and special items** without using the player market.
-
-## Trigger Phrases
-
-- "check my LP" / "LP balance"
-- "how much LP do I have"
-- "what can I buy with LP"
-- "LP store" / "loyalty store"
-- "Federation Navy LP store"
-- `/lp-store`
-
 ## Commands
 
 ### LP Balance Check
