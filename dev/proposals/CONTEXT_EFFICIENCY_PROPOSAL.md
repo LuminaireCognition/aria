@@ -215,7 +215,7 @@ expected behavior, Phase 0 baseline output.)
 
 | Section | Lines | Reason |
 |---------|-------|--------|
-| Session Initialization steps 1-2 | ~25 | Boot hook does this; Claude receives the JSON result |
+| Session Initialization steps 1-2 | ~25 | Boot hook does this; Claude receives the JSON result. **Gate:** Phase 0's boot hook schema must confirm that pilot resolution (step 1) and profile loading (step 2) are fully covered by boot hook JSON output before this removal is implemented. |
 | Static Game Data References table | 53 | Move references into relevant skills' `prerequisite_files` |
 
 **Reference file migration mapping:** When removing the Static Game Data References table, promote or add files to the appropriate skills:
@@ -245,7 +245,7 @@ expected behavior, Phase 0 baseline output.)
 |---------|--------------|-------------|--------|
 | Session Initialization steps 3-5 | ~37 | ~15 | Steps 3-4 (staleness check, persona loading) are Claude's runtime actions — keep the instructions but trim prose. Step 5 (fresh install check) stays as-is. |
 | MCP Fallback Behavior | 21 | 5 | Keep table, remove prose |
-| Skill Loading | 69 | 25 | Keep mechanism, remove path validation details (move to dev doc) |
+| Skill Loading | 69 | 25 | Keep mechanism, remove path validation details (move to `personas/_shared/skill-loading.md`, which already documents overlay security) |
 | Persona Loading | 26 | 10 | Keep pointer to compiled artifact, remove example YAML |
 | `sde` vs `skills` disambiguation | 20 | 10 | Keep table, remove examples |
 | Reference Documentation table | 24 | 12 | Remove dev-only entries. **Keep:** Ad-hoc market scopes, Persona loading, Skill loading & overlays, RP level configuration, ESI integration, Multi-pilot architecture, Context-aware topology, Real-time intel config, Notification profiles. **Remove:** Data verification (→ DATA_TRUST.md), Data authority (→ DATA_TRUST.md), Context policy, External data sources, Data files & volatility (→ SESSION_BEHAVIOR.md), Data protocols (→ SESSION_BEHAVIOR.md), Experience adaptation (→ SESSION_BEHAVIOR.md), Session context, Python environment (already in CLAUDE.md body), Persona system (contributor doc). |
@@ -296,7 +296,7 @@ generating any output. These contain authoritative game data.
 
 **Rationale:** Claude Code already provides skill discovery through the system-reminder. AGENTS.md's 49-skill registry is redundant for Claude Code sessions. The "How to use skills" section largely restates Claude Code's native behavior. Keep only the two things Claude Code doesn't handle natively: `uv run` requirement and `prerequisite_files` gate.
 
-**Generator disposal:** AGENTS.md is currently a generated artifact produced by `aria-skill-index.py` and regenerated at every boot. **Decision: option (b) — remove the generator and hand-maintain AGENTS.md.** 10 lines of static text does not benefit from generation. Delete or archive `aria-skill-index.py` and remove its boot hook invocation.
+**Generator disposal:** AGENTS.md is currently a generated artifact produced by `aria-skill-index.py` and regenerated at every boot. **Decision: option (b) — remove the generator and hand-maintain AGENTS.md.** 10 lines of static text does not benefit from generation. Delete `aria-skill-index.py` and remove its boot hook invocation. Git history preserves the file if the Agents API path is reactivated.
 
 **Agents API consumer:** AGENTS.md also serves as the skill registry for the Anthropic Agents API path (non-Claude-Code agents), which does not have a system-reminder listing available skills. The Agents API path is experimental and not actively deployed. If it is reactivated, a separate `AGENTS_API.md` can be generated from `_index.json` at that time — this does not block slimming the Claude Code AGENTS.md now.
 
@@ -328,6 +328,13 @@ Content:
 - Data volatility tiers + file path reference (from PROTOCOLS.md + DATA_FILES.md — these are complementary halves of the same topic)
 - One table of experience levels with one-line descriptions (from EXPERIENCE_ADAPTATION.md)
 - Command suggestion principles as a 5-line section (from COMMAND_SUGGESTIONS.md)
+
+**Acceptance criteria for distilled content:**
+
+- **Command suggestions section (5 lines):** Must include the progressive disclosure principle ("suggest commands when topics arise, mention each once") and the four command tiers (Must-Know, Situational, Power User, Rarely Needed) with 1–2 example commands per tier.
+- **Experience levels table:** Must include the three levels (`new`, `intermediate`, `veteran`) with columns for explanation depth and one example phrase per level demonstrating density difference.
+- **DATA_TRUST.md:** Must include (a) the canonical trust hierarchy from DATA_AUTHORITY.md (ESI → SDE → DOTLAN → EVE Uni Wiki → never training data), (b) the three case studies from DATA_VERIFICATION.md condensed to ~20 lines each, and (c) cache authority rules.
+- **"Verified" defined:** Phase 0 regression prompts still pass after the merge. A contributor unfamiliar with the original files can locate the trust hierarchy, case studies, and data volatility tiers within 60 seconds.
 
 Removes:
 - 5 detailed explanation example pairs from EXPERIENCE_ADAPTATION.md (Claude does audience adaptation natively)
@@ -441,9 +448,9 @@ Phase 5 should also investigate whether oversized prerequisite files (particular
 
 | Item | Action | Prerequisite | Size recovered |
 |------|--------|-------------|---------------|
-| `reference/archetypes/` | Delete 149 YAML files | Inline 5–10 representative EFT fits into fitting and skillplan SKILL.md files. **Selection criteria:** one T1 or faction hull per class (frigate, destroyer, cruiser, battlecruiser, battleship) covering combat and PvE roles. Target: ~3 fits into fitting SKILL.md (as example EFT blocks), ~3 into skillplan SKILL.md (as training plan reference hulls). Fits must be T1/faction hulls (not T2/T3) since those are the primary audience for these skills. | 1.5 MB |
-| `dev/reviews/exercise-outputs/` | Archive to separate branch or delete | None | 1.5 MB |
-| `context_budget.py` | Delete or implement (currently dead code) | None | 136 lines |
+| `reference/archetypes/` | Delete if present; no-op if absent | Phase 0 baseline audit must verify directory existence. **If present:** Inline 5–10 representative EFT fits into fitting and skillplan SKILL.md files before deletion. Selection: one T1 or faction hull per class (frigate, destroyer, cruiser, battlecruiser, battleship); ensure diversity of weapon systems (at least one drone boat, one turret boat) and tank types (at least one armor, one shield). Target: ~3 fits into fitting SKILL.md, ~3 into skillplan SKILL.md. **If absent:** No-op — directory was already removed or never created. | 1.5 MB (if present) |
+| `dev/reviews/exercise-outputs/` | Delete | None — git history preserves content | 1.5 MB |
+| `context_budget.py` | Delete (dead code; git history preserves for reimplementation) | None | 136 lines |
 | Legacy display functions in `boot-display.sh` | Delete lines 186-454 | Verify `aria-banner.sh` is not used (it invokes these functions for manual terminal display). If still used, either keep or port to a standalone script. | 268 lines |
 | ~~`EXPERIENCE_ADAPTATION.md`~~ | ~~Superseded by Phase 3 merge~~ | ~~Phase 3 complete~~ | ~~109 lines~~ — **No-op:** Phase 3 now deletes all 6 source files |
 | ~~`COMMAND_SUGGESTIONS.md`~~ | ~~Superseded by Phase 3 merge~~ | ~~Phase 3 complete~~ | ~~129 lines~~ — **No-op:** Phase 3 now deletes all 6 source files |
