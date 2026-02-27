@@ -187,4 +187,4 @@ Kill Stream (RedisQ)
 
 - [REALTIME_CONFIGURATION.md](REALTIME_CONFIGURATION.md) - RedisQ poller and Discord webhooks
 - [NOTIFICATION_PROFILES.md](NOTIFICATION_PROFILES.md) - Interest Engine v2 and multi-webhook routing
-- [DATA_FILES.md](../dev/docs/ai-runtime/DATA_FILES.md) - Data file locations and volatility
+- [SESSION_BEHAVIOR.md](../dev/docs/ai-runtime/SESSION_BEHAVIOR.md) - Data file locations and volatility

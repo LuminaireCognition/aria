@@ -21,6 +21,10 @@ prerequisite_files:
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
+  - reference/mechanics/missiles.json
+  - reference/mechanics/projectile_turrets.json
+  - reference/mechanics/laser_turrets.json
+  - reference/mechanics/hybrid_turrets.json
 ---
 
 # ARIA Fitting Module
@@ -42,29 +46,6 @@ These files MUST be loaded before the first `fitting(action="calculate_stats")` 
 - EFT format specification: [EFT-FORMAT.md](EFT-FORMAT.md)
 - Module naming issues: [MODULE_NAMES.md](../../../reference/fittings/MODULE_NAMES.md)
 - Fitting checklist: [CHECKLIST.md](CHECKLIST.md)
-
-## Building Fits
-
-When building fits from scratch, follow the Prerequisites section above and use EOS validation.
-
-## Operational Constraints
-
-CRITICAL: Before making recommendations, check the active pilot's profile for:
-- **Operational Constraints** section (market access, contracts, etc.)
-- **Primary Faction** (determines default ship/module recommendations)
-- **Playstyle restrictions** (self-sufficiency mode, etc.)
-
-**Profile Location:** `userdata/pilots/{active_pilot}/profile.md`
-
-**If self-sufficiency mode enabled:**
-1. **Primary Recommendations**: Tech 1 modules manufacturable from NPC-seeded BPOs
-2. **Meta Alternatives**: Note common meta module drops from missions
-3. **No Market Dependencies**: Never assume market access for modules
-
-**If standard playstyle:**
-1. Recommend optimal modules regardless of acquisition method
-2. Note T2 upgrades where appropriate
-3. Consider faction/deadspace modules for advanced fits
 
 ### Gear Tier Validation Protocol
 
@@ -104,11 +85,7 @@ Ammo/charge lines (e.g., `Scourge Heavy Missile x1000`) in EFT format may be mis
 
 **CRITICAL:** Never present a fitting recommendation without EOS validation.
 
-### Validation Steps
-
-Before presenting ANY fit:
-
-#### Step 1: Verify ALL Item Names via SDE (BLOCKING GATE)
+### Step 1: Verify ALL Item Names via SDE (BLOCKING GATE)
 
 **Every module, charge, drone, and rig** in the proposed fit must be verified before proceeding:
 ```
@@ -125,19 +102,13 @@ Run this for **each distinct item**. Do NOT skip items you are "confident" about
 
 **If SDE returns no match:** The item name is wrong. Do NOT include it in the fit. Search SDE for the correct name before continuing.
 
-#### Step 2: Build and Validate via EOS
+### Step 2: Build and Validate via EOS
 
 ```
 fitting(action="calculate_stats", eft="[Ship, Fit Name]\n...", use_pilot_skills=true)
 ```
 
-This catches:
-- Slot mismatches (mid slot module in high slot)
-- CPU/PG overloads
-- Invalid module names
-- Provides accurate DPS/tank with pilot skills
-
-#### Step 3: Check Validation Response
+### Step 3: Check Validation Response
 
 | Response | Action |
 |----------|--------|
@@ -147,30 +118,9 @@ This catches:
 | `metadata.warnings` | **Investigate before proceeding** (see Warning Protocol) |
 | Clean validation | Proceed to presentation |
 
-#### Step 4: Handle Validation Failures
-
-**Unknown type error:**
-```json
-{"error": "type_resolution_error", "message": "Unknown type: Reactive Armor Hardener I"}
-```
-→ Query SDE for correct name, rebuild EFT, re-validate
-
-**CPU/PG overload:**
-→ Suggest alternatives: downgrade modules, add fitting implants, or choose different modules
-
-**Slot mismatch:**
-→ Verify module slot type, rebuild fit with correct slot assignment
-
 ### Warning Investigation Protocol
 
 **CRITICAL:** Never dismiss warnings without verification.
-
-When `metadata.warnings` contains entries:
-
-1. **Read each warning message**
-2. **For slot-related warnings:** Query `sde(action="item_info", item="...")` to verify slot type
-3. **For unknown type warnings:** The module name is wrong—query SDE for correct name
-4. **For resource warnings:** Review fitting room, consider downgrades
 
 | Warning Type | Required Action |
 |--------------|-----------------|
@@ -182,32 +132,13 @@ When `metadata.warnings` contains entries:
 | **"Empty slots"** | Add modules to fill all available slots |
 | **"Mixed tank detected"** | Remove conflicting modules (see Tank Coherence Rules) |
 
-**Do not proceed to presentation** until all warnings have been investigated and either:
-- Resolved (fit corrected)
-- Documented (warning is cosmetic/known limitation)
-
-**Empty Slot Warnings:** The tool now warns when `slots.used < slots.total`. A fit with empty slots is incomplete. Either:
-- Fill the slots with useful modules
-- Document why slots are intentionally empty (rare—usually CPU/PG constrained edge cases)
-
-**Mixed Tank Warnings:** The tool detects armor rigs + shield modules (or vice versa). This is always a fitting error. See Tank Coherence Rules in Fitting Philosophy.
+**Do not proceed to presentation** until all warnings have been investigated and either resolved or documented as cosmetic/known limitation.
 
 ### Mission Fit Requirements
 
 When building fits for specific missions:
-
 1. Read mission cache for required equipment (Data Analyzer, Probe Launcher, etc.)
 2. Verify required modules fit in available slots BEFORE finalizing
-3. Example: Data Analyzer (mid slot) requires a free mid slot - do not place in high slots
-
-### Presenting Validated Fits
-
-Only present fits that pass EOS validation. Include:
-
-1. **EFT block** (copy-paste ready)
-2. **Calculated stats** (DPS, EHP, cap stability) with skill context
-3. **Fitting room** (CPU%, PG%) - warn if tight
-4. **Validation source** - "Stats calculated via EOS with your skills"
 
 ### EOS Unavailability
 
@@ -218,45 +149,9 @@ If the fitting engine is unavailable:
 
 ## Response Format
 
-When providing fitting recommendations:
+Present validated fits with: EFT block (copy-paste ready), calculated stats (DPS, EHP, cap stability) with skill context, fitting room (CPU%, PG%), and validation source note ("Stats calculated via EOS with your skills").
 
-```
-═══════════════════════════════════════════════════════════════════
-ARIA FITTING ANALYSIS
-[Ship Class] — [Fit Purpose]
-───────────────────────────────────────────────────────────────────
-[Analysis content organized in clear sections]
-═══════════════════════════════════════════════════════════════════
-```
-
-When exporting fittings, always provide:
-1. Properly formatted EFT block (see EFT-FORMAT.md)
-2. Import instructions for EVE client
-3. Manufacturing notes if relevant
-
-## Fitting Philosophy Guidelines
-
-### Survival Fits
-- Prioritize align time (sub-6 seconds ideal for industrials)
-- Include Cloak+MWD trick capability where appropriate
-- Balance between speed tank and buffer tank based on threat profile
-
-### Mining Fits
-- Maximize yield within safety parameters
-- Consider ore hold vs cargo capacity
-- Always include escape capability
-
-### Mission Fits
-- Match tank to expected enemy damage types
-- Reference mission-brief skill for enemy intel
-- Prefer capacitor stability for extended engagements
-
-### Exploration Fits
-- Prioritize probe strength and scan resolution
-- Include escape capability (cloak, align time)
-- Balance analyzer strength vs survivability
-
-### Tank Coherence Rules
+## Tank Coherence Rules
 
 **CRITICAL:** Never mix armor and shield active tank modules. The fitting tool will warn about mixed tanks, but prevention is better than correction.
 
@@ -279,13 +174,6 @@ When exporting fittings, always provide:
 - Shield rigs + armor modules → warning
 - Both active tank types → warning
 
-## Manufacturing Awareness
-
-When recommending fittings for self-sufficient pilots, provide:
-- Primary mineral requirements for T1 modules
-- Salvage requirements for rigs
-- Note which meta modules commonly drop from L2 missions
-
 ## Drone Selection Protocol
 
 When recommending drones for a fit:
@@ -295,15 +183,6 @@ When recommending drones for a fit:
 3. **Verify bandwidth fits ship** - Use `common_drone_ships` or query SDE for ship drone bandwidth
 4. **Quote damage type from file** - Do not rely on training data for damage types
 
-**Drone selection workflow:**
-```
-1. Identify enemy faction from mission/activity context
-2. Read drones.json → enemy_recommendations → {faction} → weakness
-3. Select drone that deals that damage type
-4. Verify ship can field the drone (bandwidth check)
-5. Include damage type in fit presentation (cite source)
-```
-
 **Example:** Mission against Serpentis
 - Read `enemy_recommendations.serpentis.weakness` → "thermal"
 - Select Hammerhead (medium, thermal) or Hobgoblin (light, thermal)
@@ -311,47 +190,9 @@ When recommending drones for a fit:
 
 ## Faction-Specific Fitting Guidance
 
-Typical tank and weapon system by faction:
-
 | Faction | Tank | Primary Weapon | Hull Examples |
 |---------|------|----------------|---------------|
 | Gallente | Armor | Drones/Hybrids | Vexor, Myrmidon, Dominix |
 | Caldari | Shield | Missiles | Caracal, Drake, Raven |
 | Minmatar | Shield/Flex | Projectiles | Rupture, Hurricane, Maelstrom |
 | Amarr | Armor | Lasers | Omen, Harbinger, Apocalypse |
-
-## Behavior
-- Maintain ARIA persona throughout
-- Provide tactical reasoning for fitting choices
-- Warn about fitting pitfalls (cap stability, CPU/PG issues)
-- Offer alternatives when primary recommendations may be difficult to source
-- **Brevity:** EFT block + key notes only. Full analysis/manufacturing info on request.
-- **Rig Inclusion:**
-  - New ship builds: Include rig recommendations
-  - Refits/mission loadouts: OMIT rigs (assume already installed)
-  - When in doubt, ask: "Include rig suggestions for a new hull?"
-
-## Contextual Suggestions
-
-After providing a fitting, suggest ONE related command when contextually relevant:
-
-| Context | Suggest |
-|---------|---------|
-| Fit is for missions | "Run `/mission-brief` for enemy intel before undocking" |
-| Fit is for exploration | "Try `/exploration` when you find a site" |
-| Fit is for mining | "My `/mining-advisory` can recommend ores" |
-| Capsuleer asks about dangerous space | "Check `/threat-assessment` for the area first" |
-
-Don't add suggestions to every fitting - only when clearly helpful.
-
----
-
-## Persona Adaptation
-
-This skill supports persona-specific overlays. When active persona has an overlay file, load additional context from:
-
-```
-personas/{active_persona}/skill-overlays/fitting.md
-```
-
-If no overlay exists, use the default (empire) framing above.

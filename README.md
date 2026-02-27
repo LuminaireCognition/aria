@@ -282,7 +282,7 @@ ARIA pulls data from multiple sources with different update frequencies. Market 
 For deeper details:
 
 - [dev/docs/DATA_SOURCES.md](dev/docs/DATA_SOURCES.md) — where each data type originates and how it's updated
-- [dev/docs/ai-runtime/DATA_VERIFICATION.md](dev/docs/ai-runtime/DATA_VERIFICATION.md) — how ARIA validates game data before presenting it
+- [dev/docs/ai-runtime/DATA_TRUST.md](dev/docs/ai-runtime/DATA_TRUST.md) — how ARIA validates game data and data authority hierarchy
 - [docs/ESI.md](docs/ESI.md) — live character data setup and token lifecycle
 - [SECURITY.md](SECURITY.md) — threat model, path validation, prompt injection defenses
 

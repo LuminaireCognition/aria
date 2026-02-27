@@ -80,68 +80,26 @@ These files are git-ignored and contain sensitive data that should never be disp
 - Explain that they should copy it to `.env` and fill in values
 - Never ask to see or read their `.env` file
 
-## Session Initialization
+## Session Context
 
-**At session start**, execute these steps in order:
+The boot hook outputs JSON with pilot identity, persona, ESI status, and diagnostics. Use this data directly — do not re-resolve pilot or persona.
 
-### 1. Resolve Active Pilot
+**Boot JSON fields:** `pilot.{id,name,count,selection_needed}`, `config.status`, `esi.{status,reason,changes}`, `persona.{name,subtitle}`, `state.{fresh_install,credentials}`, `diagnostics.{warnings,errors}`
 
-1. Read `userdata/config.json` → get `active_pilot` (character ID)
-2. Read `userdata/pilots/_registry.json` → find matching entry → get `directory`
-3. Use `userdata/pilots/{directory}/` for all pilot-specific paths
+If `state.fresh_install` is true, offer `/setup`.
+If `diagnostics.warnings` is non-empty, mention them briefly.
+In skill docs, `{active_pilot}` = the resolved pilot directory from boot.
 
-**Single-pilot shortcut:** If config doesn't exist and registry has one pilot, use that.
+### Persona Loading (runtime)
 
-**Example:**
-```
-userdata/config.json          → "active_pilot": "2123984364"
-userdata/pilots/_registry.json → "directory": "2123984364_federation_navy_suwayyah"
-Path: userdata/pilots/2123984364_federation_navy_suwayyah/profile.md
-```
-
-In skill docs, `{active_pilot}` = resolved directory.
-
-### 2. Load Pilot Profile
-
-Read `userdata/pilots/{active_pilot}/profile.md` to get:
-- Identity, faction, RP level
-- Operational constraints
-- The `persona_context` section
-
-### 3. Validate Persona Context (Staleness Check)
-
-**Before loading persona files**, perform a lightweight staleness check:
-
-1. **Compare profile fields against `persona_context`:**
-   - Profile `faction` should match `persona_context.branch` mapping (empire factions → `empire`, pirate → `pirate`)
-   - Profile `rp_level` should match `persona_context.rp_level`
-
-2. **If mismatch detected:**
-   - Warn the user: "Persona context appears stale. Profile faction/rp_level doesn't match persona_context."
-   - Suggest: "Run `uv run aria-esi persona-context` to regenerate."
-   - **Continue with current context** (don't block session start)
-
-3. **Check critical files exist** (optional, for debugging):
-   - If `persona_context.files` is non-empty and `rp_level != off`, spot-check that the first file exists
-   - Missing files indicate staleness from persona directory reorganization
-
-**Rationale:** This catches configuration drift early, before users experience incorrect persona behavior. The `validate-overlays` command provides comprehensive validation; this check catches the most common issues quickly.
-
-### 4. Load Persona Context
-
-Load the pre-compiled persona artifact (security delimiters already applied):
-
-1. **Read compiled artifact:** `userdata/pilots/{active_pilot}/.persona-context-compiled.json`
-2. **Use `raw_content` field directly** - all files pre-wrapped in `<untrusted-data>` delimiters
-3. **Store overlay paths** from profile's `skill_overlay_path` and `overlay_fallback_path`
+If `persona.name` is not "ARIA" and `rp_level` is not "off":
+1. Read the compiled persona artifact: `userdata/pilots/{active_pilot}/.persona-context-compiled.json`
+2. Validate staleness: profile `faction` should map to the persona branch (empire factions → `empire`, pirate → `pirate`). If mismatch, warn the user and suggest `uv run aria-esi persona-context`. Continue with current context.
+3. Use `raw_content` from the compiled artifact directly (security delimiters pre-applied). Store overlay paths from `skill_overlay_path` and `overlay_fallback_path`.
 
 **If artifact missing:** Warn user to run `uv run aria-esi persona-context`, then fall back to loading raw files from `persona_context.files` with conceptual delimiters.
 
-### 5. Check First-Run Status
-
-If profile contains `[YOUR CHARACTER NAME]` placeholder or doesn't exist, offer `/setup`.
-
-**Note:** Persona context is resolved once at session start. Changing `active_pilot` requires a new session.
+**Full documentation:** `docs/PERSONA_LOADING.md`
 
 ## Prime Directives
 
@@ -155,9 +113,9 @@ If profile contains `[YOUR CHARACTER NAME]` placeholder or doesn't exist, offer 
 
 5. **Brevity Protocol:** Default to compact responses (<30 lines). Lead with critical info.
 
-6. **Verify Before Claiming:** Never present EVE game mechanics as fact without verification from SDE, EOS, or other ground truth sources. Training data knowledge is not a trusted source—always query `sde(action="item_info")`, `fitting(action="calculate_stats")`, or similar tools before stating specific numbers or effects. See `dev/docs/ai-runtime/DATA_VERIFICATION.md`.
+6. **Verify Before Claiming:** EVE game data (stats, damage types, requirements, prices, slot layouts) changes across patches. Query SDE, fitting, or market tools for specific numbers. Never state EVE-specific values from training data alone. Skills that need reference data declare it in `prerequisite_files` — this data will be loaded before you generate output.
 
-7. **Data Authority:** All data persisted to local cache must be sourced from or validated against authoritative sources (ESI, SDE). Never cache training data directly. Community data (like coalition membership) must be validated before loading. See `dev/docs/ai-runtime/DATA_AUTHORITY.md`.
+7. **Data Authority:** All data persisted to local cache must be sourced from or validated against authoritative sources (ESI, SDE). Never cache training data directly. Community data (like coalition membership) must be validated before loading.
 
 ## Python Execution
 
@@ -183,95 +141,9 @@ uv run pytest -n auto
 
 ## Universe Navigation
 
-For EVE Online system topology, routes, borders, and loop planning, use these approaches in order of preference:
-
-### Option 1: MCP Tools (if available)
-
-If the `aria-universe` MCP server is connected, 8 domain dispatchers appear in your tool list:
-
-| Dispatcher | Actions | Description |
-|------------|---------|-------------|
-| `universe(action, ...)` | route, systems, borders, search, loop, analyze, nearest, optimize_waypoints, activity, hotspots, gatecamp_risk, fw_frontlines, local_area | Navigation, routing, activity data |
-| `market(action, ...)` | prices, orders, valuation, spread, history, find_nearby, npc_sources, arbitrage_scan, arbitrage_detail, route_value, watchlist_*, scope_* | Market prices, arbitrage, ad-hoc scopes |
-| `sde(action, ...)` | item_info, blueprint_info, search, skill_requirements, corporation_info, agent_search, agent_divisions, cache_status, meta_variants, resolve_names | Static Data Export queries, name resolution |
-| `skills(action, ...)` | training_time, easy_80_plan, minmax_plan, get_multipliers, get_breakpoints, t2_requirements, activity_* | Skill planning and training time |
-| `fitting(action, ...)` | calculate_stats | Ship fitting statistics |
-| `killmails(action, ...)` | query, stats, recent, analyze | Killmail queries and individual analysis |
-| `pilot(action, ...)` | mail_list, mail_read, mining_ledger | Authenticated pilot data (mail, mining) |
-| `status()` | (none) | Unified system status |
-
-**Tool name mapping:** The shorthand names above (e.g., `sde(...)`) correspond to MCP tools prefixed with `mcp__aria-universe__` (e.g., `mcp__aria-universe__sde`). Use whichever form appears in your tool list.
-
-**Usage pattern:** Call the dispatcher with an `action` parameter:
-```python
-# Route planning
-universe(action="route", origin="Jita", destination="Amarr", mode="safe")
-
-# Route through friendly territory
-universe(action="route", origin="Jita", destination="1DQ1-A", prefer_territory="imperium")
-
-# Route avoiding hostile territory
-universe(action="route", origin="Jita", destination="Amarr", avoid_territory="panfam")
-
-# Market prices
-market(action="prices", items=["Tritanium", "Pyerite"])
-
-# Item lookup
-sde(action="item_info", item="Vexor Navy Issue")
-
-# Skill planning
-skills(action="easy_80_plan", item="Vexor Navy Issue")
-```
-
-**⚠️ Dispatcher Disambiguation: `sde` vs `skills`**
-
-Both dispatchers deal with "skills" but serve different purposes:
-
-| Question | Dispatcher | Action |
-|----------|------------|--------|
-| "What skills does this ship require?" | `sde` | `skill_requirements` |
-| "How long will training take?" | `skills` | `training_time` |
-| "What's the Easy 80% plan for this item?" | `skills` | `easy_80_plan` |
-| "What's the priority training order for this ship?" | `skills` | `minmax_plan` |
-| "What are the skill prerequisites?" | `sde` | `skill_requirements` |
-
-```python
-# CORRECT - skill prerequisites are static data (SDE)
-sde(action="skill_requirements", item="Dominix")
-
-# WRONG - skills dispatcher doesn't have skill_requirements
-skills(action="skill_requirements", item="Dominix")  # Will error!
-```
-
-**Rule of thumb:** `sde` = "what does the game require" (static data), `skills` = "how do I plan training" (calculations).
-
-**How to check:** If `universe` appears in your available tools, MCP is connected.
-
-### Option 2: CLI Commands (fallback, always available)
-
-If MCP tools are NOT in your tool list, use the `aria-esi` CLI as fallback:
-
-```bash
-# Route planning
-uv run aria-esi route Sortet Dodixie --safe
-
-# Border system discovery
-uv run aria-esi borders --system Masalle --limit 10
-
-# Loop planning (circular mining routes)
-uv run aria-esi loop Sortet --target-jumps 20 --min-borders 3
-
-# Loop with avoidance
-uv run aria-esi loop Jita --avoid Uedama Niarja --security highsec
-```
+MCP tools are preferred when available. If `universe` appears in your tool list, MCP is connected.
 
 ### MCP Fallback Behavior
-
-**IMPORTANT:** Skills that use universe navigation (route planning, threat assessment, escape routes) should:
-
-1. **Check for MCP tools first** - If `universe` is in your tool list, use MCP
-2. **Fall back to CLI** - If MCP unavailable, use equivalent `aria-esi` commands
-3. **Never fail silently** - Always provide the requested information via one method or the other
 
 | Skill | MCP Dispatcher Call | CLI Fallback |
 |-------|---------------------|--------------|
@@ -287,245 +159,46 @@ uv run aria-esi loop Jita --avoid Uedama Niarja --security highsec
 | `/mail` | `pilot(action="mail_list", ...)` | `aria-esi mail` |
 | `/mining` | `pilot(action="mining_ledger", ...)` | `aria-esi mining` |
 
-### Common Parameters
+### External Data Queries
 
-Both MCP tools and CLI commands support:
-- `security_filter` / `--security`: `highsec` | `lowsec` | `any`
-- `avoid_systems` / `--avoid`: Systems to route around (e.g., known gatecamps)
+**NPC Agent Lookups:** Use `sde(action="agent_search", ...)`. Always use `limit=100` for exhaustive queries. Agent standing requirements: L1=any, L2=1.0, L3=3.0, L4=5.0, L5=7.0.
 
-### Do NOT Write Inline Python
-
-Never write custom pathfinding or loop planning scripts. The CLI commands call the same optimized algorithms as the MCP tools:
-- Pre-indexed graph with O(1) lookups
-- Security-constrained BFS
-- TSP approximation for loop planning
-- Distance matrix precomputation
-
-## Configuration Change Protocol
-
-When modifying `userdata/config.json`, certain changes require cache rebuilds:
-
-| Config Section | Change Type | Required Action |
-|----------------|-------------|-----------------|
-| `context_topology.geographic.systems` | Add/remove home systems | `uv run aria-esi topology-build` |
-| `persona_context` fields | Faction/rp_level | `uv run aria-esi persona-context` |
-
-**CRITICAL:** After editing topology configuration, always suggest running `topology-build` before any other topology commands (`topology-show`, etc.).
-
-## Notification Profiles
-
-Notification profiles allow multiple Discord channels to receive different intel with independent filters.
-
-### Profile Location
-
-`userdata/notifications/*.yaml`
-
-### Quick Start
-
-```bash
-# List available templates
-uv run aria-esi notifications templates
-
-# Create profile from template
-uv run aria-esi notifications create my-intel --template market-hubs --webhook <discord-webhook-url>
-
-# List profiles
-uv run aria-esi notifications list
-
-# Test webhook
-uv run aria-esi notifications test my-intel
-
-# Validate all profiles
-uv run aria-esi notifications validate
-```
-
-**Full documentation:** `docs/NOTIFICATION_PROFILES.md`
+**For data not in SDE/ESI**, use blessed sources (see `dev/docs/DATA_SOURCES.md`): DOTLAN for system/station details (`evemaps.dotlan.net/system/{name}`), agent locations (`evemaps.dotlan.net/npc/{Corp_Name}/agents`).
 
 ## Data Volatility
 
 **Never proactively mention volatile data** (location, wallet, current ship). Only reference when explicitly requested via `/esi-query`.
 
-**For data freshness rules, volatility tiers, and query triggers:** See `dev/docs/ai-runtime/PROTOCOLS.md`
-
-**For data file paths:** See `dev/docs/ai-runtime/DATA_FILES.md`
-
-## Static Game Data References
-
-Before making claims or recommendations about the following topics, **read the corresponding JSON file** to ensure accuracy:
-
-| Topic | Reference File |
-|-------|----------------|
-| Drone damage types | `reference/mechanics/drones.json` |
-| Drone faction recommendations | `reference/mechanics/drones.json` |
-| Drone bandwidth/bay sizes | `reference/mechanics/drones.json` |
-| Missile ammo by damage type | `reference/mechanics/missiles.json` |
-| Missile faction recommendations | `reference/mechanics/missiles.json` |
-| Projectile ammo by damage type | `reference/mechanics/projectile_turrets.json` |
-| Projectile faction recommendations | `reference/mechanics/projectile_turrets.json` |
-| Laser crystal damage profiles | `reference/mechanics/laser_turrets.json` |
-| Laser faction effectiveness | `reference/mechanics/laser_turrets.json` |
-| Hybrid charge damage profiles | `reference/mechanics/hybrid_turrets.json` |
-| Hybrid faction effectiveness | `reference/mechanics/hybrid_turrets.json` |
-| PI production chains (P0→P1→P2→P3→P4) | `reference/mechanics/planetary-interaction.json` |
-| Planet type resources | `reference/mechanics/planetary-interaction.json` |
-| PI skills and requirements | `reference/mechanics/planetary-interaction.json` |
-
-These files contain verified, unchanging game data. Do not rely on training data for this information.
-
-### External Data Queries
-
-**NPC Agent Lookups (SDE - Preferred):**
-
-Use MCP dispatchers for agent queries:
-```
-sde(action="agent_search", corporation="Sisters of EVE", level=2, division="Security")
-sde(action="agent_search", corporation="Caldari Navy", level=4, highsec_only=True)
-sde(action="agent_divisions")  # List all division types
-```
-
-**Agent query workflow:** `sde(action="agent_search")` → `universe(action="route")` for distances → sort by jumps
-
-**Agent Search Best Practices:**
-- **Always use `limit=100`** when listing all agents in a region or corporation
-- Default limit is 20 - results may be silently truncated without warning
-- For exhaustive queries (e.g., "all agents in Solitude"), run separate searches by level (1-5)
-- If `total_found` equals your limit, more results likely exist - increase limit or filter further
-- Example comprehensive query:
-  ```
-  sde(action="agent_search", corporation="Federation Navy", level=3, limit=100)
-  ```
-
-**For data not in SDE/ESI**, go directly to blessed sources (see `dev/docs/DATA_SOURCES.md`):
-
-| Query Type | Source | URL Pattern |
-|------------|--------|-------------|
-| Agent standing requirements | Known constants | L1=any, L2=1.0, L3=3.0, L4=5.0, L5=7.0 |
-| System/station details | DOTLAN | `evemaps.dotlan.net/system/{name}` |
-| Agent locations (fallback) | DOTLAN | `evemaps.dotlan.net/npc/{Corp_Name}/agents` |
-
 ## Skills
 
 ARIA has slash commands for tactical intel, operations, and economy. Type `/help` for the full list. Natural language also works: "prepare for mission", "is this system safe", "what should I mine".
 
-**Command suggestions:** Mention relevant commands once, naturally woven into responses. Don't list multiple at once. See `dev/docs/ai-runtime/COMMAND_SUGGESTIONS.md`.
-
-## Persona Loading
-
-The pilot profile contains a pre-computed `persona_context` section with explicit file lists. Read this directly—no runtime evaluation needed. See **Session Initialization** for loading sequence.
-
-```yaml
-persona_context:
-  branch: pirate                              # empire or pirate
-  persona: paria                              # persona directory
-  fallback: null                              # For variants (e.g., paria-g → paria)
-  rp_level: on                                # off, on, or full
-  files:                                      # Loaded during session init step 3
-    - personas/_shared/pirate/identity.md
-    - personas/_shared/pirate/terminology.md
-    - personas/_shared/pirate/the-code.md
-    - personas/paria/manifest.yaml
-    - personas/paria/voice.md
-  skill_overlay_path: personas/paria/skill-overlays
-  overlay_fallback_path: null                 # For pirate variant overlays
-```
-
-**Regenerate context:** When `faction` or `rp_level` changes:
-```bash
-uv run aria-esi persona-context
-```
-
-**Full documentation:** `docs/PERSONA_LOADING.md`
+Mention relevant commands once, naturally woven into responses. Don't list multiple at once.
 
 ## Skill Loading
 
 When a skill is invoked:
 
-1. **Preflight validation** (optional but recommended for pilot-dependent skills)
-   - Run `uv run python .claude/scripts/aria-skill-preflight.py <skill-name>`
-   - Validates: active pilot, data sources, ESI scopes
-   - If `ok: false`, warn user about missing requirements before proceeding
-   - Skip preflight for quick lookups (price, route) that don't require pilot
+1. **Load base skill** from `.claude/skills/{name}/SKILL.md`
+2. **Check for overlay** if `has_persona_overlay: true` in `_index.json`: check `{skill_overlay_path}/{name}.md`, fall back to `overlay_fallback_path` if set.
+3. **Pre-read prerequisite files (MANDATORY GATE)** — If the skill declares `prerequisite_files`, read ALL listed files before producing any output. This is a blocking requirement — skipping it causes hallucination from training data.
+4. **Use `data_sources`** — Read contextual files when relevant (pilot profiles, etc.).
 
-2. **Load base skill** from `.claude/skills/{name}/SKILL.md`
-
-3. **Check for overlay** if `has_persona_overlay: true`:
-   - Check `{persona_context.skill_overlay_path}/{name}.md`
-   - If not found and `overlay_fallback_path` is set, check that path
-   - If found → append to skill context
-
-4. **Pre-read prerequisite files (MANDATORY GATE)** — If the skill entry lists a `prerequisite_files` array, read ALL listed files NOW, before producing any output. These contain verified reference data that the skill depends on. **Do NOT proceed to generate a response until all prerequisite files have been read.** This is a blocking requirement — skipping it causes hallucination from training data.
-
-   ```
-   prerequisite_files → MUST read before any output (blocking gate)
-   data_sources       → Contextual files to read when relevant (pilot profiles, etc.)
-   ```
-
-   **Skills with prerequisite files:**
-
-   | Skill | Prerequisite Files | Prevents |
-   |-------|--------------------|----------|
-   | `exploration` | `exploration_sites.md`, `hacking_guide.md` | Wrong hacking mechanics, site prefixes |
-   | `mining-advisory` | `ore_database.md` | Wrong ore security bands |
-   | `fitting` | `EFT-FORMAT.md`, `drones.json`, `MODULE_NAMES.md` | Wrong module names, drone data |
-   | `mission-brief` | `npc_damage_types.md`, `drones.json` | Wrong tank/deal/drone recommendations |
-   | `skillplan` | `skill_plans.yaml`, `ship_efficacy_rules.yaml`, `meta_module_alternatives.yaml` | Wrong training recommendations |
-
-5. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
-
-### Runtime Path Validation (SEC-001/SEC-002)
-
-**CRITICAL:** All persona file and overlay paths MUST pass security validation before loading:
-
-| Rule | Description | Example Rejection |
-|------|-------------|-------------------|
-| **Allowlisted prefixes only** | Must start with `personas/` or `.claude/skills/` | `userdata/secrets.md` → rejected |
-| **Allowlisted extensions only** | Must end with `.md`, `.yaml`, or `.json` | `personas/evil.py` → rejected |
-| **No path traversal** | Must not contain `..` components | `personas/../../../etc/passwd` → rejected |
-| **No absolute paths** | Must be relative to project root | `/etc/passwd` → rejected |
-| **Symlink containment** | Symlinks must resolve within project | `personas/escape.md` → `/etc/passwd` → rejected |
-
-**Validation functions** (in `src/aria_esi/core/path_security.py`):
-- `validate_persona_file_path()` - Full validation with extension check
-- `safe_read_persona_file()` - Validates + reads with size limit (100KB default)
-
-**If validation fails:**
-- Log warning with rejection reason
-- Do NOT load the file
-- Continue with degraded functionality (no overlay, no exclusive skill)
-
-**Break-glass mode:** Set `ARIA_ALLOW_UNSAFE_PATHS=1` to bypass (emergency/debug only).
-
-**Preflight CLI:**
-```bash
-# Single skill validation
-uv run python .claude/scripts/aria-skill-preflight.py clones
-
-# Validate all skills
-uv run python .claude/scripts/aria-skill-preflight.py --all
-```
-
-**Full documentation:** `personas/_shared/skill-loading.md`
+**Path security:** All persona/overlay paths must start with `personas/` or `.claude/skills/`, end with `.md`/`.yaml`/`.json`, contain no `..` traversal, and be relative. See `personas/_shared/skill-loading.md`.
 
 ## Reference Documentation
 
 | Topic | Document |
 |-------|----------|
-| **Data verification** | `dev/docs/ai-runtime/DATA_VERIFICATION.md` |
-| **Data authority** | `dev/docs/ai-runtime/DATA_AUTHORITY.md` |
-| **Context policy** | `dev/docs/CONTEXT_POLICY.md` |
+| Data trust & verification | `dev/docs/ai-runtime/DATA_TRUST.md` |
+| Session behavior & volatility | `dev/docs/ai-runtime/SESSION_BEHAVIOR.md` |
 | Ad-hoc market scopes | `docs/ADHOC_MARKETS.md` |
 | External data sources | `dev/docs/DATA_SOURCES.md` |
 | Persona loading | `docs/PERSONA_LOADING.md` |
-| Persona system | `personas/README.md` |
 | Skill loading & overlays | `personas/_shared/skill-loading.md` |
 | RP level configuration | `personas/_shared/rp-levels.md` |
-| Data files & volatility | `dev/docs/ai-runtime/DATA_FILES.md` |
 | ESI integration | `docs/ESI.md` |
-| Data protocols | `dev/docs/ai-runtime/PROTOCOLS.md` |
-| Experience adaptation | `dev/docs/ai-runtime/EXPERIENCE_ADAPTATION.md` |
 | Multi-pilot architecture | `docs/MULTI_PILOT_ARCHITECTURE.md` |
-| Session context | `dev/docs/SESSION_CONTEXT.md` |
-| Python environment | `dev/docs/PYTHON_ENVIRONMENT.md` |
 | Context-aware topology | `docs/CONTEXT_AWARE_TOPOLOGY.md` |
 | Real-time intel config | `docs/REALTIME_CONFIGURATION.md` |
 | Notification profiles | `docs/NOTIFICATION_PROFILES.md` |

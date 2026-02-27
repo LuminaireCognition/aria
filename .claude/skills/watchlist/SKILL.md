@@ -10,7 +10,6 @@ triggers:
   - "track [alliance]"
   - "sync war targets"
 requires_pilot: false
-has_persona_overlay: true
 ---
 
 # ARIA Entity Watchlist Module

@@ -36,12 +36,14 @@ esi_scopes:
 ---
 ```
 
-### Auto-Generated Index
+### Skill Index
 
-`aria-skill-index.py` parses all SKILL.md files and generates `_index.json` with:
+`_index.json` is the machine-readable skill registry containing:
 - Consolidated skill metadata
 - Trigger-to-skill mapping
 - Category groupings
+
+> **Update (2026-02):** The generator script (`aria-skill-index.py`) was removed in the context efficiency migration. The index is now hand-maintained. See `CONTEXT_EFFICIENCY_PROPOSAL.md` Phase 2.
 
 ## Consequences
 
@@ -57,7 +59,7 @@ esi_scopes:
 ### Negative
 
 - Frontmatter must be kept in sync with implementation
-- Index regeneration needed after changes (automated in boot)
+- Index must be updated manually when skills are added or modified
 - YAML parsing adds complexity to skill discovery
 
 ## Alternatives Considered

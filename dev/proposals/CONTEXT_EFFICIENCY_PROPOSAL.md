@@ -1,6 +1,6 @@
 # ARIA Context Efficiency Proposal
 
-**Status:** Draft
+**Status:** Implemented
 **Date:** 2026-02-26
 **Owner:** Architecture
 **Scope:** CLAUDE.md, AGENTS.md, ai-runtime docs, skill files, boot hook
@@ -18,9 +18,9 @@ This proposal establishes a model for distinguishing the two, eliminates the unn
 
 **What changes:**
 
-1. CLAUDE.md drops from ~530 lines to ~280 lines (-47%)
+1. CLAUDE.md drops from ~530 lines to ~290 lines (-45%)
 2. AGENTS.md drops from 61 lines to ~20 lines (-67%)
-3. Six ai-runtime docs (1,212 lines total) consolidate to two (~350 lines, -71%)
+3. Six ai-runtime docs (1,219 lines total) consolidate to two (~350 lines, -71%)
 4. Boot hook stops duplicating what CLAUDE.md describes
 5. Skill files adopt a consistent structure that separates *edge-case guardrails* from *procedural narration*
 
@@ -48,9 +48,9 @@ Every ARIA conversation starts approximately 11,500 tokens deep:
 | Persona files | ~2,500 | Voice, identity (when RP enabled) |
 | **Total** | **~11,500** | **Before user speaks** |
 
-A skill invocation adds 800–4,000 tokens (SKILL.md) plus 0–5,000 tokens (prerequisite files). Complex interactions easily exceed 20,000 tokens of instruction before Claude generates a single word of output.
+A skill invocation adds 800–4,000 tokens (SKILL.md) plus 0–5,000 tokens (prerequisite files). The `skillplan` skill is an extreme case: its three prerequisite YAML files total ~61,000 lines. Complex interactions easily exceed 20,000 tokens of instruction before Claude generates a single word of output.
 
-This matters because context window is a finite resource. Every token spent on instructions is a token unavailable for conversation history, tool outputs, and reasoning. The tradeoff is justified only when the instruction actually changes Claude's behavior.
+This matters because always-loaded context competes with conversation history, tool outputs, and reasoning for first-turn quality, and accelerates the onset of automatic context compression in longer sessions. Claude Code compresses prior messages as conversations approach the context limit, which partially mitigates the pressure — but reducing the always-loaded baseline delays compression and preserves more conversation history at every turn. The tradeoff is justified only when the instruction actually changes Claude's behavior.
 
 ### 2. Behavioral policy that doesn't change behavior
 
@@ -64,11 +64,13 @@ Several instruction documents teach Claude things it already does:
 
 These documents exist because Claude *once* got something wrong, and the response was to write a document preventing that specific failure. But the documents don't actually prevent future failures — they add tokens. The case studies in DATA_VERIFICATION.md are genuinely useful (they show *what* Claude gets wrong), but the process checklists and flowcharts are not (they describe *how to think*, which Claude cannot be instructed to do mechanistically).
 
-### 3. Dual initialization
+### 3. Partial dual initialization
 
-The boot hook resolves pilot identity, detects persona, validates security, syncs ESI, and outputs structured JSON. CLAUDE.md then describes this same 5-step process in 62 lines of prose, instructing Claude to... do what the boot hook already did.
+The boot hook (1,505 lines across 4 modules) resolves pilot identity, detects persona, validates security, syncs ESI, and outputs structured JSON. CLAUDE.md then describes a 5-step Session Initialization process in 62 lines of prose.
 
-The boot hook's JSON output already tells Claude who the pilot is, what persona to use, and whether ESI is configured. The CLAUDE.md procedure is a redundant narration of completed work.
+Steps 1–2 (pilot resolution, profile loading) are genuinely redundant — the boot hook does this and reports results in JSON. Steps 3–4 (staleness validation, persona artifact loading) are Claude's runtime responsibility and are *not* performed by the boot hook — these instructions must be retained. Step 5 (fresh install check) can be derived from the boot JSON's `state.fresh_install` field.
+
+The ~25 lines describing steps 1–2 are pure narration of completed work. The remaining ~37 lines for steps 3–5 can be simplified but not eliminated.
 
 ### 4. Defense-in-width against hallucination
 
@@ -87,7 +89,23 @@ Mechanisms #3–6 are restatements of #1 in different locations, consuming token
 
 ### 5. AGENTS.md duplicates native discovery
 
-Claude Code natively discovers skills from `.claude/skills/*/SKILL.md`. The AGENTS.md file (61 lines) re-lists all 43 skills with descriptions and file paths, plus usage instructions that largely restate Claude Code's built-in skill handling. The system-reminder in the conversation already lists all available skills.
+Claude Code natively discovers skills from `.claude/skills/*/SKILL.md`. The AGENTS.md file (61 lines) re-lists all 49 skills with descriptions and file paths, plus usage instructions that largely restate Claude Code's built-in skill handling. The system-reminder in the conversation already lists all available skills.
+
+Note: AGENTS.md is a **generated artifact** produced by `aria-skill-index.py` and regenerated at every boot. It also serves as the skill registry for the Anthropic Agents API path (non-Claude-Code agents). Phase 2 must address both the generator and the non-Claude-Code consumer.
+
+### 6. Outsized prerequisite file loads
+
+While `prerequisite_files` is the right mechanism, some skills load disproportionate amounts of data. The `skillplan` skill's three prerequisite files total ~61,000 lines:
+
+| File | Lines |
+|------|------:|
+| `reference/activities/skill_plans.yaml` | 23,130 |
+| `reference/skills/ship_efficacy_rules.yaml` | 27,929 |
+| `reference/skills/meta_module_alternatives.yaml` | 9,934 |
+
+This dwarfs the entire always-loaded instruction layer. The data is loaded on-demand (only when `/skillplan` is invoked), so it doesn't contribute to baseline context pressure — but it creates severe pressure during the skill's execution, leaving minimal room for conversation history and reasoning.
+
+This problem is out of scope for the current proposal (it requires structural changes to the data files, not the instruction layer), but Phase 5 includes a note on investigating lazy-loading strategies for oversized prerequisite files.
 
 ---
 
@@ -124,7 +142,7 @@ The only thing that reliably prevents Claude from using training data for domain
 
 | Layer | Content type | Loaded when | Token budget |
 |-------|-------------|-------------|--------------|
-| **CLAUDE.md** | Identity, security, infrastructure mechanisms | Every session | Target: ~3,500 tokens (from ~6,500) |
+| **CLAUDE.md** | Identity, security, infrastructure mechanisms | Every session | Target: ~3,600 tokens (from ~6,500) |
 | **AGENTS.md** | Skill discovery supplement (minimal) | Every session | Target: ~400 tokens (from ~2,000) |
 | **SKILL.md** | Required tools, output format, edge-case guardrails | On skill invocation | Varies by skill complexity |
 | **Prerequisite files** | Authoritative data that prevents hallucination | On skill invocation | Varies by data volume |
@@ -167,21 +185,56 @@ Examples that **fail** this test (should be removed):
 
 Before changing anything, measure what we're working with:
 
-1. Count tokens in current CLAUDE.md, AGENTS.md, and each ai-runtime doc
-2. For the top 5 skills by size (fitting, mission-brief, skillplan, threat-assessment, hunting-grounds), classify every line as: guardrail (empirical), guardrail (speculative), data/reference, procedure, or format template
-3. Document the boot hook's JSON output schema (what Claude already receives)
+1. **Count tokens** in current CLAUDE.md, AGENTS.md, and each ai-runtime doc using `cl100k_base` tokenizer (via `tiktoken`). Use word-count approximation (`wc -w` × 1.3) as a cross-check but report `cl100k_base` as the canonical number.
+2. **Classify lines** in the top 5 skills by size (fitting, mission-brief, skillplan, threat-assessment, hunting-grounds). Categorize every line as: guardrail (empirical), guardrail (speculative), data/reference, procedure, or format template.
+3. **Document the boot hook's JSON output schema** — the exact fields Claude receives from `output_json_context()` in `boot-display.sh`. This is a prerequisite for writing Phase 4's CLAUDE.md replacement text.
+4. **Write regression test prompts** — 2–3 concrete prompts per top-5 skill that exercise the behaviors the removed content was supposed to control. Derive prompts from the failure modes identified during line classification (step 2): each `guardrail-empirical` line implies at least one prompt that would trigger the failure if the guardrail were absent. These prompts are the pass/fail baseline: run them after each phase and compare output quality against Phase 0 results. A regression is: Claude produces a factually wrong EVE game data claim that the Phase 0 baseline got right. **Accepted limitation:** prompts are derived at classification time, not pre-enumerated. Edge cases not represented in the top-5 skills' guardrails may be missed; the rollback strategy (revert + diagnose) covers this risk.
 
-**Deliverable:** Baseline metrics file at `dev/reviews/context-efficiency-baseline.md`
+**Deliverable:** Baseline metrics file at `dev/reviews/context-efficiency-baseline.md` with these sections:
 
-### Phase 1: Slim CLAUDE.md (-47%, ~3,500 tokens target)
+```
+## Token Counts
+(Table: file → word count → cl100k_base token count)
+
+## Line Classification — {Skill Name}
+(One section per top-5 skill. Table: line range → category → notes)
+Categories: guardrail-empirical, guardrail-speculative, data/reference, procedure, format-template
+
+## Boot Hook JSON Schema
+(Field paths and types from output_json_context(). Required for Phase 4.)
+
+## Regression Test Prompts
+(Grouped by skill. Each prompt derived from guardrail-empirical lines in
+Line Classification above. Each entry: prompt text, guardrail(s) exercised,
+expected behavior, Phase 0 baseline output.)
+```
+
+### Phase 1: Slim CLAUDE.md (-45%, ~3,600 tokens target)
 
 **Remove entirely:**
 
 | Section | Lines | Reason |
 |---------|-------|--------|
-| Session Initialization steps 1-5 | 62 | Boot hook does this; Claude receives the JSON result |
+| Session Initialization steps 1-2 | ~25 | Boot hook does this; Claude receives the JSON result. **Gate:** Phase 0's boot hook schema must confirm that pilot resolution (step 1) and profile loading (step 2) are fully covered by boot hook JSON output before this removal is implemented. |
 | Static Game Data References table | 53 | Move references into relevant skills' `prerequisite_files` |
-| Universe Navigation MCP dispatcher table | 61 | Tool descriptions already enumerate actions |
+
+**Reference file migration mapping:** When removing the Static Game Data References table, promote or add files to the appropriate skills:
+
+| Reference file | Target skill | Change |
+|----------------|-------------|--------|
+| `missiles.json` | `mission-brief` | Promote `data_sources` → `prerequisite_files` |
+| `projectile_turrets.json` | `mission-brief` | Promote `data_sources` → `prerequisite_files` |
+| `laser_turrets.json` | `mission-brief` | Promote `data_sources` → `prerequisite_files` |
+| `hybrid_turrets.json` | `mission-brief` | Promote `data_sources` → `prerequisite_files` |
+| `planetary-interaction.json` | `pi` | Promote `data_sources` → `prerequisite_files` |
+| `missiles.json` | `fitting` | Add to `data_sources` |
+| `projectile_turrets.json` | `fitting` | Add to `data_sources` |
+| `laser_turrets.json` | `fitting` | Add to `data_sources` |
+| `hybrid_turrets.json` | `fitting` | Add to `data_sources` |
+
+**Rationale:** `prerequisite_files` = mandatory gate (skill always needs the data). `data_sources` = contextual (fitting only needs ammo data when user asks about charges/crystals). `drones.json` already in `prerequisite_files` for both `fitting` and `mission-brief` — no change needed.
+
+| Universe Navigation `### Option 1: MCP Tools` subsection (dispatcher table, tool name mapping, usage pattern examples, `sde` vs `skills` disambiguation — lines 188–248 in current CLAUDE.md) | 61 | Tool descriptions already enumerate actions; `sde`/`skills` disambiguation moves to a 3-line note in `### MCP Fallback Behavior` |
 | Notification Profiles quick-start | 28 | Belongs in docs, not always-loaded context |
 | Configuration Change Protocol | 10 | Rare operation; belongs in dev docs |
 | "Do NOT Write Inline Python" section | 7 | Covered by MCP tool availability |
@@ -190,11 +243,14 @@ Before changing anything, measure what we're working with:
 
 | Section | Current lines | Target lines | Change |
 |---------|--------------|-------------|--------|
+| Session Initialization steps 3-5 | ~37 | ~15 | Steps 3-4 (staleness check, persona loading) are Claude's runtime actions — keep the instructions but trim prose. Step 5 (fresh install check) stays as-is. |
 | MCP Fallback Behavior | 21 | 5 | Keep table, remove prose |
-| Skill Loading | 69 | 25 | Keep mechanism, remove path validation details (move to dev doc) |
+| Skill Loading | 69 | 25 | Keep mechanism, remove path validation details (move to `personas/_shared/skill-loading.md`, which already documents overlay security) |
 | Persona Loading | 26 | 10 | Keep pointer to compiled artifact, remove example YAML |
 | `sde` vs `skills` disambiguation | 20 | 10 | Keep table, remove examples |
-| Reference Documentation table | 24 | 12 | Remove docs that are dev-only |
+| Reference Documentation table | 24 | 12 | Remove dev-only entries. **Keep:** Ad-hoc market scopes, Persona loading, Skill loading & overlays, RP level configuration, ESI integration, Multi-pilot architecture, Context-aware topology, Real-time intel config, Notification profiles. **Remove:** Data verification (→ DATA_TRUST.md), Data authority (→ DATA_TRUST.md), Context policy, External data sources, Data files & volatility (→ SESSION_BEHAVIOR.md), Data protocols (→ SESSION_BEHAVIOR.md), Experience adaptation (→ SESSION_BEHAVIOR.md), Session context, Python environment (already in CLAUDE.md body), Persona system (contributor doc). |
+
+**Important distinction:** Session Init steps 1–2 (pilot resolution, profile loading) are performed by the boot hook and reported in JSON — Claude receives the results. Steps 3–4 (staleness validation, persona context loading) are actions Claude must perform at runtime after reading the boot hook output. Step 5 (fresh install check) can be derived from the boot JSON's `state.fresh_install` field. The instructions for steps 3–4 must be retained in simplified form.
 
 **Keep unchanged:**
 
@@ -238,9 +294,13 @@ If SKILL.md declares `prerequisite_files`, read ALL listed files before
 generating any output. These contain authoritative game data.
 ```
 
-**Rationale:** Claude Code already provides skill discovery through the system-reminder. AGENTS.md's 43-line skill registry is redundant. The "How to use skills" section largely restates Claude Code's native behavior. Keep only the two things Claude Code doesn't handle natively: `uv run` requirement and `prerequisite_files` gate.
+**Rationale:** Claude Code already provides skill discovery through the system-reminder. AGENTS.md's 49-skill registry is redundant for Claude Code sessions. The "How to use skills" section largely restates Claude Code's native behavior. Keep only the two things Claude Code doesn't handle natively: `uv run` requirement and `prerequisite_files` gate.
 
-### Phase 3: Consolidate ai-runtime docs (-71%, ~350 lines from 1,212)
+**Generator disposal:** AGENTS.md is currently a generated artifact produced by `aria-skill-index.py` and regenerated at every boot. **Decision: option (b) — remove the generator and hand-maintain AGENTS.md.** 10 lines of static text does not benefit from generation. Delete `aria-skill-index.py` and remove its boot hook invocation. Git history preserves the file if the Agents API path is reactivated.
+
+**Agents API consumer:** AGENTS.md also serves as the skill registry for the Anthropic Agents API path (non-Claude-Code agents), which does not have a system-reminder listing available skills. The Agents API path is experimental and not actively deployed. If it is reactivated, a separate `AGENTS_API.md` can be generated from `_index.json` at that time — this does not block slimming the Claude Code AGENTS.md now.
+
+### Phase 3: Consolidate ai-runtime docs (-71%, ~350 lines from 1,219)
 
 **Merge into two files:**
 
@@ -269,6 +329,13 @@ Content:
 - One table of experience levels with one-line descriptions (from EXPERIENCE_ADAPTATION.md)
 - Command suggestion principles as a 5-line section (from COMMAND_SUGGESTIONS.md)
 
+**Acceptance criteria for distilled content:**
+
+- **Command suggestions section (5 lines):** Must include the progressive disclosure principle ("suggest commands when topics arise, mention each once") and the four command tiers (Must-Know, Situational, Power User, Rarely Needed) with 1–2 example commands per tier.
+- **Experience levels table:** Must include the three levels (`new`, `intermediate`, `veteran`) with columns for explanation depth and one example phrase per level demonstrating density difference.
+- **DATA_TRUST.md:** Must include (a) the canonical trust hierarchy from DATA_AUTHORITY.md (ESI → SDE → DOTLAN → EVE Uni Wiki → never training data), (b) the three case studies from DATA_VERIFICATION.md condensed to ~20 lines each, and (c) cache authority rules.
+- **"Verified" defined:** Phase 0 regression prompts still pass after the merge. A contributor unfamiliar with the original files can locate the trust hierarchy, case studies, and data volatility tiers within 60 seconds.
+
 Removes:
 - 5 detailed explanation example pairs from EXPERIENCE_ADAPTATION.md (Claude does audience adaptation natively)
 - Progressive revelation flow from COMMAND_SUGGESTIONS.md (Claude does progressive disclosure natively)
@@ -278,6 +345,10 @@ Removes:
 
 **Neither file is auto-loaded.** They exist as development reference and for onboarding contributors. CLAUDE.md does not need to reference them — the principles that matter are already in the Prime Directives.
 
+**File disposition:** After the two new files are written and verified, **delete all 6 source files** (`DATA_VERIFICATION.md`, `DATA_AUTHORITY.md`, `PROTOCOLS.md`, `DATA_FILES.md`, `EXPERIENCE_ADAPTATION.md`, `COMMAND_SUGGESTIONS.md`). Update any cross-references in CLAUDE.md's Reference Documentation table to point to the new filenames. Phase 6's cleanup table lists `EXPERIENCE_ADAPTATION.md` and `COMMAND_SUGGESTIONS.md` as post-Phase-3 deletions — with this change, those two Phase 6 rows become no-ops and can be removed.
+
+**Trust hierarchy ordering:** `DATA_AUTHORITY.md`'s hierarchy (ESI → SDE → MCP-derived → community) is the canonical ordering. `DATA_VERIFICATION.md`'s hierarchy is a subset focused on verification steps. Use `DATA_AUTHORITY.md`'s as the single trust hierarchy in `DATA_TRUST.md`.
+
 ### Phase 4: Rationalize boot hook ↔ CLAUDE.md boundary
 
 **Principle:** The boot hook *does things and reports results*. CLAUDE.md *tells Claude how to interpret the results*. No overlap.
@@ -286,7 +357,7 @@ Removes:
 
 **CLAUDE.md changes:**
 
-Replace the 62-line Session Initialization section with:
+Replace the Session Initialization section. **This phase is gated on Phase 0's boot hook schema deliverable** — the draft below uses placeholder field names that must be replaced with actual JSON paths from Phase 0's documented schema before implementation:
 
 ```markdown
 ## Session Context
@@ -296,11 +367,24 @@ diagnostics. Use this data directly — do not re-resolve pilot or persona.
 
 If `state.fresh_install` is true, offer `/setup`.
 If `diagnostics.warnings` is non-empty, mention them briefly.
-If `persona.name` is not "ARIA", load the compiled persona artifact from
-`userdata/pilots/{pilot.id}/…/.persona-context-compiled.json`.
+
+### Persona Loading (runtime)
+
+If `persona.name` is not "ARIA" and `rp_level` is not "off":
+1. Read the compiled persona artifact from the path in the boot JSON.
+2. Validate staleness: profile `faction` should map to the persona branch
+   (empire factions → `empire`, pirate → `pirate`). If mismatch, warn the
+   user and suggest `uv run aria-esi persona-context`. Continue with
+   current context.
+3. Use `raw_content` from the compiled artifact directly (security
+   delimiters pre-applied). Store overlay paths from `skill_overlay_path`.
 ```
 
-~8 lines replacing 62. The boot hook JSON is self-descriptive; Claude doesn't need a procedure to interpret `"fresh_install": true`.
+~15 lines replacing the current ~62. Steps 1–2 of the old Session Initialization (pilot resolution, profile loading) are handled by the boot hook. Steps 3–4 (staleness check, persona loading) are Claude's runtime responsibility and must be retained. Step 5 (fresh install) is derived from the boot JSON.
+
+**Implementation gate:** Do not implement Phase 4 until Phase 0's `dev/reviews/context-efficiency-baseline.md` contains a `## Boot Hook JSON Schema` section documenting the exact field paths. Replace `state.fresh_install`, `diagnostics.warnings`, and `persona.name` in the draft above with the actual field paths from that schema.
+
+**Exit criterion:** After applying Phase 4, run 5 fresh sessions: (1) default persona, (2) non-default persona with RP enabled, (3) stale persona context (faction mismatch), (4) fresh install (no profile), (5) persona with RP off. All must initialize correctly.
 
 ### Phase 5: Skill file rationalization (ongoing, per ADR-006)
 
@@ -325,6 +409,8 @@ Every SKILL.md should follow this structure:
 (Numbered list of empirically observed failure modes with corrections.
 Each must be a real mistake Claude has made, not a hypothetical.)
 
+**Classification pragmatics:** No systematic log of Claude's past failures exists. The implementing agent applies the four-criteria test (empirically observed, non-obvious, consequential, not fixable by data injection). When evidence is ambiguous, classify as `guardrail-empirical` and retain — the cost of keeping a speculative guardrail (a few extra tokens) is lower than removing a load-bearing one (a regression). Guardrails classified `guardrail-speculative` in Phase 0 are removed in Phase 5 and validated by regression testing.
+
 ## Anti-Patterns
 (Brief list of specific wrong behaviors with right alternatives.)
 
@@ -346,22 +432,28 @@ Each must be a real mistake Claude has made, not a hypothetical.)
 
 | Skill | Current lines | Estimated target | Reduction |
 |-------|--------------|-----------------|-----------|
-| mission-brief | 449 | ~200 | -55% |
-| skillplan | 392 | ~180 | -54% |
-| fitting | 358 | ~180 | -50% |
-| threat-assessment | ~300 (est.) | ~150 | -50% |
-| hunting-grounds | ~250 (est.) | ~130 | -48% |
+| mission-brief | 448 | ~200 | -55% |
+| skillplan | 391 | ~180 | -54% |
+| fitting | 357 | ~180 | -50% |
+| threat-assessment | 208 | ~120 | -42% |
+| hunting-grounds | 158 | ~100 | -37% |
+
+Note: threat-assessment and hunting-grounds are smaller than initially estimated. The average reduction across the top 5 is ~48%, not ~51%. Precise targets will be set after Phase 0 line classification.
+
+#### Oversized prerequisite files
+
+Phase 5 should also investigate whether oversized prerequisite files (particularly `skillplan`'s ~61,000 lines of YAML) can be made lazy-loadable — i.e., load only the subsection relevant to the user's query rather than the entire file. This is a structural change to the data files and the skill loading mechanism, not just a SKILL.md trim, so it should be scoped as a separate sub-task within Phase 5. If lazy loading is infeasible, document why and accept the cost.
 
 ### Phase 6: Dead code and artifact cleanup
 
-| Item | Action | Size recovered |
-|------|--------|---------------|
-| `reference/archetypes/` | Delete (zero Python imports per accretion audit) | 1.5 MB |
-| `dev/reviews/exercise-outputs/` | Archive to separate branch or delete | 1.5 MB |
-| `context_budget.py` | Delete or implement (currently dead code) | 136 lines |
-| Legacy display functions in `boot-display.sh` | Delete (lines 186-454, all marked "legacy") | 268 lines |
-| `EXPERIENCE_ADAPTATION.md` | Superseded by Phase 3 merge | 109 lines |
-| `COMMAND_SUGGESTIONS.md` | Superseded by Phase 3 merge | 129 lines |
+| Item | Action | Prerequisite | Size recovered |
+|------|--------|-------------|---------------|
+| `reference/archetypes/` | Delete if present; no-op if absent | Phase 0 baseline audit must verify directory existence. **If present:** Inline 5–10 representative EFT fits into fitting and skillplan SKILL.md files before deletion. Selection: one T1 or faction hull per class (frigate, destroyer, cruiser, battlecruiser, battleship); ensure diversity of weapon systems (at least one drone boat, one turret boat) and tank types (at least one armor, one shield). Target: ~3 fits into fitting SKILL.md, ~3 into skillplan SKILL.md. **If absent:** No-op — directory was already removed or never created. | 1.5 MB (if present) |
+| `dev/reviews/exercise-outputs/` | Delete | None — git history preserves content | 1.5 MB |
+| `context_budget.py` | Delete (dead code; git history preserves for reimplementation) | None | 136 lines |
+| Legacy display functions in `boot-display.sh` | Delete lines 186-454 | Verify `aria-banner.sh` is not used (it invokes these functions for manual terminal display). If still used, either keep or port to a standalone script. | 268 lines |
+| ~~`EXPERIENCE_ADAPTATION.md`~~ | ~~Superseded by Phase 3 merge~~ | ~~Phase 3 complete~~ | ~~109 lines~~ — **No-op:** Phase 3 now deletes all 6 source files |
+| ~~`COMMAND_SUGGESTIONS.md`~~ | ~~Superseded by Phase 3 merge~~ | ~~Phase 3 complete~~ | ~~129 lines~~ — **No-op:** Phase 3 now deletes all 6 source files |
 
 ---
 
@@ -377,7 +469,7 @@ Each must be a real mistake Claude has made, not a hypothetical.)
 ### Risk: Reduced CLAUDE.md causes session initialization failures
 
 **Severity:** Low
-**Mitigation:** The boot hook's JSON output is the actual initialization mechanism. CLAUDE.md's Session Initialization section is narration, not mechanism. Removing the narration doesn't break the mechanism. Test with 5 fresh sessions after Phase 4.
+**Mitigation:** Steps 1–2 of Session Initialization are narration of the boot hook's work — removing them doesn't break the mechanism. Steps 3–4 (staleness check, persona loading) are retained in simplified form since they are Claude's runtime actions. Test with 5 fresh sessions after Phase 4, including at least one with a non-default persona and one with a stale persona context.
 
 ### Risk: Contributors add content to the wrong layer
 
@@ -389,18 +481,28 @@ Each must be a real mistake Claude has made, not a hypothetical.)
 **Severity:** Low
 **Mitigation:** The three case studies are preserved. The trust hierarchy is preserved. What's removed is process narration that describes how Claude should think — which is not something that can be controlled through instruction. The git history preserves the original documents if anything needs recovery.
 
+### Rollback strategy
+
+Each phase ships as a single PR. If regression testing (Phase 0 prompts) reveals a problem after a phase merges, the response is:
+
+1. **Revert the PR** — each phase is scoped to be independently revertible
+2. **Diagnose** — identify which removed content was load-bearing
+3. **Re-apply with the load-bearing content restored** — the revert is temporary, not a permanent rollback
+
+This requires discipline in Phase scoping: a Phase must not depend on another Phase's changes being present (except where explicit dependencies exist in the dependency graph). Phases 1–3 are independent by design. Phase 4 depends on Phase 1. Phase 6 depends on Phases 3 and 5.
+
 ---
 
 ## Success Metrics
 
 | Metric | Baseline (current) | Target | How to measure |
 |--------|-------------------|--------|----------------|
-| Always-loaded token cost | ~11,500 tokens | ~6,500 tokens | Count tokens in CLAUDE.md + AGENTS.md + boot JSON + persona |
-| CLAUDE.md lines | 532 | ~280 | `wc -l` |
+| Always-loaded token cost | ~11,500 tokens | ~6,500 tokens | `cl100k_base` tokenizer on CLAUDE.md + AGENTS.md + boot JSON + persona |
+| CLAUDE.md lines | 532 | ~290 | `wc -l` |
 | AGENTS.md lines | 61 | ~20 | `wc -l` |
-| ai-runtime doc total lines | 1,212 | ~350 | `wc -l dev/docs/ai-runtime/*.md` |
-| Top-5 skill average lines | ~390 | ~170 | `wc -l` on fitting, mission-brief, skillplan, threat-assessment, hunting-grounds |
-| Hallucination rate on EVE facts | (unmeasured) | No regression | Manual testing of domain-specific queries per skill |
+| ai-runtime doc total lines | 1,219 | ~350 | `wc -l dev/docs/ai-runtime/*.md` |
+| Top-5 skill average lines | ~312 | ~156 | `wc -l` on fitting (357), mission-brief (448), skillplan (391), threat-assessment (208), hunting-grounds (158) |
+| Hallucination rate on EVE facts | Phase 0 baseline prompts | No regression | Run Phase 0 regression prompts (2–3 per top-5 skill) after each phase. Regression = factually wrong EVE claim that baseline got right. |
 | Session functionality | (baseline test suite) | No regression | Run `/help`, `/fitting`, `/mission-brief`, `/price`, `/orient` after each phase |
 
 ---
@@ -431,20 +533,24 @@ Each phase is an independent, reviewable change. No big-bang rewrite.
 
 This is the mental model underlying the entire proposal:
 
-**Claude hallucinating EVE data has exactly two root causes:**
+**Claude hallucinating EVE data has three root causes:**
 
 1. **Authoritative data is not in context.** Claude has no choice but to use training data. This is a *data availability* problem.
 
 2. **Authoritative data is in context but Claude misapplies it.** The data is there, but Claude's reasoning about EVE mechanics is wrong (e.g., mixing armor and shield tank concepts). This is a *domain reasoning* problem.
 
+3. **Multi-tool synthesis errors.** No single tool answers the question; Claude must combine outputs from multiple tools (or tool outputs with general knowledge) and makes errors in the synthesis. Example: "What's a good system for ratting near Amarr?" requires combining `universe(action="search")` with `universe(action="activity")` with game knowledge about ratting mechanics. Each data source is correct; the error is in how they're combined.
+
 **Cause 1 is solved by `prerequisite_files` and MCP tools.** Make the right data available and Claude uses it. No behavioral policy needed.
 
 **Cause 2 is solved by targeted edge-case guardrails.** When Claude consistently misapplies a specific mechanic (mixed tank, drone damage types, System Core behavior), a 2-3 line guardrail in the relevant skill corrects the specific error.
 
-**Neither cause is solved by:**
+**Cause 3 is partially mitigated by skill workflows** that prescribe the tool-call sequence for complex queries. This is the one area where procedural instructions in SKILL.md earn their tokens — not as "verification checklists" but as *query orchestration* that ensures the right combination of tools is called. The `Required Tool Calls` section in the skill file structure standard (Phase 5) serves this purpose.
+
+**None of these causes are solved by:**
 - Process checklists ("Step 1: Check if you have the data. Step 2: If not, query the tool...")
 - Repeated "DO NOT" instructions across multiple locations
 - Flowcharts describing verification workflows
 - Documents teaching Claude "how to think about" data trust
 
-These feel productive because they address the anxiety of "what if Claude gets it wrong." But they don't actually reduce the probability of error — they only reduce the probability that the *instruction layer* lacks coverage. The instruction layer isn't the bottleneck. Data availability and targeted guardrails are.
+These feel productive because they address the anxiety of "what if Claude gets it wrong." But they don't actually reduce the probability of error — they only reduce the probability that the *instruction layer* lacks coverage. The instruction layer isn't the bottleneck. Data availability, targeted guardrails, and query orchestration are.

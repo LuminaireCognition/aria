@@ -124,17 +124,13 @@ Logical grouping for organization:
 | `industry` | industry-jobs, fittings |
 | `system` | help, first-run-setup, esi-query |
 
-## Index Generation
+## Index Registration
 
-The skill index generator (`aria-skill-index.py`) reads all SKILL.md files and produces:
+The skill registry `.claude/skills/_index.json` is hand-maintained. When adding or modifying a skill:
 
-1. `.claude/skills/_index.json` - Machine-readable skill registry
-2. Validation warnings for missing/invalid fields
-
-Run with:
-```bash
-uv run python .claude/scripts/aria-skill-index.py
-```
+1. Copy an existing entry in `_index.json`
+2. Update all fields to match the skill's YAML frontmatter
+3. Verify `"skill_count"` at the top of the file is correct
 
 ## Migration
 

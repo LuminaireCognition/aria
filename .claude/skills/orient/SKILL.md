@@ -19,7 +19,7 @@ requires_pilot: false
 
 ## Data Authority
 
-Data authority hierarchy follows `dev/docs/ai-runtime/DATA_AUTHORITY.md`. Coalition data is validated against ESI before loading into cache; run `sov-validate` to verify.
+Data authority hierarchy follows `dev/docs/ai-runtime/DATA_TRUST.md`. Coalition data is validated against ESI before loading into cache; run `sov-validate` to verify.
 
 ## Required Tool Calls (MANDATORY)
 

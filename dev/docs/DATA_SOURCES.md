@@ -189,9 +189,9 @@ Data we know is NOT in SDE that we should track:
 | CONCORD response times | Not documented | Security-dependent |
 | Wormhole spawn rates | Not documented | Community-estimated |
 
-## Relationship to DATA_VERIFICATION.md
+## Relationship to DATA_TRUST.md
 
-- **DATA_VERIFICATION.md** - How to verify claims using tools (SDE, EOS, ESI)
+- **DATA_TRUST.md** - How to verify claims using tools (SDE, EOS, ESI) and data authority hierarchy
 - **DATA_SOURCES.md** (this file) - Where to find data that isn't in those tools
 
 Both documents support the core principle:

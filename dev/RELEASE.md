@@ -36,8 +36,9 @@ uv run mypy
 # COMMANDS.md matches skill index
 uv run python .claude/scripts/generate-commands-md.py --check
 
-# Skill index matches skill directories
-uv run python .claude/scripts/aria-skill-index.py --check
+# Skill index matches skill directories (hand-maintained, spot-check)
+diff <(ls -d .claude/skills/*/SKILL.md | sed 's|.*/skills/||;s|/.*||' | sort) \
+     <(python -c "import json; [print(s['directory']) for s in json.load(open('.claude/skills/_index.json'))['skills']]" | sort)
 
 # No broken links
 lychee '**/*.md'

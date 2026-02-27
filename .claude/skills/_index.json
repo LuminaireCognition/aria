@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_by": "aria-skill-index.py",
+  "generated_by": "manual (post-context-efficiency-migration)",
   "skill_count": 49,
   "skills": [
     {
@@ -440,7 +440,11 @@
       ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/ships.md"
+        "userdata/pilots/{active_pilot}/ships.md",
+        "reference/mechanics/missiles.json",
+        "reference/mechanics/projectile_turrets.json",
+        "reference/mechanics/laser_turrets.json",
+        "reference/mechanics/hybrid_turrets.json"
       ],
       "path": ".claude/skills/fitting/SKILL.md",
       "directory": "fitting",
@@ -796,16 +800,16 @@
       "requires_pilot": true,
       "prerequisite_files": [
         "reference/mechanics/npc_damage_types.md",
-        "reference/mechanics/drones.json"
-      ],
-      "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/ships.md",
-        "reference/pve-intel/cache/INDEX.md",
+        "reference/mechanics/drones.json",
         "reference/mechanics/missiles.json",
         "reference/mechanics/projectile_turrets.json",
         "reference/mechanics/laser_turrets.json",
         "reference/mechanics/hybrid_turrets.json"
+      ],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/ships.md",
+        "reference/pve-intel/cache/INDEX.md"
       ],
       "external_sources": [
         "wiki.eveuniversity.org"
@@ -875,12 +879,12 @@
         "what planets have [resource]"
       ],
       "requires_pilot": false,
-      "data_sources": [
-        "reference/mechanics/planetary-interaction.json"
-      ],
+      "data_sources": [],
       "path": ".claude/skills/pi/SKILL.md",
       "directory": "pi",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "reference/mechanics/planetary-interaction.json"
+      ],
       "external_sources": [],
       "esi_scopes": []
     },
@@ -1207,7 +1211,6 @@
         "sync war targets"
       ],
       "requires_pilot": false,
-      "has_persona_overlay": true,
       "path": ".claude/skills/watchlist/SKILL.md",
       "directory": "watchlist",
       "prerequisite_files": [],
