@@ -15,17 +15,6 @@ external_sources:
 
 # ARIA Killmail Intel Module
 
-## Purpose
-
-Analyze individual killmails from zKillboard URLs or kill IDs. Provides enriched tactical context including ship fitting analysis, attacker composition, and gatecamp detection. This differs from `/killmails` which shows your personal kill/loss history.
-
-## When to Use
-
-- User pastes a zKillboard URL
-- User asks to "analyze killmail [id]"
-- User wants intel on a specific kill
-- Investigating gatecamp activity
-
 ## Input Formats
 
 Accept these formats:

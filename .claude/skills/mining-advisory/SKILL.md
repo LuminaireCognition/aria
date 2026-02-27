@@ -20,16 +20,6 @@ data_sources:
 
 # ARIA Mining Operations Module
 
-## Purpose
-Provide mining guidance optimized for self-sufficient gameplay, including ore prioritization, belt selection, and Venture optimization.
-
-## Trigger Phrases
-- "mining advisory"
-- "what should I mine"
-- "ore recommendations"
-- "belt intel"
-- "mining optimization"
-
 ## Required Tool Calls (MANDATORY)
 
 Before presenting any mining advisory, the following MUST happen:

@@ -16,18 +16,6 @@ data_sources:
 
 # Ransom Calculator Module
 
-## Purpose
-
-Calculate appropriate ransom amounts for captured marks. Factor in ship value, likely cargo, potential implants, and psychological considerations to maximize profit while maintaining reputation.
-
-## Trigger Phrases
-
-- "/ransom-calc"
-- "ransom calc"
-- "how much ransom"
-- "ransom for [ship]"
-- "what should I charge"
-
 ## Command Syntax
 
 ```
