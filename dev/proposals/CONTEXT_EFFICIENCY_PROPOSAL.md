@@ -1,6 +1,6 @@
 # ARIA Context Efficiency Proposal
 
-**Status:** Draft
+**Status:** Implemented
 **Date:** 2026-02-26
 **Owner:** Architecture
 **Scope:** CLAUDE.md, AGENTS.md, ai-runtime docs, skill files, boot hook
