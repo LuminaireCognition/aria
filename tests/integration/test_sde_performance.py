@@ -31,7 +31,7 @@ def sde_is_seeded() -> bool:
         service = get_sde_query_service()
         service.get_corporation_regions(1000129)  # ORE
         return True
-    except (SDENotSeededError, Exception):
+    except (SDENotSeededError, OSError, RuntimeError):
         return False
 
 

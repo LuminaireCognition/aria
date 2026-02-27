@@ -10,7 +10,7 @@ Tests the individual action implementations in the fitting dispatcher:
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -170,7 +170,7 @@ class TestCalculateStatsAction:
             new_callable=AsyncMock,
             return_value=mock_result
         ) as mock_calc:
-            result = asyncio.run(
+            asyncio.run(
                 fitting_dispatcher(
                     action="calculate_stats",
                     eft=SAMPLE_EFT

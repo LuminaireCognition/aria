@@ -4,27 +4,21 @@ Tests for RedisQ poller module.
 
 from __future__ import annotations
 
-import asyncio
 import sqlite3
-import sys
 import time
 from datetime import UTC, datetime
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
 
 from aria_esi.services.redisq.database import RealtimeKillsDatabase
 from aria_esi.services.redisq.models import (
-    IngestMetrics,
-    PollerStatus,
     ProcessedKill,
-    QueuedKill,
     RedisQConfig,
 )
 from aria_esi.services.redisq.poller import (
-    REDISQ_URL,
     RedisQPoller,
     get_poller,
     reset_poller,
@@ -378,11 +372,6 @@ class TestPollerStop:
             poller = RedisQPoller(config=config)
             await poller.start()
 
-            # Capture task references
-            poll_task = poller._poll_task
-            cleanup_task = poller._cleanup_task
-            entity_refresh_task = poller._entity_refresh_task
-
             await poller.stop()
 
             # All tasks should be None after stop
@@ -579,7 +568,7 @@ class TestPollOnce:
         poller = RedisQPoller(config=config)
         poller._client = mock_client
 
-        with patch("aria_esi.services.redisq.poller.get_realtime_database") as mock_db:
+        with patch("aria_esi.services.redisq.poller.get_realtime_database"):
             # Should handle rate limit and sleep
             with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
                 await poller._poll_once()
@@ -598,7 +587,7 @@ class TestPollOnce:
         poller = RedisQPoller(config=config)
         poller._client = mock_client
 
-        with patch("aria_esi.services.redisq.poller.get_realtime_database") as mock_db:
+        with patch("aria_esi.services.redisq.poller.get_realtime_database"):
             with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
                 await poller._poll_once()
                 mock_sleep.assert_called_once_with(30.0)
@@ -654,7 +643,7 @@ class TestPollOnce:
         poller._client = mock_client
 
         with (
-            patch("aria_esi.services.redisq.poller.get_realtime_database") as mock_db,
+            patch("aria_esi.services.redisq.poller.get_realtime_database"),
             patch("aria_esi.services.redisq.poller.get_fetch_queue", return_value=mock_fetch_queue),
         ):
             await poller._poll_once()
@@ -1038,8 +1027,6 @@ class TestBackgroundLoops:
         poller._killmail_store = mock_killmail_store
 
         call_count = 0
-
-        original_wait = mock_ingest_queue.wait_for_items
 
         async def controlled_wait(timeout):
             nonlocal call_count

@@ -11,7 +11,7 @@ Current coverage levels (as of 2026-01):
 - industry.py: 70% (cmd_industry_jobs)
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -139,7 +139,7 @@ class TestClonesCommand:
                     "name": "PvP Clone",
                 }
             ],
-            "last_clone_jump_date": (datetime.now(timezone.utc) - timedelta(hours=30)).isoformat(),
+            "last_clone_jump_date": (datetime.now(UTC) - timedelta(hours=30)).isoformat(),
         }
 
         mock_client.get.return_value = mock_clone_data
@@ -170,7 +170,7 @@ class TestClonesCommand:
 
         # Last jump was 12 hours ago (still on cooldown)
         # Use ISO format with Z suffix that parse_datetime expects
-        last_jump = (datetime.now(timezone.utc) - timedelta(hours=12)).strftime(
+        last_jump = (datetime.now(UTC) - timedelta(hours=12)).strftime(
             "%Y-%m-%dT%H:%M:%SZ"
         )
         mock_clone_data = {
@@ -526,7 +526,7 @@ class TestSkillqueueCommand:
         """Test skillqueue command with active training."""
         from aria_esi.commands.skills import cmd_skillqueue
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         finish_time = now + timedelta(hours=5)
 
         # Use ISO format with Z suffix that parse_datetime expects
@@ -604,7 +604,7 @@ class TestIndustryJobsCommand:
         from aria_esi.commands.industry import cmd_industry_jobs
 
         empty_args.filter_mode = None
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         mock_jobs = [
             {
@@ -651,7 +651,7 @@ class TestIndustryJobsCommand:
         from aria_esi.commands.industry import cmd_industry_jobs
 
         empty_args.filter_mode = None
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         # Job ended 1 hour ago but not delivered - use ISO format with Z suffix
         mock_jobs = [
@@ -689,7 +689,7 @@ class TestIndustryJobsCommand:
         from aria_esi.commands.industry import cmd_industry_jobs
 
         empty_args.filter_mode = "active"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         mock_jobs = [
             {
@@ -740,7 +740,7 @@ class TestIndustryJobsCommand:
         from aria_esi.commands.industry import cmd_industry_jobs
 
         empty_args.filter_mode = "history"
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         mock_jobs = [
             {
@@ -855,7 +855,7 @@ class TestMiningCommand:
         empty_args.system = None
         empty_args.ore = None
 
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
         mock_entries = [
             {
                 "date": today,
@@ -905,7 +905,7 @@ class TestMiningCommand:
         empty_args.system = "Jita"
         empty_args.ore = None
 
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
         mock_entries = [
             {
                 "date": today,
@@ -955,7 +955,7 @@ class TestMiningCommand:
         empty_args.system = None
         empty_args.ore = "Veldspar"
 
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
         mock_entries = [
             {
                 "date": today,
@@ -1006,7 +1006,7 @@ class TestMiningCommand:
         empty_args.system = None
         empty_args.ore = None
 
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
 
         # Simulate paginated responses
         page1_entries = [
@@ -1055,7 +1055,7 @@ class TestMiningSummaryCommand:
 
         empty_args.days = 30
 
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        today = datetime.now(UTC).strftime("%Y-%m-%d")
         mock_entries = [
             {"date": today, "type_id": 1230, "solar_system_id": 30000142, "quantity": 10000},
             {"date": today, "type_id": 1230, "solar_system_id": 30000142, "quantity": 5000},
@@ -1169,7 +1169,7 @@ class TestContractsCommand:
         empty_args.completed = False
         empty_args.limit = 20
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         mock_contracts = [
             {
                 "contract_id": 123,
@@ -1212,7 +1212,7 @@ class TestContractsCommand:
         empty_args.completed = False
         empty_args.limit = 20
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         mock_contracts = [
             {
                 "contract_id": 124,
@@ -1284,7 +1284,7 @@ class TestContractDetailCommand:
         from aria_esi.commands.contracts import cmd_contract_detail
 
         empty_args.contract_id = 123
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         mock_contracts = [
             {
@@ -1335,7 +1335,7 @@ class TestContractDetailCommand:
         from aria_esi.commands.contracts import cmd_contract_detail
 
         empty_args.contract_id = 124
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         mock_contracts = [
             {
@@ -1395,7 +1395,7 @@ class TestContractDetailCommand:
         from aria_esi.commands.contracts import cmd_contract_detail
 
         empty_args.contract_id = 125
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         mock_contracts = [
             {
@@ -1457,7 +1457,7 @@ class TestContractDetailCommand:
         empty_args.completed = False
         empty_args.limit = 20
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         mock_contracts = [
             {
                 "contract_id": 123,
@@ -1509,7 +1509,7 @@ class TestContractDetailCommand:
         empty_args.completed = True
         empty_args.limit = 20
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         mock_contracts = [
             {
                 "contract_id": 123,

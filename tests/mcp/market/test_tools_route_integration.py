@@ -15,7 +15,6 @@ import pytest
 
 from aria_esi.mcp.market.tools_route import (
     GANK_THRESHOLDS,
-    KNOWN_GANK_SYSTEMS,
     classify_risk,
     get_gank_threshold,
     register_route_tools,

@@ -7,7 +7,7 @@ the threat cache for real-time gatecamp detection.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -28,7 +28,7 @@ def make_kill(
 ) -> ProcessedKill:
     """Create a test kill."""
     if kill_time is None:
-        kill_time = datetime.now(timezone.utc).replace(tzinfo=None)
+        kill_time = datetime.now(UTC).replace(tzinfo=None)
 
     return ProcessedKill(
         kill_id=kill_id,
@@ -62,7 +62,7 @@ def make_gatecamp_status(
         attacker_alliances=[],
         attacker_ships=[587, 24690],  # Rifter, Tornado
         confidence=confidence,
-        last_kill_time=datetime.now(timezone.utc).replace(tzinfo=None),
+        last_kill_time=datetime.now(UTC).replace(tzinfo=None),
         is_smartbomb_camp=False,
         force_asymmetry=8.0,
     )
@@ -312,7 +312,6 @@ class TestCLICommandIntegration:
 
     def test_realtime_flag_graceful_when_import_fails(self):
         """Should gracefully handle missing threat cache module."""
-        include_realtime = True
         realtime_cache = None
         realtime_healthy = False
 

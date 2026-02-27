@@ -18,7 +18,7 @@ os.environ.setdefault("ARIA_NO_KEYRING", "1")
 import json
 import random
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -283,7 +283,7 @@ def mock_esi_client():
 @pytest.fixture
 def fixed_datetime() -> datetime:
     """Return a fixed datetime for consistent testing."""
-    return datetime(2026, 1, 15, 18, 30, 0, tzinfo=timezone.utc)
+    return datetime(2026, 1, 15, 18, 30, 0, tzinfo=UTC)
 
 
 @pytest.fixture

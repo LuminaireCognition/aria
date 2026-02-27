@@ -52,7 +52,7 @@ def _make_profile(pilot_dir: Path, synced_at: datetime) -> Path:
     lines = ["# Test Profile\n"]
     for m in markers:
         lines.append(_make_marker(m, synced_at))
-        lines.append(f"| Test | 1.0 | Aligned |")
+        lines.append("| Test | 1.0 | Aligned |")
         lines.append(f"*Synced: {synced_at.strftime('%Y-%m-%d %H:%M')} UTC*\n")
     profile = pilot_dir / "profile.md"
     profile.write_text("\n".join(lines))
@@ -267,7 +267,7 @@ class TestCheckFreshness:
         lines = ["# Test Profile\n"]
         for m, ts in markers.items():
             lines.append(_make_marker(m, ts))
-            lines.append(f"| Test | 1.0 | Aligned |")
+            lines.append("| Test | 1.0 | Aligned |")
             lines.append(f"*Synced: {ts.strftime('%Y-%m-%d %H:%M')} UTC*\n")
         (pilot_dir / "profile.md").write_text("\n".join(lines))
 
@@ -287,7 +287,7 @@ class TestCheckFreshness:
         lines = ["# Test Profile\n"]
         for m in markers:
             lines.append(_make_marker(m, now))
-            lines.append(f"| Test | 1.0 | Aligned |\n")
+            lines.append("| Test | 1.0 | Aligned |\n")
         (pilot_dir / "profile.md").write_text("\n".join(lines))
 
         result = check_freshness("standings", pilot_dir)

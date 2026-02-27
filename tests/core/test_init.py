@@ -349,7 +349,7 @@ class TestKeyringExports:
 
     def test_keyring_constants_accessible(self):
         """Keyring availability constants can be imported."""
-        from aria_esi.core import KEYRING_AVAILABLE, KEYRING_BACKEND
+        from aria_esi.core import KEYRING_AVAILABLE
 
         assert isinstance(KEYRING_AVAILABLE, bool)
         # KEYRING_BACKEND can be None or a string

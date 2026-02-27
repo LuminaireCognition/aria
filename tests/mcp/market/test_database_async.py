@@ -15,6 +15,7 @@ pytestmark = pytest.mark.asyncio
 
 from aria_esi.store.market.database import (
     CachedAggregate,
+    MarketScope,
     MarketScopePrice,
 )
 from aria_esi.store.market.database_async import (

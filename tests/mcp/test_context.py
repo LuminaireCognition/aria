@@ -4,7 +4,7 @@ Tests for MCP context management utilities.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -48,7 +48,7 @@ class TestOutputMeta:
 
         # Should be valid ISO format
         parsed = datetime.fromisoformat(meta.timestamp)
-        assert parsed.tzinfo == timezone.utc
+        assert parsed.tzinfo == UTC
 
     def test_custom_timestamp(self):
         """Should accept custom timestamp."""
@@ -433,10 +433,6 @@ class TestByteEnforcement:
         data = {"items": [{"id": i, "data": "x" * 200} for i in range(1000)]}
 
         # Use a small byte limit to force truncation
-        from aria_esi.mcp.context_policy import GLOBAL
-
-        # Save original value
-        original_limit = GLOBAL.MAX_OUTPUT_SIZE_BYTES
 
         result = wrap_output(data, "items", max_items=1000)
 

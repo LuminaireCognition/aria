@@ -7,7 +7,6 @@ Tests retry decorators, exception handling, and backoff calculation.
 from __future__ import annotations
 
 import urllib.error
-from unittest.mock import MagicMock, patch
 
 import pytest
 

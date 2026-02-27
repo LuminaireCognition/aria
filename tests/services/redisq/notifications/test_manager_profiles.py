@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from datetime import UTC
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -40,7 +41,7 @@ def make_mock_kill(
     attacker_count: int = 5,
 ) -> MagicMock:
     """Create a mock ProcessedKill."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     kill = MagicMock()
     kill.kill_id = kill_id
@@ -49,7 +50,7 @@ def make_mock_kill(
     kill.is_pod_kill = is_pod_kill
     kill.victim_ship_type_id = victim_ship_type_id
     kill.attacker_count = attacker_count
-    kill.kill_time = datetime.now(tz=timezone.utc)
+    kill.kill_time = datetime.now(tz=UTC)
     return kill
 
 
@@ -886,7 +887,6 @@ class TestNotificationManagerProcessLoop:
         queue = manager._queues.get("https://discord.com/api/webhooks/123/abc")
 
         call_count = 0
-        original_process = queue.process_queue
 
         async def failing_then_ok():
             nonlocal call_count
@@ -964,7 +964,6 @@ class TestNotificationManagerProcessLoop:
         await asyncio.sleep(1.0)  # Allow loop to iterate
 
         # Verify rollup was flushed: webhook should have been called
-        queue = manager._queues.get("https://discord.com/api/webhooks/123/abc")
         # The queue processes and sends — check that send was called
         assert mock_discord_client.return_value.send.called
 

@@ -15,7 +15,6 @@ from aria_esi.fitting.skill_registry import (
     ALL_SKILL_NAMES,
     BONUS_CORE_SKILL_NAMES,
     DRONE_SKILL_NAMES,
-    SkillRegistry,
     get_skill_registry,
     reset_skill_registry,
 )
@@ -84,17 +83,8 @@ class TestGetSkillRegistry:
         # Ensure a fresh attempt by resetting
         reset_skill_registry()
         # Mock the SDE service to raise
-        import aria_esi.fitting.skill_registry as sr_mod
 
-        original = sr_mod.get_skill_registry
-
-        def patched():
-            # Force a fresh attempt
-            reset_skill_registry()
-            # Now monkeypatch the import to fail
-            return None
-
-        result = get_skill_registry()
+        get_skill_registry()
         # In a fresh environment without SDE, this returns None
         # Since we can't easily mock the lazy import, just verify the reset works
         reset_skill_registry()

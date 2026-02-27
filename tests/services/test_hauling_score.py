@@ -7,8 +7,6 @@ from "highest margin" to "best ISK per trip".
 
 from __future__ import annotations
 
-import pytest
-
 # =============================================================================
 # Constants Tests
 # =============================================================================

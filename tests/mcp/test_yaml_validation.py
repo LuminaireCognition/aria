@@ -7,8 +7,6 @@ identify skill names in YAML files and report missing names.
 
 from __future__ import annotations
 
-import pytest
-
 from aria_esi.mcp.sde.tools_easy80 import (
     YAML_SKILL_EXTRACTORS,
     _extract_skill_names_breakpoints,

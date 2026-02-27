@@ -7,7 +7,7 @@ used across the notification test suite.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import MagicMock
 
@@ -57,7 +57,7 @@ def make_processed_kill(
     kill.attacker_count = attacker_count
     kill.attacker_corps = attacker_corps or [98000002]
     kill.attacker_alliances = attacker_alliances or []
-    kill.kill_time = kill_time or datetime.now(tz=timezone.utc)
+    kill.kill_time = kill_time or datetime.now(tz=UTC)
     return kill
 
 

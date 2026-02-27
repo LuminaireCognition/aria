@@ -198,6 +198,7 @@ ignore = [
 "__init__.py" = ["F401"]  # re-exports
 "retry.py" = ["F401"]     # conditional imports for tenacity fallback
 "auth.py" = ["E402"]      # TYPE_CHECKING import after code block
+"tests/**/*.py" = ["E402"]  # imports after pytest.importorskip() guards
 
 [tool.ruff.lint.isort]
 known-first-party = ["aria_esi"]

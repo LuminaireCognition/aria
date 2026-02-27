@@ -353,8 +353,8 @@ class TestMissionBriefSemantic:
         skip_if_missing_requirements()
 
         # Load configuration
-        eval_config = load_eval_config("mission-brief")
-        ground_truth = load_ground_truth("missions", "the_blockade_l4")
+        load_eval_config("mission-brief")
+        load_ground_truth("missions", "the_blockade_l4")
 
         # In real test, would invoke skill
         # response = await invoke_skill("mission-brief", {"mission": "The Blockade", "level": 4})

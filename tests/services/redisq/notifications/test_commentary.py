@@ -4,7 +4,6 @@ Tests for LLM commentary generation.
 
 from __future__ import annotations
 
-import asyncio
 import sys
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch

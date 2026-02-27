@@ -237,7 +237,7 @@ Return valid JSON only, no explanation."""
         result_text = message.content[0].text
         return extract_json_from_response(result_text) or {}
 
-    except Exception:
+    except (RuntimeError, OSError, KeyError, ValueError):
         return {}
 
 

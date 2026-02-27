@@ -225,9 +225,9 @@ class TestWaitTimeCalculation:
         """Test exponential backoff increases with attempts."""
         from aria_esi.core.retry import _calculate_wait_time
 
-        wait1 = _calculate_wait_time(attempt=1, min_wait=1, max_wait=100)
-        wait2 = _calculate_wait_time(attempt=2, min_wait=1, max_wait=100)
-        wait3 = _calculate_wait_time(attempt=3, min_wait=1, max_wait=100)
+        _calculate_wait_time(attempt=1, min_wait=1, max_wait=100)
+        _calculate_wait_time(attempt=2, min_wait=1, max_wait=100)
+        _calculate_wait_time(attempt=3, min_wait=1, max_wait=100)
 
         # Each attempt should generally increase (allowing for jitter)
         # We can't assert strict ordering due to jitter, but the base values increase

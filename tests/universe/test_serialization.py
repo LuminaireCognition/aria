@@ -452,7 +452,7 @@ class TestDetectFormat:
         from aria_esi.universe.serialization import detect_format
 
         # Create empty file
-        with open(temp_file, "wb") as f:
+        with open(temp_file, "wb"):
             pass
 
         result = detect_format(temp_file)

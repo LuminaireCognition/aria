@@ -6,8 +6,6 @@ Tests tank classification, resist analysis, and damage profiling.
 
 from __future__ import annotations
 
-import pytest
-
 from aria_esi.models.fitting import ParsedFit, ParsedModule
 
 # =============================================================================

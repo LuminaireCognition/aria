@@ -422,7 +422,7 @@ class TestAggregates:
             )
             aggregates.append(agg)
 
-        count = market_db.save_aggregates_batch(aggregates)
+        market_db.save_aggregates_batch(aggregates)
 
         # Verify saved
         result = market_db.get_aggregates_batch([34, 35, 36], 10000002)

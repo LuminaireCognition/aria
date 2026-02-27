@@ -12,8 +12,6 @@ Covers the pure/near-pure functions that don't require database mocking:
 
 import time
 
-import pytest
-
 from aria_esi.services.market_refresh import (
     FRESH_THRESHOLD,
     RECENT_THRESHOLD,
@@ -605,11 +603,6 @@ class TestSingleton:
 
     def test_reset_clears_singleton(self):
         """reset_refresh_service clears the global singleton."""
-        from aria_esi.services.market_refresh import (
-            _refresh_service,
-            get_refresh_service,
-            reset_refresh_service,
-        )
 
         # Note: Can't directly test get_refresh_service() without async
         # but we can verify reset works

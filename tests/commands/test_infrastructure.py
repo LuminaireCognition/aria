@@ -6,6 +6,7 @@ Tests command routing, argument parsing, and basic command behavior.
 
 import argparse
 import json
+from datetime import UTC
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -663,7 +664,7 @@ class TestWalletCommands:
 
     def test_cmd_wallet_journal_success(self, empty_args):
         """Test successful wallet journal fetch."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from aria_esi.commands.wallet import cmd_wallet_journal
         from aria_esi.core import Credentials, ESIClient
@@ -677,7 +678,7 @@ class TestWalletCommands:
         mock_client = MagicMock(spec=ESIClient)
 
         # Mock journal entries
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         mock_journal = [
             {
                 "id": 1,
@@ -713,7 +714,7 @@ class TestWalletCommands:
 
     def test_cmd_wallet_journal_with_filter(self, empty_args):
         """Test wallet journal with type filter."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         from aria_esi.commands.wallet import cmd_wallet_journal
         from aria_esi.core import Credentials, ESIClient
@@ -726,7 +727,7 @@ class TestWalletCommands:
 
         mock_client = MagicMock(spec=ESIClient)
 
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         mock_journal = [
             {
                 "id": 1,

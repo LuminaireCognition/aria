@@ -464,9 +464,6 @@ class TestInitializeSchema:
 
         # Before schema init, check that the base types table exists
         # (MarketDatabase creates it on init)
-        cursor = conn.execute("PRAGMA table_info(types)")
-        columns_before = {row[1] for row in cursor.fetchall()}
-
         importer.initialize_schema()
 
         cursor = conn.execute("PRAGMA table_info(types)")

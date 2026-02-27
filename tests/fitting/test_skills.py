@@ -16,8 +16,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from aria_esi.fitting.skill_registry import (
-    BONUS_CORE_SKILL_NAMES,
-    BONUS_DRONE_SKILL_NAMES,
     DRONE_SKILL_NAMES,
     FITTING_SKILL_NAMES,
     NAVIGATION_SKILL_NAMES,
@@ -300,7 +298,7 @@ class TestExtractSkillsForFit:
             skills = extract_skills_for_fit(minimal_fit, level=3)
 
             # All skills should be at level 3
-            for skill_id, level in skills.items():
+            for _skill_id, level in skills.items():
                 assert level == 3
 
     def test_extract_resolves_prerequisites(self, vexor_parsed_fit, mock_skill_requirements_data):

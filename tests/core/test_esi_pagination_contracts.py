@@ -13,7 +13,7 @@ to ESI response format that could silently truncate data.
 from __future__ import annotations
 
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -47,7 +47,7 @@ def make_esi_response(
 
 def make_mining_entries(page: int, count: int = 3) -> list[dict]:
     """Generate realistic mining ledger entries for a given page."""
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    today = datetime.now(UTC).strftime("%Y-%m-%d")
     return [
         {
             "date": today,
@@ -171,7 +171,6 @@ def mock_esi_client():
 
 def create_test_scope(sync_db, scope_name, scope_type, **kwargs):
     """Create a test scope with watchlist."""
-    from aria_esi.store.market.database import MarketScope, WatchlistItem
 
     watchlist = sync_db.create_watchlist(f"{scope_name}_watchlist")
     items = []
@@ -357,7 +356,7 @@ class TestEmptyResponseTerminationContract:
             make_mining_entries(i, count=1) for i in range(25)
         ]
 
-        result = _run_mining_cmd(mock_client, mock_credentials, mock_public)
+        _run_mining_cmd(mock_client, mock_credentials, mock_public)
 
         # Should stop at page 20 (safety limit: `if page > 20: break`)
         # Pages 1-20 fetched = 20 calls

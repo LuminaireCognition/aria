@@ -147,7 +147,6 @@ class TestKillOperations:
         """Test getting recent kills."""
         # Use explicit timestamps for reliable testing
         now_ts = time.time()
-        now = datetime.fromtimestamp(now_ts)
 
         # Create kills at different times
         for i, delta in enumerate([5, 30, 90]):

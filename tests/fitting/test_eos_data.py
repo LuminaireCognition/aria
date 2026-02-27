@@ -213,7 +213,7 @@ class TestStatusCaching:
         manager = EOSDataManager(data_path=mock_eos_data_path)
 
         # First call validates
-        status1 = manager.get_status()
+        manager.get_status()
 
         # Modify cache to verify it's returned
         manager._status_cache = EOSDataStatus(

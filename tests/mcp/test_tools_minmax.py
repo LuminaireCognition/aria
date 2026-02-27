@@ -9,7 +9,6 @@ from __future__ import annotations
 import pytest
 
 from aria_esi.mcp.sde.tools_minmax import (
-    IMPACT_TIER_ORDER,
     MINIMUM_SCORED_SKILLS,
     _build_role_skill_set,
     _score_breakpoint,

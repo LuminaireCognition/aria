@@ -10,8 +10,6 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 # =============================================================================
 # Status Tool Tests
 # =============================================================================
@@ -73,7 +71,7 @@ class TestStatusErrorHandling:
                 result = asyncio.run(status_tool())
                 # If it returns, check it's a dict (may contain error info)
                 assert isinstance(result, dict)
-            except Exception:
+            except (RuntimeError, OSError, KeyError):
                 # Some implementations may propagate exceptions
                 # which is also acceptable behavior
                 pass

@@ -6,9 +6,7 @@ Tests utility functions for formatting ESI data for display.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
-import pytest
+from datetime import UTC, datetime
 
 # =============================================================================
 # ISK Formatting Tests
@@ -266,7 +264,7 @@ class TestParseDatetime:
         assert result.day == 15
         assert result.hour == 12
         assert result.minute == 30
-        assert result.tzinfo == timezone.utc
+        assert result.tzinfo == UTC
 
     def test_microseconds_format(self):
         """Parses format with microseconds."""
@@ -298,7 +296,7 @@ class TestFormatDatetime:
         """Formats datetime to ISO string."""
         from aria_esi.core.formatters import format_datetime
 
-        dt = datetime(2026, 1, 15, 12, 30, 0, tzinfo=timezone.utc)
+        dt = datetime(2026, 1, 15, 12, 30, 0, tzinfo=UTC)
         result = format_datetime(dt)
         assert result == "2026-01-15T12:30:00Z"
 
@@ -312,7 +310,7 @@ class TestGetUtcNow:
 
         result = get_utc_now()
         assert isinstance(result, datetime)
-        assert result.tzinfo == timezone.utc
+        assert result.tzinfo == UTC
 
 
 class TestGetUtcTimestamp:

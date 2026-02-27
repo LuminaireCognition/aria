@@ -56,12 +56,23 @@ def cmd_sde_seed(args: argparse.Namespace) -> dict:
         db.close()
 
         if status.seeded:
+            # Compare stored SDE version against manifest's pinned version
+            from ..core.data_integrity import get_integrity_status
+
+            integrity = get_integrity_status()
+            sde_info = integrity.get("sources", {}).get("sde", {})
+            pinned = sde_info.get("pinned_version")
+            if pinned and pinned != "latest":
+                needs_update = status.sde_version != pinned
+            else:
+                needs_update = None  # Cannot determine without network check
+
             return {
                 "status": "seeded",
                 "blueprint_count": status.blueprint_count,
                 "type_count": status.type_count,
                 "import_timestamp": status.import_timestamp,
-                "needs_update": False,  # TODO: Check Fuzzwork for newer version
+                "needs_update": needs_update,
                 "query_timestamp": query_ts,
             }
         else:

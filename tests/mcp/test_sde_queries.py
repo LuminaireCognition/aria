@@ -239,7 +239,7 @@ class TestSDEQueryService:
     def test_cache_invalidation_on_timestamp_change(self, query_service):
         """Cache should invalidate when import timestamp changes."""
         # Populate cache
-        result1 = query_service.get_corporation_regions(1000129)
+        query_service.get_corporation_regions(1000129)
         assert 1000129 in query_service._corp_regions
 
         # Simulate timestamp change

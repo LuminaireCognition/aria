@@ -661,9 +661,6 @@ class TestBreakpointSkillsInPlan:
         # Should be in required_at_level at level 3 (not elevated to 5)
         required = plan.get("required_at_level", [])
         drones = next((s for s in required if s["skill_name"] == "Drones"), None)
-        # Could also be in train_to_5 if SKILLS_REQUIRING_V kicks in
-        train_to_5 = plan.get("train_to_5", [])
-        drones_train = next((s for s in train_to_5 if s["skill_name"] == "Drones"), None)
 
         # If Drones is at required_level 3 and not role-matched, should stay at 3
         if drones is not None:

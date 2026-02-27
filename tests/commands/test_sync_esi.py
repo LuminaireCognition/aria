@@ -8,8 +8,6 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from aria_esi.commands.sync_esi import (
     check_status,
     fetch_blueprints,

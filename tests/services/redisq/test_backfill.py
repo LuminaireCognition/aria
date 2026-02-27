@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -744,7 +743,7 @@ class TestStartupRecovery:
         mock_db.get_last_poll_time.return_value = last_poll
         mock_get_db.return_value = mock_db
 
-        result = await startup_recovery(self._make_config())
+        await startup_recovery(self._make_config())
 
         # Since should be now - 2h = 15:00, not last_poll 12:00
         call_kwargs = mock_backfill.call_args[1]
@@ -769,7 +768,7 @@ class TestStartupRecovery:
         mock_db.get_last_poll_time.return_value = last_poll
         mock_get_db.return_value = mock_db
 
-        result = await startup_recovery(self._make_config())
+        await startup_recovery(self._make_config())
 
         # Since should be last_poll (12:00), since it's > now - 2h (10:30)
         call_kwargs = mock_backfill.call_args[1]
@@ -795,7 +794,7 @@ class TestStartupRecovery:
         mock_get_db.return_value = mock_db
 
         config = self._make_config(filter_regions=[10000002, 10000043])
-        result = await startup_recovery(config)
+        await startup_recovery(config)
 
         call_kwargs = mock_backfill.call_args[1]
         assert call_kwargs["regions"] == [10000002, 10000043]
@@ -820,7 +819,7 @@ class TestStartupRecovery:
         mock_get_db.return_value = mock_db
 
         config = self._make_config(filter_regions=[])
-        result = await startup_recovery(config)
+        await startup_recovery(config)
 
         call_kwargs = mock_backfill.call_args[1]
         assert call_kwargs["regions"] is None

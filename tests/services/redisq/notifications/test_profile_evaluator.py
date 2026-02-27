@@ -4,7 +4,7 @@ Tests for notification profile evaluator.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 from aria_esi.services.redisq.notifications.config import QuietHoursConfig, TriggerConfig
@@ -83,7 +83,7 @@ def make_kill(
     kill.kill_id = kill_id
     kill.solar_system_id = solar_system_id
     kill.total_value = total_value
-    kill.kill_time = kill_time if kill_time is not None else datetime.now(timezone.utc)
+    kill.kill_time = kill_time if kill_time is not None else datetime.now(UTC)
     return kill
 
 
@@ -754,7 +754,7 @@ class TestStaleKillFilter:
         with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
             evaluator = ProfileEvaluator(profiles)
 
-        old_time = datetime.now(timezone.utc) - timedelta(minutes=20)
+        old_time = datetime.now(UTC) - timedelta(minutes=20)
         kill = make_kill(kill_time=old_time)
 
         result = evaluator.evaluate(kill)
@@ -768,7 +768,7 @@ class TestStaleKillFilter:
         with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
             evaluator = ProfileEvaluator(profiles)
 
-        recent_time = datetime.now(timezone.utc) - timedelta(minutes=2)
+        recent_time = datetime.now(UTC) - timedelta(minutes=2)
         kill = make_kill(kill_time=recent_time)
 
         result = evaluator.evaluate(kill)
@@ -782,7 +782,7 @@ class TestStaleKillFilter:
             evaluator = ProfileEvaluator(profiles)
 
         # Naive datetime (no tzinfo) — should be treated as UTC
-        naive_old = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(minutes=20)
+        naive_old = datetime.now(UTC).replace(tzinfo=None) - timedelta(minutes=20)
         kill = make_kill(kill_time=naive_old)
 
         result = evaluator.evaluate(kill)
@@ -797,7 +797,7 @@ class TestStaleKillFilter:
             evaluator = ProfileEvaluator(profiles)
 
         # First: stale kill — should be filtered, not throttled
-        old_time = datetime.now(timezone.utc) - timedelta(minutes=20)
+        old_time = datetime.now(UTC) - timedelta(minutes=20)
         stale_kill = make_kill(kill_id=1, kill_time=old_time)
         result1 = evaluator.evaluate(stale_kill)
         assert result1.has_matches is False
@@ -815,7 +815,7 @@ class TestStaleKillFilter:
             evaluator = ProfileEvaluator(profiles)
 
         # Use 1 second of headroom to avoid test flakiness from clock drift
-        boundary_time = datetime.now(timezone.utc) - timedelta(seconds=MAX_KILL_AGE_SECONDS - 1)
+        boundary_time = datetime.now(UTC) - timedelta(seconds=MAX_KILL_AGE_SECONDS - 1)
         kill = make_kill(kill_time=boundary_time)
 
         result = evaluator.evaluate(kill)
@@ -828,7 +828,7 @@ class TestStaleKillFilter:
         with patch.object(ProfileEvaluator, "_build_v2_engine", return_value=make_mock_engine()):
             evaluator = ProfileEvaluator(profiles)
 
-        old_time = datetime.now(timezone.utc) - timedelta(minutes=20)
+        old_time = datetime.now(UTC) - timedelta(minutes=20)
         kill = make_kill(kill_time=old_time)
 
         result = evaluator.evaluate(kill)

@@ -4,7 +4,7 @@ Tests for Discord message formatter.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -49,19 +49,19 @@ class TestFormatTimeAgo:
 
     def test_format_seconds(self):
         """Test seconds ago."""
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         kill_time = now - timedelta(seconds=30)
         assert format_time_ago(kill_time) == "30 sec ago"
 
     def test_format_minutes(self):
         """Test minutes ago."""
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         kill_time = now - timedelta(minutes=5)
         assert format_time_ago(kill_time) == "5 min ago"
 
     def test_format_hours(self):
         """Test hours ago."""
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         kill_time = now - timedelta(hours=2)
         assert format_time_ago(kill_time) == "2 hours ago"
 
@@ -70,7 +70,7 @@ class TestFormatTimeAgo:
 
     def test_format_days(self):
         """Test days ago."""
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         kill_time = now - timedelta(days=3)
         assert format_time_ago(kill_time) == "3 days ago"
 
@@ -80,13 +80,13 @@ class TestFormatTimeAgo:
     def test_format_naive_datetime_treated_as_utc(self):
         """Test that naive datetimes are treated as UTC (ESI standard)."""
         # Simulate ESI-style naive datetime that represents UTC
-        now_utc = datetime.now(tz=timezone.utc)
+        now_utc = datetime.now(tz=UTC)
         naive_kill_time = (now_utc - timedelta(minutes=5)).replace(tzinfo=None)
         assert format_time_ago(naive_kill_time) == "5 min ago"
 
     def test_format_future_time_shows_just_now(self):
         """Test that slight future times (clock drift) show 'just now'."""
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         future_time = now + timedelta(seconds=5)
         assert format_time_ago(future_time) == "just now"
 

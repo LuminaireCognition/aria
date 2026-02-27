@@ -463,11 +463,11 @@ class TestMarketHistoryTool:
             return_value=mock_esi_client,
         ):
             # Test with negative days
-            result = await captured_tool(item="Tritanium", days=-10)
+            await captured_tool(item="Tritanium", days=-10)
             # Should not crash
 
             # Test with too many days
-            result = await captured_tool(item="Tritanium", days=1000)
+            await captured_tool(item="Tritanium", days=1000)
             # Should not crash
 
     @pytest.mark.asyncio

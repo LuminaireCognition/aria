@@ -62,7 +62,7 @@ class TestTradeHubConfiguration:
     def test_trade_hub_regions_have_tuples(self):
         from aria_esi.core import TRADE_HUB_REGIONS
 
-        for hub, data in TRADE_HUB_REGIONS.items():
+        for _hub, data in TRADE_HUB_REGIONS.items():
             assert isinstance(data, tuple)
             assert len(data) == 2
             region_id, region_name = data
@@ -92,7 +92,7 @@ class TestActivityTypes:
     def test_activity_types_have_tuples(self):
         from aria_esi.core import ACTIVITY_TYPES
 
-        for activity_id, data in ACTIVITY_TYPES.items():
+        for _activity_id, data in ACTIVITY_TYPES.items():
             assert isinstance(data, tuple)
             assert len(data) == 2
             key, display = data

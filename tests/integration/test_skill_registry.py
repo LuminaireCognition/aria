@@ -27,7 +27,7 @@ def sde_is_seeded() -> bool:
         cursor = conn.execute("SELECT COUNT(*) FROM types WHERE published = 1")
         count = cursor.fetchone()[0]
         return count > 1000
-    except Exception:
+    except (OSError, RuntimeError):
         return False
 
 
