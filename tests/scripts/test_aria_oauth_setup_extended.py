@@ -7,7 +7,6 @@ update_pilot_registry(), update_config().
 
 from __future__ import annotations
 
-import errno
 import importlib.util
 import json
 import os

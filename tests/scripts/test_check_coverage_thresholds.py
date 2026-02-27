@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+
 from tests.scripts.check_coverage_thresholds import (
     aggregate_coverage,
     calculate_coverage_pct,
