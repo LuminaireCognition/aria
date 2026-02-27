@@ -11,12 +11,16 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from aria_esi.mcp.dispatchers.universe import (
+    register_loop_tools,
+    register_route_tools,
+    register_search_tools,
+)
 from aria_esi.mcp.errors import (
     InsufficientBordersError,
     RouteNotFoundError,
 )
 from aria_esi.mcp.tools import register_tools
-from aria_esi.mcp.dispatchers.universe import register_loop_tools, register_route_tools, register_search_tools
 from aria_esi.universe import UniverseGraph
 
 from .conftest import capture_tool_function

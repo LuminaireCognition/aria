@@ -3,7 +3,7 @@ ARIA Path Security
 
 Centralized path validation to prevent directory traversal attacks.
 
-Security finding: P0 #2 from dev/reviews/PYTHON_REVIEW_2026-01.md
+Security finding: P0 #2 from dev/reviews/archive/PYTHON_REVIEW_2026-01.md
 """
 
 from __future__ import annotations
@@ -11,6 +11,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -42,7 +43,7 @@ PILOT_ID_PATTERN = re.compile(r"^\d{1,20}$")
 # =============================================================================
 
 
-class PathValidationError(Exception):
+class PathValidationError(AriaError):
     """
     Raised when path validation fails.
 
@@ -162,7 +163,7 @@ def validate_path(
             if not any(rel_to_base.startswith(prefix.rstrip("/")) for prefix in allowed_prefixes):
                 return False, f"Resolved path not in allowlist: {path} -> {rel_to_base}"
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- broad handler
             return False, f"Path validation error: {path}: {e}"
 
     return True, None

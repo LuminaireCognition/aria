@@ -8,19 +8,16 @@ freshness classification, and unresolved item handling.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.market.clipboard import parse_clipboard_to_dict
 from aria_esi.models.market import (
-    FreshnessLevel,
     ItemPrice,
     PriceAggregate,
     ValuationItem,
     ValuationResult,
 )
-
+from aria_esi.store.market.clipboard import parse_clipboard_to_dict
 
 # =============================================================================
 # Test Fixtures

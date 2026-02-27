@@ -10,7 +10,7 @@ import sqlite3
 
 import pytest
 
-from aria_esi.mcp.sde.queries import SDEResolutionError
+from aria_esi.store.sde.queries import SDEResolutionError
 
 
 class TestResolveSkillIds:
@@ -49,7 +49,8 @@ class TestResolveSkillIds:
         """If SDE contains duplicate names in category 16, raise SDEResolutionError."""
         import threading
         from unittest.mock import MagicMock
-        from aria_esi.mcp.sde.queries import SDEQueryService
+
+        from aria_esi.store.sde.queries import SDEQueryService
 
         conn = sqlite3.connect(str(mock_sde_db))
         # Insert a duplicate skill name with different type_id
@@ -91,7 +92,8 @@ class TestResolveSkillIds:
         """When types table is missing, SDENotSeededError is raised."""
         import threading
         from unittest.mock import MagicMock
-        from aria_esi.mcp.sde.queries import SDENotSeededError, SDEQueryService
+
+        from aria_esi.store.sde.queries import SDENotSeededError, SDEQueryService
 
         db_path = tmp_path / "empty.db"
         conn = sqlite3.connect(str(db_path))
@@ -126,7 +128,8 @@ class TestResolveSkillIds:
         """When types table exists but has zero rows, all names are missing."""
         import threading
         from unittest.mock import MagicMock
-        from aria_esi.mcp.sde.queries import SDEQueryService
+
+        from aria_esi.store.sde.queries import SDEQueryService
 
         db_path = tmp_path / "empty_types.db"
         conn = sqlite3.connect(str(db_path))

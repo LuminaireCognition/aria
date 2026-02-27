@@ -17,9 +17,9 @@ from typing import TYPE_CHECKING
 import yaml
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
+from aria_esi.store.market.database import get_market_database
+from aria_esi.store.sde.queries import get_sde_query_service
 
-from .queries import get_sde_query_service
 from .tools_skills import (
     DEFAULT_ATTRIBUTES,
     calculate_sp_for_level,
@@ -59,6 +59,22 @@ MULTIPLIER_SKILLS = {
         "effect": "10% drone damage per level",
         "impact": "high",
         "priority": 1,
+    },
+    # Drone operation - 5% drone damage per level (size-specific)
+    "Heavy Drone Operation": {
+        "effect": "5% heavy drone damage per level",
+        "impact": "medium",
+        "priority": 2,
+    },
+    "Medium Drone Operation": {
+        "effect": "5% medium drone damage per level",
+        "impact": "medium",
+        "priority": 2,
+    },
+    "Light Drone Operation": {
+        "effect": "5% light drone damage per level",
+        "impact": "medium",
+        "priority": 2,
     },
     # Turret damage
     "Surgical Strike": {
@@ -342,10 +358,10 @@ def validate_yaml_skill_references(
     Returns empty list if SDE is unavailable or extractor_key is unknown.
     """
     try:
-        from aria_esi.mcp.sde.queries import SDEResolutionError, get_sde_query_service
+        from aria_esi.store.sde.queries import SDEResolutionError, get_sde_query_service
 
         sde = get_sde_query_service()
-    except Exception:
+    except (ImportError, RuntimeError):
         return []
 
     extractor = YAML_SKILL_EXTRACTORS.get(extractor_key)

@@ -29,7 +29,7 @@ class TestCommentaryConfig:
         """Default values are sensible."""
         config = CommentaryConfig()
         assert config.enabled is False
-        assert config.model == "claude-sonnet-4-5-20241022"
+        assert config.model == "claude-sonnet-4-6"
         assert config.timeout_ms == 3000
         assert config.max_tokens == 100
         assert config.warrant_threshold == 0.3

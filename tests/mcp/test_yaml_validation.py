@@ -7,8 +7,6 @@ identify skill names in YAML files and report missing names.
 
 from __future__ import annotations
 
-import pytest
-
 from aria_esi.mcp.sde.tools_easy80 import (
     YAML_SKILL_EXTRACTORS,
     _extract_skill_names_breakpoints,
@@ -97,9 +95,9 @@ class TestValidateYamlSkillReferences:
             raise RuntimeError("no sde")
 
         # The function imports get_sde_query_service inside the try block
-        # from aria_esi.mcp.sde.queries, so patch at that module level.
+        # from aria_esi.store.sde.queries, so patch at that module level.
         monkeypatch.setattr(
-            "aria_esi.mcp.sde.queries.get_sde_query_service",
+            "aria_esi.store.sde.queries.get_sde_query_service",
             raise_no_sde,
         )
         data = {"FakeSkill": {"breakpoint_level": 5}}

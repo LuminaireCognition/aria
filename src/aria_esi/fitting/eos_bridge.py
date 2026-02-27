@@ -14,6 +14,7 @@ from __future__ import annotations
 import threading
 from typing import TYPE_CHECKING
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 from aria_esi.fitting.eos_data import get_eos_data_manager
 from aria_esi.models.fitting import (
@@ -42,7 +43,7 @@ logger = get_logger(__name__)
 # =============================================================================
 
 
-class EOSBridgeError(Exception):
+class EOSBridgeError(AriaError):
     """Base exception for EOS bridge errors."""
 
     pass
@@ -251,7 +252,7 @@ class EOSBridge:
             if cls._instance is not None and cls._instance._initialized:
                 try:
                     cls._instance._cleanup()
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 -- broad handler
                     logger.warning("Error during EOS cleanup: %s", e)
             cls._instance = None
 
@@ -316,7 +317,7 @@ class EOSBridge:
                 SourceManager.remove(self._source_name)
             self._initialized = False
             logger.debug("EOS source '%s' removed", self._source_name)
-        except Exception as e:
+        except (ImportError, RuntimeError) as e:
             logger.warning("Error during EOS cleanup: %s", e)
 
     def is_initialized(self) -> bool:
@@ -437,7 +438,7 @@ class EOSBridge:
                     Restriction.launched_drone,
                 )
                 fit.validate(skip_checks=skip_checks)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- broad handler
                 warnings.append(f"Fit validation warning: {e}")
 
             # Tank coherence check (semantic validation)

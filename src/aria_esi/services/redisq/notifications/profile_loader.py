@@ -347,7 +347,7 @@ class ProfileLoader:
                 try:
                     settings = get_settings()
                     key_value = getattr(settings, key_field, None)
-                except Exception:
+                except Exception:  # noqa: BLE001 -- service handler
                     key_value = None
                 if not key_value:
                     errors.append(

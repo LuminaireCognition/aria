@@ -21,7 +21,7 @@ class GeminiProvider:
         except ImportError:
             raise RuntimeError(
                 "gemini provider requires 'google-genai' package. Run: uv sync --extra gemini"
-            )
+            ) from None
 
         self._client: Any = genai.Client(api_key=api_key)
 

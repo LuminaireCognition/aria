@@ -463,11 +463,11 @@ class TestMarketHistoryTool:
             return_value=mock_esi_client,
         ):
             # Test with negative days
-            result = await captured_tool(item="Tritanium", days=-10)
+            await captured_tool(item="Tritanium", days=-10)
             # Should not crash
 
             # Test with too many days
-            result = await captured_tool(item="Tritanium", days=1000)
+            await captured_tool(item="Tritanium", days=1000)
             # Should not crash
 
     @pytest.mark.asyncio
@@ -519,7 +519,7 @@ class TestMarketHistoryTool:
             "aria_esi.mcp.market.tools_history.get_market_database",
             return_value=mock_market_db,
         ), patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new=AsyncMock(return_value=mock_async_esi_client),
         ):
             result = await captured_tool(item="Tritanium", days=30)
@@ -543,7 +543,7 @@ class TestMarketHistoryTool:
             "aria_esi.mcp.market.tools_history.get_market_database",
             return_value=mock_market_db,
         ), patch(
-            "aria_esi.mcp.esi_client.get_async_esi_client",
+            "aria_esi.store.esi_client.get_async_esi_client",
             new=AsyncMock(return_value=mock_async_esi_client),
         ):
             result = await captured_tool(item="Tritanium")

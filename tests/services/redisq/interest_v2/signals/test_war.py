@@ -5,8 +5,9 @@ from __future__ import annotations
 import pytest
 
 from aria_esi.services.redisq.interest_v2.signals.war import WarSignal
+from aria_esi.services.redisq.models import ProcessedKill
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestWarSignalScore:
@@ -19,7 +20,7 @@ class TestWarSignalScore:
 
     def test_score_no_config(self, signal: WarSignal) -> None:
         """Test scoring with no war targets or standings configured."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
         assert "No war targets or standings configured" in result.reason
@@ -33,7 +34,7 @@ class TestWarSignalScore:
         assert "No kill data" in result.reason
 
     def test_score_war_target_victim_corp(
-        self, signal: WarSignal, mock_kill_war_victim: MockProcessedKill
+        self, signal: WarSignal, mock_kill_war_victim: ProcessedKill
     ) -> None:
         """Test war target as victim (corporation)."""
         config = {"war_targets": [98000050]}  # Victim corp
@@ -42,7 +43,7 @@ class TestWarSignalScore:
         assert "War target died" in result.reason
 
     def test_score_war_target_victim_alliance(
-        self, signal: WarSignal, mock_kill_war_victim: MockProcessedKill
+        self, signal: WarSignal, mock_kill_war_victim: ProcessedKill
     ) -> None:
         """Test war target as victim (alliance)."""
         config = {"war_targets": [99005000]}  # Victim alliance
@@ -51,7 +52,7 @@ class TestWarSignalScore:
         assert "War target died" in result.reason
 
     def test_score_war_target_attacker_corp(
-        self, signal: WarSignal, mock_kill_war_attacker: MockProcessedKill
+        self, signal: WarSignal, mock_kill_war_attacker: ProcessedKill
     ) -> None:
         """Test war target as attacker (corporation)."""
         config = {"war_targets": [98000050]}  # Attacker corp
@@ -60,7 +61,7 @@ class TestWarSignalScore:
         assert "War target scored a kill" in result.reason
 
     def test_score_war_target_attacker_alliance(
-        self, signal: WarSignal, mock_kill_war_attacker: MockProcessedKill
+        self, signal: WarSignal, mock_kill_war_attacker: ProcessedKill
     ) -> None:
         """Test war target as attacker (alliance)."""
         config = {"war_targets": [99005000]}  # Attacker alliance
@@ -68,7 +69,7 @@ class TestWarSignalScore:
         assert result.score == 0.95
 
     def test_score_custom_war_score(
-        self, signal: WarSignal, mock_kill_war_victim: MockProcessedKill
+        self, signal: WarSignal, mock_kill_war_victim: ProcessedKill
     ) -> None:
         """Test custom war score."""
         config = {"war_targets": [98000050], "war_score": 0.85}
@@ -77,7 +78,7 @@ class TestWarSignalScore:
 
     def test_score_hostile_victim(self, signal: WarSignal) -> None:
         """Test hostile standing victim."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000080,
             victim_alliance_id=None,
         )
@@ -92,7 +93,7 @@ class TestWarSignalScore:
 
     def test_score_hostile_attacker(self, signal: WarSignal) -> None:
         """Test hostile standing attacker."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000099,
             attacker_corps=[98000080],
             attacker_alliances=[],
@@ -108,7 +109,7 @@ class TestWarSignalScore:
 
     def test_score_custom_hostile_score(self, signal: WarSignal) -> None:
         """Test custom hostile score."""
-        kill = MockProcessedKill(victim_corporation_id=98000080)
+        kill = make_processed_kill(victim_corporation_id=98000080)
         config = {
             "standings": {98000080: -7.0},
             "hostile_score": 0.6,
@@ -119,7 +120,7 @@ class TestWarSignalScore:
 
     def test_score_custom_hostile_threshold(self, signal: WarSignal) -> None:
         """Test custom hostile threshold."""
-        kill = MockProcessedKill(victim_corporation_id=98000080)
+        kill = make_processed_kill(victim_corporation_id=98000080)
         config = {
             "standings": {98000080: -3.0},
             "hostile_threshold": -2.0,  # More strict
@@ -129,7 +130,7 @@ class TestWarSignalScore:
 
     def test_score_standing_above_threshold(self, signal: WarSignal) -> None:
         """Test standing above hostile threshold is not hostile."""
-        kill = MockProcessedKill(victim_corporation_id=98000080)
+        kill = make_processed_kill(victim_corporation_id=98000080)
         config = {
             "standings": {98000080: -3.0},
             "hostile_threshold": -5.0,  # Default
@@ -139,7 +140,7 @@ class TestWarSignalScore:
 
     def test_score_war_target_takes_precedence(self, signal: WarSignal) -> None:
         """Test war target match takes precedence over hostile standings."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000050,
         )
         config = {
@@ -154,7 +155,7 @@ class TestWarSignalScore:
 
     def test_score_no_involvement(self, signal: WarSignal) -> None:
         """Test no war target or hostile involvement."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000099,
             attacker_corps=[98000055],
         )
@@ -168,7 +169,7 @@ class TestWarSignalScore:
 
     def test_score_standings_string_key(self, signal: WarSignal) -> None:
         """Test standings with string keys (from JSON)."""
-        kill = MockProcessedKill(victim_corporation_id=98000080)
+        kill = make_processed_kill(victim_corporation_id=98000080)
         config = {
             "standings": {"98000080": -7.0},  # String key
             "hostile_threshold": -5.0,
@@ -177,7 +178,7 @@ class TestWarSignalScore:
         assert result.score == 0.7  # Should still match
 
     def test_score_raw_value_war_target(
-        self, signal: WarSignal, mock_kill_war_victim: MockProcessedKill
+        self, signal: WarSignal, mock_kill_war_victim: ProcessedKill
     ) -> None:
         """Test raw_value for war target match."""
         config = {"war_targets": [98000050]}
@@ -188,7 +189,7 @@ class TestWarSignalScore:
 
     def test_score_raw_value_hostile(self, signal: WarSignal) -> None:
         """Test raw_value for hostile match."""
-        kill = MockProcessedKill(victim_corporation_id=98000080)
+        kill = make_processed_kill(victim_corporation_id=98000080)
         config = {
             "standings": {98000080: -7.0},
             "hostile_threshold": -5.0,
@@ -200,7 +201,7 @@ class TestWarSignalScore:
 
     def test_score_victim_none_ids(self, signal: WarSignal) -> None:
         """Test victim with None corporation/alliance IDs."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=None,
             victim_alliance_id=None,
         )

@@ -5,7 +5,7 @@ Provides checksum verification and version pinning for external data sources.
 This module helps ensure that downloaded SDE and EOS data hasn't been tampered
 with or corrupted during transit.
 
-Security finding: #4 from dev/reviews/SECURITY_000.md
+Security finding: #4 from dev/reviews/archive/SECURITY_000.md
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ from datetime import UTC
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -36,7 +37,7 @@ MANIFEST_PATH = Path(__file__).parent.parent.parent.parent / "reference" / "data
 # =============================================================================
 
 
-class IntegrityError(Exception):
+class IntegrityError(AriaError):
     """
     Raised when data integrity verification fails.
 
@@ -254,11 +255,19 @@ def verify_sde_integrity(
     if expected_checksum is None:
         _, expected_checksum = get_pinned_sde_url()
 
-    # If no checksum configured, verification passes (Phase 1 rollout)
+    # No checksum configured — require pinning
     if expected_checksum is None:
-        logger.info("No SDE checksum configured in manifest, skipping verification")
         actual = compute_sha256(file_path)
-        return (True, actual)
+        raise IntegrityError(
+            f"No SDE checksum configured in manifest.\n"
+            f"Computed checksum: {actual}\n"
+            f"To pin this checksum, update reference/data-sources.json with:\n"
+            f'  "sha256": "{actual}"\n'
+            "Or use update_sde_checksum() to auto-pin.\n"
+            "To bypass (UNSAFE): set ARIA_ALLOW_UNPINNED=1",
+            expected=None,
+            actual=actual,
+        )
 
     # Compute and verify
     actual = compute_sha256(file_path)
@@ -439,15 +448,17 @@ def verify_universe_graph_integrity(
     if expected_checksum is None:
         expected_checksum = get_universe_graph_checksum()
 
-    # If no checksum configured, verification passes with warning
-    # This allows gradual rollout - first deploy code, then populate checksum
+    # No checksum configured — require pinning
     if expected_checksum is None:
-        logger.warning(
-            "No universe graph checksum configured in manifest. "
-            "Run 'uv run aria-esi universe --update-checksum' to secure."
-        )
         actual = compute_sha256(file_path)
-        return (True, actual)
+        raise IntegrityError(
+            f"No universe graph checksum configured in manifest.\n"
+            f"Computed checksum: {actual}\n"
+            "Run 'uv run aria-esi universe --update-checksum' to pin this checksum.\n"
+            "To bypass (UNSAFE): set ARIA_ALLOW_UNPINNED=1",
+            expected=None,
+            actual=actual,
+        )
 
     # Compute and verify before loading the graph
     actual = compute_sha256(file_path)
@@ -514,6 +525,55 @@ def update_universe_graph_checksum(file_path: Path, manifest_path: Path | None =
         f.write("\n")
 
     logger.info("Updated universe graph checksum: %s", checksum[:16] + "...")
+    return checksum
+
+
+def update_sde_checksum(file_path: Path, manifest_path: Path | None = None) -> str:
+    """
+    Compute and update the SDE checksum in the manifest.
+
+    This should be called after downloading a new SDE file to record
+    the known-good checksum.
+
+    Args:
+        file_path: Path to SDE file (compressed)
+        manifest_path: Path to data-sources.json (defaults to standard location)
+
+    Returns:
+        The computed SHA256 checksum
+
+    Raises:
+        FileNotFoundError: If SDE file or manifest doesn't exist
+    """
+    path = manifest_path or MANIFEST_PATH
+
+    # Compute checksum
+    checksum = compute_sha256(file_path)
+
+    # Load existing manifest
+    with open(path, encoding="utf-8") as f:
+        manifest = json.load(f)
+
+    # Ensure sde section exists
+    if "sde" not in manifest.get("sources", {}):
+        if "sources" not in manifest:
+            manifest["sources"] = {}
+        manifest["sources"]["sde"] = {
+            "description": "Fuzzwork SDE SQLite dump",
+        }
+
+    # Update checksum and timestamp
+    from datetime import datetime
+
+    manifest["sources"]["sde"]["sha256"] = checksum
+    manifest["sources"]["sde"]["last_verified"] = datetime.now(UTC).isoformat()
+
+    # Write back
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+        f.write("\n")
+
+    logger.info("Updated SDE checksum: %s", checksum[:16] + "...")
     return checksum
 
 

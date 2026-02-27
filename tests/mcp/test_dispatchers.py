@@ -509,10 +509,11 @@ class TestFittingDispatcher:
         """When policy denies authenticated, falls back to all-V with warning."""
         from aria_esi.mcp.policy import PolicyConfig, PolicyEngine, SensitivityLevel
 
-        # Configure policy to deny authenticated
+        # Configure policy to fully deny authenticated (not even require_confirmation)
         engine = PolicyEngine.get_instance()
         engine.config = PolicyConfig(
-            allowed_levels={SensitivityLevel.PUBLIC, SensitivityLevel.AGGREGATE, SensitivityLevel.MARKET}
+            allowed_levels={SensitivityLevel.PUBLIC, SensitivityLevel.AGGREGATE, SensitivityLevel.MARKET},
+            require_confirmation=set(),
         )
 
         # Mock the underlying calculation to avoid needing EOS data
@@ -577,9 +578,9 @@ class TestStatusTool:
     def test_status_returns_dict(self, status_tool):
         """Status tool returns a dictionary with expected keys."""
         # Mock internal dependencies - patch at the import location
-        with patch("aria_esi.mcp.activity.get_activity_cache") as mock_activity, \
-             patch("aria_esi.mcp.market.cache.get_market_cache") as mock_market, \
-             patch("aria_esi.mcp.market.database.get_market_database") as mock_db, \
+        with patch("aria_esi.store.activity.get_activity_cache") as mock_activity, \
+             patch("aria_esi.store.market.cache.get_market_cache") as mock_market, \
+             patch("aria_esi.store.market.database.get_market_database") as mock_db, \
              patch("aria_esi.fitting.get_eos_data_manager") as mock_eos:
 
             # Setup activity cache mock
@@ -630,9 +631,9 @@ class TestStatusTool:
 
     def test_status_handles_activity_cache_error(self, status_tool):
         """Status tool handles activity cache errors gracefully."""
-        with patch("aria_esi.mcp.activity.get_activity_cache") as mock_activity, \
-             patch("aria_esi.mcp.market.cache.get_market_cache") as mock_market, \
-             patch("aria_esi.mcp.market.database.get_market_database") as mock_db, \
+        with patch("aria_esi.store.activity.get_activity_cache") as mock_activity, \
+             patch("aria_esi.store.market.cache.get_market_cache") as mock_market, \
+             patch("aria_esi.store.market.database.get_market_database") as mock_db, \
              patch("aria_esi.fitting.get_eos_data_manager") as mock_eos:
 
             # Simulate activity cache error

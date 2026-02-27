@@ -94,7 +94,7 @@ class EntityWatchlistManager:
         """Get or create database connection."""
         if self._conn is None:
             # Ensure schema via MarketDatabase
-            from ...mcp.market.database import MarketDatabase
+            from aria_esi.store.market.database import MarketDatabase
 
             market_db = MarketDatabase(self.db_path)
             market_db._get_connection()
@@ -696,7 +696,7 @@ class WarTargetSyncer:
                             added_reason="War target",
                         )
                         added += 1
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 -- service handler
                         logger.warning("Failed to add entity %d: %s", entity_id, e)
 
                 # Remove old enemies (wars that ended)
@@ -754,7 +754,7 @@ class WarTargetSyncer:
                 is_mutual=data.get("mutual", False),
                 is_finished=data.get("finished") is not None,
             )
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.warning("Failed to fetch war %d: %s", war_id, e)
             return None
 

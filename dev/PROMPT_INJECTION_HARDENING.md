@@ -162,7 +162,7 @@ def validate_alias(alias: str) -> bool:
    - Parse `TICKERS.md` - verify all fields extracted correctly
    - Verify alias map generation works
 
-**Test File Location:** `tests/test_context_assembly.py`
+**Test File Location:** `tests/scripts/test_aria_context_assembly.py`
 
 ---
 

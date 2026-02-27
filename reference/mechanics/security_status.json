@@ -1,0 +1,84 @@
+{
+  "_meta": {
+    "description": "EVE Online security status mechanics: thresholds, faction police, clone soldier tags, and sec loss values",
+    "sources": [
+      "https://wiki.eveuniversity.org/Security_status",
+      "https://wiki.eveuniversity.org/Faction_police",
+      "https://wiki.eveuniversity.org/Tags4Sec"
+    ],
+    "last_verified": "2026-02-26",
+    "notes": "Security status ranges from -10.0 to +5.0. Negative values restrict empire access progressively."
+  },
+
+  "empire_access_thresholds": {
+    "description": "Minimum sec status for unrestricted access to each system security band. Below threshold: faction police engage. Two tiers below: station restrictions apply.",
+    "thresholds": [
+      {"system_sec": "1.0", "faction_police_at": -2.0, "station_restricted_at": -2.5},
+      {"system_sec": "0.9", "faction_police_at": -2.5, "station_restricted_at": -3.0},
+      {"system_sec": "0.8", "faction_police_at": -3.0, "station_restricted_at": -4.0},
+      {"system_sec": "0.7", "faction_police_at": -4.0, "station_restricted_at": -4.5},
+      {"system_sec": "0.6", "faction_police_at": -4.5, "station_restricted_at": -5.0},
+      {"system_sec": "0.5", "faction_police_at": -5.0, "station_restricted_at": null}
+    ],
+    "legend": {
+      "full_access": "Sec status above faction_police_at threshold",
+      "faction_police": "Sec status between faction_police_at and station_restricted_at",
+      "restricted": "Sec status below station_restricted_at"
+    }
+  },
+
+  "faction_police": {
+    "description": "Faction police response characteristics by system security",
+    "response_times": [
+      {"system_sec": 1.0, "response_seconds": 6, "strength": "Overwhelming"},
+      {"system_sec": 0.9, "response_seconds": 12, "strength": "Heavy"},
+      {"system_sec": 0.8, "response_seconds": 18, "strength": "Moderate"},
+      {"system_sec": 0.7, "response_seconds": 24, "strength": "Light"},
+      {"system_sec": 0.6, "response_seconds": 30, "strength": "Minimal"},
+      {"system_sec": 0.5, "response_seconds": null, "strength": "None"}
+    ],
+    "behavior": [
+      "Spawn near the target pilot",
+      "Apply web and scram",
+      "Deal significant DPS",
+      "Respawn if destroyed"
+    ]
+  },
+
+  "clone_soldier_tags": {
+    "description": "Tags turned in at CONCORD stations to raise security status",
+    "tags": [
+      {"name": "Clone Soldier Trainer", "sec_gain": 0.05},
+      {"name": "Clone Soldier Recruiter", "sec_gain": 0.10},
+      {"name": "Clone Soldier Transporter", "sec_gain": 0.15},
+      {"name": "Clone Soldier Negotiator", "sec_gain": 0.20}
+    ],
+    "notes": "Lower-tier tags are often cheaper per sec-point than higher-tier ones. Always check current market prices."
+  },
+
+  "tag_farming": {
+    "description": "Clone soldier spawn locations in low-sec asteroid belts",
+    "spawn_locations": [
+      {"tag": "Trainer", "system_sec_range": "0.1-0.2"},
+      {"tag": "Recruiter", "system_sec_range": "0.2-0.3"},
+      {"tag": "Transporter", "system_sec_range": "0.3-0.4"},
+      {"tag": "Negotiator", "system_sec_range": "0.4 only"}
+    ]
+  },
+
+  "sec_loss": {
+    "description": "Security status penalties for criminal actions",
+    "actions": [
+      {"action": "Pod kill (low-sec)", "sec_loss": -2.5, "notes": "Per pod"},
+      {"action": "Ship kill (low-sec)", "sec_loss": "Variable", "notes": "Based on sec status difference"},
+      {"action": "Ship kill (high-sec)", "sec_loss": "Higher", "notes": "Plus CONCORD response"},
+      {"action": "Criminal aggression", "sec_loss": "-0.5 to -1.0", "notes": "Attacking illegally"}
+    ]
+  },
+
+  "ratting_recovery": {
+    "description": "Killing NPCs in null-sec raises sec status slowly",
+    "rate": "~0.01 per battleship rat (diminishing returns)",
+    "notes": "Very slow process. Tags are faster if you need empire access."
+  }
+}

@@ -24,9 +24,6 @@ esi_scopes:
 
 # ARIA Pilot Identity Module
 
-## Purpose
-Provide a unified identity view combining local ARIA configuration with live ESI character data. This command answers "Who am I to ARIA?" for the authenticated pilot, or "Who is this pilot?" for public lookups.
-
 ## Command Syntax
 
 ```
@@ -35,16 +32,6 @@ Provide a unified identity view combining local ARIA configuration with live ESI
 /pilot <name>    # Look up another pilot (public data only)
 /pilot <id>      # Look up by character ID (public data only)
 ```
-
-## Trigger Phrases
-
-- `/pilot`
-- "who am I" (when referring to ARIA identity, not location)
-- "my profile" / "show my profile"
-- "pilot identity"
-- "check pilot <name>"
-- "look up <name>"
-- "who is <name>"
 
 ## Implementation
 
@@ -59,64 +46,33 @@ uv run aria-esi pilot "Character Name"
 uv run aria-esi pilot 2123984364
 ```
 
-## ESI Availability Check (CRITICAL)
-
-**BEFORE making any ESI queries**, check the session hook output for ESI status:
-
-```json
-"esi": {"status": "UNAVAILABLE"}
-```
-
-### If ESI is UNAVAILABLE:
-
-1. **DO NOT** run `uv run aria-esi` commands - they will timeout
-2. **USE** local profile data:
-   - Read `userdata/pilots/{active_pilot}/profile.md`
-   - Contains: character name, faction, RP level, module tier, goals, standings
-3. **SHOW** "LOCAL PROFILE ONLY" format (documented in Error Handling section)
-4. **SKIP** live data: wallet, skill points, current location
-5. **NOTE** in response: "Showing local profile (ESI unavailable)"
-
-### If ESI is AVAILABLE:
-
-Proceed with full `uv run aria-esi pilot` query.
-
-### Rationale
-
-The local profile contains all ARIA configuration data. ESI only adds live snapshots (wallet, SP) which aren't critical for identity queries.
+If ESI is unavailable, fall back to local profile data and note "Showing local profile (ESI unavailable)". Do not run CLI commands when ESI is unavailable.
 
 ## Data Sources by Query Type
 
-### Self Query (Authenticated)
+| Data | Source | Self | Public |
+|------|--------|------|--------|
+| Character ID/Name | Credentials / ESI search | Yes | Yes |
+| Corporation/Alliance | ESI public endpoint | Yes | Yes |
+| Security Status | ESI public endpoint | Yes | Yes |
+| Birthday | ESI public endpoint | Yes | Yes |
+| Faction Alignment | Local profile.md | Yes | No |
+| EVE Experience | Local profile.md | Yes | No |
+| RP Level | Local profile.md | Yes | No |
+| Module Tier | Local profile.md | Yes | No |
+| Operational Constraints | Local profile.md | Yes | No |
+| Standings | ESI authenticated | Yes | No |
+| ESI Scopes Available | Credentials file | Yes | No |
+| Wallet Balance | ESI authenticated | Yes | No |
+| Skill Points | ESI authenticated | Yes | No |
 
-| Data | Source | Access Level |
-|------|--------|--------------|
-| Character ID/Name | Credentials file | Authenticated |
-| Corporation/Alliance | ESI public endpoint | Public |
-| Security Status | ESI public endpoint | Public |
-| Birthday | ESI public endpoint | Public |
-| Faction Alignment | Local profile.md | Local config |
-| EVE Experience | Local profile.md | Local config |
-| RP Level | Local profile.md | Local config |
-| Module Tier | Local profile.md | Local config |
-| Operational Constraints | Local profile.md | Local config |
-| Standings | ESI authenticated | Authenticated |
-| ESI Scopes Available | Credentials file | Local config |
-| Wallet Balance | ESI authenticated | Authenticated |
-| Skill Points | ESI authenticated | Authenticated |
+## Hallucination Guard
 
-### Other Pilot Query (Public)
-
-| Data | Source | Access Level |
-|------|--------|--------------|
-| Character ID/Name | ESI public search | Public |
-| Corporation/Alliance | ESI public endpoint | Public |
-| Security Status | ESI public endpoint | Public |
-| Birthday | ESI public endpoint | Public |
+Present only data returned by ESI or read from profile.md. If data is missing, state what is unavailable — do not estimate or fabricate values (especially wallet balance and skill points).
 
 ## Response Format
 
-### Self Query (Full Identity)
+Use this template for self queries. For public queries, show only: name, corp, alliance, security, birthday.
 
 ```
 ═══════════════════════════════════════════════════════════════════
@@ -126,7 +82,7 @@ CHARACTER:     [Name]
 CHARACTER ID:  [ID]
 CORPORATION:   [Corp Name] [[Ticker]]
 ALLIANCE:      [Alliance or "None"]
-SECURITY:      [Status] ([Description])
+SECURITY:      [Status]
 CAPSULEER SINCE: [Date]
 
 ARIA CONFIGURATION:
@@ -136,14 +92,10 @@ ARIA CONFIGURATION:
   Faction:         [Primary Faction]
 
 CONSTRAINTS:
-  Market Trading:  [enabled/disabled]
-  Contracts:       [enabled/disabled]
-  Fleet Required:  [yes/no]
-  Security Pref:   [min security]
+  [Relevant constraints from profile]
 
 ESI STATUS: [Connected/Not Configured]
   Scopes: [X] personal, [Y] corporation
-  Token Expires: [timestamp]
 
 ACCOUNT SNAPSHOT: (as of [timestamp])
   Wallet:       [X,XXX,XXX ISK]
@@ -153,97 +105,18 @@ Profile: [path to profile.md]
 ═══════════════════════════════════════════════════════════════════
 ```
 
-### Other Pilot Query (Public Data)
+**For not found:** State the query and suggest checking spelling or using character ID.
 
-```
-═══════════════════════════════════════════════════════════════════
-PILOT LOOKUP - PUBLIC DATA
-───────────────────────────────────────────────────────────────────
-CHARACTER:     [Name]
-CHARACTER ID:  [ID]
-CORPORATION:   [Corp Name] [[Ticker]]
-ALLIANCE:      [Alliance or "None"]
-SECURITY:      [Status] ([Description])
-CAPSULEER SINCE: [Date]
-───────────────────────────────────────────────────────────────────
-⚠ Public data only. Private data requires authentication.
-  Query timestamp: [timestamp]
-═══════════════════════════════════════════════════════════════════
-```
+**For no ESI credentials:** Show local profile data only with note that ESI setup enables live data (`uv run python .claude/scripts/aria-oauth-setup.py`).
 
-### Not Found Response
-
-```
-═══════════════════════════════════════════════════════════════════
-PILOT LOOKUP - NOT FOUND
-───────────────────────────────────────────────────────────────────
-No pilot found matching: "[query]"
-
-Suggestions:
-• Check spelling of character name
-• Try using character ID if known
-• Names are case-sensitive for exact match
-═══════════════════════════════════════════════════════════════════
-```
-
-## Security Status Descriptions
-
-| Range | Description |
-|-------|-------------|
-| 5.0+ | Paragon |
-| 2.0 to 4.99 | Upstanding |
-| 0.0 to 1.99 | Neutral |
-| -2.0 to -0.01 | Suspect |
-| -5.0 to -2.01 | Criminal |
-| Below -5.0 | Outlaw |
+**For ESI errors:** Show the error message and suggest retrying or checking ESI status.
 
 ## Behavior Notes
 
 1. **Default to Self**: `/pilot` with no arguments shows authenticated pilot
 2. **Data Exposure**: Clearly distinguish between public and authenticated data
-3. **ESI Optional**: If ESI not configured, still show local profile data with note
-4. **Timestamp Volatile Data**: Wallet/SP are volatile - always show query timestamp
-5. **Profile Path**: Include profile file path for easy editing
-
-## Error Handling
-
-### No ESI Credentials (Self Query)
-
-```
-═══════════════════════════════════════════════════════════════════
-PILOT IDENTITY - LOCAL PROFILE ONLY
-───────────────────────────────────────────────────────────────────
-ARIA CONFIGURATION:
-  Character Name:  [from profile]
-  EVE Experience:  [level]
-  RP Level:        [level]
-  ...
-
-ESI STATUS: Not Configured
-  Live data (wallet, SP, location) unavailable.
-
-  To enable: uv run python .claude/scripts/aria-oauth-setup.py
-───────────────────────────────────────────────────────────────────
-Profile: [path]
-═══════════════════════════════════════════════════════════════════
-```
-
-### Character Not Found (Public Query)
-
-Return "Not Found" response format with suggestions.
-
-### ESI Error
-
-```
-═══════════════════════════════════════════════════════════════════
-PILOT LOOKUP - ESI ERROR
-───────────────────────────────────────────────────────────────────
-Could not retrieve pilot data from GalNet.
-
-Error: [error message]
-Suggestion: [appropriate action]
-═══════════════════════════════════════════════════════════════════
-```
+3. **Timestamp Volatile Data**: Wallet/SP are volatile - always show query timestamp
+4. **Profile Path**: Include profile file path for easy editing
 
 ## Cross-References
 
@@ -254,17 +127,3 @@ Suggestion: [appropriate action]
 | Detailed standings | `/esi-query standings` |
 | Skills list | `/esi-query skills` |
 | Corporation details | `/corp` |
-
-## Example Interactions
-
-**User:** `/pilot`
-**ARIA:** [Shows full identity card for authenticated pilot]
-
-**User:** "who am I"
-**ARIA:** [Shows full identity if context suggests ARIA identity, otherwise may clarify]
-
-**User:** `/pilot Chribba`
-**ARIA:** [Public lookup for the famous trader/miner]
-
-**User:** "look up The Mittani"
-**ARIA:** [Public lookup for specified pilot]

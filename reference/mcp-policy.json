@@ -5,12 +5,15 @@
     "allowed_levels": [
       "public",
       "aggregate",
-      "market",
-      "authenticated"
+      "market"
     ],
     "require_confirmation": [],
     "denied_actions": [],
-    "allowed_actions": [],
+    "allowed_actions": [
+      "pilot.mail_list",
+      "pilot.mail_read",
+      "pilot.mining_ledger"
+    ],
     "audit_logging": true,
     "rate_limit_per_minute": 0
   },

@@ -10,7 +10,7 @@ import asyncio
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import httpx
@@ -135,7 +135,7 @@ class RedisQPoller:
                     self._entity_filter.watched_corp_count,
                     self._entity_filter.watched_alliance_count,
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- subsystem init barrier
             logger.warning("Failed to initialize entity filter: %s", e)
             self._entity_filter = None
 
@@ -151,7 +151,7 @@ class RedisQPoller:
                     if self._topology_filter.interest_map
                     else 0,
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- subsystem init barrier
             logger.warning("Failed to initialize topology filter: %s", e)
             self._topology_filter = None
 
@@ -168,7 +168,7 @@ class RedisQPoller:
                     stats["inferred_wars"],
                     stats["esi_wars"],
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- subsystem init barrier
             logger.warning("Failed to initialize war context: %s", e)
             self._war_context_provider = None
 
@@ -182,7 +182,7 @@ class RedisQPoller:
             await self._killmail_store.initialize()
             self._ingest_queue = BoundedKillQueue(maxsize=1000)
             logger.info("Killmail store initialized: %s", store_path)
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- subsystem init barrier
             logger.warning("Failed to initialize killmail store: %s", e)
             self._killmail_store = None
             self._ingest_queue = None
@@ -195,7 +195,7 @@ class RedisQPoller:
             if self._notification_manager and self._notification_manager.is_configured:
                 await self._notification_manager.start()
                 logger.info("Discord notifications enabled")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- subsystem init
             logger.warning("Failed to initialize notification manager: %s", e)
             self._notification_manager = None
 
@@ -205,7 +205,7 @@ class RedisQPoller:
 
             self._name_resolver = get_name_resolver()
             logger.debug("Name resolver initialized")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- subsystem init
             logger.warning("Failed to initialize name resolver: %s", e)
             self._name_resolver = None
 
@@ -220,7 +220,7 @@ class RedisQPoller:
                     "Hull price lookup loaded: %d ship prices",
                     self._hull_price_lookup.ship_count,
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.warning("Failed to initialize hull price lookup: %s", e)
             self._hull_price_lookup = None
 
@@ -258,7 +258,7 @@ class RedisQPoller:
         self._entity_refresh_task = asyncio.create_task(self._entity_refresh_loop())
 
         # Start writer task for killmail store
-        if self._killmail_store and self._ingest_queue:
+        if self._killmail_store is not None and self._ingest_queue is not None:
             self._writer_task = asyncio.create_task(self._writer_loop())
 
         logger.info(
@@ -308,7 +308,7 @@ class RedisQPoller:
             self._writer_task = None
 
         # Flush remaining queue items before shutdown
-        if self._ingest_queue and self._killmail_store:
+        if self._ingest_queue is not None and self._killmail_store is not None:
             remaining = await self._ingest_queue.get_batch(max_batch=1000)
             if remaining:
                 await self._killmail_store.insert_kills_batch(remaining)
@@ -357,7 +357,7 @@ class RedisQPoller:
 
         # Check for recent activity
         if self._last_poll_time:
-            since_poll = (datetime.utcnow() - self._last_poll_time).total_seconds()
+            since_poll = (datetime.now(UTC) - self._last_poll_time).total_seconds()
             if since_poll > 120:  # No poll in 2 minutes
                 return False
 
@@ -400,7 +400,7 @@ class RedisQPoller:
 
         # Get ingest metrics
         ingest_metrics = None
-        if self._ingest_queue:
+        if self._ingest_queue is not None:
             queue_metrics = self._ingest_queue.get_metrics()
             ingest_metrics = IngestMetrics(
                 received_total=queue_metrics.received_total,
@@ -408,7 +408,7 @@ class RedisQPoller:
                 dropped_total=queue_metrics.dropped_total,
                 queue_depth=queue_metrics.queue_depth,
                 last_drop_time=(
-                    datetime.fromtimestamp(queue_metrics.last_drop_time)
+                    datetime.fromtimestamp(queue_metrics.last_drop_time, tz=UTC)
                     if queue_metrics.last_drop_time
                     else None
                 ),
@@ -442,7 +442,7 @@ class RedisQPoller:
                 self._consecutive_errors = 0
             except asyncio.CancelledError:
                 break
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 self._record_error()
                 self._consecutive_errors += 1
                 logger.warning("Poll error (consecutive=%d): %s", self._consecutive_errors, e)
@@ -463,7 +463,7 @@ class RedisQPoller:
 
         try:
             response = await self._client.get(REDISQ_URL, params=params)
-            self._last_poll_time = datetime.utcnow()
+            self._last_poll_time = datetime.now(UTC)
 
             # Persist poll time periodically for gap recovery
             now_ts = time.time()
@@ -506,7 +506,7 @@ class RedisQPoller:
                 return
 
             # Store ALL kills in the persistent store (no pre-filtering)
-            if self._ingest_queue:
+            if self._ingest_queue is not None:
                 record = queued_kill.to_killmail_record()
                 await self._ingest_queue.put(record)
                 logger.debug("Enqueued kill %d for storage", queued_kill.kill_id)
@@ -617,7 +617,7 @@ class RedisQPoller:
                         ship_name=ship_name,
                     )
                 )
-            except Exception as e:
+            except (ImportError, RuntimeError) as e:
                 logger.debug("Notification trigger failed: %s", e)
 
         # Track watched entity kills
@@ -661,7 +661,7 @@ class RedisQPoller:
 
             except asyncio.CancelledError:
                 break
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning("Cleanup error: %s", e)
 
     async def _entity_refresh_loop(self) -> None:
@@ -680,14 +680,14 @@ class RedisQPoller:
 
             except asyncio.CancelledError:
                 break
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning("Entity refresh error: %s", e)
 
     async def _writer_loop(self) -> None:
         """Background task to drain ingest queue to killmail store."""
         while self._running:
             try:
-                if not self._ingest_queue or not self._killmail_store:
+                if self._ingest_queue is None or self._killmail_store is None:
                     await asyncio.sleep(self._writer_interval_seconds)
                     continue
 
@@ -714,7 +714,7 @@ class RedisQPoller:
 
             except asyncio.CancelledError:
                 break
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning("Writer loop error: %s", e)
                 await asyncio.sleep(1.0)  # Brief backoff on error
 

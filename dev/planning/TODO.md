@@ -56,7 +56,7 @@ New `/slash` commands or improvements to existing ones:
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). Quick ideas:
+See [CONTRIBUTING.md](../../CONTRIBUTING.md). Quick ideas:
 - Document a mission you ran
 - Add a ship fit you use
 - Write a guide for an activity you know

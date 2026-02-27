@@ -2,13 +2,13 @@
 
 Security hardening tasks for ARIA credential management and LLM safety.
 
-**Status:** Credential/session security complete. Major security findings from SECURITY_000.md review resolved.
+**Status:** Credential/session security complete. Major security findings from `dev/reviews/archive/SECURITY_000.md` review resolved.
 
 **See also:** `REMEDIATION_BACKLOG.md` for consolidated security findings from all reviews.
 
 ---
 
-## Recent Completions (from SECURITY_000.md Review)
+## Recent Completions (from SECURITY_000.md review)
 
 | Finding | Status | Notes |
 |---------|--------|-------|

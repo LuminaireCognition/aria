@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -431,6 +431,94 @@ class TestGetSystemsByCoalition:
             systems = get_systems_by_coalition("nonexistent")
 
         assert systems == []
+
+
+class TestAutoLoadFromYaml:
+    """Tests for YAML auto-load when DB is empty."""
+
+    def test_auto_loads_from_yaml_when_db_empty(self, temp_db: SovereigntyDatabase):
+        """When DB is empty and YAML exists, auto-load populates coalitions."""
+        yaml_content = (
+            "coalitions:\n"
+            "  test_coalition:\n"
+            '    display_name: "Test Coalition"\n'
+            '    aliases: ["test", "tc"]\n'
+            "    alliances:\n"
+            "      - id: 99000001\n"
+            '        name: "Test Alliance"\n'
+        )
+        yaml_path = Path(tempfile.mktemp(suffix=".yaml"))
+        yaml_path.write_text(yaml_content)
+
+        try:
+            with patch(
+                "aria_esi.services.sovereignty.coalition_service.get_sovereignty_database",
+                return_value=temp_db,
+            ):
+                registry = CoalitionRegistry()
+                # Patch __file__ to make the path calculation resolve to our temp file
+                # _auto_load_from_yaml calculates: Path(__file__).parent.parent.parent / "data" / ...
+                # Instead, mock open to return our yaml content
+                import yaml
+
+                mock_open = MagicMock()
+                mock_open.return_value.__enter__ = MagicMock(
+                    return_value=MagicMock(read=lambda: yaml_content)
+                )
+                mock_open.return_value.__exit__ = MagicMock(return_value=False)
+
+                with patch("builtins.open", mock_open):
+                    with patch("pathlib.Path.exists", return_value=True):
+                        with patch("yaml.safe_load", return_value=yaml.safe_load(yaml_content)):
+                            registry._auto_load_from_yaml(temp_db)
+
+                # Verify data was loaded
+                coalition = temp_db.get_coalition("test_coalition")
+                assert coalition is not None
+                assert coalition.display_name == "Test Coalition"
+                members = temp_db.get_coalition_alliances("test_coalition")
+                assert 99000001 in members
+        finally:
+            yaml_path.unlink(missing_ok=True)
+
+    def test_auto_load_handles_yaml_error_gracefully(self, temp_db: SovereigntyDatabase):
+        """Auto-load catches exceptions and doesn't raise."""
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_sovereignty_database",
+            return_value=temp_db,
+        ):
+            registry = CoalitionRegistry()
+            # Mock yaml.safe_load to raise
+            with patch("builtins.open", side_effect=PermissionError("no access")):
+                # Should not raise
+                registry._auto_load_from_yaml(temp_db)
+
+            # DB should still be empty
+            coalitions = temp_db.get_all_coalitions()
+            assert len(coalitions) == 0
+
+    def test_auto_load_skipped_when_db_has_data(self, temp_db: SovereigntyDatabase):
+        """When DB already has coalitions, auto-load is skipped."""
+        # Pre-populate DB
+        coalition = CoalitionRecord(
+            coalition_id="existing",
+            display_name="Existing Coalition",
+            aliases=["exist"],
+            updated_at=1700000000,
+        )
+        temp_db.save_coalition(coalition)
+
+        with patch(
+            "aria_esi.services.sovereignty.coalition_service.get_sovereignty_database",
+            return_value=temp_db,
+        ):
+            registry = CoalitionRegistry()
+            registry._ensure_loaded()
+
+            # Should still have just the pre-existing coalition
+            result = registry.get_coalition("existing")
+            assert result is not None
+            assert result.display_name == "Existing Coalition"
 
 
 class TestSingleton:

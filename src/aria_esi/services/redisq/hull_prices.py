@@ -76,7 +76,7 @@ class ShipPriceLookup:
                     return
 
                 prices_data = response.json()
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.warning("Failed to fetch ESI prices: %s", e)
             self._loaded = True
             return
@@ -112,7 +112,7 @@ class ShipPriceLookup:
             Set of type_ids for ships (category_id=6)
         """
         try:
-            from ...mcp.market.database import get_market_database
+            from aria_esi.store.market.database import get_market_database
 
             db = get_market_database()
             conn = db._get_connection()
@@ -121,7 +121,7 @@ class ShipPriceLookup:
                 (SHIP_CATEGORY_ID,),
             ).fetchall()
             return {row[0] for row in rows}
-        except Exception as e:
+        except (ImportError, RuntimeError) as e:
             logger.warning("Failed to query ship type_ids from SDE: %s", e)
             return set()
 

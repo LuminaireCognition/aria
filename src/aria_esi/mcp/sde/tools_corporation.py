@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 from pydantic import BaseModel, ConfigDict, Field
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
-from aria_esi.mcp.sde.queries import SDENotSeededError, get_sde_query_service
+from aria_esi.store.market.database import get_market_database
+from aria_esi.store.sde.queries import SDENotSeededError, get_sde_query_service
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP

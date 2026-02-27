@@ -9,13 +9,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.cache import MarketCache
-from aria_esi.mcp.market.clipboard import parse_clipboard_to_dict
-from aria_esi.mcp.market.database import get_market_database
 from aria_esi.models.market import (
     RouteValueResult,
     SystemRisk,
 )
+from aria_esi.store.market.cache import MarketCache
+from aria_esi.store.market.clipboard import parse_clipboard_to_dict
+from aria_esi.store.market.database import get_market_database
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
@@ -239,7 +239,7 @@ def register_route_tools(server: FastMCP) -> None:
                     # Get recent kills if activity cache is available
                     recent_kills = None
                     try:
-                        from aria_esi.mcp.activity import get_activity_cache
+                        from aria_esi.store.activity import get_activity_cache
 
                         activity_cache = get_activity_cache()
                         # Note: This is sync call, but we're in async context
@@ -247,7 +247,7 @@ def register_route_tools(server: FastMCP) -> None:
                         kills_data = activity_cache._kills_data.get(system_id)
                         if kills_data:
                             recent_kills = kills_data.ship_kills + kills_data.pod_kills
-                    except Exception:
+                    except Exception:  # noqa: BLE001 -- MCP handler
                         pass
 
                     system_risks.append(
@@ -271,7 +271,7 @@ def register_route_tools(server: FastMCP) -> None:
                 else:
                     warnings.append(f"Unknown system: {system_name}")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- MCP handler boundary
             logger.warning("Failed to get universe data: %s", e)
             warnings.append("Could not resolve route systems - universe graph unavailable")
 

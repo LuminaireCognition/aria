@@ -17,58 +17,32 @@ requires_pilot: false
 
 # ARIA Local Orientation Module
 
-## Purpose
-Provide consolidated tactical intelligence when a pilot finds themselves in unknown space, typically after wormhole jumps, filaments, or other unexpected relocations.
-
-## Trigger Phrases
-- "orient me"
-- "what's around me"
-- "local intel"
-- "just landed in [system]"
-- "dropped into [system]"
-
 ## Data Authority
 
-Sovereignty data follows the authority hierarchy defined in `dev/docs/ai-runtime/DATA_AUTHORITY.md`:
+Data authority hierarchy follows `dev/docs/ai-runtime/DATA_AUTHORITY.md`. Coalition data is validated against ESI before loading into cache; run `sov-validate` to verify.
 
-| Data Type | Source | Authority |
-|-----------|--------|-----------|
-| Alliance ID/Name | ESI `/sovereignty/map/` | Authoritative |
-| Coalition membership | `coalitions.yaml` | Community (validated against ESI) |
-| System security | Universe graph (SDE) | Authoritative |
-| Activity data | ESI `/kills/`, RedisQ | Authoritative |
+## Required Tool Calls (MANDATORY)
 
-**Validation:** Coalition data is validated against ESI before loading into cache. Run `sov-validate` to verify.
+Orientation intel MUST come from tool calls. Do NOT fabricate sovereignty, activity, or escape route data.
 
-## Data Sources
+| Step | Call | Required For |
+|------|------|-------------|
+| 1 | `universe(action="local_area", origin="...", max_jumps=10, include_realtime=True)` | All orientation data: threats, sovereignty, hotspots, escape routes |
+| 2 | `universe(action="systems", systems=["..."])` | Sovereignty details (only if not in local_area response) |
 
-### MCP Tools (preferred)
+**The `local_area` response is the single source of truth for orientation.** Present only fields that exist in the response. If the response has no `sovereignty` field, do NOT add sovereignty data from training knowledge.
 
-If the `aria-universe` MCP server is connected, use the `universe` dispatcher:
+> **⚠️ HALLUCINATION GUARD:** Every system name, sovereignty claim, kill count, escape route, and threat level MUST come from the `local_area` response or other MCP calls made in this session. If a field is not in the tool response, it does not exist for this assessment. NEVER supplement tool data with training data knowledge.
 
-```
-universe(action="local_area", origin="ZZ-TOP", max_jumps=10, include_realtime=True)
-```
+> ❌ **NEVER** use `include_realtime=False` — this disables real-time gatecamp detection and recent kill alerts. The MCP default is `false`, so you MUST explicitly set `include_realtime=True`.
 
-**Response includes:**
-- Origin system details (security, region, constellation)
-- Sovereignty data (alliance, coalition) for null-sec systems
-- Threat summary (total kills, active camps, threat level)
-- Hotspots (high PvP activity systems)
-- Quiet zones (zero/low activity for stealth ops)
-- Ratting banks (high NPC kills indicating targets)
-- Escape routes (nearest low-sec, high-sec)
-- Security borders (transition points)
+> **Failure handling:** If `local_area` fails or returns an error, surface the failure explicitly: "Orientation data unavailable: [error]. Cannot assess this system without live MCP data." Do NOT fabricate threat levels, sovereignty, or escape routes from training knowledge.
 
-### CLI Fallback
-
-If MCP tools are not available:
-
-```bash
-uv run aria-esi orient <system> [--max-jumps N] [--realtime]
-```
+All output fields come from the `local_area` response. Key response fields: `origin`, `threat_summary`, `sovereignty`, `hotspots`, `quiet_zones`, `ratting_banks`, `escape_routes`, `fw_systems`. If `sovereignty` is absent from `local_area`, supplement via `universe(action="systems", systems=[...])`.
 
 ## Output Format
+
+Present sections in this order. FW warzone data follows sovereignty when present. Omit empty sections.
 
 ```
 ═══════════════════════════════════════════════════════════════
@@ -110,23 +84,9 @@ ESCAPE ROUTES
 
 ## System Classification
 
-### Hotspots (Avoid or Hunt)
-Systems with 5+ PvP kills in the last hour. These are active combat zones:
-- Gate camps
-- Fleet engagements
-- Roaming gangs
-
-### Quiet Zones (Stealth Ops)
-Systems with 0 PvP kills. Good for:
-- Stealth mining
-- Safe passage
-- Staging operations
-
-### Ratting Banks (Content)
-Systems with 100+ NPC kills. Indicates:
-- Active ratting activity
-- Potential targets for hunters
-- Profitable PvE areas
+- **Hotspots (Avoid or Hunt):** Systems with 5+ PvP kills in the last hour.
+- **Quiet Zones (Stealth Ops):** Systems with 0 PvP kills.
+- **Ratting Banks (Content):** Systems with 100+ NPC kills.
 
 ## Real-Time Enhancement
 
@@ -134,26 +94,6 @@ When `include_realtime=True` and the RedisQ poller is healthy:
 - Active gatecamp detection (kill clustering analysis)
 - Minute-level kill data instead of hourly
 - Force asymmetry detection (camps vs fleet fights)
-
-## Use Cases
-
-### Wormhole Exit
-"I just jumped out of a wormhole and landed in XYZ-12, orient me"
-- Immediate threat assessment
-- Nearest escape routes to k-space
-- Quiet systems for scanning
-
-### Filament Activation
-"Used a filament and now I'm in null-sec, what's around me?"
-- Regional threat picture
-- Ratting banks to hunt or avoid
-- Path back to safer space
-
-### Roaming Fleet
-"We're in hostile space, give me local intel"
-- Identify active systems (targets)
-- Avoid detected camps
-- Find staging points
 
 ## Sovereignty Context (Null-Sec Only)
 
@@ -181,26 +121,6 @@ SOVEREIGNTY: [GSF] Goonswarm Federation
 | Smaller Alliance | Variable response capability |
 | NPC Null-sec | No player sovereignty - NPC presence only |
 | Unclaimed | Disputed or recently lost - may be contested |
-
-### Getting Sovereignty Data
-
-Sovereignty is included in the `systems` response for null-sec systems:
-
-```
-universe(action="systems", systems=["1DQ1-A"])
-```
-
-Response includes:
-```json
-{
-  "sovereignty": {
-    "alliance_id": 1354830081,
-    "alliance_name": "[GSF] Goonswarm Federation",
-    "coalition_id": "imperium",
-    "coalition_name": "The Imperium"
-  }
-}
-```
 
 ## Faction Warfare Context
 
@@ -232,12 +152,10 @@ FACTION WARFARE WARZONE
 - Prioritize vulnerable and contested systems
 - Include total FW system count if many are in range
 
-## Response Priority
+## Anti-Patterns
 
-When presenting results, prioritize:
-1. **Immediate threats** - Active camps, extreme activity
-2. **Sovereignty context** - Whose space you're in (null-sec only)
-3. **Faction Warfare** - FW warzone status (low-sec FW systems)
-4. **Escape routes** - How to get to safer space
-5. **Tactical opportunities** - Quiet zones, ratting banks
-6. **Context** - Regional info, border systems
+❌ **WRONG:** Present activity data for systems outside the `max_jumps` radius
+✅ **RIGHT:** Only include systems returned by `local_area`
+
+❌ **WRONG:** State "Region: Delve" or other regional context from training data memory
+✅ **RIGHT:** Region name comes from the `local_area` response `origin.region` field

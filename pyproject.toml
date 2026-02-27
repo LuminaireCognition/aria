@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aria"
-version = "2.0.0"
+version = "0.3.0"
 description = "ARIA - Adaptive Reasoning & Intelligence Array for EVE Online"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -22,6 +22,12 @@ dependencies = [
     "mcp>=1.0.0",  # MCP server for Claude Code integration
     "aiosqlite>=0.20.0",  # Async SQLite for MCP server
 ]
+
+[project.urls]
+Homepage = "https://github.com/alepmalern/aria"
+Repository = "https://github.com/alepmalern/aria"
+Issues = "https://github.com/alepmalern/aria/issues"
+Changelog = "https://github.com/alepmalern/aria/blob/main/CHANGELOG.md"
 
 [project.scripts]
 aria-esi = "aria_esi.__main__:main"
@@ -121,15 +127,13 @@ omit = [
     "*/__pycache__/*",
     "*/__main__.py",
     "*/tests/*",  # Exclude embedded test files in src/
+    "src/aria_esi/_vendor/*",
 ]
 branch = true
 
 [tool.coverage.report]
-# Note: Core modules (auth, client, retry) have 49-73% coverage
-# Command modules: clones 72%, skills 89%, industry 72%, mining 76%, contracts 50%
-# MCP tools have 71-100% coverage; overall project at ~60%
-# Threshold lowered from 60 after archetype framework removal (well-tested code deleted)
-fail_under = 59
+# Overall: ~70% (as of 2026-02). Per-module thresholds in [tool.aria.coverage_thresholds].
+fail_under = 68
 show_missing = true
 skip_covered = false
 exclude_lines = [
@@ -142,6 +146,26 @@ exclude_lines = [
 
 [tool.coverage.html]
 directory = "htmlcov"
+
+[tool.aria.coverage_thresholds]
+# Per-package coverage minimums (line + branch combined).
+# Enforced by tests/scripts/check_coverage_thresholds.py
+# Set ~3% below current actuals to prevent regression.
+core = 75
+fitting = 82
+models = 88
+universe = 90
+persona = 89
+"services/redisq" = 82
+"services/navigation" = 94
+"services/killmail_store" = 86
+"services/loop_planning" = 94
+"mcp/dispatchers" = 57
+"mcp/market" = 51
+"mcp/sde" = 56
+"store/market" = 56
+"store/sde" = 56
+commands = 44
 
 [tool.ruff]
 target-version = "py311"
@@ -156,13 +180,13 @@ select = [
     "F",      # Pyflakes
     "I",      # isort
     "B",      # flake8-bugbear
+    "BLE",    # flake8-blind-except
     "C4",     # flake8-comprehensions
     "UP",     # pyupgrade
 ]
 ignore = [
     "E501",   # line too long (handled by formatter)
     "B008",   # do not perform function calls in argument defaults
-    "B904",   # raise from - TODO: add exception chaining throughout codebase
     "B905",   # zip without strict= (Python 3.11+, now baseline)
     "C401",   # unnecessary generator - set(x for x) vs {x for x} is style preference
     "UP007",  # Use X | Y for Union - keep Union[] for readability
@@ -174,6 +198,7 @@ ignore = [
 "__init__.py" = ["F401"]  # re-exports
 "retry.py" = ["F401"]     # conditional imports for tenacity fallback
 "auth.py" = ["E402"]      # TYPE_CHECKING import after code block
+"tests/**/*.py" = ["E402"]  # imports after pytest.importorskip() guards
 
 [tool.ruff.lint.isort]
 known-first-party = ["aria_esi"]
@@ -194,8 +219,8 @@ exclude = ["tests/", "__pycache__"]
 # Phase 1: Baseline - catches syntax errors, undefined names ✓
 # Phase 2: Enable union-attr, attr-defined ✓
 # Phase 3: Enable arg-type, return-value ✓
-# Phase 4 (in progress): Enable assignment ✓, index, operator
-# Phase 5: Enable disallow_untyped_defs on core modules
+# Phase 4: Enable assignment ✓, index, operator (in progress)
+# Phase 5: check_untyped_defs=true, disallow_untyped_defs on core.* ✓
 # Phase 6: Strict mode on all modules
 # =============================================================================
 
@@ -205,7 +230,7 @@ warn_redundant_casts = true
 # Permissive settings for initial adoption
 warn_return_any = false           # Too noisy with json.load() returns
 warn_unused_ignores = false       # Allow unused ignores during transition
-check_untyped_defs = false        # Skip checking inside untyped functions
+check_untyped_defs = true          # Phase 5: Check inside untyped functions
 disallow_untyped_defs = false     # Allow functions without type hints
 disallow_incomplete_defs = false  # Allow partial type hints
 
@@ -220,6 +245,7 @@ pretty = true
 # Phase 2 COMPLETE: union-attr and attr-defined now enabled
 # Phase 3 COMPLETE: arg-type and return-value now enabled
 # Phase 4 IN PROGRESS: assignment enabled (conditional imports use type: ignore)
+# Phase 5 COMPLETE: check_untyped_defs=true, disallow_untyped_defs on core.*
 # Remaining codes disabled for future phases
 disable_error_code = [
     "misc",          # Cannot assign to a type - conditional exception aliases
@@ -251,6 +277,12 @@ dev = [
 preview = true
 
 # Per-module overrides for stricter checking and suppressions
+
+# Vendored EOS library — not our code, skip type checking entirely
+[[tool.mypy.overrides]]
+module = ["aria_esi._vendor.*"]
+ignore_errors = true
+
 # MCP dispatcher modules have incomplete implementations with missing _impl functions
 # These need to be completed separately before enabling strict checking
 [[tool.mypy.overrides]]
@@ -274,18 +306,19 @@ module = [
 disable_error_code = ["attr-defined", "union-attr"]
 
 # =============================================================================
-# SECURITY-CRITICAL MODULES - STRICT TYPING ENFORCED
+# CORE MODULES - STRICT TYPING ENFORCED
 # =============================================================================
-# Phase 5 (partial): Enable strict typing on security-critical auth modules
-# These modules handle credentials and must have complete type coverage
-# to reduce the risk of type-related bugs in sensitive code paths.
-# Per Gemini 3 Pro DevOps/Security Review 2026-01-31
+# Phase 5: All core modules require complete type annotations.
+# All 17 modules pass strict checks (retry.py fixed with NoReturn).
+[[tool.mypy.overrides]]
+module = ["aria_esi.core.*"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+# Security-critical modules get additional warn_return_any
 [[tool.mypy.overrides]]
 module = [
     "aria_esi.core.auth",
     "aria_esi.core.keyring_backend",
 ]
-disallow_untyped_defs = true
-check_untyped_defs = true
-disallow_incomplete_defs = true
 warn_return_any = true

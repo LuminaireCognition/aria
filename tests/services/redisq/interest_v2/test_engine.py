@@ -434,7 +434,7 @@ class TestValidation:
         )
         engine = InterestEngineV2(config)
 
-        errors = engine.validate()
+        engine.validate()
 
         # May have errors for unregistered built-in rules
         # but core config should be valid
@@ -479,7 +479,7 @@ class TestRuntimeContext:
         engine = InterestEngineV2(config)
 
         mock_gatecamp = MagicMock()
-        result = engine.calculate_interest(
+        engine.calculate_interest(
             mock_kill,
             mock_kill.solar_system_id,
             runtime_context={"gatecamp_status": mock_gatecamp},

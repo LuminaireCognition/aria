@@ -8,7 +8,8 @@ import pytest
 
 from aria_esi.services.redisq.interest_v2.signals.activity import ActivitySignal
 
-from .conftest import MockGatecampStatus, MockProcessedKill
+from ..factories import make_processed_kill
+from .conftest import MockGatecampStatus
 
 
 class TestActivitySignalScore:
@@ -21,7 +22,7 @@ class TestActivitySignalScore:
 
     def test_score_no_activity_data(self, signal: ActivitySignal) -> None:
         """Test scoring with no activity data returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         # All signals disabled = no self-sufficient querying, no pre-injected data
         config = {
             "spike": {"enabled": False},
@@ -53,6 +54,8 @@ class TestActivitySignalScore:
         config = {
             "gatecamp_status": mock_gatecamp_low,
             "gatecamp": {"enabled": True, "score": 0.9, "min_confidence": "medium"},
+            "spike": {"enabled": False},
+            "sustained": {"enabled": False},
         }
         result = signal.score(None, 30000142, config)
         assert result.score == 0.0  # Low < medium threshold
@@ -75,6 +78,8 @@ class TestActivitySignalScore:
         config = {
             "gatecamp_status": mock_gatecamp_high,
             "gatecamp": {"enabled": False},
+            "spike": {"enabled": False},
+            "sustained": {"enabled": False},
         }
         result = signal.score(None, 30000142, config)
         assert result.score == 0.0  # Disabled
@@ -255,6 +260,8 @@ class TestActivitySignalEdgeCases:
         config = {
             "gatecamp_status": MockGatecampStatus(confidence="extreme"),
             "gatecamp": {"enabled": True, "score": 0.9, "min_confidence": "low"},
+            "spike": {"enabled": False},
+            "sustained": {"enabled": False},
         }
         result = signal.score(None, 30000142, config)
         # "extreme" maps to 0 in confidence_levels.get(confidence, 0)
@@ -265,6 +272,8 @@ class TestActivitySignalEdgeCases:
         config = {
             "gatecamp_status": MockGatecampStatus(confidence=None),
             "gatecamp": {"enabled": True, "score": 0.9, "min_confidence": "low"},
+            "spike": {"enabled": False},
+            "sustained": {"enabled": False},
         }
         result = signal.score(None, 30000142, config)
         assert result.score == 0.0
@@ -475,6 +484,7 @@ class TestActivitySignalSelfSufficient:
 
         config = {
             "spike": {"enabled": True, "score": 0.7},
+            "sustained": {"enabled": False},
         }
         result = signal.score(None, 30000142, config)
 

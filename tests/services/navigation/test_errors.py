@@ -6,9 +6,6 @@ Tests domain-specific exceptions for route calculation operations.
 
 from __future__ import annotations
 
-import pytest
-
-
 # =============================================================================
 # NavigationError Tests
 # =============================================================================

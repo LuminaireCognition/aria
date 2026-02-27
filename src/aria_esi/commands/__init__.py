@@ -5,42 +5,7 @@ Command implementations for ESI API operations.
 Each module handles a logical group of related commands.
 """
 
-# Phase 2: Public commands (no authentication required)
-# Phase 3: Personal commands (authentication required)
-# Phase 4: Corporation commands
-# Phase 5: Loyalty Points
-# Phase 6: Clones
-# Phase 7: Killmails
-# Phase 8: Contracts
-# Phase 9: Research Agents
-# Phase 10: Mining Ledger
-# Phase 11: Market Orders
-# Phase 12: Saved Fittings
-# Phase 13: Mail
-# Phase 14: Universe Cache
-# Phase 15: Killmail Analysis (zKillboard integration)
-from . import (
-    agents_research,
-    assets,
-    character,
-    clones,
-    contracts,
-    corporation,
-    fittings,
-    industry,
-    killmail,
-    killmails,
-    loyalty,
-    mail,
-    market,
-    mining,
-    navigation,
-    orders,
-    pilot,
-    skills,
-    universe,
-    wallet,
-)
+import importlib as _importlib
 
 __all__ = [
     # Phase 2
@@ -78,3 +43,10 @@ __all__ = [
     # Phase 15
     "killmail",
 ]
+
+
+def __getattr__(name: str):
+    """Lazy import command modules on first access."""
+    if name in __all__:
+        return _importlib.import_module(f".{name}", __name__)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

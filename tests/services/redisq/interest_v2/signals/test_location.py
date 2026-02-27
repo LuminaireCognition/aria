@@ -11,7 +11,7 @@ from aria_esi.services.redisq.interest_v2.signals.location import (
     SecuritySignal,
 )
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestGeographicSignalScore:
@@ -24,20 +24,20 @@ class TestGeographicSignalScore:
 
     def test_score_no_systems_configured(self, signal: GeographicSignal) -> None:
         """Test scoring with no systems configured returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
         assert "No systems configured" in result.reason
 
     def test_score_empty_systems_list(self, signal: GeographicSignal) -> None:
         """Test scoring with empty systems list returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {"systems": []})
         assert result.score == 0.0
 
     def test_score_direct_match_no_distance(self, signal: GeographicSignal) -> None:
         """Test scoring with direct system match (no distance function)."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30000142, "name": "Jita", "classification": "home"},
@@ -50,7 +50,7 @@ class TestGeographicSignalScore:
 
     def test_score_direct_match_transit(self, signal: GeographicSignal) -> None:
         """Test transit classification with direct match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30000142, "name": "Jita", "classification": "transit"},
@@ -63,7 +63,7 @@ class TestGeographicSignalScore:
 
     def test_score_no_match_direct(self, signal: GeographicSignal) -> None:
         """Test no match with direct matching."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30002187, "name": "Amarr", "classification": "home"},
@@ -77,7 +77,7 @@ class TestGeographicSignalScore:
         self, signal: GeographicSignal, mock_distance_function: Callable[[int, int], int | None]
     ) -> None:
         """Test scoring with distance function."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30000142, "name": "Jita", "classification": "home"},
@@ -95,7 +95,7 @@ class TestGeographicSignalScore:
         self, signal: GeographicSignal, mock_distance_function: Callable[[int, int], int | None]
     ) -> None:
         """Test scoring 1 jump from home system."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30000142, "name": "Jita", "classification": "home"},
@@ -112,7 +112,7 @@ class TestGeographicSignalScore:
         self, signal: GeographicSignal, mock_distance_function: Callable[[int, int], int | None]
     ) -> None:
         """Test scoring 3 jumps from home system."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30000142, "name": "Jita", "classification": "home"},
@@ -128,7 +128,7 @@ class TestGeographicSignalScore:
         self, signal: GeographicSignal, mock_distance_function: Callable[[int, int], int | None]
     ) -> None:
         """Test hunting classification weights."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30002187, "name": "Amarr", "classification": "hunting"},
@@ -148,7 +148,7 @@ class TestGeographicSignalScore:
         self, signal: GeographicSignal, mock_distance_function: Callable[[int, int], int | None]
     ) -> None:
         """Test best score from multiple configured systems."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30000142, "name": "Jita", "classification": "home"},
@@ -165,7 +165,7 @@ class TestGeographicSignalScore:
         self, signal: GeographicSignal, mock_distance_function: Callable[[int, int], int | None]
     ) -> None:
         """Test scoring when outside all configured distance weights."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30002659, "name": "Dodixie", "classification": "home"},
@@ -181,7 +181,7 @@ class TestGeographicSignalScore:
         self, signal: GeographicSignal, mock_distance_function: Callable[[int, int], int | None]
     ) -> None:
         """Test custom weight configuration."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30000142, "name": "Jita", "classification": "home"},
@@ -207,7 +207,7 @@ class TestGeographicSignalScore:
             ],
             "get_distance": failing_distance,
         }
-        result = signal.score(MockProcessedKill(), 30000142, config)
+        result = signal.score(make_processed_kill(), 30000142, config)
         # Should handle gracefully
         assert result.score == 0.0
 
@@ -215,7 +215,7 @@ class TestGeographicSignalScore:
         self, signal: GeographicSignal, mock_distance_function: Callable[[int, int], int | None]
     ) -> None:
         """Test handling when distance function returns None."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "systems": [
                 {"id": 30000142, "name": "Jita", "classification": "home"},
@@ -312,14 +312,14 @@ class TestSecuritySignalScore:
 
     def test_score_no_bands_configured(self, signal: SecuritySignal) -> None:
         """Test scoring with no bands configured returns 1.0 (no filtering)."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {})
         assert result.score == 1.0
         assert "No security filter" in result.reason
 
     def test_score_empty_bands_list(self, signal: SecuritySignal) -> None:
         """Test scoring with empty bands list returns 1.0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {"bands": []})
         assert result.score == 1.0
 
@@ -327,7 +327,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test matching high-sec system."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["high"],
             "get_security": mock_security_lookup,
@@ -341,7 +341,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test matching low-sec system."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["low"],
             "get_security": mock_security_lookup,
@@ -354,7 +354,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test matching null-sec system."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["null"],
             "get_security": mock_security_lookup,
@@ -367,7 +367,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test matching wormhole system."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["wh"],
             "get_security": mock_security_lookup,
@@ -380,7 +380,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test no match returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["low", "null"],
             "get_security": mock_security_lookup,
@@ -393,7 +393,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test invert mode scores for NOT matching."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["high"],
             "invert": True,
@@ -411,7 +411,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test custom scores per band."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["high", "low"],
             "scores": {"high": 0.5, "low": 0.8},
@@ -425,7 +425,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test multiple bands configuration."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["low", "null", "wh"],
             "get_security": mock_security_lookup,
@@ -444,7 +444,7 @@ class TestSecuritySignalScore:
 
     def test_score_security_from_config(self, signal: SecuritySignal) -> None:
         """Test using pre-computed security_status from config."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["high"],
             "security_status": 0.8,  # Pre-computed
@@ -454,7 +454,7 @@ class TestSecuritySignalScore:
 
     def test_score_unknown_security(self, signal: SecuritySignal) -> None:
         """Test unknown security status returns neutral score."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {"bands": ["high"]}  # No lookup function
         result = signal.score(kill, 30000142, config)
         assert result.score == 0.5  # Neutral
@@ -470,14 +470,14 @@ class TestSecuritySignalScore:
             "bands": ["high"],
             "get_security": failing_lookup,
         }
-        result = signal.score(MockProcessedKill(), 30000142, config)
+        result = signal.score(make_processed_kill(), 30000142, config)
         assert result.score == 0.5  # Neutral fallback
 
     def test_score_raw_value_includes_security(
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test raw_value includes security and band info."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["high"],
             "get_security": mock_security_lookup,
@@ -491,7 +491,7 @@ class TestSecuritySignalScore:
         self, signal: SecuritySignal, mock_security_lookup: Callable[[int], float | None]
     ) -> None:
         """Test band boundaries are correct."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "bands": ["low"],
             "get_security": mock_security_lookup,

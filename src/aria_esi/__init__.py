@@ -32,7 +32,12 @@ Package structure:
     └── models/         # Data structures
 """
 
-__version__ = "1.0.0"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("aria")
+except PackageNotFoundError:
+    __version__ = "0.0.0-dev"
 __author__ = "ARIA Tactical Systems"
 
 # Re-export commonly used classes for convenience

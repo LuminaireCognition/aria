@@ -6,8 +6,8 @@ import pytest
 
 from aria_esi.services.industry_chains import (
     ChainNode,
-    ChainResolver,
     ChainResolutionResult,
+    ChainResolver,
     format_chain_summary,
     get_always_terminal_materials,
     get_max_chain_depth,

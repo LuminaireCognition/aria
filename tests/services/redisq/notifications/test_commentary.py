@@ -4,11 +4,11 @@ Tests for LLM commentary generation.
 
 from __future__ import annotations
 
-import asyncio
 import sys
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
 from aria_esi.services.redisq.models import ProcessedKill
@@ -26,9 +26,9 @@ from aria_esi.services.redisq.notifications.commentary import (
     validate_preserved_tokens,
 )
 from aria_esi.services.redisq.notifications.llm_providers._protocol import LLMResponse
-from aria_esi.services.redisq.notifications.profiles import NotificationProfile
 from aria_esi.services.redisq.notifications.patterns import DetectedPattern, PatternContext
 from aria_esi.services.redisq.notifications.persona import PersonaLoader, PersonaVoiceSummary
+from aria_esi.services.redisq.notifications.profiles import NotificationProfile
 from aria_esi.services.redisq.notifications.prompts import (
     build_system_prompt,
 )
@@ -285,7 +285,7 @@ class TestCommentaryGenerator:
     async def test_generate_commentary_error(self, mock_persona_loader, pattern_context):
         """Test handling errors."""
         mock_provider = AsyncMock()
-        mock_provider.generate = AsyncMock(side_effect=Exception("API Error"))
+        mock_provider.generate = AsyncMock(side_effect=httpx.RequestError("API Error"))
         mock_provider.close = AsyncMock()
 
         generator = CommentaryGenerator(
@@ -378,7 +378,7 @@ class TestCreateCommentaryGenerator:
         ), patch("anthropic.AsyncAnthropic"):
             generator = create_commentary_generator(mock_loader)
 
-        assert generator._model == "claude-sonnet-4-5-20241022"
+        assert generator._model == "claude-sonnet-4-6"
         assert generator._max_tokens == 100
         assert generator._default_timeout_ms == 3000
         assert generator._cost_limit_daily_usd == 1.0
@@ -1885,7 +1885,9 @@ class TestProviderGenerate:
         mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         with patch("anthropic.AsyncAnthropic", return_value=mock_client):
-            from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+            from aria_esi.services.redisq.notifications.llm_providers._anthropic import (
+                AnthropicProvider,
+            )
 
             provider = AnthropicProvider(api_key="test-key")
 
@@ -1912,7 +1914,9 @@ class TestProviderGenerate:
         mock_client.messages.create = AsyncMock(return_value=mock_response)
 
         with patch("anthropic.AsyncAnthropic", return_value=mock_client):
-            from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+            from aria_esi.services.redisq.notifications.llm_providers._anthropic import (
+                AnthropicProvider,
+            )
 
             provider = AnthropicProvider(api_key="test-key")
 
@@ -2047,19 +2051,25 @@ class TestProviderGenerate:
         with patch.dict(sys.modules, {"anthropic": None}):
             # Need to reload to pick up the missing module
             with pytest.raises((RuntimeError, ImportError)):
-                from aria_esi.services.redisq.notifications.llm_providers._anthropic import AnthropicProvider
+                from aria_esi.services.redisq.notifications.llm_providers._anthropic import (
+                    AnthropicProvider,
+                )
                 AnthropicProvider(api_key="test-key")
 
     def test_openai_provider_missing_package(self):
         """Test OpenAIProvider raises RuntimeError when package not installed."""
         with patch.dict(sys.modules, {"openai": None}):
             with pytest.raises((RuntimeError, ImportError)):
-                from aria_esi.services.redisq.notifications.llm_providers._openai import OpenAIProvider
+                from aria_esi.services.redisq.notifications.llm_providers._openai import (
+                    OpenAIProvider,
+                )
                 OpenAIProvider(api_key="test-key")
 
     def test_gemini_provider_missing_package(self):
         """Test GeminiProvider raises RuntimeError when package not installed."""
         with patch.dict(sys.modules, {"google": None, "google.genai": None}):
             with pytest.raises((RuntimeError, ImportError)):
-                from aria_esi.services.redisq.notifications.llm_providers._gemini import GeminiProvider
+                from aria_esi.services.redisq.notifications.llm_providers._gemini import (
+                    GeminiProvider,
+                )
                 GeminiProvider(api_key="test-key")

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import sqlite3
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -73,7 +73,7 @@ def sample_kill() -> ProcessedKill:
     """Sample processed kill for testing."""
     return ProcessedKill(
         kill_id=123456789,
-        kill_time=datetime.utcnow(),
+        kill_time=datetime.now(UTC),
         solar_system_id=30000142,
         victim_ship_type_id=17740,
         victim_corporation_id=98000001,
@@ -122,7 +122,7 @@ class TestKillOperations:
         kills = [
             ProcessedKill(
                 kill_id=i,
-                kill_time=datetime.utcnow(),
+                kill_time=datetime.now(UTC),
                 solar_system_id=30000142,
                 victim_ship_type_id=17740,
                 victim_corporation_id=98000001,
@@ -147,7 +147,6 @@ class TestKillOperations:
         """Test getting recent kills."""
         # Use explicit timestamps for reliable testing
         now_ts = time.time()
-        now = datetime.fromtimestamp(now_ts)
 
         # Create kills at different times
         for i, delta in enumerate([5, 30, 90]):
@@ -178,7 +177,7 @@ class TestKillOperations:
 
     def test_get_recent_kills_by_system(self, db: RealtimeKillsDatabase):
         """Test filtering recent kills by system."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # Create kills in different systems
         for i, system in enumerate([30000142, 30000142, 30002187]):
@@ -243,7 +242,7 @@ class TestCountRecentKills:
 
     def test_count_all_kills_in_system(self, db: RealtimeKillsDatabase):
         """Test counting all kills in a system."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         for i in range(3):
             kill = ProcessedKill(
                 kill_id=i + 1,
@@ -267,7 +266,7 @@ class TestCountRecentKills:
 
     def test_count_pod_kills_only(self, db: RealtimeKillsDatabase):
         """Test counting only pod kills."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         # 2 pod kills + 1 ship kill
         for i, is_pod in enumerate([True, True, False]):
             kill = ProcessedKill(
@@ -320,7 +319,7 @@ class TestCountRecentKills:
 
     def test_count_filters_by_system(self, db: RealtimeKillsDatabase):
         """Test that count filters by system ID."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         for i, system in enumerate([30000142, 30000142, 30002187]):
             kill = ProcessedKill(
                 kill_id=i + 1,
@@ -349,7 +348,7 @@ class TestCountRecentKills:
 
     def test_count_pod_only_returns_zero_when_only_ship_kills(self, db: RealtimeKillsDatabase):
         """Test pod_only=True returns 0 when all kills are ship kills."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         for i in range(3):
             kill = ProcessedKill(
                 kill_id=i + 1,
@@ -404,7 +403,7 @@ class TestStateOperations:
         """Test last poll time persistence."""
         assert db.get_last_poll_time() is None
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         db.set_last_poll_time(now)
 
         retrieved = db.get_last_poll_time()

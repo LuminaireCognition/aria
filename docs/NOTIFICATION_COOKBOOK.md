@@ -212,7 +212,7 @@ Add to your profile YAML:
 commentary:
   enabled: true
   provider: "anthropic"         # "anthropic", "openai", or "gemini"
-  model: "claude-sonnet-4-5-20241022"
+  model: "claude-sonnet-4-6"
   timeout_ms: 3000
   max_tokens: 100
   warrant_threshold: 0.3

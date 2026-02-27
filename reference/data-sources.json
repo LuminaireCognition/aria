@@ -5,8 +5,8 @@
       "url_template": "https://www.fuzzwork.co.uk/dump/sqlite-{version}.sqlite.bz2",
       "url_latest": "https://www.fuzzwork.co.uk/dump/sqlite-latest.sqlite.bz2",
       "pinned_version": "latest",
-      "sha256": null,
-      "last_verified": null
+      "sha256": "95a5e77975403115ac251b5707dc940e6f1379a8b331aae7e509b5c80dc73167",
+      "last_verified": "2026-02-25T19:05:10.107724+00:00"
     },
     "eos": {
       "repository": "https://github.com/pyfa-org/Pyfa.git",
@@ -16,8 +16,9 @@
     },
     "universe_graph": {
       "description": "Pre-built universe navigation graph (safe .universe format)",
-      "sha256": "49a30678dacfc9553d72145df7e40fd22ae032d2b2ac0304b28782b25437b7c0",
-      "last_verified": "2026-02-02T07:53:46.848546+00:00"
+      "sha256": "7887edae278a81f13bbc074ca776d3a54ece98ae3671fcd9314bcfacd60862db",
+      "format_version": 2,
+      "last_verified": "2026-02-25T07:16:39+00:00"
     }
   }
 }

@@ -217,8 +217,8 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.market.clients import FuzzworkClient
-        from ..mcp.market.database import MarketDatabase
+        from ..store.market.clients import FuzzworkClient
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",
@@ -233,7 +233,7 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
         client = FuzzworkClient()
         csv_data = client.download_bulk_csv_sync()
         print(f"Downloaded {len(csv_data) / 1024 / 1024:.1f} MB", file=sys.stderr)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "download_error",
             "message": f"Failed to download bulk data: {e}",
@@ -245,7 +245,7 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
     try:
         db = MarketDatabase()
         types_count, aggregates_count = db.import_fuzzwork_csv(csv_data)
-    except Exception as e:
+    except (KeyError, ValueError) as e:
         return {
             "error": "import_error",
             "message": f"Failed to import data: {e}",
@@ -283,7 +283,7 @@ def cmd_market_seed(args: argparse.Namespace) -> dict:
             if all_names:
                 names_resolved = db.update_type_names(all_names)
 
-    except Exception as e:
+    except (ValueError, Exception) as e:  # noqa: BLE001 -- CLI handler for network errors
         print(f"Warning: Failed to resolve type names: {e}", file=sys.stderr)
 
     db.close()
@@ -316,7 +316,7 @@ def cmd_market_status(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.market.database import MarketDatabase
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",
@@ -328,7 +328,7 @@ def cmd_market_status(args: argparse.Namespace) -> dict:
         db = MarketDatabase()
         stats = db.get_stats()
         db.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "database_error",
             "message": f"Failed to read database: {e}",
@@ -391,7 +391,7 @@ def cmd_price_batch(args: argparse.Namespace) -> dict:
     try:
         with open(file_path) as f:
             item_names = [line.strip() for line in f if line.strip()]
-    except Exception as e:
+    except (OSError, ValueError) as e:
         return {
             "error": "file_error",
             "message": f"Failed to read file: {e}",
@@ -406,9 +406,9 @@ def cmd_price_batch(args: argparse.Namespace) -> dict:
         }
 
     try:
-        from ..mcp.market.clients import create_client
-        from ..mcp.market.database import MarketDatabase
         from ..models.market import TRADE_HUBS, resolve_trade_hub
+        from ..store.market.clients import create_client
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",
@@ -452,7 +452,7 @@ def cmd_price_batch(args: argparse.Namespace) -> dict:
     client = create_client(hub_name, station_only=True)
     try:
         aggregates = client.get_aggregates_sync(type_ids)
-    except Exception as e:
+    except (ValueError, Exception) as e:  # noqa: BLE001 -- CLI handler for network errors
         db.close()
         return {
             "error": "fuzzwork_error",

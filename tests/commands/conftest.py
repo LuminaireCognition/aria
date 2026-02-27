@@ -5,7 +5,7 @@ Provides mock credentials, ESI clients, and common response data.
 """
 
 import argparse
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import MagicMock
 
 import pytest
@@ -311,7 +311,7 @@ def mock_corp_blueprints_response():
 def mock_corp_jobs_response():
     """Mock corporation industry jobs response."""
     # Future end date for active job
-    future_end = (datetime.now(timezone.utc).replace(microsecond=0) +
+    future_end = (datetime.now(UTC).replace(microsecond=0) +
                   __import__("datetime").timedelta(hours=2)).isoformat().replace("+00:00", "Z")
     past_end = "2026-01-20T12:00:00Z"
 

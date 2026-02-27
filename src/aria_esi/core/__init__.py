@@ -49,6 +49,7 @@ from .data_integrity import (
     verify_sde_integrity,
     verify_universe_graph_integrity,
 )
+from .exceptions import AriaError
 from .formatters import (
     calculate_progress,
     format_datetime,
@@ -115,6 +116,8 @@ from .retry import (
 )
 
 __all__ = [
+    # Base
+    "AriaError",
     # Client
     "ESIClient",
     "ESIError",

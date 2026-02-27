@@ -152,7 +152,7 @@ async def _resolve_sender_name(client: Any, sender_id: int) -> str:
 
 async def _mail_list(unread_only: bool, limit: int) -> dict:
     """List mail headers."""
-    from ..esi_client import get_authenticated_async_esi_client
+    from aria_esi.store.esi_client import get_authenticated_async_esi_client
 
     auth_ctx = await get_authenticated_async_esi_client()
     client = auth_ctx.client
@@ -236,7 +236,7 @@ async def _mail_read(mail_id: int | None) -> dict:
     if not mail_id:
         raise InvalidParameterError("mail_id", mail_id, "Required for action='mail_read'")
 
-    from ..esi_client import get_authenticated_async_esi_client
+    from aria_esi.store.esi_client import get_authenticated_async_esi_client
 
     auth_ctx = await get_authenticated_async_esi_client()
     client = auth_ctx.client
@@ -286,7 +286,7 @@ async def _mail_read(mail_id: int | None) -> dict:
 
 async def _mining_ledger(days: int, system_filter: str | None, ore_filter: str | None) -> dict:
     """Fetch mining ledger entries."""
-    from ..esi_client import get_async_esi_client, get_authenticated_async_esi_client
+    from aria_esi.store.esi_client import get_async_esi_client, get_authenticated_async_esi_client
 
     auth_ctx = await get_authenticated_async_esi_client()
     client = auth_ctx.client

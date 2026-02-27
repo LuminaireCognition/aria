@@ -53,7 +53,7 @@ class TestBorderSearchBenchmarks:
             borders.sort(key=lambda x: x[1])
             return borders[:limit]
 
-        result = benchmark(find_borders, dodixie)
+        benchmark(find_borders, dodixie)
         # May be empty if no borders nearby
 
     def test_find_borders_from_jita(self, benchmark_universe, benchmark):
@@ -87,7 +87,7 @@ class TestBorderSearchBenchmarks:
             borders.sort(key=lambda x: x[1])
             return borders[:limit]
 
-        result = benchmark(find_borders, jita)
+        benchmark(find_borders, jita)
 
 
 @pytest.mark.benchmark
@@ -213,5 +213,5 @@ class TestAnalysisBenchmarks:
                     chokepoints.append(route[i])
             return chokepoints
 
-        result = benchmark(find_chokepoints, path)
+        benchmark(find_chokepoints, path)
         # May be empty if route stays in one security class

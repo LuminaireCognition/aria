@@ -226,11 +226,13 @@
     "stormbringer": {
       "hull": "Stormbringer",
       "class": "Cruiser",
+      "faction": "EDENCOM",
+      "weapon_system": "Vorton Projector (chain-lightning, bounces between targets)",
       "max_recommended_tier": 5,
-      "strengths": ["Ramping damage", "Unique mechanics", "High ceiling"],
-      "weaknesses": ["Expensive", "Complex gameplay", "Weak to neuts"],
+      "strengths": ["Chain damage hits multiple targets", "Strong in electrical weather", "Shield tanked"],
+      "weaknesses": ["Expensive", "Complex gameplay", "Weak to neuts", "Less effective vs single targets"],
       "preferred_weather": ["electrical"],
-      "notes": "High-skill-cap option with Triglavian weapons."
+      "notes": "EDENCOM ship using Vorton Projectors (NOT Triglavian). Chain-lightning bounces between nearby enemies. Excels in rooms with clustered NPCs."
     }
   },
 

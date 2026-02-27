@@ -13,10 +13,12 @@ on fresh environments.
 
 from __future__ import annotations
 
+import sqlite3
+
 import pytest
 
-from aria_esi.mcp.market.database import get_market_database
-from aria_esi.mcp.sde.queries import (
+from aria_esi.store.market.database import get_market_database
+from aria_esi.store.sde.queries import (
     get_sde_query_service,
     reset_sde_query_service,
 )
@@ -27,10 +29,10 @@ def sde_is_seeded() -> bool:
     try:
         db = get_market_database()
         conn = db._get_connection()
-        cursor = conn.execute("SELECT COUNT(*) FROM types WHERE published = 1")
+        cursor = conn.execute("SELECT COUNT(*) FROM types")
         count = cursor.fetchone()[0]
         return count > 1000  # Sanity check - real SDE has ~40k types
-    except Exception:
+    except (OSError, RuntimeError, sqlite3.OperationalError):
         return False
 
 
@@ -89,7 +91,7 @@ class TestCorporationRegionIntegrity:
             (1000130, "Sisters of EVE"),
         ]
 
-        for corp_id, expected_name in critical_corps:
+        for corp_id, _expected_name in critical_corps:
             cursor = conn.execute(
                 """
                 SELECT nc.corporation_name, COUNT(DISTINCT s.region_id)
@@ -199,7 +201,6 @@ class TestQueryServiceIntegration:
         assert 1000129 in service._corp_regions
 
         # Simulate re-import by changing timestamp
-        old_timestamp = service._cache_import_timestamp
         service._cache_import_timestamp = "old-timestamp"
 
         # Next query should detect mismatch and clear cache
@@ -304,7 +305,7 @@ class TestBlueprintSourceAccuracy:
         if corps:
             # If we found seeding data, verify we can query regions for those corps
             service = get_sde_query_service()
-            for corp_id, corp_name in corps.items():
+            for corp_id, _corp_name in corps.items():
                 regions = service.get_corporation_regions(corp_id)
                 # Some corps may not have stations, that's OK
                 if regions:

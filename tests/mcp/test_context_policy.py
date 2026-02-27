@@ -25,7 +25,7 @@ class TestUniverseLimits:
 
     def test_frozen_immutability(self):
         """Should not allow modification of frozen dataclass."""
-        with pytest.raises(Exception):  # FrozenInstanceError
+        with pytest.raises(AttributeError):  # FrozenInstanceError
             UNIVERSE.SEARCH_MAX_LIMIT = 999
 
     def test_singleton_values(self):
@@ -61,7 +61,7 @@ class TestMarketLimits:
 
     def test_frozen_immutability(self):
         """Should not allow modification of frozen dataclass."""
-        with pytest.raises(Exception):
+        with pytest.raises(AttributeError):
             MARKET.ORDERS_MAX_LIMIT = 999
 
     def test_singleton_values(self):
@@ -87,7 +87,7 @@ class TestSDELimits:
 
     def test_frozen_immutability(self):
         """Should not allow modification of frozen dataclass."""
-        with pytest.raises(Exception):
+        with pytest.raises(AttributeError):
             SDE.SEARCH_MAX_LIMIT = 999
 
     def test_singleton_values(self):
@@ -110,7 +110,7 @@ class TestSkillsLimits:
 
     def test_frozen_immutability(self):
         """Should not allow modification of frozen dataclass."""
-        with pytest.raises(Exception):
+        with pytest.raises(AttributeError):
             SKILLS.TRAINING_MAX_SKILLS = 999
 
     def test_singleton_values(self):
@@ -130,7 +130,7 @@ class TestFittingLimits:
 
     def test_frozen_immutability(self):
         """Should not allow modification of frozen dataclass."""
-        with pytest.raises(Exception):
+        with pytest.raises(AttributeError):
             FITTING.MAX_EFT_LENGTH = 999
 
     def test_singleton_values(self):
@@ -145,7 +145,7 @@ class TestGlobalLimits:
 
     def test_frozen_immutability(self):
         """Should not allow modification of frozen dataclass."""
-        with pytest.raises(Exception):
+        with pytest.raises(AttributeError):
             GLOBAL.MAX_OUTPUT_SIZE_BYTES = 999
 
     def test_singleton_values(self):

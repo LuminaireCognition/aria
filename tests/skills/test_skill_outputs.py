@@ -136,15 +136,15 @@ class TestStatusOutputGolden:
         mock_settings.killmail_db_path = mock_killmail_path
 
         with patch(
-            "aria_esi.mcp.activity.get_activity_cache",
+            "aria_esi.store.activity.get_activity_cache",
             return_value=mock_activity_cache,
         ):
             with patch(
-                "aria_esi.mcp.market.cache.get_market_cache",
+                "aria_esi.store.market.cache.get_market_cache",
                 return_value=mock_market_cache,
             ):
                 with patch(
-                    "aria_esi.mcp.market.database.get_market_database",
+                    "aria_esi.store.market.database.get_market_database",
                     return_value=mock_market_db,
                 ):
                     with patch(
@@ -198,15 +198,15 @@ class TestStatusOutputGolden:
     ):
         """Verify status output contains required fields."""
         with patch(
-            "aria_esi.mcp.activity.get_activity_cache",
+            "aria_esi.store.activity.get_activity_cache",
             return_value=mock_activity_cache,
         ):
             with patch(
-                "aria_esi.mcp.market.cache.get_market_cache",
+                "aria_esi.store.market.cache.get_market_cache",
                 return_value=mock_market_cache,
             ):
                 with patch(
-                    "aria_esi.mcp.market.database.get_market_database",
+                    "aria_esi.store.market.database.get_market_database",
                     return_value=mock_market_db,
                 ):
                     with patch(
@@ -267,15 +267,15 @@ class TestStatusOutputGolden:
     ):
         """Verify status reports healthy when all systems are working."""
         with patch(
-            "aria_esi.mcp.activity.get_activity_cache",
+            "aria_esi.store.activity.get_activity_cache",
             return_value=mock_activity_cache,
         ):
             with patch(
-                "aria_esi.mcp.market.cache.get_market_cache",
+                "aria_esi.store.market.cache.get_market_cache",
                 return_value=mock_market_cache,
             ):
                 with patch(
-                    "aria_esi.mcp.market.database.get_market_database",
+                    "aria_esi.store.market.database.get_market_database",
                     return_value=mock_market_db,
                 ):
                     with patch(

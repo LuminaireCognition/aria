@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
@@ -159,7 +159,7 @@ class NotificationWorker:
         except httpx.TimeoutException:
             logger.warning("ESI timeout for kill %d", kill.kill_id)
             return None
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
             logger.warning("ESI fetch error for kill %d: %s", kill.kill_id, e)
             return None
 
@@ -255,7 +255,7 @@ class NotificationWorker:
                     self._metrics.consecutive_errors = 0
                 except asyncio.CancelledError:
                     raise
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 -- service handler
                     self._metrics.consecutive_errors += 1
                     self._metrics.total_errors += 1
                     logger.error(
@@ -298,7 +298,7 @@ class NotificationWorker:
 
     async def _poll_once(self) -> None:
         """Execute a single poll iteration."""
-        self._metrics.last_poll_time = datetime.utcnow()
+        self._metrics.last_poll_time = datetime.now(UTC)
 
         # Check if we should send rollup
         if self.profile.rate_limit_strategy.force_rollup:
@@ -328,7 +328,7 @@ class NotificationWorker:
             system_ids = self.profile._v2_scope_systems
 
         # Query kills from store with system filtering
-        since = datetime.fromtimestamp(since_time) if since_time > 0 else None
+        since = datetime.fromtimestamp(since_time, tz=UTC) if since_time > 0 else None
         kills = await self.store.query_kills(
             systems=system_ids,
             since=since,
@@ -387,7 +387,7 @@ class NotificationWorker:
                             await self.esi_coordinator.complete_failure(
                                 kill.kill_id, "Fetch returned None", self.name
                             )
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 -- service handler
                         logger.warning("ESI fetch error for kill %d: %s", kill.kill_id, e)
                         await self.esi_coordinator.complete_failure(kill.kill_id, str(e), self.name)
 
@@ -427,7 +427,7 @@ class NotificationWorker:
 
                 if success:
                     self._metrics.notifications_sent += 1
-                    self._metrics.last_notification_time = datetime.utcnow()
+                    self._metrics.last_notification_time = datetime.now(UTC)
                 else:
                     self._metrics.notifications_failed += 1
 
@@ -547,7 +547,7 @@ class NotificationWorker:
             resolver = get_name_resolver()
             system_name = resolver.resolve_system_with_fallback(primary_system_id)
             system_name_line = f"📍 {system_name}\n"
-        except Exception:
+        except (ImportError, RuntimeError):
             pass  # Graceful degradation — omit system name line
 
         # Build title

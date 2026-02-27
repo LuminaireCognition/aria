@@ -17,7 +17,7 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-skills.read_skills.v1
-data_sources:
+prerequisite_files:
   - reference/activities/skill_plans.yaml
   - reference/skills/ship_efficacy_rules.yaml
   - reference/skills/meta_module_alternatives.yaml
@@ -25,10 +25,6 @@ external_sources: []
 ---
 
 # ARIA Skill Planning Advisor
-
-## Purpose
-
-Provide skill requirement analysis and training time estimates for ships, modules, skills, and activities in EVE Online. Implements the "Easy 80%" philosophy - achieving ~80% effectiveness with ~20% of the training time by capping most skills at Level IV.
 
 ## Command Syntax
 
@@ -49,25 +45,29 @@ Provide skill requirement analysis and training time estimates for ships, module
 --tier <tier>   Specify tier: minimum, easy_80, or full
 ```
 
-## MCP Tools Required
+## MCP Tool Availability
 
-This skill requires the following MCP tools from the `aria-universe` server:
+**CRITICAL:** If MCP tools are unavailable, inform the user that skill planning requires the SDE MCP server.
 
-| Tool | Purpose |
-|------|---------|
-| `sde_skill_requirements` | Get skill prerequisite tree for items |
-| `skill_training_time` | Calculate training time for skill plans |
-| `skill_easy_80_plan` | Generate Easy 80% plan with efficacy estimates |
-| `skill_minmax_plan` | Generate phased min-max plan with role-scoped optimization |
-| `skill_get_multipliers` | Get high-impact multiplier skills by role |
-| `skill_t2_requirements` | Check T2 items for Level V requirements |
-| `activity_skill_plan` | Get skill requirements for activities |
-| `activity_list` | List available activity templates |
-| `activity_search` | Search activities by keyword |
-| `activity_compare_tiers` | Compare training times across tiers |
-| `sde_item_info` | Look up item details and category |
+> **HALLUCINATION GUARD:** Every training time, skill name, skill level, and efficacy estimate MUST come from MCP tool responses in this session. Training times are calculated server-side based on skill rank and attributes — do NOT estimate or fabricate training times from training data. If the tool did not return a training time for a specific skill, do not invent one.
 
-**CRITICAL:** Check that these tools are available before proceeding. If unavailable, inform the user that skill planning requires the SDE MCP server.
+### Field → Source Mapping
+
+| Output Field | Required Source | Tool Call |
+|-------------|----------------|-----------|
+| Pilot's current skill levels | ESI skills endpoint | `uv run aria-esi skills` |
+| Easy 80% plan (categorized skills) | Skills dispatcher | `skills(action="easy_80_plan", item="...", current_skills={...})` |
+| Easy 80% training time | Skills dispatcher response `easy_80_time` | `skills(action="easy_80_plan", ...)` |
+| Full mastery training time | Skills dispatcher response `full_mastery_time` | `skills(action="easy_80_plan", ...)` |
+| Time savings (Easy 80% vs full) | Skills dispatcher response `time_savings` | `skills(action="easy_80_plan", ...)` |
+| Efficacy estimate (% effectiveness) | Skills dispatcher response `efficacy_estimate` | `skills(action="easy_80_plan", ...)` |
+| Meta module alternatives | Skills dispatcher response `meta_suggestions` | `skills(action="easy_80_plan", ...)` |
+| Min-max phased plan | Skills dispatcher | `skills(action="minmax_plan", item="...", current_skills={...})` |
+| T2 Level V requirements | Skills dispatcher | `skills(action="t2_requirements", item="...")` |
+| Activity skill tiers | Skills dispatcher | `skills(action="activity_plan", activity="...", tier="all")` |
+| Item category/description | SDE dispatcher | `sde(action="item_info", item="...")` (optional) |
+| Ship efficacy rules | Prerequisite file | `reference/skills/ship_efficacy_rules.yaml` (pre-read) |
+| Meta alternatives reference | Prerequisite file | `reference/skills/meta_module_alternatives.yaml` (pre-read) |
 
 ## Pilot Skills — Mandatory for Accurate Training Times
 
@@ -209,16 +209,9 @@ Returns:
 - `skills_requiring_v`: Skills that must be at Level V
 - `meta_alternatives`: Suggested alternatives to avoid V requirements
 
-### Step 4: Apply Easy 80% Rules
+### Step 4: Format Output
 
-The `skill_easy_80_plan` tool automatically applies these rules:
-
-1. **Cap most skills at Level IV** - 80% bonus for ~20% of total time
-2. **Train to V only when required** - T2 modules, ship prerequisites
-3. **Identify multiplier skills** - Skills with outsized impact (Drone Interfacing, etc.)
-4. **Calculate efficacy** - Estimate effectiveness at Easy 80% levels
-
-### Step 5: Format Output
+The `easy_80_plan` response includes categorized skills, efficacy estimates, and multiplier flags. Present these directly.
 
 ## Response Format
 
@@ -301,28 +294,7 @@ Use `activity_list` to see available activities by category:
 - research: R&D agents, blueprint research, copying
 - trade: Station trading, hauling
 
-## Training Time Reference
-
-| Level | Multiplier | Cumulative Time (Rank 1) |
-|-------|------------|--------------------------|
-| I | 1x | ~8 min |
-| II | 6x | ~45 min |
-| III | 32x | ~4h 20min |
-| IV | 181x | ~1d 30min |
-| V | 1024x | ~5d 15h |
-
-**Key insight:** Level V takes ~4.5x longer than I-IV combined, but only adds 20% more bonus.
-
-## Default Attributes
-
-When calculating training time, use balanced attributes if not specified:
-- Intelligence: 20
-- Memory: 20
-- Perception: 20
-- Willpower: 20
-- Charisma: 19
-
-This represents a fresh character with no implants or remaps.
+**Key insight:** Level V takes ~4.5x longer than I-IV combined, but only adds 20% more bonus. This is why the Easy 80% plan caps most skills at IV.
 
 ## Error Handling
 
@@ -369,123 +341,45 @@ FULL MASTERY:
 
 ### Ship Example (ESI unavailable — from-scratch fallback)
 
-```
-===============================================================================
-ARIA SKILL PLAN
-Vexor Navy Issue - Cruiser
+Same format as above, but prepend the warning banner and label all times "from scratch":
 
+```
 ⚠️ ESI offline — all training times are FROM-SCRATCH estimates.
    Actual remaining time will be lower if you already have some skills.
--------------------------------------------------------------------------------
-REQUIREMENTS TO SIT IN HULL:
-  Spaceship Command III       ~4h 20min
-  Gallente Frigate III        ~4h 20min
-  Gallente Destroyer III      ~8h 40min
-  Gallente Cruiser III        ~1d 1h
-
-  Total: 4 skills, ~1d 18h from scratch
--------------------------------------------------------------------------------
-EASY 80% PLAN:
-  Gallente Cruiser IV         ~4d 22h
-  Drone Interfacing IV        ~4d 22h
-  Medium Drone Operation IV   ~1d 20h
-  Drones V                    ~5d 15h
-
-  Total: ~16d 19h from scratch
-  Estimated efficacy: ~82% of max DPS, ~85% drone HP
-===============================================================================
 ```
 
 ### Module Example
 
-```
-===============================================================================
-ARIA SKILL PLAN
-Medium Armor Repairer II - Module
--------------------------------------------------------------------------------
-REQUIREMENTS TO FIT:
-  Mechanics V                 ~4d 9h (prerequisite for T2)
-  Repair Systems IV           ~1d 20h
-  Hull Upgrades IV            ~1d 20h
-
-  Total: 3 skills, ~7d 15h training
--------------------------------------------------------------------------------
-EASY 80%:
-  Same as above - T2 modules have fixed requirements
-
-  Meta 4 Alternative: 'Meditation' Medium Armor Repairer I
-  - Requires only Repair Systems I
-  - ~90% of T2 rep amount
-  - Saves ~7d training time
-===============================================================================
-```
+Same structure as ship example. Unique aspects for modules:
+- T2 modules have fixed requirements — Easy 80% may equal full requirements
+- Show **Meta 4 Alternative** when T2 requires Level V (name, reduced requirements, approximate performance vs T2)
 
 ### Activity Example
 
-```
-===============================================================================
-ARIA SKILL PLAN
-Gas Cloud Harvesting - Activity
--------------------------------------------------------------------------------
-MINIMUM (to start):
-  Mining IV                   (prerequisite for Gas Cloud Harvesting)
-  Mining Frigate I            ~8min
-  Gas Cloud Harvesting I      ~4h
+Activity plans use three tiers instead of the ship/module format:
+- **MINIMUM** — bare minimum to participate (from `activity_plan` tier="minimum")
+- **EASY 80%** — ~80% effectiveness (tier="easy_80")
+- **FULL** — maximum effectiveness (tier="full")
 
-  Total: ~4h 10min to start huffing in a Venture
--------------------------------------------------------------------------------
-EASY 80% PLAN:
-  Mining Frigate IV           ~1d 1h
-  Gas Cloud Harvesting IV     ~1d 20h
-
-  Total: ~3d training
-  Yield: ~80% of maximum m³/hour
--------------------------------------------------------------------------------
-FULL MASTERY:
-  Mining Frigate V            ~4d 22h
-  Gas Cloud Harvesting V      ~9d 6h
-  Expedition Frigates IV      ~4d 22h (for Prospect)
-
-  Total: ~19d training
-
-SHIPS: Venture (minimum), Prospect (advanced, can cloak)
-NOTES:
-  - Gas sites spawn rats after 15-20 minutes
-  - Most valuable gas is in wormholes and null-sec
-===============================================================================
-```
-
-## Contextual Suggestions
-
-After providing a skill plan, suggest ONE relevant follow-up:
-
-| Context | Suggest |
-|---------|---------|
-| Ship skill plan | "Check `/fitting` for recommended fits" |
-| Module with hard reqs | "Try `/find` to locate the module" |
-| Long training time | "Your `/skillqueue` shows current training" |
+Include recommended ships and activity-specific notes from the tool response.
 
 ## Multiplier Skills
 
-Some skills have outsized impact on effectiveness. Use `skill_get_multipliers` to identify these:
+Use `skills(action="get_multipliers")` to identify high-impact skills with outsized effectiveness per level. Train these to IV minimum, even if not strictly required.
 
-| Skill | Effect | Priority |
-|-------|--------|----------|
-| Drone Interfacing | +10% drone damage/level | High |
-| Surgical Strike | +3% turret damage/level | Medium |
-| Rapid Firing | +4% turret ROF/level | Medium |
-| Warhead Upgrades | +2% missile damage/level | Medium |
-| Rapid Launch | +3% missile ROF/level | Medium |
-| Astrogeology | +5% mining yield/level | High |
+## Anti-Patterns
 
-Train these to IV minimum, even if not strictly required.
+❌ **WRONG:** Show "Gallente Cruiser V: 29d 11h" when no MCP response contained that training time
+✅ **RIGHT:** Training times come ONLY from `skills(action="easy_80_plan")` or `skills(action="training_time")` responses
 
-## Reference Data
+❌ **WRONG:** Call `sde(action="skill_requirements")` alongside `easy_80_plan` (the plan already includes prerequisites)
+✅ **RIGHT:** Follow the Golden Path — `easy_80_plan` returns the full categorized prerequisite tree
 
-For detailed efficacy rules, meta alternatives, and activity definitions:
-- `reference/skills/ship_efficacy_rules.yaml` - Per-role skill impact data
-- `reference/skills/meta_module_alternatives.yaml` - T2 → Meta 4 suggestions
-- `reference/activities/skill_plans.yaml` - Activity skill templates
+❌ **WRONG:** Present per-skill training times that don't appear in any tool response field
+✅ **RIGHT:** The `easy_80_plan` response includes `easy_80_time` and `full_mastery_time` totals — use those
+
+❌ **WRONG:** Call `easy_80_plan` without `current_skills` and present times as accurate
+✅ **RIGHT:** Without `current_skills`, ALL times are from-scratch estimates. Show the ⚠️ ESI warning.
 
 ## Behavior Notes
 
@@ -495,11 +389,3 @@ For detailed efficacy rules, meta alternatives, and activity definitions:
 - Suggest meta alternatives when appropriate
 - Keep output focused - details on request
 - Highlight multiplier skills that have high impact
-
-## Persona Adaptation
-
-This skill supports persona overlays. When active persona has an overlay file, load additional context from:
-
-```
-personas/{active_persona}/skill-overlays/skillplan.md
-```

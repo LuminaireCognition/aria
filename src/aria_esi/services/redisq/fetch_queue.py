@@ -85,7 +85,7 @@ async def fetch_killmail(
             success=False,
             error="Request timeout",
         )
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         return FetchResult(
             kill_id=kill_id,
             success=False,
@@ -255,7 +255,7 @@ class KillFetchQueue:
                         if self._on_kill_processed:
                             self._on_kill_processed(processed)
 
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001 -- service handler
                         logger.warning("Parse error for %d: %s", kill.kill_id, e)
                         self._error_count += 1
                 else:

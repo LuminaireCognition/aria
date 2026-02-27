@@ -69,7 +69,7 @@ def validate_interest_config(config: dict[str, Any]) -> ValidationResult:
     # Parse config
     try:
         parsed = InterestConfigV2.from_dict(config)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- service handler
         errors.append(
             ValidationError(
                 field="interest",

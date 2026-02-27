@@ -355,7 +355,7 @@ class PrefetchScorer:
                 try:
                     score = provider.score(None, system_id, merged_config)
                     signal_scores[signal_name] = score
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 -- service handler
                     logger.warning(f"Prefetch signal {category}.{signal_name} failed: {e}")
                     signal_scores[signal_name] = SignalScore(
                         signal=signal_name,
@@ -408,7 +408,7 @@ class PrefetchScorer:
                 match = provider.evaluate(None, system_id, self._engine._context)
                 if match.matched:
                     return rule_id
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning(f"Prefetch rule {rule_id} evaluation failed: {e}")
 
         return None
@@ -439,7 +439,7 @@ class PrefetchScorer:
                 match = provider.evaluate(None, system_id, self._engine._context)
                 if match.matched:
                     return rule_id
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.warning(f"Prefetch rule {rule_id} evaluation failed: {e}")
 
         return None

@@ -95,7 +95,7 @@ class TestClipboardParser:
 
     def test_parse_simple_clipboard(self):
         """Parse simple clipboard format with item and quantity."""
-        from aria_esi.mcp.market.clipboard import parse_clipboard_to_dict
+        from aria_esi.store.market.clipboard import parse_clipboard_to_dict
 
         text = "Tritanium\t1000"
         result = parse_clipboard_to_dict(text)
@@ -108,7 +108,7 @@ class TestClipboardParser:
 
     def test_parse_multiline_clipboard(self):
         """Parse multiline clipboard with multiple items."""
-        from aria_esi.mcp.market.clipboard import parse_clipboard_to_dict
+        from aria_esi.store.market.clipboard import parse_clipboard_to_dict
 
         text = "Tritanium\t1000\nPyerite\t500"
         result = parse_clipboard_to_dict(text)
@@ -117,7 +117,7 @@ class TestClipboardParser:
 
     def test_parse_empty_clipboard(self):
         """Parse empty clipboard returns empty list."""
-        from aria_esi.mcp.market.clipboard import parse_clipboard_to_dict
+        from aria_esi.store.market.clipboard import parse_clipboard_to_dict
 
         text = ""
         result = parse_clipboard_to_dict(text)
@@ -126,7 +126,7 @@ class TestClipboardParser:
 
     def test_parse_clipboard_with_various_formats(self):
         """Parse clipboard handles various format variations."""
-        from aria_esi.mcp.market.clipboard import parse_clipboard_to_dict
+        from aria_esi.store.market.clipboard import parse_clipboard_to_dict
 
         # Tab-separated
         text = "Tritanium\t1,000"

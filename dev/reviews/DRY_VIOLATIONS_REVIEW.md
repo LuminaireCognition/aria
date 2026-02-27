@@ -36,8 +36,8 @@ The drone damage type consolidation into `reference/mechanics/drones.md` success
 - `.claude/skills/mission-brief/SKILL.md` - Removed 38-line quick reference section
 - `reference/mechanics/combat_anomalies.md` - Removed tank requirements table
 - `reference/mechanics/l4_missions_guide.md` - Removed damage by faction table
-- `reference/ships/fittings/myrmidon_l3_general.md` - Removed faction→drone mapping table
-- `reference/ships/fittings/vexor_serpentis.md` - Removed Serpentis threat profile table
+- `reference/ships/fittings/myrmidon_l3_general.md` - Removed faction→drone mapping table (file since deleted)
+- `reference/ships/fittings/vexor_serpentis.md` - Removed Serpentis threat profile table (file since deleted)
 
 **Original Issue (for reference):**
 Inline damage type tables were duplicated across multiple files, creating risk of inconsistent tank/damage recommendations.
@@ -54,7 +54,7 @@ Inline damage type tables were duplicated across multiple files, creating risk o
 - Created comprehensive `reference/mechanics/mining_ships.md` with wiki-verified data
 - Updated 4 faction progression files to reference the master file
 - Updated `reference/mechanics/fleet_mining.md` to reference the master file
-- Updated fitting files (`procurer_fleet.md`, `retriever_solo.md`) to reference the master file
+- Updated fitting files (`procurer_fleet.md`, `retriever_solo.md`) to reference the master file (files since deleted)
 - Fixed incorrect ore hold values discovered during consolidation:
   - Covetor: 7,000 → 9,000 m³
   - Skiff: 15,000 → 18,500 m³
@@ -68,8 +68,8 @@ Inline damage type tables were duplicated across multiple files, creating risk o
 - `reference/ships/amarr_progression.md`
 - `reference/ships/minmatar_progression.md`
 - `reference/mechanics/fleet_mining.md`
-- `reference/ships/fittings/procurer_fleet.md`
-- `reference/ships/fittings/retriever_solo.md`
+- `reference/ships/fittings/procurer_fleet.md` (file since deleted)
+- `reference/ships/fittings/retriever_solo.md` (file since deleted)
 
 **Original Issue (for reference):**
 The identical mining ship comparison table was copy-pasted across all faction progression files with several incorrect ore hold values.
@@ -94,11 +94,11 @@ The identical mining ship comparison table was copy-pasted across all faction pr
 **Files Updated:**
 - `reference/mechanics/l4_missions_guide.md` - Removed ammo selection table
 - `reference/mechanics/battlecruiser_fitting.md` - Removed faction→ammo/drone table
-- `reference/ships/fittings/drake_l3_general.md` - Removed missile ammo table
-- `reference/ships/fittings/hurricane_l3_general.md` - Removed projectile ammo table
-- `reference/ships/fittings/raven_l4_general.md` - Removed missile ammo table
-- `reference/ships/fittings/caracal_l2_general.md` - Removed missile ammo table
-- `reference/ships/fittings/kestrel_l1_combat.md` - Removed faction→rocket table
+- `reference/ships/fittings/drake_l3_general.md` - Removed missile ammo table (file since deleted)
+- `reference/ships/fittings/hurricane_l3_general.md` - Removed projectile ammo table (file since deleted)
+- `reference/ships/fittings/raven_l4_general.md` - Removed missile ammo table (file since deleted)
+- `reference/ships/fittings/caracal_l2_general.md` - Removed missile ammo table (file since deleted)
+- `reference/ships/fittings/kestrel_l1_combat.md` - Removed faction→rocket table (file since deleted)
 
 **Original Issue (for reference):**
 Inline damage type → ammunition mappings were duplicated across multiple fitting and guide files, creating risk of inconsistent ammo recommendations.

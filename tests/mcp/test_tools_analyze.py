@@ -13,8 +13,6 @@ import igraph as ig
 import numpy as np
 import pytest
 
-from aria_esi.mcp.errors import InvalidParameterError, RouteNotFoundError
-from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.dispatchers.universe import (
     _analyze_route,
     _find_chokepoints,
@@ -23,6 +21,8 @@ from aria_esi.mcp.dispatchers.universe import (
     _validate_connectivity,
     register_analyze_tools,
 )
+from aria_esi.mcp.errors import InvalidParameterError, RouteNotFoundError
+from aria_esi.mcp.tools import register_tools
 from aria_esi.universe import UniverseGraph
 
 # =============================================================================

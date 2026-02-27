@@ -1,6 +1,5 @@
 """Tests for sovereignty data models."""
 
-import pytest
 
 from aria_esi.services.sovereignty.models import (
     AllianceInfo,

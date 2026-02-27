@@ -93,14 +93,14 @@ def get_ship_group_ids() -> set[int]:
         if _ship_group_ids is not None:
             return _ship_group_ids
         try:
-            from aria_esi.mcp.sde.queries import get_sde_query_service
+            from aria_esi.core.sde_bridge import get_ship_group_ids_from_sde
 
-            sde_result = get_sde_query_service().get_all_ship_group_ids()
+            sde_result = get_ship_group_ids_from_sde()
             # Guard against corrupted/empty SDE returning empty set.
             # Note: a non-empty but smaller-than-expected set (e.g., CCP removed
             # a ship group) is accepted as valid — the SDE is authoritative.
             _ship_group_ids = sde_result if sde_result else _SHIP_GROUP_IDS_FALLBACK
-        except Exception:
+        except (ImportError, RuntimeError):
             _ship_group_ids = _SHIP_GROUP_IDS_FALLBACK
         return _ship_group_ids
 

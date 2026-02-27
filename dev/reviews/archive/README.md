@@ -20,6 +20,12 @@ Point-in-time external AI model reviews preserved for historical reference.
 | DocumentationUserExperienceReviewGemini3Pro-2026-01-31-000.md | 2026-01-31 | Gemini 3 Pro | UX assessment |
 | MCPIntegrationReviewGemini3Pro-2026-01-31-000.md | 2026-01-31 | Gemini 3 Pro | MCP server review |
 | TestInfrastructureQualityAssuranceReviewGemini3Pro-2026-01-31-000.md | 2026-01-31 | Gemini 3 Pro | Test coverage |
+| ACCRETION_AUDIT_2026-02-14.md | 2026-02-14 | Claude Opus 4.5 | Superseded by ACCRETION_AUDIT_2026-02-24.md |
+| SECURITY_000.md | 2026-02-02 | Claude Opus 4.5 | Superseded by SECURITY_2026-02-24.md |
+| SECURITY_001.md | 2026-02-03 | Claude Opus 4.5 | Superseded by SECURITY_2026-02-24.md |
+| PYTHON_REVIEW_2026-01.md | 2026-01-23 | Claude Opus 4.5 | Superseded by PYTHON_REVIEW_2026-02-24.md |
+| PROJECT_REVIEW_2026-01.md | 2026-01-18 | Claude | Superseded by SYSTEM_DESIGN_2026-02-24.md |
+| TEST_HARNESS_000.md | 2026-01-24 | Claude | Superseded by TEST_HARNESS_2026-02-24.md |
 
 ## Purpose
 
@@ -30,5 +36,4 @@ These reviews capture external model assessments at specific points in time. The
 
 ## Active Reviews
 
-Current reviews with ongoing remediation tracking remain in `dev/reviews/`:
-- `PROJECT_REVIEW_2026-01.md` - Canonical review with remediation status
+Current reviews with ongoing remediation tracking remain in `dev/reviews/`. See the 2026-02-24 batch for the latest baseline.

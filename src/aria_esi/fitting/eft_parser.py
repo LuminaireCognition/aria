@@ -40,11 +40,12 @@ import re
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
+from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
 from aria_esi.models.fitting import ParsedDrone, ParsedFit, ParsedModule
 
 if TYPE_CHECKING:
-    from aria_esi.mcp.market.database import MarketDatabase
+    from aria_esi.store.market.database import MarketDatabase
 
 logger = get_logger(__name__)
 
@@ -54,7 +55,7 @@ logger = get_logger(__name__)
 # =============================================================================
 
 
-class EFTParseError(Exception):
+class EFTParseError(AriaError):
     """Raised when EFT parsing fails."""
 
     def __init__(self, message: str, line_number: int | None = None):
@@ -298,18 +299,50 @@ class EFTParser:
                     suggestions = self._db.find_type_suggestions(type_name)
                     raise TypeResolutionError(type_name, suggestions)
 
-                drone = ParsedDrone(
-                    type_id=type_info.type_id,
-                    type_name=type_info.type_name,
-                    quantity=quantity,
-                )
-
-                # Determine if drone or cargo based on section
+                # Determine if drone or cargo based on section and item category
                 if current_section == ParseSection.CARGO:
-                    fit.cargo.append(drone)
+                    fit.cargo.append(
+                        ParsedDrone(
+                            type_id=type_info.type_id,
+                            type_name=type_info.type_name,
+                            quantity=quantity,
+                        )
+                    )
                 else:
-                    # Assume drones until we hit cargo section
-                    fit.drones.append(drone)
+                    # Check item category to distinguish drones from charges/ammo
+                    # Category 18 = Drone, Category 8 = Charge
+                    is_charge = False
+                    category_resolved = False
+                    try:
+                        conn = self._db._conn  # noqa: SLF001
+                        if conn is not None and hasattr(conn, "execute"):
+                            cat_cursor = conn.execute(
+                                "SELECT category_id FROM types WHERE type_id = ?",
+                                (type_info.type_id,),
+                            )
+                            cat_row = cat_cursor.fetchone()
+                            if cat_row and isinstance(cat_row[0], int):
+                                category_resolved = True
+                                if cat_row[0] == 8:  # Charge category
+                                    is_charge = True
+                    except Exception:  # noqa: BLE001
+                        pass
+
+                    if not category_resolved:
+                        # DB not available — use quantity heuristic
+                        # Drones rarely exceed x10; ammo is typically x100+
+                        if quantity > 10:
+                            is_charge = True
+
+                    item = ParsedDrone(
+                        type_id=type_info.type_id,
+                        type_name=type_info.type_name,
+                        quantity=quantity,
+                    )
+                    if is_charge:
+                        fit.cargo.append(item)
+                    else:
+                        fit.drones.append(item)
                 continue
 
             # Parse as module
@@ -421,7 +454,7 @@ def parse_eft(eft_string: str, db: MarketDatabase | None = None) -> ParsedFit:
         TypeResolutionError: If a type name cannot be resolved
     """
     if db is None:
-        from aria_esi.mcp.market.database import get_market_database
+        from aria_esi.store.market.database import get_market_database
 
         db = get_market_database()
 

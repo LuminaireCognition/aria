@@ -151,7 +151,7 @@ class DeliveryRouter:
                     failures.append(provider_name)
                     if not routing.fallback_on_failure:
                         break
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- service handler
                 logger.error(f"Delivery provider {provider_name} raised: {e}")
                 failures.append(provider_name)
                 if not routing.fallback_on_failure:

@@ -106,7 +106,7 @@ def fetch_esi_killmail(client: ESIClient, kill_id: int, kill_hash: str) -> dict[
     try:
         result = client.get(f"/killmails/{kill_id}/{kill_hash}/")
         return result if isinstance(result, dict) else None
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         logger.warning("Failed to fetch killmail from ESI: %s", e)
         return None
 
@@ -139,7 +139,7 @@ def get_threat_context(system_id: int) -> dict[str, Any] | None:
             if activity
             else None,
         }
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         logger.debug("Threat cache unavailable: %s", e)
         return None
 

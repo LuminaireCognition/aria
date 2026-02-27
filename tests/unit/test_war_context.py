@@ -6,7 +6,7 @@ Tests war relationship detection, inference, and caching.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from aria_esi.services.redisq.models import ProcessedKill
 from aria_esi.services.redisq.war_context import (
@@ -33,7 +33,7 @@ def make_kill(
 ) -> ProcessedKill:
     """Create a test kill with sensible defaults."""
     if kill_time is None:
-        kill_time = datetime.utcnow()
+        kill_time = datetime.now(UTC)
     if attacker_corps is None:
         attacker_corps = [100]
     if attacker_alliances is None:
@@ -66,14 +66,14 @@ class TestWarRelationship:
         rel = WarRelationship(
             aggressor_id=1000001,
             defender_id=1000002,
-            first_observed=datetime.utcnow(),
-            last_observed=datetime.utcnow(),
+            first_observed=datetime.now(UTC),
+            last_observed=datetime.now(UTC),
         )
         assert rel.is_stale() is False
 
     def test_relationship_stale_after_ttl(self):
         """Relationships older than TTL should be stale."""
-        old_time = datetime.utcnow() - timedelta(
+        old_time = datetime.now(UTC) - timedelta(
             seconds=WAR_RELATIONSHIP_TTL_SECONDS + 100
         )
         rel = WarRelationship(
@@ -86,7 +86,7 @@ class TestWarRelationship:
 
     def test_touch_updates_last_observed(self):
         """Touch should update last_observed and increment kill_count."""
-        old_time = datetime.utcnow() - timedelta(hours=1)
+        old_time = datetime.now(UTC) - timedelta(hours=1)
         rel = WarRelationship(
             aggressor_id=1000001,
             defender_id=1000002,
@@ -342,7 +342,7 @@ class TestWarContextProvider:
         provider = WarContextProvider()
 
         # Add a stale relationship
-        old_time = datetime.utcnow() - timedelta(
+        old_time = datetime.now(UTC) - timedelta(
             seconds=WAR_RELATIONSHIP_TTL_SECONDS + 100
         )
         rel = WarRelationship(

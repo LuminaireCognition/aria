@@ -536,31 +536,24 @@ class TestModuleExports:
 # =============================================================================
 
 from aria_esi.mcp.models import (
-    ActivityLevel,
     ActivityResult,
     CacheLayerStatus,
     CacheStatusResult,
-    ChokepointType,
-    EscapeDestinationType,
     EscapeRoute,
-    FWContestedStatus,
     FWFrontlinesResult,
     FWSystem,
     GatecampRisk,
     GatecampRiskResult,
-    HotspotSystem,
     HotspotsResult,
+    HotspotSystem,
     LocalAreaResult,
     LocalSystemActivity,
     OptimizedWaypointResult,
-    RiskLevel,
     SecurityBorder,
     SystemActivity,
-    ThreatLevel,
     ThreatSummary,
     WaypointInfo,
 )
-
 
 # =============================================================================
 # WaypointInfo Tests

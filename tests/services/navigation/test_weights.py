@@ -9,8 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.mcp.conftest import create_mock_universe, STANDARD_SYSTEMS, STANDARD_EDGES
-
+from tests.mcp.conftest import STANDARD_EDGES, STANDARD_SYSTEMS, create_mock_universe
 
 # =============================================================================
 # Fixtures
@@ -44,9 +43,9 @@ class TestWeightConstants:
     def test_safe_mode_weights(self):
         """Safe mode weights are defined."""
         from aria_esi.services.navigation.weights import (
-            WEIGHT_NORMAL,
             WEIGHT_LOWSEC_ENTRY,
             WEIGHT_LOWSEC_STAY,
+            WEIGHT_NORMAL,
             WEIGHT_NULLSEC,
         )
 
@@ -58,9 +57,9 @@ class TestWeightConstants:
     def test_unsafe_mode_weights(self):
         """Unsafe mode weights are defined."""
         from aria_esi.services.navigation.weights import (
-            WEIGHT_UNSAFE_NULLSEC,
-            WEIGHT_UNSAFE_LOWSEC,
             WEIGHT_UNSAFE_HIGHSEC,
+            WEIGHT_UNSAFE_LOWSEC,
+            WEIGHT_UNSAFE_NULLSEC,
         )
 
         assert WEIGHT_UNSAFE_NULLSEC == 1.0
@@ -93,7 +92,7 @@ class TestComputeAvoidWeights:
 
     def test_with_avoidance(self, standard_universe):
         """Avoided systems get infinite weight on all touching edges."""
-        from aria_esi.services.navigation.weights import compute_avoid_weights, WEIGHT_AVOID
+        from aria_esi.services.navigation.weights import WEIGHT_AVOID, compute_avoid_weights
 
         # Avoid Perimeter (index 1)
         weights = compute_avoid_weights(standard_universe, {1})
@@ -108,7 +107,7 @@ class TestComputeAvoidWeights:
 
     def test_multiple_avoidance(self, standard_universe):
         """Multiple avoided systems all get infinite weight."""
-        from aria_esi.services.navigation.weights import compute_avoid_weights, WEIGHT_AVOID
+        from aria_esi.services.navigation.weights import WEIGHT_AVOID, compute_avoid_weights
 
         # Avoid Perimeter (1) and Maurasi (2)
         weights = compute_avoid_weights(standard_universe, {1, 2})
@@ -129,7 +128,7 @@ class TestComputeSafeWeights:
 
     def test_highsec_to_highsec_normal(self, standard_universe):
         """High-sec to high-sec edge has normal weight."""
-        from aria_esi.services.navigation.weights import compute_safe_weights, WEIGHT_NORMAL
+        from aria_esi.services.navigation.weights import WEIGHT_NORMAL, compute_safe_weights
 
         weights = compute_safe_weights(standard_universe)
 
@@ -145,7 +144,7 @@ class TestComputeSafeWeights:
 
     def test_highsec_lowsec_border_penalized(self, standard_universe):
         """Edge between high-sec and low-sec has entry penalty (symmetric)."""
-        from aria_esi.services.navigation.weights import compute_safe_weights, WEIGHT_LOWSEC_ENTRY
+        from aria_esi.services.navigation.weights import WEIGHT_LOWSEC_ENTRY, compute_safe_weights
 
         weights = compute_safe_weights(standard_universe)
 
@@ -161,7 +160,7 @@ class TestComputeSafeWeights:
 
     def test_lowsec_nullsec_border_heavily_penalized(self, standard_universe):
         """Edge between low-sec and null-sec has heavy penalty (symmetric)."""
-        from aria_esi.services.navigation.weights import compute_safe_weights, WEIGHT_NULLSEC
+        from aria_esi.services.navigation.weights import WEIGHT_NULLSEC, compute_safe_weights
 
         weights = compute_safe_weights(standard_universe)
 
@@ -177,7 +176,7 @@ class TestComputeSafeWeights:
 
     def test_safe_weights_with_avoidance(self, standard_universe):
         """Safe weights respects avoidance on either endpoint."""
-        from aria_esi.services.navigation.weights import compute_safe_weights, WEIGHT_AVOID
+        from aria_esi.services.navigation.weights import WEIGHT_AVOID, compute_safe_weights
 
         # Avoid Perimeter (1)
         weights = compute_safe_weights(standard_universe, avoid_systems={1})
@@ -199,8 +198,8 @@ class TestComputeUnsafeWeights:
     def test_nullsec_edge_preferred(self, standard_universe):
         """Edge touching null-sec has lowest weight in unsafe mode."""
         from aria_esi.services.navigation.weights import (
-            compute_unsafe_weights,
             WEIGHT_UNSAFE_NULLSEC,
+            compute_unsafe_weights,
         )
 
         weights = compute_unsafe_weights(standard_universe)
@@ -218,8 +217,8 @@ class TestComputeUnsafeWeights:
     def test_lowsec_edge_acceptable(self, standard_universe):
         """Edge between high-sec and low-sec has moderate weight in unsafe mode."""
         from aria_esi.services.navigation.weights import (
-            compute_unsafe_weights,
             WEIGHT_UNSAFE_LOWSEC,
+            compute_unsafe_weights,
         )
 
         weights = compute_unsafe_weights(standard_universe)
@@ -237,8 +236,8 @@ class TestComputeUnsafeWeights:
     def test_highsec_edge_avoided(self, standard_universe):
         """Edge between two high-sec systems has high weight in unsafe mode."""
         from aria_esi.services.navigation.weights import (
-            compute_unsafe_weights,
             WEIGHT_UNSAFE_HIGHSEC,
+            compute_unsafe_weights,
         )
 
         weights = compute_unsafe_weights(standard_universe)
@@ -255,7 +254,7 @@ class TestComputeUnsafeWeights:
 
     def test_unsafe_weights_with_avoidance(self, standard_universe):
         """Unsafe weights respects avoidance on either endpoint."""
-        from aria_esi.services.navigation.weights import compute_unsafe_weights, WEIGHT_AVOID
+        from aria_esi.services.navigation.weights import WEIGHT_AVOID, compute_unsafe_weights
 
         # Avoid Sivala (4)
         weights = compute_unsafe_weights(standard_universe, avoid_systems={4})
@@ -281,8 +280,8 @@ class TestUndirectedSymmetry:
     def test_safe_border_weight_deterministic(self):
         """Border edge weight is the same regardless of igraph edge direction."""
         from aria_esi.services.navigation.weights import (
-            compute_safe_weights,
             WEIGHT_LOWSEC_ENTRY,
+            compute_safe_weights,
         )
 
         # Create two universes with the same edge but reversed vertex order
@@ -307,8 +306,8 @@ class TestUndirectedSymmetry:
     def test_avoid_blocks_regardless_of_direction(self):
         """Avoided system is blocked whether it's edge.source or edge.target."""
         from aria_esi.services.navigation.weights import (
-            compute_avoid_weights,
             WEIGHT_AVOID,
+            compute_avoid_weights,
         )
 
         systems = [
@@ -331,8 +330,8 @@ class TestUndirectedSymmetry:
     def test_unsafe_border_weight_deterministic(self):
         """Unsafe mode uses most dangerous endpoint regardless of direction."""
         from aria_esi.services.navigation.weights import (
-            compute_unsafe_weights,
             WEIGHT_UNSAFE_LOWSEC,
+            compute_unsafe_weights,
         )
 
         systems = [
@@ -354,8 +353,8 @@ class TestUndirectedSymmetry:
     def test_territory_preference_symmetric(self):
         """Territory preference applies when neither endpoint is in territory."""
         from aria_esi.services.navigation.weights import (
-            apply_territory_preference,
             WEIGHT_TERRITORY_PENALTY,
+            apply_territory_preference,
         )
 
         systems = [

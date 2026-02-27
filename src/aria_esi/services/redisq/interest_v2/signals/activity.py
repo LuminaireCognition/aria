@@ -166,7 +166,7 @@ class ActivitySignal(BaseSignalProvider):
                     "spike_detected": is_spike,
                     "sustained_kills": int(current),
                 }
-        except Exception:
+        except Exception:  # noqa: BLE001 -- service handler
             logger.debug("Failed to query spike data for system %s", system_id, exc_info=True)
         return None
 
@@ -185,7 +185,7 @@ class ActivitySignal(BaseSignalProvider):
                 "spike_detected": False,
                 "sustained_kills": count,
             }
-        except Exception:
+        except Exception:  # noqa: BLE001 -- service handler
             logger.debug("Failed to query sustained data for system %s", system_id, exc_info=True)
         return None
 

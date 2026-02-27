@@ -386,7 +386,7 @@ class TestBuildSystemInfo:
 
         # Should have adjacent_lowsec info
         assert info.adjacent_lowsec is not None
-        lowsec_names = [s for s in info.adjacent_lowsec]
+        lowsec_names = list(info.adjacent_lowsec)
         assert "Sivala" in lowsec_names
 
 

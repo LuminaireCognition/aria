@@ -831,7 +831,7 @@ The proposal correctly identifies reusable components:
 
 ## References
 
-- Original proposal: `dev/proposals/BLUEPRINT_SEARCH_PROPOSAL.md`
+- Original proposal: BLUEPRINT_SEARCH_PROPOSAL.md (deleted)
 - Current NPC tool: `src/aria_esi/mcp/market/tools_npc.py`
 - Universe graph: `src/aria_esi/universe/graph.py`
 - Market cache: `src/aria_esi/mcp/market/cache.py`

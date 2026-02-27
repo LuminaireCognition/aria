@@ -15,7 +15,6 @@ import sqlite3
 from typing import TYPE_CHECKING
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
 from aria_esi.models.market import (
     ManagementError,
     MarketScopeInfo,
@@ -30,6 +29,7 @@ from aria_esi.models.market import (
     WatchlistItemInfo,
     WatchlistListResult,
 )
+from aria_esi.store.market.database import get_market_database
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP

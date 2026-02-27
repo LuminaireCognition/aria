@@ -83,7 +83,7 @@ class PresetLoader:
                     self._user_presets[name.lower()] = preset
                     logger.debug(f"Loaded user preset: {name}")
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- yaml.YAMLError from dynamic import
                 logger.warning(f"Failed to load preset {preset_file}: {e}")
 
     def _parse_user_preset(

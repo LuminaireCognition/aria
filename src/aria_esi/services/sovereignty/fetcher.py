@@ -101,7 +101,7 @@ async def fetch_alliance_info(alliance_id: int) -> dict | None:
             response.raise_for_status()
             return response.json()
 
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         logger.error("Failed to fetch alliance %d: %s", alliance_id, e)
         return None
 

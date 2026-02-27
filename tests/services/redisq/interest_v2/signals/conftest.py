@@ -7,32 +7,15 @@ Extends parent conftest with signal-specific fixtures.
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
 
+from aria_esi.services.redisq.models import ProcessedKill
 
-@dataclass
-class MockProcessedKill:
-    """Mock ProcessedKill for testing signals."""
-
-    kill_id: int = 12345678
-    solar_system_id: int = 30000142  # Jita
-    victim_ship_type_id: int | None = 24690  # Vexor
-    victim_corporation_id: int | None = 98000001
-    victim_alliance_id: int | None = 99001234
-    is_pod_kill: bool = False
-    attacker_count: int = 3
-    attacker_corps: list[int] = field(default_factory=lambda: [98000002, 98000003])
-    attacker_alliances: list[int] = field(default_factory=lambda: [99005678])
-    attacker_ship_types: list[int] = field(default_factory=lambda: [17703, 17703])  # Astero
-    final_blow_ship_type_id: int | None = 17703
-    total_value: float = 150_000_000.0  # 150M ISK
-    hull_value: float | None = None
-    kill_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-
+from ..factories import make_processed_kill
 
 # =============================================================================
 # Value Signal Fixtures
@@ -40,18 +23,18 @@ class MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_low_value() -> MockProcessedKill:
+def mock_kill_low_value() -> ProcessedKill:
     """Kill with low ISK value."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345001,
         total_value=5_000_000.0,  # 5M ISK
     )
 
 
 @pytest.fixture
-def mock_kill_high_value() -> MockProcessedKill:
+def mock_kill_high_value() -> ProcessedKill:
     """Kill with high ISK value."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345002,
         victim_ship_type_id=28606,  # Orca
         total_value=3_500_000_000.0,  # 3.5B ISK
@@ -59,9 +42,9 @@ def mock_kill_high_value() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_extreme_value() -> MockProcessedKill:
+def mock_kill_extreme_value() -> ProcessedKill:
     """Kill with extreme ISK value."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345003,
         victim_ship_type_id=671,  # Titan
         total_value=150_000_000_000.0,  # 150B ISK
@@ -74,9 +57,9 @@ def mock_kill_extreme_value() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_freighter() -> MockProcessedKill:
+def mock_kill_freighter() -> ProcessedKill:
     """Freighter kill."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345010,
         victim_ship_type_id=20185,  # Obelisk
         total_value=1_200_000_000.0,  # 1.2B ISK
@@ -84,9 +67,9 @@ def mock_kill_freighter() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_jump_freighter() -> MockProcessedKill:
+def mock_kill_jump_freighter() -> ProcessedKill:
     """Jump freighter kill."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345011,
         victim_ship_type_id=28846,  # Rhea
         total_value=12_000_000_000.0,  # 12B ISK
@@ -94,9 +77,9 @@ def mock_kill_jump_freighter() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_capital() -> MockProcessedKill:
+def mock_kill_capital() -> ProcessedKill:
     """Capital ship kill (carrier)."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345012,
         victim_ship_type_id=23757,  # Archon
         total_value=2_500_000_000.0,  # 2.5B ISK
@@ -104,9 +87,9 @@ def mock_kill_capital() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_pod() -> MockProcessedKill:
+def mock_kill_pod() -> ProcessedKill:
     """Pod kill."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345013,
         victim_ship_type_id=670,  # Capsule
         is_pod_kill=True,
@@ -115,9 +98,9 @@ def mock_kill_pod() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_mining_barge() -> MockProcessedKill:
+def mock_kill_mining_barge() -> ProcessedKill:
     """Mining barge kill."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345014,
         victim_ship_type_id=17478,  # Retriever
         total_value=35_000_000.0,  # 35M ISK
@@ -125,9 +108,9 @@ def mock_kill_mining_barge() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_rorqual() -> MockProcessedKill:
+def mock_kill_rorqual() -> ProcessedKill:
     """Rorqual kill (capital miner)."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345015,
         victim_ship_type_id=28352,  # Rorqual
         total_value=10_000_000_000.0,  # 10B ISK
@@ -140,29 +123,29 @@ def mock_kill_rorqual() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_primetime() -> MockProcessedKill:
+def mock_kill_primetime() -> ProcessedKill:
     """Kill during typical primetime (19:00 UTC)."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345020,
-        kill_time=datetime(2024, 1, 15, 19, 30, 0, tzinfo=timezone.utc),
+        kill_time=datetime(2024, 1, 15, 19, 30, 0, tzinfo=UTC),
     )
 
 
 @pytest.fixture
-def mock_kill_offhours() -> MockProcessedKill:
+def mock_kill_offhours() -> ProcessedKill:
     """Kill during off-hours (04:00 UTC)."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345021,
-        kill_time=datetime(2024, 1, 15, 4, 30, 0, tzinfo=timezone.utc),
+        kill_time=datetime(2024, 1, 15, 4, 30, 0, tzinfo=UTC),
     )
 
 
 @pytest.fixture
-def mock_kill_midnight() -> MockProcessedKill:
+def mock_kill_midnight() -> ProcessedKill:
     """Kill at midnight UTC."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345022,
-        kill_time=datetime(2024, 1, 15, 0, 0, 0, tzinfo=timezone.utc),
+        kill_time=datetime(2024, 1, 15, 0, 0, 0, tzinfo=UTC),
     )
 
 
@@ -221,9 +204,9 @@ def mock_security_lookup() -> Callable[[int], float | None]:
 
 
 @pytest.fixture
-def mock_kill_corp_victim() -> MockProcessedKill:
+def mock_kill_corp_victim() -> ProcessedKill:
     """Kill where victim is in a tracked corporation."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345030,
         victim_corporation_id=98000001,
         victim_alliance_id=99001234,
@@ -231,9 +214,9 @@ def mock_kill_corp_victim() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_corp_attacker() -> MockProcessedKill:
+def mock_kill_corp_attacker() -> ProcessedKill:
     """Kill where attacker is in a tracked corporation."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345031,
         victim_corporation_id=98000099,  # Different corp
         attacker_corps=[98000001],  # Tracked corp
@@ -242,9 +225,9 @@ def mock_kill_corp_attacker() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_npc_only() -> MockProcessedKill:
+def mock_kill_npc_only() -> ProcessedKill:
     """Kill with only NPC attackers."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345032,
         attacker_count=5,
         attacker_corps=[1000125, 1000127],  # NPC corps (< 2M)
@@ -254,9 +237,9 @@ def mock_kill_npc_only() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_solo() -> MockProcessedKill:
+def mock_kill_solo() -> ProcessedKill:
     """Solo kill."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345033,
         attacker_count=1,
         attacker_corps=[98000002],
@@ -321,9 +304,9 @@ def mock_activity_quiet() -> dict[str, Any]:
 
 
 @pytest.fixture
-def mock_kill_war_victim() -> MockProcessedKill:
+def mock_kill_war_victim() -> ProcessedKill:
     """Kill where victim is a war target."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345040,
         victim_corporation_id=98000050,  # War target corp
         victim_alliance_id=99005000,  # War target alliance
@@ -331,9 +314,9 @@ def mock_kill_war_victim() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_war_attacker() -> MockProcessedKill:
+def mock_kill_war_attacker() -> ProcessedKill:
     """Kill where attacker is a war target."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345041,
         victim_corporation_id=98000099,
         attacker_corps=[98000050],  # War target corp
@@ -347,9 +330,9 @@ def mock_kill_war_attacker() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_on_route() -> MockProcessedKill:
+def mock_kill_on_route() -> ProcessedKill:
     """Kill on a monitored trade route."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345050,
         solar_system_id=30000144,  # Perimeter (on Jita-Amarr route)
         victim_ship_type_id=20185,  # Freighter
@@ -357,9 +340,9 @@ def mock_kill_on_route() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_off_route() -> MockProcessedKill:
+def mock_kill_off_route() -> ProcessedKill:
     """Kill not on any monitored route."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345051,
         solar_system_id=30005000,  # Random system
     )
@@ -371,18 +354,18 @@ def mock_kill_off_route() -> MockProcessedKill:
 
 
 @pytest.fixture
-def mock_kill_near_structure() -> MockProcessedKill:
+def mock_kill_near_structure() -> ProcessedKill:
     """Kill in a system with corp structure."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345060,
         solar_system_id=30000142,  # System with structure
     )
 
 
 @pytest.fixture
-def mock_kill_near_office() -> MockProcessedKill:
+def mock_kill_near_office() -> ProcessedKill:
     """Kill in a system with corp office."""
-    return MockProcessedKill(
+    return make_processed_kill(
         kill_id=12345061,
         solar_system_id=30002187,  # System with office
     )

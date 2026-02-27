@@ -241,9 +241,7 @@ async def _training_time(skill_list: list[dict] | None, attributes: dict | None)
     import math
 
     from aria_esi.models.sde import TrainingTimeResult
-
-    from ..market.database import get_market_database
-    from ..sde.queries import get_sde_query_service
+    from aria_esi.store.sde.queries import get_sde_query_service
 
     # Training time constants
     SP_PER_LEVEL = {1: 250, 2: 1415, 3: 8000, 4: 45255, 5: 256000}
@@ -255,8 +253,6 @@ async def _training_time(skill_list: list[dict] | None, attributes: dict | None)
         "charisma": 19,
     }
 
-    db = get_market_database()
-    conn = db._get_connection()
     query_service = get_sde_query_service()
 
     attrs = attributes or DEFAULT_ATTRIBUTES.copy()
@@ -280,21 +276,11 @@ async def _training_time(skill_list: list[dict] | None, attributes: dict | None)
             warnings.append(f"{skill_name}: from_level >= to_level, skipping")
             continue
 
-        cursor = conn.execute(
-            """
-            SELECT type_id FROM types
-            WHERE type_name_lower = ?
-            AND category_id = 16
-            LIMIT 1
-            """,
-            (skill_name.lower(),),
-        )
-        row = cursor.fetchone()
-        if not row:
+        skill_id = query_service.resolve_skill_type_id(skill_name)
+        if not skill_id:
             warnings.append(f"Skill '{skill_name}' not found")
             continue
 
-        skill_id = row[0]
         skill_attrs = query_service.get_skill_attributes(skill_id)
 
         if not skill_attrs:

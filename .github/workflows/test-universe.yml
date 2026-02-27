@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/aria_esi/universe/**'
       - 'src/aria_esi/mcp/**'
+      - 'src/aria_esi/store/**'
       - 'tests/mcp/**'
       - 'tests/universe/**'
       - 'tests/integration/**'
@@ -14,6 +15,7 @@ on:
     paths:
       - 'src/aria_esi/universe/**'
       - 'src/aria_esi/mcp/**'
+      - 'src/aria_esi/store/**'
       - 'tests/mcp/**'
       - 'tests/universe/**'
       - 'tests/integration/**'

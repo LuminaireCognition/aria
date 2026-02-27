@@ -4,7 +4,6 @@ Tests for Interest Engine v2 Simulation Tool.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 
 from aria_esi.services.redisq.interest_v2.cli.simulate import (
@@ -15,23 +14,7 @@ from aria_esi.services.redisq.interest_v2.cli.simulate import (
     simulate_profile,
 )
 
-
-@dataclass
-class MockProcessedKill:
-    """Mock kill for simulation tests."""
-    kill_id: int
-    solar_system_id: int
-    kill_time: datetime | None = None
-    victim_ship_type_id: int | None = 24690
-    victim_corporation_id: int | None = 98000001
-    victim_alliance_id: int | None = None
-    is_pod_kill: bool = False
-    attacker_count: int = 1
-    attacker_corps: list[int] = field(default_factory=list)
-    attacker_alliances: list[int] = field(default_factory=list)
-    attacker_ship_types: list[int] = field(default_factory=list)
-    final_blow_ship_type_id: int | None = None
-    total_value: float = 50_000_000
+from ..factories import make_processed_kill
 
 
 class TestSimulationKillResult:
@@ -234,7 +217,7 @@ class TestSimulateProfile:
         config = InterestConfigV2(engine="v2", preset="trade-hub")
         engine = InterestEngineV2(config)
 
-        kills = [MockProcessedKill(kill_id=123, solar_system_id=30000142)]
+        kills = [make_processed_kill(kill_id=123, solar_system_id=30000142)]
 
         result = simulate_profile(engine, kills, "test")
 
@@ -251,9 +234,9 @@ class TestSimulateProfile:
         engine = InterestEngineV2(config)
 
         kills = [
-            MockProcessedKill(kill_id=1, solar_system_id=30000142),
-            MockProcessedKill(kill_id=2, solar_system_id=30000142),
-            MockProcessedKill(kill_id=3, solar_system_id=30000142),
+            make_processed_kill(kill_id=1, solar_system_id=30000142),
+            make_processed_kill(kill_id=2, solar_system_id=30000142),
+            make_processed_kill(kill_id=3, solar_system_id=30000142),
         ]
 
         result = simulate_profile(engine, kills, "test")
@@ -270,8 +253,8 @@ class TestSimulateProfile:
         engine = InterestEngineV2(config)
 
         kills = [
-            MockProcessedKill(kill_id=1, solar_system_id=30000142),
-            MockProcessedKill(kill_id=2, solar_system_id=30000142),
+            make_processed_kill(kill_id=1, solar_system_id=30000142),
+            make_processed_kill(kill_id=2, solar_system_id=30000142),
         ]
 
         v1_results = {1: True, 2: False}
@@ -290,9 +273,9 @@ class TestSimulateProfile:
 
         now = datetime.now()
         kills = [
-            MockProcessedKill(kill_id=1, solar_system_id=30000142, kill_time=now - timedelta(hours=2)),
-            MockProcessedKill(kill_id=2, solar_system_id=30000142, kill_time=now - timedelta(hours=1)),
-            MockProcessedKill(kill_id=3, solar_system_id=30000142, kill_time=now),
+            make_processed_kill(kill_id=1, solar_system_id=30000142, kill_time=now - timedelta(hours=2)),
+            make_processed_kill(kill_id=2, solar_system_id=30000142, kill_time=now - timedelta(hours=1)),
+            make_processed_kill(kill_id=3, solar_system_id=30000142, kill_time=now),
         ]
 
         result = simulate_profile(engine, kills, "test")

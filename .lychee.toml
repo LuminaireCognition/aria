@@ -5,7 +5,6 @@
 exclude_path = [
   ".claude/skills",
   "dev/archive",
-  "dev/proposals/archive",
   "dev/reviews/archive",
   "dev/design",
   "dev/mechanics",

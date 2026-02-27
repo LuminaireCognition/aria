@@ -6,7 +6,6 @@ Tests lazy import functionality and module exports.
 
 from __future__ import annotations
 
-
 # =============================================================================
 # Module Exports Tests
 # =============================================================================
@@ -81,9 +80,9 @@ class TestModuleExports:
 
     def test_navigation_module_accessible(self):
         """navigation submodule can be imported."""
-        from aria_esi.services import navigation
-
         import types
+
+        from aria_esi.services import navigation
 
         assert isinstance(navigation, types.ModuleType)
 
@@ -95,9 +94,9 @@ class TestModuleExports:
 
     def test_loop_planning_module_accessible(self):
         """loop_planning submodule can be imported."""
-        from aria_esi.services import loop_planning
-
         import types
+
+        from aria_esi.services import loop_planning
 
         assert isinstance(loop_planning, types.ModuleType)
 
@@ -112,8 +111,9 @@ class TestLazyImport:
 
     def test_invalid_attribute_raises(self):
         """Accessing invalid attribute raises AttributeError."""
-        import aria_esi.services as services
         import pytest
+
+        import aria_esi.services as services
 
         with pytest.raises(AttributeError) as exc_info:
             _ = services.NonExistentAttribute

@@ -11,14 +11,16 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
-from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.dispatchers.universe import (
     _do_optimize_waypoints as _optimize_waypoints,
+)
+from aria_esi.mcp.dispatchers.universe import (
     _find_best_start,
     _nearest_neighbor_tsp,
     register_waypoints_tools,
 )
+from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
+from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.utils import DistanceMatrix
 from aria_esi.universe import UniverseGraph
 

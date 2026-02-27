@@ -15,24 +15,7 @@ requires_pilot: false
 
 # ARIA Proximity Market Search Module
 
-## Purpose
-
-Find market sources for items near a specific location. Unlike `/price` which shows region-wide market data, `/find` locates specific stations selling an item sorted by distance from your position. Particularly useful for:
-
-- Finding NPC-seeded blueprints (automatically filters to NPC orders)
-- Locating hard-to-find items in nearby stations
-- Identifying the closest source when you need something urgently
-
-Uses the `market_find_nearby` MCP tool for proximity-based market search.
-
-## Trigger Phrases
-
-- "/find"
-- "find [item] near me"
-- "where can I buy [item]"
-- "nearest [item]"
-- "find blueprint for [item]"
-- "NPC selling [item]"
+Unlike `/price` (region-wide market data), `/find` locates specific stations selling an item sorted by distance from your position. Particularly useful for NPC-seeded blueprints, hard-to-find items, and urgent purchases.
 
 ## Command Syntax
 
@@ -71,22 +54,22 @@ ARIA automatically suggests the best source filter based on item category:
 
 When the suggested filter differs from the applied filter, ARIA will note this in the response.
 
-## MCP Tool
+### Blueprint and Skillbook Fallback
 
-This skill uses the `market_find_nearby` MCP tool:
+If `market(action="find_nearby", source_filter="npc")` returns empty results for blueprints or skillbooks, fall back to `market(action="npc_sources", item=...)` which queries SDE NPC seeding data directly rather than filtering live market orders. This is more reliable for NPC-exclusive items where no active orders may exist in nearby regions.
 
+**Fallback pattern:**
+```python
+# Step 1: Try proximity search
+result = market(action="find_nearby", item="Venture Blueprint", origin="Sortet", source_filter="npc")
+
+# Step 2: If empty, use NPC sources
+if not result.get("sources"):
+    result = market(action="npc_sources", item="Venture Blueprint")
 ```
-market_find_nearby(
-  item: str,           # Item name (fuzzy matched)
-  origin: str,         # Starting system
-  max_jumps: int,      # Maximum distance (default: 20)
-  order_type: str,     # "sell", "buy", or "all"
-  source_filter: str,  # "all", "npc", or "player"
-  expand_regions: bool, # Search neighbor regions (default: true)
-  max_regions: int,    # Max regions to search (default: 5)
-  limit: int           # Max results (default: 10)
-)
-```
+
+**Note:** `npc_sources` does not include distance data. Use `universe(action="route")` to calculate jump counts from the NPC source systems if needed.
+
 
 ## Response Format
 
@@ -113,28 +96,6 @@ market_find_nearby(
 *Total found: 5 sources across 3 regions*
 ```
 
-### NPC Blueprint Search
-
-```markdown
-## Finding: Pioneer Blueprint
-
-**Origin:** Jita (The Forge)
-**Filter:** NPC orders only (suggested for blueprints)
-**Regions searched:** The Forge, Lonetrek, The Citadel, Metropolis, Heimatar
-
-| # | System | Sec | Station | Price | Vol | Jumps |
-|---|--------|-----|---------|-------|-----|-------|
-| 1 | X7R-LB | -0.04 | ORE Refinery | 65,000,000 | 1 | 42 |
-
-**Best options:**
-- **Nearest:** X7R-LB (42 jumps) - ORE-exclusive blueprint
-- **Best value:** X7R-LB (only source)
-
-**Route warning:** Route passes through null-sec space.
-
-*Note: Pioneer Blueprint is only sold by ORE Corporation in Outer Ring.*
-```
-
 ### No Results Found
 
 ```markdown
@@ -153,78 +114,9 @@ No NPC sources found within 20 jumps.
 
 ## Error Handling
 
-### Item Not Found
+On item or system not found, suggest corrections based on fuzzy match suggestions from the tool.
 
-```json
-{
-  "error": "item_not_found",
-  "message": "Could not find item: Ventrue Blueprint",
-  "suggestions": ["Venture Blueprint", "Venture", "Venture Mining Frigate"],
-  "hint": "Check spelling. Item names are fuzzy-matched."
-}
-```
-
-### System Not Found
-
-```json
-{
-  "error": "system_not_found",
-  "message": "Unknown system: Jitta",
-  "hint": "Check spelling. System names are case-insensitive."
-}
-```
-
-## Experience-Based Adaptation
-
-### New Players
-
-```
-Finding: Venture Blueprint
-
-I found the Venture Blueprint at 3 nearby NPC stations!
-
-**Closest option:**
-Oursulaert - Federal Navy Assembly Plant (3 jumps)
-Price: 250,000 ISK
-
-This is an NPC-seeded blueprint, meaning the price is fixed and stock
-refreshes automatically. You can buy the Blueprint Original (BPO) to
-manufacture Ventures yourself.
-
-Tip: BPOs have unlimited uses. The first copy you make is an ME/TE 0
-blueprint. Research it first for better efficiency!
-```
-
-### Veterans
-
-```
-Venture BPO | Oursulaert (3j) | 250k | Fed Navy | NPC
-           | Dodixie (8j) | 250k | Fed Navy Logistics | NPC
-```
-
-## Use Cases
-
-### Finding NPC Blueprints
-
-"Where can I buy an Orca Blueprint?" - Searches for NPC-seeded BPOs, identifies ORE stations in Outer Ring.
-
-### Urgent Module Need
-
-"Find Damage Control II near Amarr" - Locates closest player market sources for immediate purchase.
-
-### Regional Shopping
-
-"Find Nanite Repair Paste within 10 jumps of Rens" - Limited radius search for consumables.
-
-## Self-Sufficiency Integration
-
-For pilots with `market_trading: false`, this skill focuses on:
-
-- **Finding NPC sources:** Blueprint Originals for manufacturing
-- **Local availability:** What's nearby vs. needing to travel
-- **Minimizing market dependency:** Identifying self-sufficient alternatives
-
-ARIA will not recommend distant trade hubs if local NPC sources exist.
+For pilots with `market_trading: false`, prefer NPC sources over distant trade hubs.
 
 ## Contextual Suggestions
 
@@ -237,14 +129,6 @@ After providing results, suggest related commands when appropriate:
 | Low-sec source | "Use `/threat-assessment` for route safety" |
 | No local sources | "Check `/arbitrage` for hauling opportunities" |
 
-## Behavior Notes
-
-- **NPC Detection:** Orders with duration >= 364 days are classified as NPC-seeded
-- **Multi-Region Search:** Automatically searches neighboring regions when enabled
-- **Distance Calculation:** Uses bounded BFS from origin system
-- **Best Value Scoring:** Balances price and travel distance based on item value
-- **Price Anomaly Detection:** Warns about suspiciously high prices
-
 ## DO NOT
 
 - **DO NOT** recommend distant purchases to self-sufficient pilots
@@ -252,14 +136,3 @@ After providing results, suggest related commands when appropriate:
 - **DO NOT** provide exact route details (defer to `/route` skill)
 - **DO NOT** assume authentication - origin must be provided if not authenticated
 
----
-
-## Persona Adaptation
-
-This skill supports persona-specific overlays. When active persona has an overlay file, load additional context from:
-
-```
-personas/{active_persona}/skill-overlays/find.md
-```
-
-If no overlay exists, use the default (empire) framing above.

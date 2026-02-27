@@ -1,8 +1,7 @@
 """
 ARIA ESI Universe Commands
 
-Cached universe queries for fast local lookups.
-Graph management commands for MCP server.
+Universe graph queries and management commands.
 No authentication required.
 """
 
@@ -10,30 +9,47 @@ import argparse
 import time
 from pathlib import Path
 
-from ..cache import (
-    find_border_systems_in_region,
-    find_nearest_border_systems,
-    get_cache_info,
-    get_system_by_name,
-    get_system_full_info,
-    is_cache_available,
-)
 from ..core import get_utc_timestamp
-from ..mcp.context_policy import UNIVERSE
+from ..core.exceptions import AriaError
 
-# Constants for loop command - imported from service to avoid duplication
-from ..services.loop_planning import VALID_SECURITY_FILTERS
-from ..universe.builder import (
-    DEFAULT_CACHE_PATH,
-    DEFAULT_GRAPH_PATH,
-    build_universe_graph,
-    load_universe_graph,
-)
 
-LOOP_MIN_TARGET_JUMPS = UNIVERSE.LOOP_MIN_TARGET_JUMPS
-LOOP_MAX_TARGET_JUMPS = UNIVERSE.LOOP_MAX_TARGET_JUMPS
-LOOP_MIN_BORDERS = UNIVERSE.LOOP_MIN_BORDERS
-LOOP_MAX_BORDERS = UNIVERSE.LOOP_MAX_BORDERS
+def _get_builder():
+    """Lazy import universe builder (pulls in igraph/numpy)."""
+    from ..universe.builder import (
+        DEFAULT_CACHE_PATH,
+        DEFAULT_GRAPH_PATH,
+        build_universe_graph,
+        load_universe_graph,
+    )
+
+    return DEFAULT_CACHE_PATH, DEFAULT_GRAPH_PATH, build_universe_graph, load_universe_graph
+
+
+def _get_loop_constants():
+    """Lazy import loop planning constants."""
+    from ..mcp.context_policy import UNIVERSE
+    from ..services.loop_planning import VALID_SECURITY_FILTERS
+
+    return (
+        VALID_SECURITY_FILTERS,
+        UNIVERSE.LOOP_MIN_TARGET_JUMPS,
+        UNIVERSE.LOOP_MAX_TARGET_JUMPS,
+        UNIVERSE.LOOP_MIN_BORDERS,
+        UNIVERSE.LOOP_MAX_BORDERS,
+    )
+
+
+def _load_graph():
+    """Load universe graph, returning (graph, None) or (None, error_dict)."""
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
+    try:
+        return load_universe_graph(DEFAULT_GRAPH_PATH), None
+    except (AriaError, OSError):
+        return None, {
+            "error": "graph_not_found",
+            "message": "Universe graph not available",
+            "hint": "Run 'aria-esi graph-build' to generate it",
+        }
 
 
 def cmd_borders(args: argparse.Namespace) -> dict:
@@ -44,13 +60,9 @@ def cmd_borders(args: argparse.Namespace) -> dict:
     """
     query_ts = get_utc_timestamp()
 
-    if not is_cache_available():
-        return {
-            "error": "cache_not_found",
-            "message": "Universe cache not available",
-            "hint": "Run 'python -m aria_esi.cache.builder' to generate it",
-            "query_timestamp": query_ts,
-        }
+    universe, err = _load_graph()
+    if err:
+        return {**err, "query_timestamp": query_ts}
 
     region = getattr(args, "region", None)
     system = getattr(args, "system", None)
@@ -58,7 +70,38 @@ def cmd_borders(args: argparse.Namespace) -> dict:
 
     if region:
         # Search by region
-        borders = find_border_systems_in_region(region)
+        region_id = universe.resolve_region(region)
+        if region_id is None:
+            return {
+                "error": "no_results",
+                "message": f"No border systems found in region '{region}'",
+                "hint": "Check region name spelling or try a different region",
+                "query_timestamp": query_ts,
+            }
+
+        borders = []
+        for idx in universe.border_systems:
+            if int(universe.region_ids[idx]) != region_id:
+                continue
+            borders.append(
+                {
+                    "system_id": int(universe.system_ids[idx]),
+                    "name": universe.idx_to_name[idx],
+                    "security": round(float(universe.security[idx]), 2),
+                    "borders_lowsec": [
+                        {
+                            "system_id": int(universe.system_ids[n]),
+                            "name": universe.idx_to_name[n],
+                            "security": round(float(universe.security[n]), 2),
+                        }
+                        for n in universe.graph.neighbors(idx)
+                        if universe.security[n] < 0.45
+                    ],
+                }
+            )
+
+        borders.sort(key=lambda x: x["name"])
+
         if not borders:
             return {
                 "error": "no_results",
@@ -78,24 +121,55 @@ def cmd_borders(args: argparse.Namespace) -> dict:
 
     elif system:
         # Search by proximity to system
-        borders = find_nearest_border_systems(system, limit=limit)
-        if not borders:
-            # Check if system exists
-            sys_match = get_system_by_name(system)
-            if not sys_match:
-                return {
-                    "error": "system_not_found",
-                    "message": f"System '{system}' not found",
-                    "query_timestamp": query_ts,
-                }
+        origin_idx = universe.resolve_name(system)
+        if origin_idx is None:
+            return {
+                "error": "system_not_found",
+                "message": f"System '{system}' not found",
+                "query_timestamp": query_ts,
+            }
+
+        # Use igraph shortest paths from origin to all border systems
+        border_list = sorted(universe.border_systems)
+        if not border_list:
             return {
                 "error": "no_results",
                 "message": f"No border systems found near '{system}'",
                 "query_timestamp": query_ts,
             }
 
-        # Get origin system info
-        origin_info = get_system_full_info(get_system_by_name(system)[0])
+        distances = universe.graph.shortest_paths(source=origin_idx, target=border_list)[0]
+        # Pair distances with border indices, sort by distance
+        border_dists = sorted(zip(distances, border_list), key=lambda x: x[0])
+
+        borders = []
+        for dist, idx in border_dists[:limit]:
+            if dist == float("inf"):
+                break
+            borders.append(
+                {
+                    "system_id": int(universe.system_ids[idx]),
+                    "name": universe.idx_to_name[idx],
+                    "security": round(float(universe.security[idx]), 2),
+                    "approx_jumps": int(dist),
+                    "borders": universe.get_adjacent_lowsec(idx)[:3],
+                }
+            )
+
+        if not borders:
+            return {
+                "error": "no_results",
+                "message": f"No border systems found near '{system}'",
+                "query_timestamp": query_ts,
+            }
+
+        origin_info = {
+            "system_id": int(universe.system_ids[origin_idx]),
+            "name": universe.idx_to_name[origin_idx],
+            "security": round(float(universe.security[origin_idx]), 2),
+            "constellation": universe.get_constellation_name(origin_idx),
+            "region": universe.get_region_name(origin_idx),
+        }
 
         return {
             "query_timestamp": query_ts,
@@ -122,6 +196,15 @@ def cmd_loop(args: argparse.Namespace) -> dict:
     Finds high-sec systems bordering low-sec and plans an optimized
     circular route to visit them, minimizing backtracking.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
+    (
+        VALID_SECURITY_FILTERS,
+        LOOP_MIN_TARGET_JUMPS,
+        LOOP_MAX_TARGET_JUMPS,
+        LOOP_MIN_BORDERS,
+        LOOP_MAX_BORDERS,
+    ) = _get_loop_constants()
+
     query_ts = get_utc_timestamp()
 
     # Validate parameters
@@ -172,7 +255,7 @@ def cmd_loop(args: argparse.Namespace) -> dict:
     # Load graph and call loop planner
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -260,7 +343,7 @@ def cmd_loop(args: argparse.Namespace) -> dict:
             "suggestion": e.suggestion,
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI error barrier
         return {
             "error": "loop_planning_failed",
             "message": f"Loop planning failed: {e}",
@@ -268,53 +351,39 @@ def cmd_loop(args: argparse.Namespace) -> dict:
         }
 
 
-def cmd_cache_info(args: argparse.Namespace) -> dict:
-    """Show universe cache status."""
-    query_ts = get_utc_timestamp()
-    info = get_cache_info()
-
-    return {
-        "query_timestamp": query_ts,
-        **info,
-    }
-
-
 def cmd_system_info(args: argparse.Namespace) -> dict:
-    """Look up system information from cache."""
+    """Look up system information from universe graph."""
     query_ts = get_utc_timestamp()
 
-    if not is_cache_available():
-        return {
-            "error": "cache_not_found",
-            "message": "Universe cache not available",
-            "hint": "Run 'python -m aria_esi.cache.builder' to generate it",
-            "query_timestamp": query_ts,
-        }
+    universe, err = _load_graph()
+    if err:
+        return {**err, "query_timestamp": query_ts}
 
     system_name = args.system
 
-    sys_match = get_system_by_name(system_name)
-    if not sys_match:
+    idx = universe.resolve_name(system_name)
+    if idx is None:
         return {
             "error": "system_not_found",
             "message": f"System '{system_name}' not found",
             "query_timestamp": query_ts,
         }
 
-    sys_id, _ = sys_match
-    info = get_system_full_info(sys_id)
-
-    # Add neighbor info
-    from ..cache import get_system_neighbors
+    info = {
+        "system_id": int(universe.system_ids[idx]),
+        "name": universe.idx_to_name[idx],
+        "security": round(float(universe.security[idx]), 2),
+        "constellation": universe.get_constellation_name(idx),
+        "region": universe.get_region_name(idx),
+    }
 
     neighbors = []
-    for _neighbor_id, neighbor in get_system_neighbors(sys_id):
-        sec = neighbor.get("security", 0)
-        sec_class = "HIGH" if sec >= 0.45 else "LOW" if sec > 0 else "NULL"
+    for n_idx, n_sec in universe.neighbors_with_security(idx):
+        sec_class = "HIGH" if n_sec >= 0.45 else "LOW" if n_sec > 0 else "NULL"
         neighbors.append(
             {
-                "name": neighbor["name"],
-                "security": round(sec, 2),
+                "name": universe.idx_to_name[n_idx],
+                "security": round(n_sec, 2),
                 "class": sec_class,
             }
         )
@@ -338,6 +407,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
 
     Creates optimized .universe file for fast navigation queries.
     """
+    DEFAULT_CACHE_PATH, DEFAULT_GRAPH_PATH, build_universe_graph, _ = _get_builder()
     query_ts = get_utc_timestamp()
 
     cache_path = Path(args.cache) if args.cache else DEFAULT_CACHE_PATH
@@ -357,7 +427,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
         return {
             "error": "cache_not_found",
             "message": f"Cache file not found: {cache_path}",
-            "hint": "Run cache builder first to generate universe_cache.json",
+            "hint": "Run 'aria-esi cache-fetch' to download universe data",
             "query_timestamp": query_ts,
         }
 
@@ -398,7 +468,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
                     "sha256": checksum,
                     "updated": True,
                 }
-            except Exception as e:
+            except (ImportError, RuntimeError) as e:
                 result["checksum"] = {
                     "error": str(e),
                     "updated": False,
@@ -406,7 +476,7 @@ def cmd_graph_build(args: argparse.Namespace) -> dict:
 
         return result
 
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         return {
             "error": "build_failed",
             "message": f"Build failed: {e}",
@@ -420,6 +490,7 @@ def cmd_graph_verify(args: argparse.Namespace) -> dict:
 
     Checks that the graph loads correctly and passes all validation checks.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     query_ts = get_utc_timestamp()
 
     graph_path = Path(args.graph) if args.graph else DEFAULT_GRAPH_PATH
@@ -447,7 +518,7 @@ def cmd_graph_verify(args: argparse.Namespace) -> dict:
                 "load_time_ms": round(load_time * 1000, 1),
             }
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "load_failed",
             "message": f"Could not load graph: {e}",
@@ -564,6 +635,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
     Queries ESI for recent kills, jumps, and NPC activity.
     With --realtime flag, includes real-time kill data and gatecamp detection.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -589,7 +661,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -605,11 +677,11 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
 
             realtime_cache = get_threat_cache()
             realtime_healthy = realtime_cache.is_healthy()
-        except Exception:
+        except (ImportError, RuntimeError):
             pass  # Silently fall back to hourly-only
 
     try:
-        from ..mcp.activity import classify_activity, get_activity_cache
+        from ..store.activity import classify_activity, get_activity_cache
 
         cache = get_activity_cache()
 
@@ -647,7 +719,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
                     try:
                         rt_summary = realtime_cache.get_activity_summary(system_id, system_name)
                         system_data["realtime"] = rt_summary.to_dict()
-                    except Exception:
+                    except Exception:  # noqa: BLE001 -- CLI handler
                         pass  # Non-fatal
 
                 result_systems.append(system_data)
@@ -678,7 +750,7 @@ def cmd_activity_systems(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- ESI activity fetch fallback
         return {
             "error": "activity_failed",
             "message": f"Activity query failed: {e}",
@@ -692,6 +764,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
 
     Uses ESI activity data to find systems with high kills, jumps, or ratting.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -722,7 +795,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -740,7 +813,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
 
     # Use the MCP hotspots implementation
     try:
-        from ..mcp.activity import classify_activity, get_activity_cache
+        from ..store.activity import classify_activity, get_activity_cache
 
         cache = get_activity_cache()
 
@@ -825,7 +898,7 @@ def cmd_hotspots(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- ESI hotspot fetch fallback
         return {
             "error": "hotspots_failed",
             "message": f"Hotspots search failed: {e}",
@@ -840,6 +913,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
     Combines static chokepoint analysis with live kill data.
     With --realtime flag, uses real-time kill data for active gatecamp detection.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -860,7 +934,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -895,7 +969,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
                 "message": f"No route found from {origin} to {destination}",
                 "query_timestamp": query_ts,
             }
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         return {
             "error": "route_failed",
             "message": f"Route calculation failed: {e}",
@@ -912,12 +986,12 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
 
             realtime_cache = get_threat_cache()
             realtime_healthy = realtime_cache.is_healthy()
-        except Exception:
+        except (ImportError, RuntimeError):
             pass  # Silently fall back to hourly-only
 
     # Analyze gatecamp risk
     try:
-        from ..mcp.activity import get_activity_cache
+        from ..store.activity import get_activity_cache
 
         cache = get_activity_cache()
 
@@ -966,7 +1040,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
                             realtime_camp = realtime_cache.get_gatecamp_status(
                                 system_id, system_name
                             )
-                        except Exception:
+                        except Exception:  # noqa: BLE001 -- CLI handler
                             pass
 
                     # Determine risk level - realtime detection takes precedence
@@ -1075,7 +1149,7 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- ESI gatecamp risk fallback
         return {
             "error": "risk_analysis_failed",
             "message": f"Risk analysis failed: {e}",
@@ -1090,6 +1164,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
     Uses real-time kill data from RedisQ for active camp detection.
     Falls back to hourly activity data if real-time unavailable.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -1107,7 +1182,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -1135,11 +1210,11 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
 
         realtime_cache = get_threat_cache()
         realtime_healthy = realtime_cache.is_healthy()
-    except Exception:
+    except (ImportError, RuntimeError):
         pass  # Fall back to hourly-only
 
     try:
-        from ..mcp.activity import get_activity_cache
+        from ..store.activity import get_activity_cache
 
         cache = get_activity_cache()
 
@@ -1196,7 +1271,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
                 else:
                     result["gatecamp_detected"] = False
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- CLI handler
                 result["realtime_error"] = str(e)
                 result["gatecamp_detected"] = None  # Unknown
         else:
@@ -1220,7 +1295,7 @@ def cmd_gatecamp(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- ESI gatecamp detect fallback
         return {
             "error": "gatecamp_check_failed",
             "message": f"Gatecamp check failed: {e}",
@@ -1234,6 +1309,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
 
     Returns contested and vulnerable systems where fighting is active.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     import asyncio
 
     query_ts = get_utc_timestamp()
@@ -1250,7 +1326,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(DEFAULT_GRAPH_PATH)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_load_failed",
             "message": f"Could not load universe graph: {e}",
@@ -1258,7 +1334,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
         }
 
     try:
-        from ..mcp.activity import get_activity_cache, get_faction_id, get_faction_name
+        from ..store.activity import get_activity_cache, get_faction_id, get_faction_name
 
         cache = get_activity_cache()
 
@@ -1352,7 +1428,7 @@ def cmd_fw_frontlines(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- ESI FW frontlines fallback
         return {
             "error": "fw_frontlines_failed",
             "message": f"FW frontlines query failed: {e}",
@@ -1367,7 +1443,7 @@ def cmd_activity_cache_status(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.activity import get_activity_cache
+        from ..store.activity import get_activity_cache
 
         cache = get_activity_cache()
         status = cache.get_cache_status()
@@ -1383,7 +1459,7 @@ def cmd_activity_cache_status(args: argparse.Namespace) -> dict:
             "message": f"Activity module not available: {e}",
             "query_timestamp": query_ts,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "cache_status_failed",
             "message": f"Failed to get cache status: {e}",
@@ -1397,6 +1473,7 @@ def cmd_graph_stats(args: argparse.Namespace) -> dict:
 
     Shows comprehensive statistics about the loaded graph.
     """
+    _, DEFAULT_GRAPH_PATH, _, load_universe_graph = _get_builder()
     query_ts = get_utc_timestamp()
 
     graph_path = Path(args.graph) if args.graph else DEFAULT_GRAPH_PATH
@@ -1411,7 +1488,7 @@ def cmd_graph_stats(args: argparse.Namespace) -> dict:
 
     try:
         universe = load_universe_graph(graph_path)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "load_failed",
             "message": f"Could not load graph: {e}",
@@ -1505,7 +1582,7 @@ def cmd_orient(args: argparse.Namespace) -> dict:
     # Load universe graph
     try:
         universe = load_universe_graph()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "graph_not_available",
             "message": str(e),
@@ -1523,7 +1600,7 @@ def cmd_orient(args: argparse.Namespace) -> dict:
         }
 
     async def fetch_local_area():
-        from ..mcp.activity import classify_activity, get_activity_cache
+        from ..store.activity import classify_activity, get_activity_cache
 
         cache = get_activity_cache()
         all_activity = await cache.get_all_activity()
@@ -1570,7 +1647,7 @@ def cmd_orient(args: argparse.Namespace) -> dict:
                     for system_id, summary in realtime_data.items():
                         if summary.gatecamp:
                             active_camps.append(summary.gatecamp.system_name or str(system_id))
-            except Exception:
+            except (ImportError, RuntimeError):
                 pass
 
         # Classify systems
@@ -1646,10 +1723,10 @@ def cmd_orient(args: argparse.Namespace) -> dict:
                         )
 
         # Sort results
-        hotspots.sort(key=lambda s: s["ship_kills"] + s["pod_kills"], reverse=True)
-        quiet_zones.sort(key=lambda s: s["jumps"])
-        ratting_banks.sort(key=lambda s: s["npc_kills"], reverse=True)
-        borders.sort(key=lambda s: s["jumps"])
+        hotspots.sort(key=lambda s: int(s["ship_kills"]) + int(s["pod_kills"]), reverse=True)
+        quiet_zones.sort(key=lambda s: int(s["jumps"]))
+        ratting_banks.sort(key=lambda s: int(s["npc_kills"]), reverse=True)
+        borders.sort(key=lambda s: int(s["jumps"]))
 
         # Find escape routes
         escape_routes = []
@@ -1730,7 +1807,7 @@ def cmd_orient(args: argparse.Namespace) -> dict:
             "data_period": "last_hour",
             **result,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "orient_failed",
             "message": f"Local area analysis failed: {e}",
@@ -1839,17 +1916,10 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     )
     loop_parser.set_defaults(func=cmd_loop)
 
-    # Cache info command
-    cache_parser = subparsers.add_parser(
-        "cache-info",
-        help="Show universe cache status",
-    )
-    cache_parser.set_defaults(func=cmd_cache_info)
-
-    # System info command (cached)
+    # System info command
     sysinfo_parser = subparsers.add_parser(
         "sysinfo",
-        help="Look up system info from cache",
+        help="Look up system info",
     )
     sysinfo_parser.add_argument(
         "system",
@@ -1865,12 +1935,12 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_build_parser.add_argument(
         "--cache",
         "-c",
-        help=f"Path to universe_cache.json (default: {DEFAULT_CACHE_PATH})",
+        help="Path to universe_cache.json (default: data/universe_cache.json)",
     )
     graph_build_parser.add_argument(
         "--output",
         "-o",
-        help=f"Output path for universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
+        help="Output path for universe graph (.universe) (default: data/universe.universe)",
     )
     graph_build_parser.add_argument(
         "--force",
@@ -1893,7 +1963,7 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_verify_parser.add_argument(
         "--graph",
         "-g",
-        help=f"Path to universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
+        help="Path to universe graph (.universe) (default: data/universe.universe)",
     )
     graph_verify_parser.set_defaults(func=cmd_graph_verify)
 
@@ -1905,7 +1975,7 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
     graph_stats_parser.add_argument(
         "--graph",
         "-g",
-        help=f"Path to universe graph (.universe) (default: {DEFAULT_GRAPH_PATH})",
+        help="Path to universe graph (.universe) (default: data/universe.universe)",
     )
     graph_stats_parser.add_argument(
         "--detailed",

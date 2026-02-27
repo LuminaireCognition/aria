@@ -14,6 +14,28 @@ When a skill is invoked:
 
 Read `.claude/skills/{name}/SKILL.md`
 
+### 1.5. Pre-Read Prerequisite Files (MANDATORY GATE)
+
+If the skill's YAML frontmatter (or `_index.json` entry) lists a `prerequisite_files` array, **read ALL listed files NOW before producing any output.** This is a blocking gate — the skill MUST NOT generate a response until these files have been read into context.
+
+**Why this exists:** Exercise reviews revealed that skills frequently skip reading their reference data files and instead use training data knowledge, which produces plausible-looking but wrong EVE mechanics (wrong ore security bands, wrong hacking mechanics, wrong site prefix meanings). Pre-reading prevents this by ensuring verified data is in context before the model generates output.
+
+**`prerequisite_files` vs `data_sources`:**
+
+| Field | When to Read | Purpose | Example |
+|-------|-------------|---------|---------|
+| `prerequisite_files` | **MUST read before any output** (blocking) | Verified reference data the skill depends on | `reference/mechanics/ore_database.md` |
+| `data_sources` | Read when contextually relevant | Pilot profiles, operational context | `userdata/pilots/{active_pilot}/profile.md` |
+
+**Skills with prerequisite files:**
+
+| Skill | Files | What They Prevent |
+|-------|-------|-------------------|
+| `exploration` | `exploration_sites.md`, `hacking_guide.md` | Wrong hacking mechanics, site prefixes, container names |
+| `mining-advisory` | `ore_database.md` | Wrong ore security bands, mineral yields |
+| `fitting` | `EFT-FORMAT.md`, `drones.json`, `MODULE_NAMES.md` | Wrong module names, drone stats, EFT format errors |
+| `skillplan` | `skill_plans.yaml`, `ship_efficacy_rules.yaml`, `meta_module_alternatives.yaml` | Wrong training recommendations, missing meta alternatives |
+
 ### 2. Check for Overlay
 
 If `has_persona_overlay: true` in `_index.json`:

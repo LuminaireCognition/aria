@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ..core.config import get_settings
+from ..core.exceptions import AriaError
 from ..core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -58,7 +59,7 @@ REQUIRED_PHOBOS_FILES = [
 # =============================================================================
 
 
-class EOSDataError(Exception):
+class EOSDataError(AriaError):
     """Raised when EOS data is missing or invalid."""
 
     def __init__(self, message: str, missing_files: list[str] | None = None):
@@ -187,7 +188,7 @@ class EOSDataManager:
                             with open(filepath) as f:
                                 data = json.load(f)
                                 total_records = len(data)
-                        except Exception:
+                        except (json.JSONDecodeError, KeyError, ValueError):
                             pass
                 else:
                     missing_files.append(f"fsd_built/{filename}")
@@ -253,7 +254,7 @@ class EOSDataManager:
                 for item in data:
                     if item.get("field_name") == "client_build":
                         return str(item.get("field_value"))
-        except Exception as e:
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
             logger.warning("Failed to read metadata.json: %s", e)
 
         return None

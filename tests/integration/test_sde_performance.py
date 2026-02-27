@@ -17,7 +17,7 @@ import time
 
 import pytest
 
-from aria_esi.mcp.sde.queries import (
+from aria_esi.store.sde.queries import (
     SDENotSeededError,
     get_sde_query_service,
     reset_sde_query_service,
@@ -31,7 +31,7 @@ def sde_is_seeded() -> bool:
         service = get_sde_query_service()
         service.get_corporation_regions(1000129)  # ORE
         return True
-    except (SDENotSeededError, Exception):
+    except (SDENotSeededError, OSError, RuntimeError):
         return False
 
 
@@ -174,7 +174,7 @@ class TestQueryPlanEfficiency:
 
     def test_corporation_regions_query_is_efficient(self):
         """Corporation regions query should be efficient."""
-        from aria_esi.mcp.market.database import get_market_database
+        from aria_esi.store.market.database import get_market_database
 
         db = get_market_database()
         conn = db._get_connection()

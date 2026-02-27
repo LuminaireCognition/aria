@@ -15,16 +15,6 @@ has_persona_overlay: true
 
 # ARIA Entity Watchlist Module
 
-## Purpose
-Manage entity watchlists for tracking specific corporations and alliances. When watched entities appear in kills (as victims or attackers), they are flagged in threat intelligence. Supports manual lists and automatic war target synchronization from ESI.
-
-## Trigger Phrases
-- "/watchlist"
-- "who am I tracking"
-- "add [corp] to watchlist"
-- "track [alliance]"
-- "sync war targets"
-
 ## Command Syntax
 
 ```
@@ -59,13 +49,13 @@ uv run aria-esi watchlist-show "War Targets"
 uv run aria-esi watchlist-create "Hostiles" --description "Known hostile corps"
 
 # Add entity (corporation)
-uv run aria-esi watchlist-add "Hostiles" 98000001 --type corporation --entity-name "CODE."
+uv run aria-esi watchlist-add "Hostiles" 99002775 --type alliance --entity-name "CODE."
 
 # Add entity (alliance)
 uv run aria-esi watchlist-add "Hostiles" 99000001 --type alliance --entity-name "Goonswarm"
 
 # Remove entity
-uv run aria-esi watchlist-remove "Hostiles" 98000001 --type corporation
+uv run aria-esi watchlist-remove "Hostiles" 99002775 --type alliance
 
 # Delete watchlist
 uv run aria-esi watchlist-delete "Hostiles"
@@ -117,37 +107,20 @@ ARIA WATCHLIST: War Targets
 Type: war_targets | Entities: 3
 ---------------------------------------------------------------
 CORPORATIONS:
-  [98000001] CODE.
+  (none)
+
+ALLIANCES:
+  [99002775] CODE.
     Reason: War target
     Added: 2024-01-15
 
-ALLIANCES:
   [99000001] TEST Alliance Please Ignore
     Reason: War target
     Added: 2024-01-14
 
-  [99000002] Pandemic Horde
+  [99005338] Pandemic Horde
     Reason: War target
     Added: 2024-01-14
-===============================================================
-```
-
-### War Sync Result
-
-```
-===============================================================
-ARIA WAR TARGET SYNC
----------------------------------------------------------------
-Corporation: My Corp [98000001]
-Wars checked: 3
----------------------------------------------------------------
-SYNC RESULTS:
-  Entities added: 2
-  Entities removed: 1
-
-CURRENT WAR TARGETS:
-  [99000001] Enemy Alliance
-  [98000002] Mercenary Corp
 ===============================================================
 ```
 
@@ -162,51 +135,26 @@ Before adding an entity by name, resolve it to a numeric ID:
 **Example:** Adding "Pandemic Horde" to a watchlist:
 ```
 sde(action="resolve_names", names=["Pandemic Horde"])
-→ {"alliances": [{"id": 99003214, "name": "Pandemic Horde"}]}
+→ {"alliances": [{"id": 99005338, "name": "Pandemic Horde"}]}
 
-uv run aria-esi watchlist-add "Hostiles" 99003214 --type alliance --entity-name "Pandemic Horde"
+uv run aria-esi watchlist-add "Hostiles" 99005338 --type alliance --entity-name "Pandemic Horde"
 ```
 
-**MCP unavailable fallback:**
-```bash
-uv run aria-esi resolve-names "Pandemic Horde"
-```
+**MCP unavailable fallback:** No CLI equivalent exists. Use the ESI Swagger UI or ask the pilot for the entity ID directly.
 
-**Note:** The SDE `corporation_info` action only indexes NPC corporations. Player corps and alliances must be resolved via `resolve_names` (which calls ESI `POST /universe/ids/`).
-
-## Integration with Threat Assessment
-
-When watched entities appear in kills, they are flagged:
-
-1. **In `/threat-assessment`**: Shows "Watched entity activity" section
-2. **In `/gatecamp`**: Notes if attackers are on watchlist
-3. **In database**: Kills are tagged with `watched_entity_match=1`
-
-Example in threat assessment:
-
-```
-WATCHED ENTITY ACTIVITY:
-  3 kills involving watched entities in last hour
-  - CODE. (attacker) - 2 kills in Uedama
-  - Enemy Alliance (victim) - 1 kill in Tama
-```
+**Note:** The SDE `corporation_info` action only indexes NPC corporations. Player corps and alliances must be resolved via `sde(action="resolve_names")` (which calls ESI `POST /universe/ids/`). This action is MCP-only.
 
 ## War Target Synchronization
 
-The `/watchlist sync-wars` command:
+Requires `esi-wars.read_wars.v1`. Auto-syncs every 4 hours when poller active, or on demand via `/watchlist sync-wars`.
 
-1. Queries ESI for corporation wars
-2. Identifies enemy corps/alliances
-3. Creates/updates "War Targets" watchlist
-4. Removes ended wars
+## Error Handling
 
-**ESI Scopes Required:**
-- `esi-wars.read_wars.v1` (corporation wars)
-
-**Sync Schedule:**
-- On demand via command
-- Automatic on poller startup
-- Every 4 hours while poller running
+| Error | Response |
+|-------|----------|
+| Entity name not resolvable | Report that the name could not be resolved via ESI; ask pilot for numeric ID |
+| Watchlist not found | List existing watchlists and suggest correct name |
+| Duplicate entity in watchlist | Note the entity is already tracked |
 
 ## Behavior Notes
 
@@ -226,14 +174,3 @@ After watchlist operations, suggest related commands:
 | Synced wars | "Check `/gatecamp` on common routes for enemy activity" |
 | Tracking gankers | "Use `/route --safe` to avoid their hotspots" |
 
----
-
-## Persona Adaptation
-
-This skill supports persona-specific overlays. When active persona has an overlay file, load additional context from:
-
-```
-personas/{active_persona}/skill-overlays/watchlist.md
-```
-
-If no overlay exists, use the default framing above.

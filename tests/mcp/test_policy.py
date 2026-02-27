@@ -2,7 +2,7 @@
 Tests for MCP tool capability policy engine.
 
 Security: These tests verify the capability gating that limits blast radius
-from prompt injection attacks. See dev/reviews/SECURITY_000.md #5.
+from prompt injection attacks. See dev/reviews/archive/SECURITY_000.md #5.
 """
 
 from __future__ import annotations
@@ -59,14 +59,15 @@ class TestPolicyConfig:
     """Test policy configuration."""
 
     def test_default_config(self):
-        """Default config allows safe levels + authenticated, excludes restricted."""
+        """Default config allows safe levels, requires confirmation for authenticated (SECURITY_001)."""
         config = PolicyConfig()
 
         assert SensitivityLevel.PUBLIC in config.allowed_levels
         assert SensitivityLevel.AGGREGATE in config.allowed_levels
         assert SensitivityLevel.MARKET in config.allowed_levels
-        # Authenticated is allowed by default (for pilot dispatcher: mining_ledger etc.)
-        assert SensitivityLevel.AUTHENTICATED in config.allowed_levels
+        # Authenticated requires confirmation by default (SECURITY_001)
+        assert SensitivityLevel.AUTHENTICATED not in config.allowed_levels
+        assert SensitivityLevel.AUTHENTICATED in config.require_confirmation
         # Restricted not allowed by default (security - mail requires opt-in)
         assert SensitivityLevel.RESTRICTED not in config.allowed_levels
 
@@ -482,7 +483,7 @@ class TestConfirmationRequired:
 
     Security: These tests verify the confirmation gate that prevents prompt
     injection from silently accessing authenticated data. See
-    dev/reviews/SECURITY_001.md finding #3.
+    dev/reviews/archive/SECURITY_001.md finding #3.
     """
 
     def test_exception_stores_fields(self):
@@ -548,11 +549,12 @@ class TestConfirmationRequired:
         with pytest.raises(CapabilityDenied):
             engine.check_capability("market", "prices")
 
-    def test_policy_config_default_includes_authenticated(self):
-        """Default PolicyConfig includes authenticated (for pilot dispatcher)."""
+    def test_policy_config_default_requires_confirmation_for_authenticated(self):
+        """Default PolicyConfig requires confirmation for authenticated (SECURITY_001)."""
         config = PolicyConfig()
 
-        assert SensitivityLevel.AUTHENTICATED in config.allowed_levels
+        assert SensitivityLevel.AUTHENTICATED not in config.allowed_levels
+        assert SensitivityLevel.AUTHENTICATED in config.require_confirmation
         assert SensitivityLevel.PUBLIC in config.allowed_levels
         assert SensitivityLevel.AGGREGATE in config.allowed_levels
         assert SensitivityLevel.MARKET in config.allowed_levels
@@ -602,3 +604,87 @@ class TestConfirmationRequired:
         engine.check_capability(
             "fitting", "calculate_stats", context={"use_pilot_skills": True}
         )
+
+
+class TestRateLimiting:
+    """Test rate limiting enforcement.
+
+    Security: Verifies that rate limiting defaults to 300/min and actually
+    enforces the limit. See dev/reviews/archive/SECURITY_000.md #6.
+    """
+
+    def test_default_rate_limit_is_300(self):
+        """Default rate limit is 300 calls/min (not unlimited)."""
+        config = PolicyConfig()
+        assert config.rate_limit_per_minute == 300
+
+    def test_from_dict_default_is_300(self):
+        """from_dict defaults to 300 when key is absent."""
+        config = PolicyConfig.from_dict({})
+        assert config.rate_limit_per_minute == 300
+
+    def test_rate_limit_enforced(self, tmp_path: Path):
+        """Rate limit of 3 blocks the 4th call."""
+        policy_file = tmp_path / "policy.json"
+        policy_file.write_text(
+            json.dumps(
+                {
+                    "policy": {
+                        "rate_limit_per_minute": 3,
+                    }
+                }
+            )
+        )
+
+        engine = PolicyEngine(policy_path=policy_file)
+
+        # First 3 calls should succeed
+        for _ in range(3):
+            engine.check_capability("sde", "item_info")
+
+        # 4th call should be denied
+        with pytest.raises(CapabilityDenied) as exc:
+            engine.check_capability("sde", "item_info")
+
+        assert "Rate limit" in str(exc.value)
+
+    def test_rate_limit_zero_means_unlimited(self, tmp_path: Path):
+        """Rate limit of 0 means no enforcement."""
+        policy_file = tmp_path / "policy.json"
+        policy_file.write_text(
+            json.dumps(
+                {
+                    "policy": {
+                        "rate_limit_per_minute": 0,
+                    }
+                }
+            )
+        )
+
+        engine = PolicyEngine(policy_path=policy_file)
+
+        # Should not raise even with many calls
+        for _ in range(100):
+            engine.check_capability("sde", "item_info")
+
+    def test_rate_limit_per_action(self, tmp_path: Path):
+        """Different actions have separate rate counters."""
+        policy_file = tmp_path / "policy.json"
+        policy_file.write_text(
+            json.dumps(
+                {
+                    "policy": {
+                        "rate_limit_per_minute": 2,
+                    }
+                }
+            )
+        )
+
+        engine = PolicyEngine(policy_path=policy_file)
+
+        # 2 calls to item_info
+        engine.check_capability("sde", "item_info")
+        engine.check_capability("sde", "item_info")
+
+        # item_info is now at limit, but search should still work
+        engine.check_capability("sde", "search")

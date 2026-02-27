@@ -76,7 +76,20 @@ jobs:
         run: uv sync --all-extras
 
       - name: Run tests with coverage
-        run: uv run pytest --cov --cov-report=xml --cov-report=term
+        run: uv run pytest --cov --cov-report=xml --cov-report=json --cov-report=term
+
+      - name: Check per-module coverage thresholds
+        run: uv run python tests/scripts/check_coverage_thresholds.py
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          flags: unittests
+          fail_ci_if_error: false  # Codecov outage shouldn't break CI
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 
   docs:

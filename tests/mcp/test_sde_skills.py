@@ -6,13 +6,6 @@ import sqlite3
 
 import pytest
 
-from aria_esi.mcp.sde.queries import (
-    SDEQueryService,
-    SkillAttributes,
-    SkillPrereq,
-    TypeRequirement,
-    reset_sde_query_service,
-)
 from aria_esi.mcp.sde.tools_skills import (
     SP_PER_LEVEL,
     calculate_sp_for_level,
@@ -25,6 +18,13 @@ from aria_esi.models.sde import (
     SkillRequirementsResult,
     TrainingTimeResult,
     TypeSkillRequirement,
+)
+from aria_esi.store.sde.queries import (
+    SDEQueryService,
+    SkillAttributes,
+    SkillPrereq,
+    TypeRequirement,
+    reset_sde_query_service,
 )
 
 # =============================================================================

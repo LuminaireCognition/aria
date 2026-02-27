@@ -5,8 +5,9 @@ from __future__ import annotations
 import pytest
 
 from aria_esi.services.redisq.interest_v2.signals.routes import RouteSignal
+from aria_esi.services.redisq.models import ProcessedKill
 
-from .conftest import MockProcessedKill
+from ..factories import make_processed_kill
 
 
 class TestRouteSignalScore:
@@ -19,7 +20,7 @@ class TestRouteSignalScore:
 
     def test_score_no_routes_configured(self, signal: RouteSignal) -> None:
         """Test scoring with no routes configured returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {})
         assert result.score == 0.0
         assert "No routes configured" in result.reason
@@ -27,13 +28,13 @@ class TestRouteSignalScore:
 
     def test_score_empty_routes_list(self, signal: RouteSignal) -> None:
         """Test scoring with empty routes list returns 0."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = signal.score(kill, 30000142, {"routes": []})
         assert result.score == 0.0
 
     def test_score_system_not_on_route(self, signal: RouteSignal) -> None:
         """Test scoring when system is not on any route."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "routes": [
                 {"name": "Jita-Amarr", "systems": [30000142, 30000144, 30002187], "score": 0.9},
@@ -44,7 +45,7 @@ class TestRouteSignalScore:
         assert "not on any route" in result.reason.lower()
 
     def test_score_system_on_route(
-        self, signal: RouteSignal, mock_kill_on_route: MockProcessedKill
+        self, signal: RouteSignal, mock_kill_on_route: ProcessedKill
     ) -> None:
         """Test scoring when system is on a route."""
         config = {
@@ -59,7 +60,7 @@ class TestRouteSignalScore:
 
     def test_score_default_route_score(self, signal: RouteSignal) -> None:
         """Test default route score is 0.9."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "routes": [
                 {"name": "Trade Route", "systems": [30000142]},  # No score specified
@@ -70,7 +71,7 @@ class TestRouteSignalScore:
 
     def test_score_custom_route_score(self, signal: RouteSignal) -> None:
         """Test custom route score."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "routes": [
                 {"name": "Trade Route", "systems": [30000142], "score": 0.7},
@@ -80,7 +81,7 @@ class TestRouteSignalScore:
         assert result.score == 0.7
 
     def test_score_ship_filter_match(
-        self, signal: RouteSignal, mock_kill_freighter: MockProcessedKill
+        self, signal: RouteSignal, mock_kill_freighter: ProcessedKill
     ) -> None:
         """Test route with ship filter that matches."""
         config = {
@@ -101,7 +102,7 @@ class TestRouteSignalScore:
 
     def test_score_ship_filter_no_match(self, signal: RouteSignal) -> None:
         """Test route with ship filter that doesn't match."""
-        kill = MockProcessedKill(victim_ship_type_id=24690)  # Vexor
+        kill = make_processed_kill(victim_ship_type_id=24690)  # Vexor
         config = {
             "routes": [
                 {
@@ -135,7 +136,7 @@ class TestRouteSignalScore:
 
     def test_score_multiple_routes_best_score(self, signal: RouteSignal) -> None:
         """Test best score from multiple matching routes."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "routes": [
                 {"name": "Low Priority", "systems": [30000142], "score": 0.5},
@@ -148,7 +149,7 @@ class TestRouteSignalScore:
 
     def test_score_route_with_ship_filter_and_without(self, signal: RouteSignal) -> None:
         """Test system on route with filter (no match) and without filter."""
-        kill = MockProcessedKill(victim_ship_type_id=24690)  # Vexor
+        kill = make_processed_kill(victim_ship_type_id=24690)  # Vexor
         config = {
             "routes": [
                 {
@@ -167,7 +168,7 @@ class TestRouteSignalScore:
 
     def test_score_unnamed_route(self, signal: RouteSignal) -> None:
         """Test route without name uses 'Unnamed'."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         config = {
             "routes": [
                 {"systems": [30000142], "score": 0.8},  # No name
@@ -178,7 +179,7 @@ class TestRouteSignalScore:
         assert "Unnamed" in result.reason
 
     def test_score_raw_value_includes_route(
-        self, signal: RouteSignal, mock_kill_on_route: MockProcessedKill
+        self, signal: RouteSignal, mock_kill_on_route: ProcessedKill
     ) -> None:
         """Test raw_value includes matched route name."""
         config = {
@@ -192,7 +193,7 @@ class TestRouteSignalScore:
 
     def test_score_dst_filter(self, signal: RouteSignal) -> None:
         """Test DST ship filter."""
-        kill = MockProcessedKill(victim_ship_type_id=12753)  # DST
+        kill = make_processed_kill(victim_ship_type_id=12753)  # DST
         config = {
             "routes": [
                 {"name": "DST Route", "systems": [30000142], "ship_filter": ["dst"]},
@@ -203,7 +204,7 @@ class TestRouteSignalScore:
 
     def test_score_blockade_runner_filter(self, signal: RouteSignal) -> None:
         """Test blockade runner ship filter."""
-        kill = MockProcessedKill(victim_ship_type_id=12731)  # BR
+        kill = make_processed_kill(victim_ship_type_id=12731)  # BR
         config = {
             "routes": [
                 {

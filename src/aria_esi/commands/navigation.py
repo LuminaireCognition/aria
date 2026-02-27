@@ -24,13 +24,6 @@ from ..core import (
     ESIClient,
     get_utc_timestamp,
 )
-from ..services.navigation import (
-    NavigationService,
-    compute_security_summary,
-    generate_warnings,
-    get_threat_level,
-)
-from ..universe import UniverseBuildError, load_universe_graph
 
 # =============================================================================
 # Activity Data Cache (avoids fetching entire global dataset per query)
@@ -159,6 +152,14 @@ def cmd_route(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Route data dict with systems, security summary, threat assessment
     """
+    from ..services.navigation import (
+        NavigationService,
+        compute_security_summary,
+        generate_warnings,
+        get_threat_level,
+    )
+    from ..universe import UniverseBuildError, load_universe_graph
+
     origin = args.origin
     destination = args.destination
     route_flag = getattr(args, "route_flag", "shortest")

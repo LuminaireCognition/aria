@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.sde.queries import (
+from aria_esi.store.sde.queries import (
     CorporationRegions,
     SDENotSeededError,
     SDEQueryService,
@@ -239,7 +239,7 @@ class TestSDEQueryService:
     def test_cache_invalidation_on_timestamp_change(self, query_service):
         """Cache should invalidate when import timestamp changes."""
         # Populate cache
-        result1 = query_service.get_corporation_regions(1000129)
+        query_service.get_corporation_regions(1000129)
         assert 1000129 in query_service._corp_regions
 
         # Simulate timestamp change
@@ -313,7 +313,7 @@ class TestSingletonAccessor:
 
         mock_conn = sqlite3.connect(":memory:")
         try:
-            with patch("aria_esi.mcp.market.database.get_market_database") as mock:
+            with patch("aria_esi.store.market.database.get_market_database") as mock:
                 mock_db = MagicMock()
                 mock_conn.row_factory = sqlite3.Row
                 mock_conn.execute(
@@ -335,7 +335,7 @@ class TestSingletonAccessor:
 
         mock_conn = sqlite3.connect(":memory:")
         try:
-            with patch("aria_esi.mcp.market.database.get_market_database") as mock:
+            with patch("aria_esi.store.market.database.get_market_database") as mock:
                 mock_db = MagicMock()
                 mock_conn.row_factory = sqlite3.Row
                 mock_conn.execute(

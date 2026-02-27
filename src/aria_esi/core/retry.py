@@ -22,7 +22,9 @@ import urllib.error
 from collections.abc import Callable, Mapping
 from email.message import Message
 from functools import wraps
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, NoReturn, Optional, TypeVar, Union
+
+from .exceptions import AriaError
 
 # Import httpx with graceful fallback
 try:
@@ -122,7 +124,7 @@ def get_retry_status() -> dict:
     }
 
 
-class RetryableESIError(Exception):
+class RetryableESIError(AriaError):
     """
     Exception for retryable ESI errors.
 
@@ -144,7 +146,7 @@ class RetryableESIError(Exception):
         super().__init__(self.message)
 
 
-class NonRetryableESIError(Exception):
+class NonRetryableESIError(AriaError):
     """
     Exception for non-retryable ESI errors.
 
@@ -395,7 +397,7 @@ def classify_http_error(
     try:
         if error.fp:
             error_body = error.read().decode("utf-8", errors="replace")
-    except Exception:
+    except (OSError, ValueError):
         pass
 
     # Parse error message
@@ -451,7 +453,7 @@ def classify_httpx_error(
         return NonRetryableESIError(message=message, status_code=status_code, original_error=error)
 
 
-def handle_esi_error(error: urllib.error.HTTPError):
+def handle_esi_error(error: urllib.error.HTTPError) -> NoReturn:
     """
     Handle an ESI HTTP error by raising appropriate exception.
 

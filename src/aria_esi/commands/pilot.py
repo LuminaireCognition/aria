@@ -57,7 +57,7 @@ def _cmd_pilot_self() -> dict:
     # Try to get credentials
     try:
         creds = get_credentials(require=False)
-    except Exception:
+    except Exception:  # noqa: BLE001 -- CLI handler
         creds = None
 
     if creds:

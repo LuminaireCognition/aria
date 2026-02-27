@@ -9,8 +9,6 @@ import pytest
 from aria_esi.services.planet_cache import (
     PLANET_TYPE_IDS,
     PlanetCacheService,
-    _find_single_planet_options,
-    _trace_to_p0,
     find_planets_for_product,
     find_planets_for_resource,
     get_planet_cache_service,

@@ -90,7 +90,7 @@ def register_status_tool(server: FastMCP) -> None:
 
         # Activity cache status
         try:
-            from ..activity import get_activity_cache
+            from aria_esi.store.activity import get_activity_cache
 
             cache = get_activity_cache()
             activity_status = cache.get_cache_status()
@@ -119,15 +119,15 @@ def register_status_tool(server: FastMCP) -> None:
             # Check for staleness
             if activity_status["kills"]["stale"]:
                 issues.append("Activity kill data is stale")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- status probe
             logger.warning("Failed to get activity cache status: %s", e)
             result["activity"] = {"error": str(e)}
             issues.append("Activity cache unavailable")
 
         # Market cache status
         try:
-            from ..market.cache import get_market_cache
-            from ..market.database import get_market_database
+            from aria_esi.store.market.cache import get_market_cache
+            from aria_esi.store.market.database import get_market_database
 
             market_cache = get_market_cache()
             market_status = market_cache.get_cache_status()
@@ -154,14 +154,14 @@ def register_status_tool(server: FastMCP) -> None:
                     "type_count": db_stats.get("type_count", 0),
                 },
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- status probe
             logger.warning("Failed to get market cache status: %s", e)
             result["market"] = {"error": str(e)}
             issues.append("Market cache unavailable")
 
         # SDE database status
         try:
-            from ..market.database import get_market_database
+            from aria_esi.store.market.database import get_market_database
 
             db = get_market_database()
             stats = db.get_stats()
@@ -176,7 +176,7 @@ def register_status_tool(server: FastMCP) -> None:
 
             if type_count == 0:
                 issues.append("SDE data not seeded - run 'aria-esi sde-seed'")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- status probe
             logger.warning("Failed to get SDE status: %s", e)
             result["sde"] = {"is_available": False, "error": str(e)}
             issues.append("SDE database unavailable")
@@ -198,7 +198,7 @@ def register_status_tool(server: FastMCP) -> None:
 
             if not fit_status.is_valid:
                 issues.append("EOS fitting data missing - run 'aria-esi eos-seed'")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- status probe
             logger.warning("Failed to get fitting status: %s", e)
             result["fitting"] = {"is_valid": False, "error": str(e)}
             issues.append("Fitting engine unavailable")
@@ -229,7 +229,7 @@ def register_status_tool(server: FastMCP) -> None:
                     issues.append("Discord webhook unhealthy")
             else:
                 result["discord"] = {"is_configured": False}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- status probe
             logger.debug("Failed to get Discord notification status: %s", e)
             result["discord"] = {"is_configured": False, "error": str(e)}
 
@@ -269,7 +269,7 @@ def register_status_tool(server: FastMCP) -> None:
                     await store.close()
             else:
                 result["killmails"] = {"store": {"initialized": False}}
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- status probe
             logger.debug("Failed to get killmail store status: %s", e)
             result["killmails"] = {"error": str(e)}
 
@@ -295,7 +295,7 @@ def register_status_tool(server: FastMCP) -> None:
                     else None,
                     "kills_processed": poller_status.kills_processed,
                 }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- status probe
             logger.debug("Poller status unavailable: %s", e)
 
         # Worker metrics from notification manager supervisor
@@ -312,7 +312,7 @@ def register_status_tool(server: FastMCP) -> None:
                     "active": supervisor_status["workers"]["active"],
                     "metrics": supervisor_status["metrics"],
                 }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- status probe
             logger.debug("Worker status unavailable: %s", e)
 
         # Build summary

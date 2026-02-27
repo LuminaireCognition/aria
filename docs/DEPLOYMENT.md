@@ -64,7 +64,7 @@ uv sync --extra fitting
 uv sync --extra full
 
 # Development tools (testing, linting)
-uv sync --extra dev
+uv sync --dev
 ```
 
 ## First Run
@@ -191,9 +191,9 @@ uv run python .claude/scripts/aria-oauth-setup.py
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
-| `ARIA_CONFIG_DIR` | Override config directory | `./userdata` |
 | `ARIA_LOG_LEVEL` | Logging verbosity | `INFO` |
-| `ESI_CLIENT_ID` | Custom ESI application | (bundled) |
+| `ARIA_INSTANCE_ROOT` | Override data directory | `./userdata` |
+| `ARIA_NO_KEYRING` | Disable system keyring | unset |
 
 ## Credential Security
 

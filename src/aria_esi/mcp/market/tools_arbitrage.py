@@ -102,7 +102,7 @@ async def _arbitrage_scan_impl(
                 for error in refresh_result.errors[:3]:  # Limit error messages
                     warnings.append(f"Refresh warning: {error}")
 
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- MCP handler
             logger.warning("Refresh failed: %s", e)
             warnings.append(f"Data refresh failed: {e}. Using cached data.")
 
@@ -143,7 +143,7 @@ async def _arbitrage_scan_impl(
 
         return result.model_dump()
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler
         logger.error("Arbitrage scan failed: %s", e)
         return {
             "error": {
@@ -182,7 +182,7 @@ async def _arbitrage_detail_impl(
         }
 
     # Resolve type name
-    from aria_esi.mcp.market.database import get_market_database
+    from aria_esi.store.market.database import get_market_database
 
     db = get_market_database()
     type_info = db.resolve_type_name(type_name)
@@ -411,7 +411,7 @@ async def _add_route_info(result, include_lowsec: bool):
                     buy_system,
                     sell_system,
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 -- MCP handler
                 logger.debug("Route calculation failed: %s", e)
 
         # Filter out lowsec routes if not included
@@ -478,7 +478,7 @@ async def _add_detail_route_info(result, buy_config: TradeHubConfig, sell_config
 
     except TimeoutError:
         logger.debug("Route calculation timed out for detail")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler
         logger.debug("Route calculation failed for detail: %s", e)
 
     return result
@@ -507,13 +507,13 @@ async def _get_route(origin: str, destination: str) -> tuple[int, bool] | None:
                 return jumps, is_safe
         except ImportError:
             pass
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- MCP handler
             logger.debug("Route calculation failed: %s", e)
         return None
 
     try:
         return await loop.run_in_executor(None, _sync_route)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler
         logger.debug("Route executor failed: %s", e)
         return None
 
@@ -545,13 +545,13 @@ async def _get_route_with_systems(
                 return jumps, is_safe, systems
         except ImportError:
             pass
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- MCP handler
             logger.debug("Route calculation failed: %s", e)
         return None
 
     try:
         return await loop.run_in_executor(None, _sync_route)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler
         logger.debug("Route executor failed: %s", e)
         return None
 

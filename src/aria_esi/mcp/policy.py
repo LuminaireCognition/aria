@@ -5,19 +5,20 @@ Provides capability gating for MCP tools to limit blast radius from prompt
 injection attacks. Tools are classified by sensitivity level and can be
 enabled/disabled via policy configuration.
 
-Security finding: #5 from dev/reviews/SECURITY_000.md
+Security finding: #5 from dev/reviews/archive/SECURITY_000.md
 """
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ..core.config import get_settings
+from ..core.exceptions import AriaError
 from ..core.logging import get_logger
 
 if TYPE_CHECKING:
@@ -139,7 +140,7 @@ DEFAULT_ACTION_SENSITIVITY: dict[str, dict[str, SensitivityLevel]] = {
 # =============================================================================
 
 
-class PolicyError(Exception):
+class PolicyError(AriaError):
     """Base exception for policy errors."""
 
     pass
@@ -213,13 +214,16 @@ class PolicyConfig:
             SensitivityLevel.PUBLIC,
             SensitivityLevel.AGGREGATE,
             SensitivityLevel.MARKET,
-            SensitivityLevel.AUTHENTICATED,
         }
     )
 
     # Sensitivity levels that require user confirmation before access
     # Actions at these levels will raise ConfirmationRequired instead of CapabilityDenied
-    require_confirmation: set[SensitivityLevel] = field(default_factory=set)
+    require_confirmation: set[SensitivityLevel] = field(
+        default_factory=lambda: {
+            SensitivityLevel.AUTHENTICATED,
+        }
+    )
 
     # Explicitly denied actions (dispatcher.action format)
     denied_actions: set[str] = field(default_factory=set)
@@ -231,7 +235,7 @@ class PolicyConfig:
     audit_logging: bool = True
 
     # Rate limit settings (calls per minute, 0 = unlimited)
-    rate_limit_per_minute: int = 0
+    rate_limit_per_minute: int = 300
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> PolicyConfig:
@@ -239,9 +243,7 @@ class PolicyConfig:
         return cls(
             allowed_levels={
                 SensitivityLevel(level)
-                for level in data.get(
-                    "allowed_levels", ["public", "aggregate", "market", "authenticated"]
-                )
+                for level in data.get("allowed_levels", ["public", "aggregate", "market"])
             },
             require_confirmation={
                 SensitivityLevel(level) for level in data.get("require_confirmation", [])
@@ -249,7 +251,7 @@ class PolicyConfig:
             denied_actions=set(data.get("denied_actions", [])),
             allowed_actions=set(data.get("allowed_actions", [])),
             audit_logging=data.get("audit_logging", True),
-            rate_limit_per_minute=data.get("rate_limit_per_minute", 0),
+            rate_limit_per_minute=data.get("rate_limit_per_minute", 300),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -431,7 +433,7 @@ class PolicyEngine:
         """Check and enforce rate limits."""
         full_action = f"{dispatcher}.{action}"
         now = datetime.now(UTC)
-        minute_ago = now.replace(second=0, microsecond=0)
+        minute_ago = now - timedelta(minutes=1)
 
         # Get call history for this action
         if full_action not in self._call_counts:
@@ -483,10 +485,9 @@ class PolicyEngine:
 
         if context:
             # Sanitize context to avoid logging sensitive data
-            safe_context = {
-                k: v for k, v in context.items() if k not in ("password", "token", "secret")
-            }
-            log_entry["context"] = safe_context
+            from ..core.sanitization import sanitize_for_logging
+
+            log_entry["context"] = sanitize_for_logging(context)
 
         if result == "denied":
             logger.warning("MCP policy: %s", json.dumps(log_entry))

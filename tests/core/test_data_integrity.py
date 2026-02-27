@@ -2,7 +2,7 @@
 Tests for data integrity verification.
 
 Security: These tests verify the checksum verification logic that protects
-against RCE from tampered pickle files. See dev/reviews/SECURITY_000.md #3.
+against RCE from tampered pickle files. See dev/reviews/archive/SECURITY_000.md #3.
 """
 
 from __future__ import annotations
@@ -111,8 +111,8 @@ class TestVerifyUniverseGraphIntegrity:
 
         assert success is True
 
-    def test_passes_with_no_checksum_configured(self, tmp_path: Path, monkeypatch):
-        """Verification passes with warning when no checksum is configured."""
+    def test_raises_with_no_checksum_configured(self, tmp_path: Path, monkeypatch):
+        """Verification raises IntegrityError when no checksum is configured."""
         test_file = tmp_path / "test.pkl"
         test_file.write_bytes(b"test content")
 
@@ -128,11 +128,32 @@ class TestVerifyUniverseGraphIntegrity:
 
         monkeypatch.setattr(data_integrity, "MANIFEST_PATH", manifest_path)
 
-        # With no checksum in manifest, verification should pass with warning
-        success, actual = verify_universe_graph_integrity(test_file)
+        with pytest.raises(IntegrityError) as exc_info:
+            verify_universe_graph_integrity(test_file)
+
+        assert "No universe graph checksum configured" in str(exc_info.value)
+        assert exc_info.value.actual is not None
+        assert len(exc_info.value.actual) == 64
+
+    def test_no_checksum_break_glass_passes(self, tmp_path: Path, monkeypatch):
+        """Break-glass bypasses the no-checksum error."""
+        test_file = tmp_path / "test.pkl"
+        test_file.write_bytes(b"test content")
+
+        manifest = {
+            "schema_version": 1,
+            "sources": {"universe_graph": {"sha256": None}},
+        }
+        manifest_path = tmp_path / "data-sources.json"
+        manifest_path.write_text(json.dumps(manifest))
+
+        from aria_esi.core import data_integrity
+
+        monkeypatch.setattr(data_integrity, "MANIFEST_PATH", manifest_path)
+
+        success, actual = verify_universe_graph_integrity(test_file, break_glass=True)
 
         assert success is True
-        assert len(actual) == 64  # Still computed the hash
 
     def test_case_insensitive_checksum_comparison(self, tmp_path: Path):
         """Checksum comparison is case-insensitive."""

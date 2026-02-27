@@ -15,26 +15,6 @@ requires_pilot: false
 
 # ARIA Market Arbitrage Module (V2)
 
-## Purpose
-
-Scan for cross-region arbitrage opportunities across EVE's major trade hubs. Identifies items where buying in one region and selling in another yields profit.
-
-**V2 Features:**
-- **Hauling Score:** Ranks by profit per m³ of transport capacity (requires `--cargo`).
-- **Net Profit:** Calculates true profit after broker fees and sales tax.
-- **Liquidity Analysis:** Caps quantity at 10% of daily volume (requires `--history`).
-- **Transport Capacity:** Limits quantity by your ship's cargo space.
-- **Ad-hoc Scopes:** Extend analysis beyond trade hubs to custom regions, stations, or structures.
-
-## Trigger Phrases
-
-- "/arbitrage"
-- "arbitrage opportunities"
-- "trade route finder"
-- "what can I haul for profit"
-- "cross-region trading"
-- "price gaps between hubs"
-
 ## Command Syntax
 
 ```
@@ -58,7 +38,14 @@ Scan for cross-region arbitrage opportunities across EVE's major trade hubs. Ide
 | `--scopes` | `names` | Ad-hoc scope names to include (comma-separated) |
 | `--include-scopes` | (flag) | Enable ad-hoc scope data in scan |
 
-**Note on default filters:** The default `--min-profit 5` (5% minimum margin) often returns 0 results during low-volatility periods when trade hub prices are closely aligned. If the scan returns no opportunities, retry with a lower threshold: `--min-profit 2` or `--min-profit 1`.
+**Note on default filters:** The default `--min-profit 5` (5% minimum margin) often returns 0 results during low-volatility periods when trade hub prices are closely aligned.
+
+**Empty results recovery sequence:**
+1. Retry at `min_profit_pct=2`, then `min_profit_pct=1` before reporting no opportunities
+2. Try different `sort_by` values: `hauling_score` (best for haulers), `profit_density` (ISK/m³)
+3. Try `trade_mode="hybrid"` or `trade_mode="station_trading"` for different fee structures
+
+**Expected response schema** (even when empty): `opportunities` (list), `scan_params` (dict with filters used), `market_summary` (dict with hub price freshness). When results exist, each opportunity includes: `type_name`, `buy_price`, `sell_price`, `margin_pct`, `volume`, `profit_per_unit`, `buy_region`, `sell_region`.
 
 ### Trade Modes & Fees
 
@@ -67,51 +54,19 @@ Affects how net profit is calculated:
 - **hybrid**: Take sell orders → Place sell order. **Fees:** Broker + Sales tax on sell.
 - **station_trading**: Place buy order → Place sell order. **Fees:** Broker on both + Sales tax.
 
-## MCP Tools Used
+## MCP Tools
 
-### `market_arbitrage_scan`
-
-Primary scan tool. Queries `region_prices` table for profitable spreads.
-
-**Parameters:**
-- `cargo_capacity_m3` (float): Transport capacity.
-- `sort_by` (str): `margin`, `profit_density`, `hauling_score`.
-- `include_history` (bool): Fetch market history.
-- `trade_mode` (str): Execution strategy.
-- `min_profit_pct` (float): Minimum profit %.
-- `max_results` (int): Maximum results (default 20).
-- `include_custom_scopes` (bool): Include ad-hoc scope data (default False).
-- `scopes` (list[str]): Specific scope names to include.
-- `scope_owner_id` (int): Character ID for scope ownership resolution.
-
-### `market_arbitrage_detail`
-
-Detailed analysis for a specific opportunity.
-
-**Parameters:**
-- `type_name` (str): Item name
-- `buy_region` (str): Region to buy from
-- `sell_region` (str): Region to sell to
+Use `market(action="arbitrage_scan")` and `market(action="arbitrage_detail")` — see MCP tool schema for parameters.
 
 ## Response Format
 
-### Scan Results (Hauling Score Mode)
+Present results as a markdown table:
 
-```
-═══════════════════════════════════════════════════════════════════
-ARBITRAGE OPPORTUNITIES (60,000 m³ capacity)
-Mode: immediate (Net profit uses sales tax only)
-───────────────────────────────────────────────────────────────────
-| Item                | Route      | Net Margin | Score    | Limit     |
-|---------------------|------------|------------|----------|-----------|
-| Skill Injector      | Amarr→Jita | 4.3%       | 63K/m³   | liquidity |
-| Neurovisual         | Jita→Amarr | 7.8%       | 6.4K/m³  | liquidity |
-| Tritanium           | Jita→Dodix | 2.2%       | 42/m³    | cargo     |
+| Item | Route | Net Margin | Score | Limit |
+|------|-------|------------|-------|-------|
 
-Score = Net ISK profit per m³ of transport capacity
-Limit = Binding constraint (cargo | liquidity | market supply)
-═══════════════════════════════════════════════════════════════════
-```
+- **Score** = Net ISK profit per m³ of transport capacity
+- **Limit** = Binding constraint (cargo | liquidity | market supply)
 
 ## Fee Calculation
 
@@ -126,10 +81,7 @@ Net Profit = Sell Revenue (after tax/fees) - Buy Cost (after fees)
 
 ## Limits & Constraints
 
-- **Cargo Limit:** `cargo_capacity / item_volume`
-- **Liquidity Limit:** `daily_volume * 10%` (requires history)
-- **Market Limit:** `min(buy_available, sell_available)`
-- **Safe Quantity:** `min(cargo, liquidity, market)`
+The MCP tool calculates cargo, liquidity, and market limits internally. The binding constraint is returned as the `limit` field in each opportunity.
 
 ## Use Cases
 
@@ -159,52 +111,7 @@ Net Profit = Sell Revenue (after tax/fees) - Buy Cost (after fees)
 
 ## Ad-hoc Market Scopes
 
-Extend arbitrage analysis beyond the 5 trade hubs by adding custom market scopes.
-
-**Full documentation:** `docs/ADHOC_MARKETS.md`
-
-### Quick Setup
-
-1. **Create a watchlist** (bounds which items to fetch):
-```
-market_watchlist_create("my_items", items=["Tritanium", "Pyerite"])
-```
-
-2. **Create a scope** (defines the market location):
-```
-market_scope_create("Everyshore", "region", 10000037, "my_items")
-```
-
-3. **Refresh data** (fetch from ESI):
-```
-market_scope_refresh("Everyshore")
-```
-
-4. **Include in scan**:
-```
-market_arbitrage_scan(include_custom_scopes=True, scopes=["Everyshore"])
-```
-
-### Scope Types
-
-| Type | Cost | Notes |
-|------|------|-------|
-| `region` | Low | Fetches per type_id |
-| `station` | Low | Filters region by station |
-| `system` | Low | Filters region by system |
-| `structure` | **High** | Fetches ALL orders, filters locally |
-
-### Result Labels
-
-When ad-hoc scopes are included, results contain provenance metadata:
-
-| Field | Description |
-|-------|-------------|
-| `buy_scope_name` | Source scope for buy side |
-| `sell_scope_name` | Source scope for sell side |
-| `source_type` | `fuzzwork` (hubs) or `esi` (ad-hoc) |
-| `data_age` | Age of CCP data |
-| `is_truncated` | True if data may be incomplete |
+Ad-hoc scopes extend scanning beyond the 5 trade hubs. Pass `include_custom_scopes=True` and `scopes=[...]` to the scan. Full setup and scope types: `docs/ADHOC_MARKETS.md`.
 
 ## DO NOT
 
@@ -212,12 +119,3 @@ When ad-hoc scopes are included, results contain provenance metadata:
 - **DO NOT** ignore liquidity. High margin items often have low volume.
 - **DO NOT** assume all items fit in cargo (check packaged volume).
 
----
-
-## Persona Adaptation
-
-This skill supports persona-specific overlays. When active persona has an overlay file, load additional context from:
-
-```
-personas/{active_persona}/skill-overlays/arbitrage.md
-```

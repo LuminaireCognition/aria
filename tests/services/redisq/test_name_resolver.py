@@ -8,9 +8,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-
 # =============================================================================
 # NameResolver Tests
 # =============================================================================
@@ -64,7 +61,7 @@ class TestEnsureGraph:
 
         with patch(
             "aria_esi.universe.load_universe_graph",
-            side_effect=Exception("Load failed"),
+            side_effect=RuntimeError("Load failed"),
         ):
             resolver = NameResolver()
             result = resolver._ensure_graph()
@@ -119,7 +116,7 @@ class TestResolveSystemName:
 
         with patch(
             "aria_esi.universe.load_universe_graph",
-            side_effect=Exception("No graph"),
+            side_effect=RuntimeError("No graph"),
         ):
             resolver = NameResolver()
             result = resolver.resolve_system_name(30000142)

@@ -12,7 +12,6 @@ import pytest
 from aria_esi.mcp.market.tools_arbitrage import _resolve_region
 from aria_esi.models.market import TRADE_HUBS
 
-
 # =============================================================================
 # _resolve_region Tests
 # =============================================================================

@@ -134,7 +134,7 @@ class TestInitialization:
 
             # Simulate ImportError when importing eos
             with patch.dict("sys.modules", {"aria_esi._vendor.eos": None}):
-                bridge = EOSBridge.get_instance()
+                EOSBridge.get_instance()
 
                 # This test verifies the error message mentions EOS
                 # In practice, the ImportError path is tested

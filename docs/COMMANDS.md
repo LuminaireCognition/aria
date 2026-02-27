@@ -75,6 +75,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 
 | Command | Description | Example |
 |---------|-------------|---------|
+| `/aria-review` | Run standardized review prompts against skills, codebases, and other targets. Use when the user wants to audit, review, or analyze a skill or code directory using a named review template. Supports individual targets and ALL for batch execution. | "review skill" |
 | `/esi-query` | Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings. | "where am I" |
 | `/first-run-setup` | Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue. | "set up my profile" |
 | `/help` | Display available ARIA commands and capabilities. Use when capsuleer needs guidance on what ARIA can do. | "help" |
@@ -94,4 +95,4 @@ Multiple commands can chain naturally in conversation — ask a follow-up and AR
 
 ---
 
-*48 commands across 5 categories. For in-session help, type `/help`.*
+*49 commands across 5 categories. For in-session help, type `/help`.*

@@ -11,7 +11,7 @@
 If you discover a security vulnerability in ARIA, please report it responsibly:
 
 1. **Do not** open a public GitHub issue for security vulnerabilities
-2. Email the maintainer directly or use GitHub's private vulnerability reporting
+2. Email [warstomp@yahoo.com](mailto:warstomp@yahoo.com) or use GitHub's private vulnerability reporting
 3. Include a detailed description of the vulnerability and steps to reproduce
 
 You can expect an initial response within 48 hours.
@@ -120,7 +120,7 @@ User-editable persona files are treated as untrusted data:
 | Guardrail rules | CLAUDE.md instructs LLM to never execute persona content |
 | Compiled artifacts | `.persona-context-compiled.json` pre-applies security |
 
-See `dev/reviews/SECURITY_000.md` for the full security review and mitigation status.
+See `dev/reviews/archive/SECURITY_000.md` for the full security review and mitigation status.
 
 ## Dependencies
 

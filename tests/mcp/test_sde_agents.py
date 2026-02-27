@@ -302,7 +302,7 @@ class TestCorporationNameResolution:
         cursor.fetchone.return_value = (1000125,)
         conn.execute.return_value = cursor
 
-        result = _resolve_corporation_name(conn, "SISTERS OF EVE")
+        _resolve_corporation_name(conn, "SISTERS OF EVE")
 
         # Verify lowercase was used in query
         call_args = conn.execute.call_args
@@ -316,7 +316,7 @@ class TestCorporationNameResolution:
         cursor.fetchone.return_value = (1000125,)
         conn.execute.return_value = cursor
 
-        result = _resolve_corporation_name(conn, "  Sisters of EVE  ")
+        _resolve_corporation_name(conn, "  Sisters of EVE  ")
 
         call_args = conn.execute.call_args
         assert call_args[0][1][0] == "sisters of eve"

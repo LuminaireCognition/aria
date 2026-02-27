@@ -1,0 +1,66 @@
+Tier 1 — Security (from SECURITY review) ✅ ALL COMPLETE
+  1. ✅ SDE importer SQL f-string interpolation — _qi allowlist + regression test (389cb7de, 24dda20a)
+  2. ✅ SDE integrity verification soft-fail — hard-fail + auto-pin on first download (389cb7de)
+  3. ✅ Audit log sanitization inconsistency — unified sanitization module (389cb7de)
+  4. ✅ Rate limiting defaults to unlimited — default 0→300, sliding window fix (389cb7de)
+  5. ✅ Break-glass env var audit trail — centralized WARNING/ERROR logging at startup (389cb7de)
+  6. ✅ Pickle deserialization in igraph — v2 safe binary edge list format (389cb7de)
+
+Tier 2 — Code Quality (from Python, System Design reviews) ✅ ALL COMPLETE
+  7. ✅ URL encoding gap in _build_url() — urllib.parse.urlencode (24dda20a)
+  8. ✅ B904 remediation — enabled globally with per-file exceptions (d5efea2f)
+  9. ✅ Reduce broad except catches — BLE001 enabled, all violations fixed (b5da7249)
+  10. ✅ Decompose universe.py dispatcher — 3,798-line file → 12-file package (b5da7249)
+  11. ✅ Eliminate sync/async client duplication — AsyncESIResponse/AsyncESIError now aliases (05b5a892)
+  12. ✅ Fix create_async_client() anti-pattern — function removed entirely (b5da7249)
+  13. ✅ Remove __del__ from ESIClient — removed (d5efea2f)
+  14. ✅ Standardize logging — print() removed from auth.py, get_logger() used (24dda20a)
+  15. ✅ Common base exception AriaError — core.exceptions module (b5da7249)
+  16. ✅ Duplicate exception hierarchies — rebased on AriaError hierarchy (05b5a892)
+
+Tier 3 — Test Harness (from Test Harness, Coverage reviews)
+  17. ✅ Non-deterministic fixtures — datetime.now() defaults removed from conftest files (24dda20a)
+  18. ✅ MockProcessedKill defined 5 times — consolidated into shared make_processed_kill() factory, 15 files migrated (31db9615)
+  19. ✅ ESI pagination contract tests — 25 tests across 4 classes covering x_pages edge cases, Pattern A/B pagination, error recovery (ff994269)
+  20. ✅ Branch coverage enforcement — fail_under 64→68, ~2% headroom below actual 70% (31db9615)
+  21. ✅ Per-module coverage thresholds — 13 packages in pyproject.toml, check script in CI (31db9615)
+  22. ✅ Fitting MCP tools + cache builder tests — 43 new tests, 0%→covered (31db9615)
+      ✅ Backfill service tests — 36 tests, 4 classes, 0%→100% (089f8df9)
+      ✅ AsyncMarketDatabase tests — 62 tests, 10 classes, 33%→92% (e4b6ccc9)
+
+Remaining — prioritized by value
+  High — immediate ROI, low risk: ✅ ALL COMPLETE
+    A. ✅ Legacy cache module parallel to universe — removed entirely (faca452b)
+    B. ✅ Organize ~30 root-level test files into subdirectories (Test Harness R11) (4d3cae8c)
+       3 deleted (superseded), 21 moved to subdirectories, 1 path fix
+    C. ✅ Remove reference data without consumers — KEPT: both have active consumers (Accretion #7)
+       reference/fittings/MODULE_NAMES.md → used by .claude/skills/fitting/; reference/sites/ → used by cmd_validate_sites
+    D. ✅ Hook script deduplication — aria-esi-sync.py moved to CLI command (b0465a9a)
+    E. ✅ Eager import in commands/__init__.py — lazy __getattr__ + deferred heavy imports in 9 modules
+       + compact build_parser() loop + benchmark script (1cfe8c2e)
+
+  Medium — meaningful improvement, more effort:
+    F. MCP as hybrid transport+data layer — extract data access to core/ (System Design H2)
+       Note: core→mcp layer inversion partially fixed via sde_bridge callback (d5efea2f)
+    G. mypy Phase 5 — check_untyped_defs = true (Python P2-10)
+    H. Coverage trend tracking — upload to Codecov/Coveralls (Test Harness R7, Coverage #10)
+       Note: remaining CLI coverage gap (18 modules < 50%)
+
+  Low — long-term or cosmetic:
+    I. Singleton standardization — replace 30+ patterns with registry/DI (System Design H3, Python P2-9)
+    J. Mixed Pydantic/dataclass policy (System Design M7)
+    K. Sovereignty subsystem — evaluate scope vs maintenance cost (Accretion #3)
+    L. Notification LLM commentary — simplify 3-provider abstraction (Accretion #6)
+    M. Troubleshooting content duplicated across 4 files (Onboarding M-3)
+    N. ✅ CHANGELOG version alignment with pyproject.toml 0.2.0 — stamped [0.2.0] - 2026-02-25
+    O. ✅ SECURITY.md explicit contact email — added warstomp@yahoo.com
+    P. ✅ FEATURES.md says "7 categories" but shows 5 headings — fixed counts (8 dispatchers, 5 categories)
+    Q. ✅ "Eve Online" casing → "EVE Online" in CONTRIBUTING.md — 3 instances fixed
+
+  Dropped:
+    - Interest Engine v2 config tier simplification — well-structured, well-tested, justified complexity
+
+Also completed (not in original tracking):
+  - Skill exercise fixes: 20 SKILL.md guidance improvements + 3 code fixes (bfe907b6, 54d30c1e)
+
+Summary: 35/42 original items complete (1 dropped). 7 remaining: F–M.

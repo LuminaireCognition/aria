@@ -100,6 +100,23 @@ def sample_pod_killmail() -> dict[str, Any]:
 
 
 @pytest.fixture
+def sample_zkb_kill() -> dict[str, Any]:
+    """Sample zKillboard REST API kill entry (backfill format)."""
+    return {
+        "killmail_id": 123456789,
+        "killmail_time": "2024-01-15T12:34:56Z",
+        "zkb": {
+            "hash": "abc123def456",
+            "totalValue": 150000000.0,
+            "points": 10,
+            "fittedValue": 120000000.0,
+            "droppedValue": 30000000.0,
+            "destroyedValue": 120000000.0,
+        },
+    }
+
+
+@pytest.fixture
 def temp_db_path(tmp_path: Path) -> Path:
     """Temporary database path for testing."""
     return tmp_path / "test_aria.db"

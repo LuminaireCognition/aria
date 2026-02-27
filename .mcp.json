@@ -2,8 +2,7 @@
   "mcpServers": {
     "aria-universe": {
       "command": "uv",
-      "args": ["run", "python", "-m", "aria_esi.mcp.server"],
-      "cwd": "src"
+      "args": ["run", "aria-universe"]
     }
   }
 }

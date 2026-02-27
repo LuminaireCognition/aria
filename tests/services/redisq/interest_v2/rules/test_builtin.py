@@ -6,7 +6,7 @@ Coverage target: 90%+ for src/aria_esi/services/redisq/interest_v2/rules/builtin
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import pytest
 
@@ -25,27 +25,11 @@ from aria_esi.services.redisq.interest_v2.rules.builtin import (
     _format_isk,
 )
 
+from ..factories import make_processed_kill
+
 # =============================================================================
 # Mock Data Classes
 # =============================================================================
-
-
-@dataclass
-class MockProcessedKill:
-    """Mock ProcessedKill for testing rules."""
-
-    kill_id: int = 12345678
-    solar_system_id: int = 30000142  # Jita
-    victim_ship_type_id: int | None = 24690  # Vexor
-    victim_corporation_id: int | None = 98000001
-    victim_alliance_id: int | None = 99001234
-    is_pod_kill: bool = False
-    attacker_count: int = 3
-    attacker_corps: list[int] = field(default_factory=lambda: [98000002, 98000003])
-    attacker_alliances: list[int] = field(default_factory=lambda: [99005678])
-    attacker_ship_types: list[int] = field(default_factory=lambda: [17703, 17703])
-    final_blow_ship_type_id: int | None = 17703
-    total_value: float = 150_000_000.0  # 150M ISK
 
 
 @dataclass
@@ -124,7 +108,7 @@ class TestNpcOnlyRule:
 
     def test_all_npc_attackers_matches(self, rule: NpcOnlyRule) -> None:
         """Kill with only NPC attackers (corp_id < 2M) should match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             attacker_corps=[1000125, 1000127, 500000],  # All NPC corps
             attacker_alliances=[],
         )
@@ -134,7 +118,7 @@ class TestNpcOnlyRule:
 
     def test_mixed_attackers_not_matched(self, rule: NpcOnlyRule) -> None:
         """Kill with mix of NPC and player attackers should not match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             attacker_corps=[1000125, 98000001],  # NPC + player
             attacker_alliances=[],
         )
@@ -144,7 +128,7 @@ class TestNpcOnlyRule:
 
     def test_all_player_attackers_not_matched(self, rule: NpcOnlyRule) -> None:
         """Kill with only player attackers should not match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             attacker_corps=[98000001, 98000002, 98000003],  # All player corps
             attacker_alliances=[99005678],
         )
@@ -154,7 +138,7 @@ class TestNpcOnlyRule:
 
     def test_empty_attacker_corps_not_matched(self, rule: NpcOnlyRule) -> None:
         """Kill with no attacker corp info should not match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             attacker_corps=[],
             attacker_alliances=[],
         )
@@ -165,7 +149,7 @@ class TestNpcOnlyRule:
     def test_attacker_corps_with_none_values(self, rule: NpcOnlyRule) -> None:
         """Kill with None values in attacker_corps should handle gracefully."""
         # Simulate corps list with None values (filtered out by generator)
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             attacker_corps=[1000125, 0, 1000127],  # 0 is falsy, will be filtered
             attacker_alliances=[],
         )
@@ -201,21 +185,21 @@ class TestPodOnlyRule:
 
     def test_standard_capsule_matches(self, rule: PodOnlyRule) -> None:
         """Standard capsule (type_id 670) should match."""
-        kill = MockProcessedKill(victim_ship_type_id=670)
+        kill = make_processed_kill(victim_ship_type_id=670)
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
         assert "capsule" in (result.reason or "").lower()
 
     def test_genolution_capsule_matches(self, rule: PodOnlyRule) -> None:
         """Genolution capsule (type_id 33328) should match."""
-        kill = MockProcessedKill(victim_ship_type_id=33328)
+        kill = make_processed_kill(victim_ship_type_id=33328)
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
         assert "capsule" in (result.reason or "").lower()
 
     def test_ship_not_matched(self, rule: PodOnlyRule) -> None:
         """Non-capsule ship should not match."""
-        kill = MockProcessedKill(victim_ship_type_id=24690)  # Vexor
+        kill = make_processed_kill(victim_ship_type_id=24690)  # Vexor
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
         assert "not a capsule" in (result.reason or "").lower()
@@ -245,7 +229,7 @@ class TestCorpMemberVictimRule:
 
     def test_no_corp_id_configured(self, rule: CorpMemberVictimRule) -> None:
         """No corp_id in config should return not matched."""
-        kill = MockProcessedKill(victim_corporation_id=98000001)
+        kill = make_processed_kill(victim_corporation_id=98000001)
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
         assert "No corp_id configured" in (result.reason or "")
@@ -259,7 +243,7 @@ class TestCorpMemberVictimRule:
 
     def test_victim_matches_corp(self, rule: CorpMemberVictimRule) -> None:
         """Victim in configured corp should match."""
-        kill = MockProcessedKill(victim_corporation_id=98000001)
+        kill = make_processed_kill(victim_corporation_id=98000001)
         result = rule.evaluate(kill, 30000142, {"corp_id": 98000001})
         assert result.matched is True
         assert "corp member" in (result.reason or "").lower()
@@ -267,7 +251,7 @@ class TestCorpMemberVictimRule:
 
     def test_victim_different_corp(self, rule: CorpMemberVictimRule) -> None:
         """Victim in different corp should not match."""
-        kill = MockProcessedKill(victim_corporation_id=98000001)
+        kill = make_processed_kill(victim_corporation_id=98000001)
         result = rule.evaluate(kill, 30000142, {"corp_id": 98000002})
         assert result.matched is False
         assert "not a corp member" in (result.reason or "").lower()
@@ -292,7 +276,7 @@ class TestAllianceMemberVictimRule:
 
     def test_no_alliance_id_configured(self, rule: AllianceMemberVictimRule) -> None:
         """No alliance_id in config should return not matched."""
-        kill = MockProcessedKill(victim_alliance_id=99001234)
+        kill = make_processed_kill(victim_alliance_id=99001234)
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
         assert "No alliance_id configured" in (result.reason or "")
@@ -306,7 +290,7 @@ class TestAllianceMemberVictimRule:
 
     def test_victim_matches_alliance(self, rule: AllianceMemberVictimRule) -> None:
         """Victim in configured alliance should match."""
-        kill = MockProcessedKill(victim_alliance_id=99001234)
+        kill = make_processed_kill(victim_alliance_id=99001234)
         result = rule.evaluate(kill, 30000142, {"alliance_id": 99001234})
         assert result.matched is True
         assert "alliance member" in (result.reason or "").lower()
@@ -314,14 +298,14 @@ class TestAllianceMemberVictimRule:
 
     def test_victim_different_alliance(self, rule: AllianceMemberVictimRule) -> None:
         """Victim in different alliance should not match."""
-        kill = MockProcessedKill(victim_alliance_id=99001234)
+        kill = make_processed_kill(victim_alliance_id=99001234)
         result = rule.evaluate(kill, 30000142, {"alliance_id": 99005678})
         assert result.matched is False
         assert "not an alliance member" in (result.reason or "").lower()
 
     def test_victim_no_alliance(self, rule: AllianceMemberVictimRule) -> None:
         """Victim with no alliance should not match."""
-        kill = MockProcessedKill(victim_alliance_id=None)
+        kill = make_processed_kill(victim_alliance_id=None)
         result = rule.evaluate(kill, 30000142, {"alliance_id": 99001234})
         assert result.matched is False
         assert "not an alliance member" in (result.reason or "").lower()
@@ -346,14 +330,14 @@ class TestWarTargetActivityRule:
 
     def test_no_war_targets_configured(self, rule: WarTargetActivityRule) -> None:
         """No war_targets in config should return not matched."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
         assert "No war targets configured" in (result.reason or "")
 
     def test_empty_war_targets_configured(self, rule: WarTargetActivityRule) -> None:
         """Empty war_targets list should return not matched."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {"war_targets": []})
         assert result.matched is False
         assert "No war targets configured" in (result.reason or "")
@@ -367,14 +351,14 @@ class TestWarTargetActivityRule:
 
     def test_victim_corp_is_war_target(self, rule: WarTargetActivityRule) -> None:
         """Victim corp in war targets should match."""
-        kill = MockProcessedKill(victim_corporation_id=98000050)
+        kill = make_processed_kill(victim_corporation_id=98000050)
         result = rule.evaluate(kill, 30000142, {"war_targets": {98000050}})
         assert result.matched is True
         assert "Victim corp is a war target" in (result.reason or "")
 
     def test_victim_alliance_is_war_target(self, rule: WarTargetActivityRule) -> None:
         """Victim alliance in war targets should match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             victim_alliance_id=99005000,
         )
@@ -384,7 +368,7 @@ class TestWarTargetActivityRule:
 
     def test_attacker_corp_is_war_target(self, rule: WarTargetActivityRule) -> None:
         """Attacker corp in war targets should match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             attacker_corps=[98000050, 98000002],
         )
@@ -394,7 +378,7 @@ class TestWarTargetActivityRule:
 
     def test_attacker_alliance_is_war_target(self, rule: WarTargetActivityRule) -> None:
         """Attacker alliance in war targets should match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             attacker_corps=[98000002],
             attacker_alliances=[99005000],
@@ -405,7 +389,7 @@ class TestWarTargetActivityRule:
 
     def test_no_war_target_involvement(self, rule: WarTargetActivityRule) -> None:
         """Kill with no war target involvement should not match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             victim_alliance_id=99001234,
             attacker_corps=[98000002, 98000003],
@@ -419,7 +403,7 @@ class TestWarTargetActivityRule:
 
     def test_list_converted_to_set(self, rule: WarTargetActivityRule) -> None:
         """War targets as list should be converted to set."""
-        kill = MockProcessedKill(victim_corporation_id=98000050)
+        kill = make_processed_kill(victim_corporation_id=98000050)
         # Pass as list, should work the same
         result = rule.evaluate(kill, 30000142, {"war_targets": [98000050, 99005000]})
         assert result.matched is True
@@ -428,7 +412,7 @@ class TestWarTargetActivityRule:
         self, rule: WarTargetActivityRule
     ) -> None:
         """Victim with no alliance shouldn't match alliance war targets."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             victim_alliance_id=None,
             attacker_corps=[98000002],
@@ -458,14 +442,14 @@ class TestWatchlistMatchRule:
 
     def test_empty_watchlist(self, rule: WatchlistMatchRule) -> None:
         """Empty watchlist should return not matched."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
         assert "Watchlist is empty" in (result.reason or "")
 
     def test_both_watchlists_empty(self, rule: WatchlistMatchRule) -> None:
         """Both empty watchlists should return not matched."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(
             kill, 30000142, {"watched_corps": [], "watched_alliances": []}
         )
@@ -481,14 +465,14 @@ class TestWatchlistMatchRule:
 
     def test_victim_corp_on_watchlist(self, rule: WatchlistMatchRule) -> None:
         """Victim corp on watchlist should match."""
-        kill = MockProcessedKill(victim_corporation_id=98000001)
+        kill = make_processed_kill(victim_corporation_id=98000001)
         result = rule.evaluate(kill, 30000142, {"watched_corps": {98000001}})
         assert result.matched is True
         assert "Victim corp is on watchlist" in (result.reason or "")
 
     def test_victim_alliance_on_watchlist(self, rule: WatchlistMatchRule) -> None:
         """Victim alliance on watchlist should match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             victim_alliance_id=99001234,
         )
@@ -498,7 +482,7 @@ class TestWatchlistMatchRule:
 
     def test_victim_not_on_watchlist(self, rule: WatchlistMatchRule) -> None:
         """Victim not on watchlist should not match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000001,
             victim_alliance_id=99001234,
         )
@@ -512,7 +496,7 @@ class TestWatchlistMatchRule:
 
     def test_list_converted_to_set(self, rule: WatchlistMatchRule) -> None:
         """Watchlists as lists should be converted to sets."""
-        kill = MockProcessedKill(victim_corporation_id=98000001)
+        kill = make_processed_kill(victim_corporation_id=98000001)
         # Pass as lists, should work the same
         result = rule.evaluate(
             kill,
@@ -526,7 +510,7 @@ class TestWatchlistMatchRule:
 
     def test_victim_with_no_alliance(self, rule: WatchlistMatchRule) -> None:
         """Victim with no alliance shouldn't match alliance watchlist."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000099,  # Not on corp watchlist
             victim_alliance_id=None,
         )
@@ -544,7 +528,7 @@ class TestWatchlistMatchRule:
         self, rule: WatchlistMatchRule
     ) -> None:
         """Only alliance watchlist should still match."""
-        kill = MockProcessedKill(
+        kill = make_processed_kill(
             victim_corporation_id=98000099,
             victim_alliance_id=99001234,
         )
@@ -585,7 +569,7 @@ class TestHighValueRule:
 
     def test_default_threshold_exceeded(self, rule: HighValueRule) -> None:
         """Kill exceeding default 1B threshold should match."""
-        kill = MockProcessedKill(total_value=3_500_000_000.0)  # 3.5B
+        kill = make_processed_kill(total_value=3_500_000_000.0)  # 3.5B
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
         assert "3.5B" in (result.reason or "")
@@ -593,14 +577,14 @@ class TestHighValueRule:
 
     def test_default_threshold_not_met(self, rule: HighValueRule) -> None:
         """Kill below default 1B threshold should not match."""
-        kill = MockProcessedKill(total_value=150_000_000.0)  # 150M
+        kill = make_processed_kill(total_value=150_000_000.0)  # 150M
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
         assert "below threshold" in (result.reason or "").lower()
 
     def test_custom_threshold_from_config(self, rule: HighValueRule) -> None:
         """Custom high_value_threshold should be used."""
-        kill = MockProcessedKill(total_value=150_000_000.0)  # 150M
+        kill = make_processed_kill(total_value=150_000_000.0)  # 150M
         result = rule.evaluate(
             kill, 30000142, {"high_value_threshold": 100_000_000.0}
         )
@@ -609,7 +593,7 @@ class TestHighValueRule:
 
     def test_threshold_from_signals_config(self, rule: HighValueRule) -> None:
         """signals.value.min should override high_value_threshold."""
-        kill = MockProcessedKill(total_value=150_000_000.0)  # 150M
+        kill = make_processed_kill(total_value=150_000_000.0)  # 150M
         result = rule.evaluate(
             kill,
             30000142,
@@ -622,13 +606,13 @@ class TestHighValueRule:
 
     def test_exact_threshold_matches(self, rule: HighValueRule) -> None:
         """Kill at exactly threshold should match (>=)."""
-        kill = MockProcessedKill(total_value=1_000_000_000.0)  # Exactly 1B
+        kill = make_processed_kill(total_value=1_000_000_000.0)  # Exactly 1B
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
 
     def test_format_isk_in_reason(self, rule: HighValueRule) -> None:
         """Reason should contain formatted ISK values."""
-        kill = MockProcessedKill(total_value=5_500_000_000.0)  # 5.5B
+        kill = make_processed_kill(total_value=5_500_000_000.0)  # 5.5B
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is True
         # Check formatted values are in reason
@@ -655,7 +639,7 @@ class TestGatecampDetectedRule:
 
     def test_no_gatecamp_status(self, rule: GatecampDetectedRule) -> None:
         """No gatecamp_status in config should return not matched."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
         assert result.prefetch_capable is False
@@ -663,7 +647,7 @@ class TestGatecampDetectedRule:
 
     def test_high_confidence_matches(self, rule: GatecampDetectedRule) -> None:
         """High confidence gatecamp should match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         gatecamp = MockGatecampStatus(confidence="high")
         result = rule.evaluate(kill, 30000142, {"gatecamp_status": gatecamp})
         assert result.matched is True
@@ -671,7 +655,7 @@ class TestGatecampDetectedRule:
 
     def test_medium_confidence_matches(self, rule: GatecampDetectedRule) -> None:
         """Medium confidence gatecamp should match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         gatecamp = MockGatecampStatus(confidence="medium")
         result = rule.evaluate(kill, 30000142, {"gatecamp_status": gatecamp})
         assert result.matched is True
@@ -679,7 +663,7 @@ class TestGatecampDetectedRule:
 
     def test_low_confidence_not_matched(self, rule: GatecampDetectedRule) -> None:
         """Low confidence gatecamp should not match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         gatecamp = MockGatecampStatus(confidence="low")
         result = rule.evaluate(kill, 30000142, {"gatecamp_status": gatecamp})
         assert result.matched is False
@@ -687,7 +671,7 @@ class TestGatecampDetectedRule:
 
     def test_none_confidence_not_matched(self, rule: GatecampDetectedRule) -> None:
         """None confidence should not match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         gatecamp = MockGatecampStatus(confidence=None)
         result = rule.evaluate(kill, 30000142, {"gatecamp_status": gatecamp})
         assert result.matched is False
@@ -724,7 +708,7 @@ class TestStructureKillRule:
 
     def test_citadel_group_matches(self, rule: StructureKillRule) -> None:
         """Citadel group (1657) should match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {"victim_group_id": 1657})
         assert result.matched is True
         assert "Structure destroyed" in (result.reason or "")
@@ -732,37 +716,37 @@ class TestStructureKillRule:
 
     def test_engineering_complex_matches(self, rule: StructureKillRule) -> None:
         """Engineering complex group (1404) should match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {"victim_group_id": 1404})
         assert result.matched is True
 
     def test_refinery_matches(self, rule: StructureKillRule) -> None:
         """Refinery group (1406) should match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {"victim_group_id": 1406})
         assert result.matched is True
 
     def test_pos_matches(self, rule: StructureKillRule) -> None:
         """Control Tower/POS group (365) should match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {"victim_group_id": 365})
         assert result.matched is True
 
     def test_ansiblex_matches(self, rule: StructureKillRule) -> None:
         """Ansiblex Jump Gate group (2016) should match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {"victim_group_id": 2016})
         assert result.matched is True
 
     def test_metenox_matches(self, rule: StructureKillRule) -> None:
         """Metenox Moon Drill group (2233) should match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {"victim_group_id": 2233})
         assert result.matched is True
 
     def test_name_fallback_astrahus(self, rule: StructureKillRule) -> None:
         """Astrahus in ship name should match via fallback."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(
             kill, 30000142, {"victim_ship_name": "Astrahus"}
         )
@@ -771,7 +755,7 @@ class TestStructureKillRule:
 
     def test_name_fallback_keepstar(self, rule: StructureKillRule) -> None:
         """Keepstar in ship name should match via fallback."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(
             kill, 30000142, {"victim_ship_name": "Keepstar"}
         )
@@ -779,7 +763,7 @@ class TestStructureKillRule:
 
     def test_name_fallback_fortizar(self, rule: StructureKillRule) -> None:
         """Fortizar in ship name should match via fallback."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(
             kill, 30000142, {"victim_ship_name": "Fortizar"}
         )
@@ -787,7 +771,7 @@ class TestStructureKillRule:
 
     def test_name_fallback_case_insensitive(self, rule: StructureKillRule) -> None:
         """Ship name matching should be case insensitive."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(
             kill, 30000142, {"victim_ship_name": "ASTRAHUS"}
         )
@@ -801,33 +785,33 @@ class TestStructureKillRule:
     def test_name_fallback_engineering_complex(self, rule: StructureKillRule) -> None:
         """Engineering complex names should match."""
         for name in ["Raitaru", "Azbel", "Sotiyo"]:
-            kill = MockProcessedKill()
+            kill = make_processed_kill()
             result = rule.evaluate(kill, 30000142, {"victim_ship_name": name})
             assert result.matched is True, f"{name} should match"
 
     def test_name_fallback_refinery(self, rule: StructureKillRule) -> None:
         """Refinery names should match."""
         for name in ["Athanor", "Tatara"]:
-            kill = MockProcessedKill()
+            kill = make_processed_kill()
             result = rule.evaluate(kill, 30000142, {"victim_ship_name": name})
             assert result.matched is True, f"{name} should match"
 
     def test_name_fallback_metenox(self, rule: StructureKillRule) -> None:
         """Metenox should match via name."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {"victim_ship_name": "Metenox Moon Drill"})
         assert result.matched is True
 
     def test_ship_not_structure(self, rule: StructureKillRule) -> None:
         """Regular ship should not match."""
-        kill = MockProcessedKill(victim_ship_type_id=24690)  # Vexor
+        kill = make_processed_kill(victim_ship_type_id=24690)  # Vexor
         result = rule.evaluate(kill, 30000142, {"victim_ship_name": "Vexor"})
         assert result.matched is False
         assert "Victim is not a structure" in (result.reason or "")
 
     def test_no_group_id_no_name_not_matched(self, rule: StructureKillRule) -> None:
         """Kill with no group ID and no name should not match."""
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         result = rule.evaluate(kill, 30000142, {})
         assert result.matched is False
 
@@ -883,7 +867,7 @@ class TestBaseRuleProviderBehavior:
             GatecampDetectedRule(),
             StructureKillRule(),
         ]
-        kill = MockProcessedKill()
+        kill = make_processed_kill()
         for rule in rules:
             result = rule.evaluate(kill, 30000142, {})
             assert isinstance(result, RuleMatch), f"{rule.name} should return RuleMatch"

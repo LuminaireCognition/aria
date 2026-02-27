@@ -341,37 +341,6 @@ uv run aria-esi notifications validate
 
 **Full documentation:** `docs/NOTIFICATION_PROFILES.md`
 
-## Route Display Standard
-
-When displaying route tables, use this standard column format:
-
-| System | Sec | Ships | Pods | Jumps | Notes |
-|--------|-----|------:|-----:|------:|-------|
-| Uedama | 0.50 | 3 | 2 | 913 | ⚠️ Gank pipe |
-
-**Column definitions:**
-
-| Column | Source | Description |
-|--------|--------|-------------|
-| System | `universe(action="route")` | System name |
-| Sec | `universe(action="route")` | Security status (2 decimal places) |
-| Ships | `universe(action="activity")` | Ship kills (last hour) |
-| Pods | `universe(action="activity")` | Pod kills (last hour) |
-| Jumps | `universe(action="activity")` | Ship jumps (last hour, traffic indicator) |
-| Notes | Derived | Border status, gank warnings, chokepoints |
-
-**When to include activity data:**
-- Route queries: Always fetch via `universe(action="activity")` for the route systems
-- System lookups: Include when tactical context is relevant
-- Loop planning: Include for border systems
-
-**Notes column content:**
-- Border systems: "Border system" or adjacent low-sec names
-- Known gank systems (Uedama, Niarja): "⚠️ Gank pipe"
-- Security transitions: "Entry to low-sec"
-- High traffic (>1000 jumps): "High traffic"
-- Starter/trade hubs: "Trade hub", "Starter system"
-
 ## Data Volatility
 
 **Never proactively mention volatile data** (location, wallet, current ship). Only reference when explicitly requested via `/esi-query`.
@@ -434,50 +403,6 @@ sde(action="agent_divisions")  # List all division types
 | System/station details | DOTLAN | `evemaps.dotlan.net/system/{name}` |
 | Agent locations (fallback) | DOTLAN | `evemaps.dotlan.net/npc/{Corp_Name}/agents` |
 
-### Mission Data Lookup
-
-When a request involves **mission context** (fitting for a mission, mission intel, preparing for a mission), follow this lookup protocol.
-
-**Recognition triggers:**
-- Explicit: "mission brief", "/mission-brief", "prepare for [mission]"
-- Implicit: "fitting for [ship] running [mission]", "[mission name] L[N]", "against [faction] mission"
-
-**Lookup sequence (cache-first pattern):**
-
-```
-1. Check reference/pve-intel/cache/INDEX.md
-   ├─ Intel cached? → Read from cache file → Present to user
-   └─ Not cached? → Continue to step 2
-
-2. Fetch from wiki.eveuniversity.org/{Site_Name}
-   (NEVER use general web search)
-
-3. Write cache file BEFORE presenting:
-   ├─ Create: reference/pve-intel/cache/{site_name}_{suffix}.md
-   └─ Update: reference/pve-intel/cache/INDEX.md
-
-4. Read from cache file → Present to user
-```
-
-**Filename suffixes by content type:**
-- Agent missions: `_l{N}.md` (e.g., `the_blockade_blood_raiders_l3.md`)
-- DED sites: `_ded{N}.md` (e.g., `mul_zatah_monastery_ded4.md`)
-- Unrated sites: `_unrated.md` (e.g., `desolate_site_unrated.md`)
-- Expeditions: `_expedition.md` (e.g., `mare_sargassum_expedition.md`)
-
-**CRITICAL:** Never present PvE intel directly from WebFetch response.
-All intel must be read from local cache. This ensures caching is a
-prerequisite for presentation, not an afterthought.
-
-**Quick reference available without fetch:**
-- `reference/pve-intel/INDEX.md` has static damage profiles for all factions (tracked in git)
-- `reference/pve-intel/cache/INDEX.md` has the cache index of fetched missions (gitignored)
-- Rogue Drones: Omni damage → weak to EM > Thermal
-- Serpentis: Kin/Therm → weak to Thermal
-- (See INDEX.md for complete table)
-
-**For full mission briefings**, invoke `/mission-brief` which handles disambiguation, wiki fetching, and caching automatically.
-
 ## Skills
 
 ARIA has slash commands for tactical intel, operations, and economy. Type `/help` for the full list. Natural language also works: "prepare for mission", "is this system safe", "what should I mine".
@@ -528,7 +453,24 @@ When a skill is invoked:
    - If not found and `overlay_fallback_path` is set, check that path
    - If found → append to skill context
 
-4. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
+4. **Pre-read prerequisite files (MANDATORY GATE)** — If the skill entry lists a `prerequisite_files` array, read ALL listed files NOW, before producing any output. These contain verified reference data that the skill depends on. **Do NOT proceed to generate a response until all prerequisite files have been read.** This is a blocking requirement — skipping it causes hallucination from training data.
+
+   ```
+   prerequisite_files → MUST read before any output (blocking gate)
+   data_sources       → Contextual files to read when relevant (pilot profiles, etc.)
+   ```
+
+   **Skills with prerequisite files:**
+
+   | Skill | Prerequisite Files | Prevents |
+   |-------|--------------------|----------|
+   | `exploration` | `exploration_sites.md`, `hacking_guide.md` | Wrong hacking mechanics, site prefixes |
+   | `mining-advisory` | `ore_database.md` | Wrong ore security bands |
+   | `fitting` | `EFT-FORMAT.md`, `drones.json`, `MODULE_NAMES.md` | Wrong module names, drone data |
+   | `mission-brief` | `npc_damage_types.md`, `drones.json` | Wrong tank/deal/drone recommendations |
+   | `skillplan` | `skill_plans.yaml`, `ship_efficacy_rules.yaml`, `meta_module_alternatives.yaml` | Wrong training recommendations |
+
+5. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.
 
 ### Runtime Path Validation (SEC-001/SEC-002)
 

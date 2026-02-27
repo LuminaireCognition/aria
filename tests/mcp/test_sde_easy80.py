@@ -149,6 +149,9 @@ class TestMultiplierSkillsConstants:
     def test_key_multipliers_present(self):
         """Critical multiplier skills are defined."""
         assert "Drone Interfacing" in MULTIPLIER_SKILLS
+        assert "Heavy Drone Operation" in MULTIPLIER_SKILLS
+        assert "Medium Drone Operation" in MULTIPLIER_SKILLS
+        assert "Light Drone Operation" in MULTIPLIER_SKILLS
         assert "Surgical Strike" in MULTIPLIER_SKILLS
         assert "Warhead Upgrades" in MULTIPLIER_SKILLS
 
@@ -216,6 +219,27 @@ class TestEasy80Integration:
 
 class TestMultiplierSkillsCategorization:
     """Tests for the fixed skill categorization logic."""
+
+    def test_drone_operation_skills_promoted_to_4(self):
+        """Drone Operation skills should be promoted to level 4 as multipliers."""
+        for skill_name in [
+            "Heavy Drone Operation",
+            "Medium Drone Operation",
+            "Light Drone Operation",
+        ]:
+            full_tree = [
+                {"skill_name": skill_name, "required_level": 1, "rank": 2},
+            ]
+            plan = generate_easy_80_plan(full_tree)
+
+            cap_at_4 = plan.get("cap_at_4", [])
+            skill = next(
+                (s for s in cap_at_4 if s["skill_name"] == skill_name),
+                None,
+            )
+            assert skill is not None, f"{skill_name} should be in cap_at_4"
+            assert skill.get("is_multiplier") is True, f"{skill_name} should be flagged as multiplier"
+            assert skill.get("easy_80_level") == 4, f"{skill_name} should be promoted to level 4"
 
     def test_multiplier_in_prereqs_gets_flagged(self):
         """Multiplier skills should be flagged even with required_level > 0."""
@@ -637,9 +661,6 @@ class TestBreakpointSkillsInPlan:
         # Should be in required_at_level at level 3 (not elevated to 5)
         required = plan.get("required_at_level", [])
         drones = next((s for s in required if s["skill_name"] == "Drones"), None)
-        # Could also be in train_to_5 if SKILLS_REQUIRING_V kicks in
-        train_to_5 = plan.get("train_to_5", [])
-        drones_train = next((s for s in train_to_5 if s["skill_name"] == "Drones"), None)
 
         # If Drones is at required_level 3 and not role-matched, should stay at 3
         if drones is not None:

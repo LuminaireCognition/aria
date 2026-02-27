@@ -151,13 +151,13 @@ def cmd_redisq_backfill(args: argparse.Namespace) -> dict:
     """
     Manually trigger a backfill from zKillboard.
     """
-    from datetime import datetime, timedelta
+    from datetime import UTC, datetime, timedelta
 
     from ..services.redisq.backfill import backfill_from_zkillboard
 
     # Parse time range
     hours = args.hours if args.hours else 1
-    since = datetime.utcnow() - timedelta(hours=hours)
+    since = datetime.now(UTC) - timedelta(hours=hours)
 
     regions = args.regions if args.regions else None
     max_kills = args.limit if args.limit else 500
@@ -447,7 +447,7 @@ def cmd_redisq_follow(args: argparse.Namespace) -> dict | None:
                                 )
                                 if commentary and persona_loader:
                                     persona_name = persona_loader.get_persona_name()
-                        except Exception as e:
+                        except Exception as e:  # noqa: BLE001 -- CLI handler
                             logger.warning("Commentary generation failed: %s", e)
                             commentary = None
                             persona_name = None
@@ -602,7 +602,7 @@ def cmd_watchlist_create(args: argparse.Namespace) -> dict:
             "watchlist_id": watchlist.watchlist_id,
             "query_timestamp": get_utc_timestamp(),
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "status": "error",
             "error": str(e),
@@ -642,7 +642,7 @@ def cmd_watchlist_add(args: argparse.Namespace) -> dict:
             },
             "query_timestamp": get_utc_timestamp(),
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "status": "error",
             "error": str(e),
@@ -721,14 +721,31 @@ def cmd_sync_wars(args: argparse.Namespace) -> dict:
         get_entity_watchlist_manager,
     )
 
-    # Get character and corporation IDs
+    # Get character and corporation IDs (auto-detect from active pilot if not specified)
     character_id = args.character_id if hasattr(args, "character_id") else None
     corporation_id = args.corporation_id if hasattr(args, "corporation_id") else None
 
     if character_id is None or corporation_id is None:
+        try:
+            from ..core import get_authenticated_client
+
+            client, creds = get_authenticated_client()
+            if character_id is None:
+                character_id = creds.character_id
+            if corporation_id is None:
+                char_info = client.get_dict_safe(f"/characters/{character_id}/")
+                if char_info:
+                    corporation_id = char_info.get("corporation_id")
+        except (ImportError, OSError, KeyError, ValueError):
+            pass
+
+    if character_id is None or corporation_id is None:
         return {
             "status": "error",
-            "error": "Both --character-id and --corporation-id are required",
+            "error": (
+                "Could not determine character/corporation ID. "
+                "Provide --character-id and --corporation-id, or configure an active pilot."
+            ),
             "query_timestamp": get_utc_timestamp(),
         }
 
@@ -809,7 +826,7 @@ def cmd_topology_build(args: argparse.Namespace) -> dict:
 
     try:
         interest_map = build_topology(systems, weights, save_cache=True)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "status": "error",
             "error": str(e),
@@ -1115,8 +1132,8 @@ def register_parsers(subparsers) -> None:
     follow_parser.add_argument(
         "--model",
         type=str,
-        default="claude-sonnet-4-5-20241022",
-        help="LLM model for commentary (default: claude-sonnet-4-5-20241022)",
+        default="claude-sonnet-4-6",
+        help="LLM model for commentary (default: claude-sonnet-4-6)",
     )
     follow_parser.add_argument(
         "--warrant-threshold",

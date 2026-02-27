@@ -42,7 +42,7 @@ def _decode_cursor(cursor: str) -> tuple[int, int] | None:
     try:
         data = json.loads(base64.urlsafe_b64decode(cursor.encode()))
         return (data["t"], data["k"])
-    except Exception:
+    except (json.JSONDecodeError, KeyError, ValueError):
         return None
 
 
@@ -345,7 +345,7 @@ async def _resolve_systems(system_names: list[str]) -> list[int] | None:
                 system_ids.append(system.system_id)
 
         return system_ids if system_ids else None
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         logger.warning("Failed to resolve system names: %s", e)
         return None
 
@@ -401,7 +401,7 @@ async def _handle_analyze(killmail_input: str | None) -> dict:
 
     import httpx
 
-    from ..esi_client import get_async_esi_client
+    from aria_esi.store.esi_client import get_async_esi_client
 
     # Fetch from zKillboard API
     zkb_data = None

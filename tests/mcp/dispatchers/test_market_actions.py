@@ -14,7 +14,6 @@ import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError
 
-
 # =============================================================================
 # Prices Action Tests
 # =============================================================================

@@ -9,8 +9,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.cache import MarketCache, get_market_cache
-from aria_esi.mcp.market.database import get_market_database
 from aria_esi.models.market import (
     FreshnessLevel,
     MarketCacheLayerStatus,
@@ -18,6 +16,8 @@ from aria_esi.models.market import (
     MarketPricesResult,
     resolve_region,
 )
+from aria_esi.store.market.cache import MarketCache, get_market_cache
+from aria_esi.store.market.database import get_market_database
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP

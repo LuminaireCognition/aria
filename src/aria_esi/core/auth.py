@@ -9,7 +9,7 @@ Security Model (Two-Tier):
 
 Install keyring for enhanced security: pip install aria[secure]
 
-Security: Path validation added per dev/reviews/PYTHON_REVIEW_2026-01.md P0 #2
+Security: Path validation added per dev/reviews/archive/PYTHON_REVIEW_2026-01.md P0 #2
 """
 
 import json
@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any, Optional, Union
 
 from .constants import CORP_SCOPES, PLAYER_CORP_MIN_ID
+from .exceptions import AriaError
 from .keyring_backend import (
     KEYRING_AVAILABLE,
     _warn_keyring_unavailable,
@@ -67,17 +68,17 @@ def _check_credentials_permissions(credentials_file: Path) -> None:
 
         # Check if group or others have any permissions
         if mode & (stat.S_IRWXG | stat.S_IRWXO):
-            print(
-                f"WARNING: Credentials file has insecure permissions ({oct(mode)}): "
-                f"{credentials_file}\n"
-                f"  Recommended: chmod 600 {credentials_file}",
-                file=sys.stderr,
+            _logger.warning(
+                "Credentials file has insecure permissions (%s): %s  Recommended: chmod 600 %s",
+                oct(mode),
+                credentials_file,
+                credentials_file,
             )
     except OSError:
         pass  # If we can't stat the file, skip the check
 
 
-class CredentialsError(Exception):
+class CredentialsError(AriaError):
     """Exception raised for credential-related errors."""
 
     def __init__(
@@ -154,9 +155,9 @@ class Credentials:
                 f"Credentials file not found: {credentials_file}",
                 action="Run the OAuth setup wizard",
                 command="uv run python .claude/scripts/aria-oauth-setup.py",
-            )
+            ) from None
         except json.JSONDecodeError as e:
-            raise CredentialsError(f"Invalid credentials JSON: {e}")
+            raise CredentialsError(f"Invalid credentials JSON: {e}") from e
 
         required_fields = ["character_id", "access_token"]
         for field in required_fields:

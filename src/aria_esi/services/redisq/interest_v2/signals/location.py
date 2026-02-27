@@ -83,7 +83,7 @@ class GeographicSignal(BaseSignalProvider):
 
             try:
                 distance = get_distance(sys_id, system_id)
-            except Exception:
+            except Exception:  # noqa: BLE001 -- service handler
                 continue
 
             if distance is None:
@@ -211,7 +211,7 @@ class SecuritySignal(BaseSignalProvider):
             if get_security:
                 try:
                     security = get_security(system_id)
-                except Exception:
+                except Exception:  # noqa: BLE001 -- service handler
                     security = None
 
         if security is None:

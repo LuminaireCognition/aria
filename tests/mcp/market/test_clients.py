@@ -14,7 +14,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from aria_esi.mcp.market.clients import (
+from aria_esi.store.market.clients import (
     DEFAULT_REGION_ID,
     DEFAULT_STATION_ID,
     FUZZWORK_AGGREGATES_ENDPOINT,

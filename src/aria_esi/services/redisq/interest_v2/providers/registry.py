@@ -115,7 +115,7 @@ class ProviderRegistry:
             self._signal_instances[category][name] = instance
             logger.debug(f"Instantiated signal provider: {category}.{name}")
             return instance
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.error(f"Failed to instantiate signal {category}.{name}: {e}")
             return None
 
@@ -174,7 +174,7 @@ class ProviderRegistry:
             self._rule_instances[name] = instance
             logger.debug(f"Instantiated rule provider: {name}")
             return instance
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.error(f"Failed to instantiate rule {name}: {e}")
             return None
 
@@ -208,7 +208,7 @@ class ProviderRegistry:
             self._scaling_instances[name] = instance
             logger.debug(f"Instantiated scaling provider: {name}")
             return instance
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.error(f"Failed to instantiate scaling {name}: {e}")
             return None
 
@@ -242,7 +242,7 @@ class ProviderRegistry:
             self._delivery_instances[name] = instance
             logger.debug(f"Instantiated delivery provider: {name}")
             return instance
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- service handler
             logger.error(f"Failed to instantiate delivery {name}: {e}")
             return None
 

@@ -132,7 +132,7 @@ class TestCmdRoute:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "error" not in result
@@ -155,7 +155,7 @@ class TestCmdRoute:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "error" not in result
@@ -173,7 +173,7 @@ class TestCmdRoute:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "error" not in result
@@ -193,7 +193,7 @@ class TestCmdRoute:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "error" not in result
@@ -211,7 +211,7 @@ class TestCmdRoute:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "error" not in result
@@ -230,7 +230,7 @@ class TestCmdRoute:
             avoid=["Perimeter"],
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "error" not in result
@@ -250,7 +250,7 @@ class TestCmdRoute:
             avoid=["NonexistentSystem"],
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "error" not in result
@@ -268,7 +268,7 @@ class TestCmdRoute:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert result["error"] == "system_not_found"
@@ -285,7 +285,7 @@ class TestCmdRoute:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert result["error"] == "same_system"
@@ -305,7 +305,7 @@ class TestRouteWarnings:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "warnings" in result
@@ -323,7 +323,7 @@ class TestRouteWarnings:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "warnings" in result
@@ -343,7 +343,7 @@ class TestRouteWarnings:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         assert "warnings" in result
@@ -360,7 +360,7 @@ class TestRouteWarnings:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         # No route-based warnings (might have avoid warnings if any)
@@ -385,7 +385,7 @@ class TestSecurityClassification:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         # Verify null-sec is counted correctly
@@ -405,7 +405,7 @@ class TestSecurityClassification:
             avoid=None,
         )
 
-        with patch("aria_esi.commands.navigation.load_universe_graph", return_value=mock_universe):
+        with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
         # Maurasi (0.65) = 1 high-sec (origin Jita excluded)

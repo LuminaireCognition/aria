@@ -14,7 +14,6 @@ import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError
 
-
 # =============================================================================
 # Training Time Action Tests
 # =============================================================================

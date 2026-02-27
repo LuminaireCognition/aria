@@ -14,28 +14,16 @@ triggers:
 requires_pilot: true
 requires_eos_validation: true
 validation_tool: "fitting(action='calculate_stats')"
+prerequisite_files:
+  - .claude/skills/fitting/EFT-FORMAT.md
+  - reference/mechanics/drones.json
+  - reference/fittings/MODULE_NAMES.md
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
-  - reference/archetypes/hulls/{class}/{ship}/manifest.yaml
-  - reference/archetypes/hulls/{class}/{ship}/**/*.yaml
-  - reference/archetypes/_shared/*.yaml
-  - reference/fittings/MODULE_NAMES.md
 ---
 
 # ARIA Fitting Module
-
-## Purpose
-Provide ship fitting recommendations, export fittings in proper EFT format, analyze fitting performance, and suggest module alternatives appropriate to the capsuleer's faction and operational constraints.
-
-## Trigger Phrases
-- "fit my [ship]"
-- "export fitting"
-- "EFT format"
-- "fitting recommendations"
-- "tank analysis"
-- "survival fit"
-- "what modules for [ship]"
 
 ## Prerequisites (Load Before Building Fits)
 
@@ -55,80 +43,9 @@ These files MUST be loaded before the first `fitting(action="calculate_stats")` 
 - Module naming issues: [MODULE_NAMES.md](../../../reference/fittings/MODULE_NAMES.md)
 - Fitting checklist: [CHECKLIST.md](CHECKLIST.md)
 
-## Pilot Resolution (First Step)
+## Building Fits
 
-Before accessing pilot files, resolve the active pilot path:
-1. Read `userdata/config.json` → get `active_pilot` character ID
-2. Read `userdata/pilots/_registry.json` → match ID to `directory` field
-3. Use that directory for all pilot paths below
-
-**Single-pilot shortcut:** If config is missing, read the registry - if only one pilot exists, use that pilot's directory.
-
-## Reference Fit Lookup (MANDATORY FIRST STEP)
-
-**CRITICAL:** Before building ANY fit from scratch, check for existing archetype fits.
-
-### Archetype Structure
-
-```
-reference/archetypes/hulls/{class}/{ship}/
-├── manifest.yaml                    # Hull metadata, slot layout, roles
-└── pve/missions/{level}/
-    ├── alpha.yaml                   # Alpha clone variant
-    ├── low.yaml                     # New pilot variant
-    ├── medium.yaml                  # Established pilot variant
-    └── high.yaml                    # Maxed skills variant
-```
-
-**Ship classes:** `frigate`, `destroyer`, `cruiser`, `battlecruiser`, `battleship`, `mining_barge`, `industrial`, `industrial_command`
-
-**Activity types:** `pve/missions/{l1-l5}`, `pve/ratting`, `exploration`, `mining/ore`, `mining/gas`, `hauling`
-
-### Lookup Workflow
-
-```
-Request for [ship] fit for [activity]
-    │
-    ├─→ Glob: reference/archetypes/hulls/*/{ship}/manifest.yaml
-    │       Found? → Read manifest for hull info
-    │
-    ├─→ Glob: reference/archetypes/hulls/*/{ship}/{activity}/**/*.yaml
-    │       Found? → Select skill tier matching pilot's module_tier
-    │                Load YAML, validate with pilot skills, adapt if needed
-    │
-    └─→ No archetype exists → Build from scratch (proceed to Prerequisites)
-```
-
-### Selecting Skill Tier
-
-Match pilot's `module_tier` from profile to archetype variant:
-
-| Profile `module_tier` | Archetype Variant |
-|-----------------------|-------------------|
-| `t1` | `low.yaml` (T1/Meta modules) |
-| `t2` | `medium.yaml` or `high.yaml` |
-| Not specified | `low.yaml` (default safe) |
-| Alpha clone | `alpha.yaml` |
-
-### Adapting Archetype Fits
-
-When an archetype fit exists:
-1. **Load the YAML** - Read the EFT block and metadata
-2. **Check `damage_tuning.overrides`** - Apply faction-specific module swaps if mission enemy matches
-3. **Validate with pilot skills** - Run through EOS to get actual stats
-4. **Minor adaptation only** - Swap drones for enemy weakness, adjust hardeners for damage profile
-
-**Do NOT rebuild from scratch** when an archetype exists.
-
-### Why This Matters
-
-Archetype fits are:
-- **Tested** - Validated with EOS across skill tiers
-- **Documented** - Include skill requirements, upgrade paths, engagement notes
-- **Consistent** - Same fit structure across skill levels
-- **Maintained** - Single source of truth for each hull + activity
-
-Building from scratch ignores this work and risks errors.
+When building fits from scratch, follow the Prerequisites section above and use EOS validation.
 
 ## Operational Constraints
 
@@ -172,31 +89,41 @@ CRITICAL: Before making recommendations, check the active pilot's profile for:
 
 **Never recommend T2 modules/drones unless explicitly confirmed.**
 
+## Known Limitation: Ammo Lines in EFT
+
+Ammo/charge lines (e.g., `Scourge Heavy Missile x1000`) in EFT format may be misparsed as drones by the parser. The parser uses category lookups and quantity heuristics to classify items, but edge cases exist.
+
+**Validation signs of misparsed ammo:**
+- `drones.launched` exceeds 5 (impossible for most ships)
+- Drone bay capacity overflows
+- DPS seems unreasonably low for a missile/turret ship (ammo not being applied)
+
+**Workaround:** Place ammo lines after an extra blank line (cargo section) in the EFT format. The parser always routes cargo-section items correctly.
+
 ## Fit Validation Protocol (MANDATORY)
 
 **CRITICAL:** Never present a fitting recommendation without EOS validation.
-
-### Why Validation is Required
-
-1. **Training data is not ground truth** - Module names and slot assignments from memory may be wrong
-2. **Many modules have non-standard names** - "Reactive Armor Hardener" (no "I" suffix), size-prefixed MWDs, etc.
-3. **Slot assignments must be verified** - Data Analyzer goes in mid slots, not high slots
-4. **Stats must be calculated, not estimated** - DPS, EHP, and cap stability depend on pilot skills
 
 ### Validation Steps
 
 Before presenting ANY fit:
 
-#### Step 1: Verify Module Names via SDE
+#### Step 1: Verify ALL Item Names via SDE (BLOCKING GATE)
 
-For each module in the proposed fit:
+**Every module, charge, drone, and rig** in the proposed fit must be verified before proceeding:
 ```
 sde(action="item_info", item="Module Name")
 ```
 
+Run this for **each distinct item**. Do NOT skip items you are "confident" about — training data contains fabricated names (e.g., "Precursor Beam Weapon", "EM Ward Amplifier II", "EMP Heavy Missile" — none exist in SDE).
+
 - Confirm the exact item name (many modules lack "I" suffix)
 - Confirm the module exists and is published
+- Confirm charges match the weapon system (e.g., Heavy Missiles for HMLs, not "EMP Heavy Missile")
+- Confirm drone tier (T1/T2/Faction/Augmented are distinct — don't call T2 "Faction")
 - Reference: `reference/fittings/MODULE_NAMES.md` for common naming issues
+
+**If SDE returns no match:** The item name is wrong. Do NOT include it in the fit. Search SDE for the correct name before continuing.
 
 #### Step 2: Build and Validate via EOS
 
@@ -347,12 +274,7 @@ When exporting fittings, always provide:
 | Low | Damage Control, Damage Mods, Application mods | Armor Repairer, Armor Hardeners |
 | Rig | Core Defense Field Extender, Screen Reinforcer | Armor rigs |
 
-**Why This Matters:**
-- Shield modules become useless once shields are stripped (armor-tanked ships lose shields fast)
-- Armor rigs commit the ship to armor tanking—don't waste mid slots on shield
-- Damage Control is the one exception (provides hull resist, used in all tanks)
-
-**The tool now detects:**
+**The tool detects:**
 - Armor rigs + shield modules → warning
 - Shield rigs + armor modules → warning
 - Both active tank types → warning
@@ -389,7 +311,7 @@ When recommending drones for a fit:
 
 ## Faction-Specific Fitting Guidance
 
-Reference archetype fits by faction's typical tank and weapon system:
+Typical tank and weapon system by faction:
 
 | Faction | Tank | Primary Weapon | Hull Examples |
 |---------|------|----------------|---------------|
@@ -397,8 +319,6 @@ Reference archetype fits by faction's typical tank and weapon system:
 | Caldari | Shield | Missiles | Caracal, Drake, Raven |
 | Minmatar | Shield/Flex | Projectiles | Rupture, Hurricane, Maelstrom |
 | Amarr | Armor | Lasers | Omen, Harbinger, Apocalypse |
-
-Archetype fits are located at `reference/archetypes/hulls/{class}/{ship}/`.
 
 ## Behavior
 - Maintain ARIA persona throughout

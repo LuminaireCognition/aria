@@ -21,7 +21,7 @@ class OpenAIProvider:
         except ImportError:
             raise RuntimeError(
                 "openai provider requires 'openai' package. Run: uv sync --extra openai"
-            )
+            ) from None
 
         self._client: Any = AsyncOpenAI(api_key=api_key)
 

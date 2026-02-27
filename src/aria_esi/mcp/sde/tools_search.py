@@ -9,18 +9,38 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
 from aria_esi.models.sde import (
     CATEGORY_BLUEPRINT,
     SDESearchResult,
     SDEStatusResult,
     SearchResultItem,
 )
+from aria_esi.store.market.database import get_market_database
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
 
 logger = get_logger("aria_sde.tools_search")
+
+
+async def _cache_status_impl() -> dict:
+    """
+    Get SDE database status.
+
+    Standalone implementation callable by both MCP tool and dispatcher.
+
+    Returns:
+        Dict with database_path, database_size_mb, type_count, is_available
+    """
+    db = get_market_database()
+    stats = db.get_stats()
+
+    return {
+        "database_path": stats.get("database_path"),
+        "database_size_mb": round(stats.get("database_size_mb", 0), 2),
+        "type_count": stats.get("type_count", 0),
+        "is_available": stats.get("type_count", 0) > 0,
+    }
 
 
 # =============================================================================
@@ -239,7 +259,7 @@ def register_search_tools(server: FastMCP) -> None:
             blueprint_count = conn.execute("SELECT COUNT(*) FROM blueprints").fetchone()[0]
             seeding_count = conn.execute("SELECT COUNT(*) FROM npc_seeding").fetchone()[0]
             corp_count = conn.execute("SELECT COUNT(*) FROM npc_corporations").fetchone()[0]
-        except Exception:
+        except Exception:  # noqa: BLE001 -- MCP handler
             return SDEStatusResult(seeded=False).model_dump()
 
         # Get metadata
@@ -254,7 +274,7 @@ def register_search_tools(server: FastMCP) -> None:
             ).fetchone()
             sde_version = version_row[0] if version_row else None
             import_timestamp = timestamp_row[0] if timestamp_row else None
-        except Exception:
+        except Exception:  # noqa: BLE001 -- MCP handler
             pass
 
         return SDEStatusResult(

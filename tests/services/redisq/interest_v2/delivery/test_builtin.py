@@ -245,7 +245,7 @@ class TestDiscordDelivery:
         import httpx
 
         mock_client = AsyncMock()
-        mock_client.post = AsyncMock(side_effect=Exception("Connection failed"))
+        mock_client.post = AsyncMock(side_effect=httpx.RequestError("Connection failed"))
 
         with patch.object(httpx, "AsyncClient") as mock_async_client:
             mock_async_client.return_value.__aenter__ = AsyncMock(
@@ -547,7 +547,7 @@ class TestWebhookDelivery:
         import httpx
 
         mock_client = AsyncMock()
-        mock_client.request = AsyncMock(side_effect=Exception("Connection failed"))
+        mock_client.request = AsyncMock(side_effect=httpx.RequestError("Connection failed"))
 
         with patch.object(httpx, "AsyncClient") as mock_async_client:
             mock_async_client.return_value.__aenter__ = AsyncMock(

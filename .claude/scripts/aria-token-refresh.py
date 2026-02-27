@@ -219,9 +219,9 @@ def load_credentials(creds_path: Path, use_keyring: bool = True) -> tuple[dict, 
         with open(creds_path) as f:
             creds = json.load(f)
     except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON in credentials file: {e}")
+        raise ValueError(f"Invalid JSON in credentials file: {e}") from e
     except OSError as e:
-        raise ValueError(f"Cannot read credentials file: {e}")
+        raise ValueError(f"Cannot read credentials file: {e}") from e
 
     # Validate required fields
     required = ["client_id", "refresh_token"]
@@ -317,11 +317,11 @@ def refresh_token(creds: dict) -> dict:
             response_data = json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8") if e.fp else "No details"
-        raise RuntimeError(f"Token refresh failed (HTTP {e.code}): {error_body}")
+        raise RuntimeError(f"Token refresh failed (HTTP {e.code}): {error_body}") from e
     except urllib.error.URLError as e:
-        raise RuntimeError(f"Network error during token refresh: {e.reason}")
-    except json.JSONDecodeError:
-        raise RuntimeError("Invalid JSON response from EVE SSO")
+        raise RuntimeError(f"Network error during token refresh: {e.reason}") from e
+    except json.JSONDecodeError as e:
+        raise RuntimeError("Invalid JSON response from EVE SSO") from e
 
     return response_data
 
@@ -358,7 +358,7 @@ def save_credentials(creds_path: Path, creds: dict, use_keyring: bool = True):
         # Clean up temp file if it exists
         if temp_path.exists():
             temp_path.unlink()
-        raise RuntimeError(f"Failed to save credentials: {e}")
+        raise RuntimeError(f"Failed to save credentials: {e}") from e
 
 
 def update_credentials_with_new_tokens(creds: dict, token_response: dict) -> dict:

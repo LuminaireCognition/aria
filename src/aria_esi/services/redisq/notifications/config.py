@@ -28,7 +28,7 @@ class CommentaryConfig:
 
     enabled: bool = False
     provider: str = "anthropic"
-    model: str = "claude-sonnet-4-5-20241022"
+    model: str = "claude-sonnet-4-6"
     timeout_ms: int = 3000
     max_tokens: int = 100
     warrant_threshold: float = 0.3
@@ -45,7 +45,7 @@ class CommentaryConfig:
         return cls(
             enabled=data.get("enabled", False),
             provider=data.get("provider", "anthropic"),
-            model=data.get("model", "claude-sonnet-4-5-20241022"),
+            model=data.get("model", "claude-sonnet-4-6"),
             timeout_ms=data.get("timeout_ms", 3000),
             max_tokens=data.get("max_tokens", 100),
             warrant_threshold=data.get("warrant_threshold", 0.3),

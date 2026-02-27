@@ -13,10 +13,12 @@ import time
 from dataclasses import dataclass, field
 from email.utils import parsedate_to_datetime
 from typing import Any, Optional, Union
+from urllib.parse import urlencode
 
 import httpx
 
 from .constants import ESI_BASE_URL, ESI_DATASOURCE
+from .exceptions import AriaError
 from .retry import (
     RetryableESIError,
     classify_httpx_error,
@@ -90,7 +92,7 @@ class ESIResponse:
         return self.status_code == 304
 
 
-class ESIError(Exception):
+class ESIError(AriaError):
     """Exception raised for ESI API errors."""
 
     def __init__(
@@ -185,14 +187,6 @@ class ESIClient:
         """Exit context manager and close client."""
         self.close()
 
-    def __del__(self) -> None:
-        """Cleanup on garbage collection (opportunistic)."""
-        if hasattr(self, "_http_client") and self._http_client is not None:
-            try:
-                self._http_client.close()
-            except Exception:
-                pass
-
     def _build_url(self, endpoint: str, params: Optional[dict[str, Any]] = None) -> str:
         """
         Build full URL with datasource parameter.
@@ -216,13 +210,8 @@ class ESIClient:
             query_params.update(params)
 
         # Append query string
-        if "?" in url:
-            url += "&"
-        else:
-            url += "?"
-
-        query_string = "&".join(f"{k}={v}" for k, v in query_params.items())
-        return url + query_string
+        separator = "&" if "?" in url else "?"
+        return f"{url}{separator}{urlencode(query_params)}"
 
     def _update_rate_limits(self, headers: httpx.Headers) -> None:
         """
@@ -330,13 +319,13 @@ class ESIClient:
                 message = error_json.get("error", str(e))
             except json.JSONDecodeError:
                 message = e.response.text or str(e)
-            raise ESIError(message, status_code=e.response.status_code)
+            raise ESIError(message, status_code=e.response.status_code) from e
 
         except httpx.RequestError as e:
-            raise ESIError(f"Network error: {e}")
+            raise ESIError(f"Network error: {e}") from e
 
         except json.JSONDecodeError as e:
-            raise ESIError(f"Invalid JSON response: {e}")
+            raise ESIError(f"Invalid JSON response: {e}") from e
 
     @esi_retry()
     def _execute_with_retry(
@@ -377,17 +366,17 @@ class ESIClient:
             # Classify the error for retry logic
             classified = classify_httpx_error(e)
             if isinstance(classified, RetryableESIError):
-                raise classified  # Will trigger retry
+                raise classified from e  # Will trigger retry
             else:
                 # Non-retryable, convert to ESIError
-                raise ESIError(classified.message, status_code=classified.status_code)
+                raise ESIError(classified.message, status_code=classified.status_code) from e
 
         except httpx.RequestError:
             # Network errors are retryable
             raise  # Let retry decorator handle it
 
         except json.JSONDecodeError as e:
-            raise ESIError(f"Invalid JSON response: {e}")
+            raise ESIError(f"Invalid JSON response: {e}") from e
 
     def get(
         self, endpoint: str, auth: bool = False, params: Optional[dict[str, Any]] = None
@@ -421,9 +410,9 @@ class ESIClient:
             return self._execute_request("GET", url, headers)
         except RetryableESIError as e:
             # Convert retry error to ESIError if all retries failed
-            raise ESIError(e.message, status_code=e.status_code)
+            raise ESIError(e.message, status_code=e.status_code) from e
         except httpx.RequestError as e:
-            raise ESIError(f"Network error: {e}")
+            raise ESIError(f"Network error: {e}") from e
 
     def get_with_headers(
         self,
@@ -502,13 +491,13 @@ class ESIClient:
                 message = error_json.get("error", str(e))
             except json.JSONDecodeError:
                 message = e.response.text or str(e)
-            raise ESIError(message, status_code=e.response.status_code)
+            raise ESIError(message, status_code=e.response.status_code) from e
 
         except httpx.RequestError as e:
-            raise ESIError(f"Network error: {e}")
+            raise ESIError(f"Network error: {e}") from e
 
         except json.JSONDecodeError as e:
-            raise ESIError(f"Invalid JSON response: {e}")
+            raise ESIError(f"Invalid JSON response: {e}") from e
 
     def get_safe(
         self,
@@ -702,9 +691,9 @@ class ESIClient:
             return result
         except RetryableESIError as e:
             # Convert retry error to ESIError if all retries failed
-            raise ESIError(e.message, status_code=e.status_code)
+            raise ESIError(e.message, status_code=e.status_code) from e
         except httpx.RequestError as e:
-            raise ESIError(f"Network error: {e}")
+            raise ESIError(f"Network error: {e}") from e
 
     def post_safe(
         self,
@@ -870,12 +859,12 @@ class ESIClient:
         """
         # Try SDE lookup first
         try:
-            from aria_esi.mcp.sde.queries import get_sde_query_service
+            from aria_esi.core.sde_bridge import get_station_name_from_sde
 
-            info = get_sde_query_service().get_station_info(station_id)
-            if info:
-                return info.station_name
-        except Exception:
+            sde_name = get_station_name_from_sde(station_id)
+            if sde_name:
+                return sde_name
+        except (ImportError, RuntimeError):
             pass
 
         # Fallback to ESI API

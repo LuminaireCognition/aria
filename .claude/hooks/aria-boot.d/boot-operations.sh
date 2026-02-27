@@ -204,14 +204,14 @@ run_artifact_verification() {
     local verify_json
     verify_json=$(uv run --quiet aria-esi verify-persona-context 2>/dev/null || echo '{"status":"error"}')
 
-    # Parse verification result using Python
+    # Parse verification result using Python (stdin piping to avoid shell injection)
     local verify_result
-    verify_result=$(uv run python -c "
+    verify_result=$(echo "$verify_json" | uv run python -c "
 import json
 import sys
 
 try:
-    data = json.loads('''$verify_json''')
+    data = json.load(sys.stdin)
 except:
     print('parse_error')
     sys.exit(0)
@@ -320,14 +320,14 @@ run_security_validation() {
     local validation_json
     validation_json=$(uv run --quiet aria-esi validate-overlays 2>/dev/null || echo '{"status":"error"}')
 
-    # Parse security violations using Python (more reliable than jq for complex JSON)
+    # Parse security violations using Python (stdin piping to avoid shell injection)
     local security_result
-    security_result=$(uv run python -c "
+    security_result=$(echo "$validation_json" | uv run python -c "
 import json
 import sys
 
 try:
-    data = json.loads('''$validation_json''')
+    data = json.load(sys.stdin)
 except:
     print('parse_error')
     sys.exit(0)
@@ -478,9 +478,9 @@ run_esi_sync() {
     # This updates ships.md, blueprints.md, and .esi-sync.json
     if [ -n "$ACTIVE_PILOT_ID" ]; then
         local creds_file="$CREDENTIALS_DIR/$ACTIVE_PILOT_ID.json"
-        if [ -f "$creds_file" ] && [ -x "$PROJECT_DIR/scripts/aria-esi-sync.py" ]; then
+        if [ -f "$creds_file" ]; then
             # Run in background with nohup to survive shell exit
-            (nohup uv run --quiet python "$PROJECT_DIR/scripts/aria-esi-sync.py" --quick --quiet >/dev/null 2>&1 &)
+            (nohup uv run --quiet aria-esi esi-sync --quick --quiet >/dev/null 2>&1 &)
         fi
 
         # Non-blocking standings refresh (background)

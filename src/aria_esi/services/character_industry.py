@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+import httpx
+
 # Industry-relevant skill IDs
 INDUSTRY_SKILL_IDS = {
     # Manufacturing
@@ -77,7 +79,7 @@ def get_character_blueprints(
     """
     try:
         blueprints = esi_client.get(f"/characters/{character_id}/blueprints/", auth=True)
-    except Exception:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError):
         return []
 
     if not isinstance(blueprints, list):
@@ -170,7 +172,7 @@ def get_character_industry_skills(
     """
     try:
         skills_data = esi_client.get(f"/characters/{character_id}/skills/", auth=True)
-    except Exception:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError):
         return {}
 
     if not skills_data or "skills" not in skills_data:

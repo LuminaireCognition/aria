@@ -524,13 +524,13 @@ async def _extract_requirements(eft: str | None) -> dict:
 def _resolve_skill_name(skill_id: int) -> str:
     """Resolve skill ID to name via SDE."""
     try:
-        from aria_esi.mcp.market.database import get_market_database
+        from aria_esi.store.market.database import get_market_database
 
         db = get_market_database()
         type_info = db.resolve_type_id(skill_id)
         if type_info:
             return type_info.type_name
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         logger.debug("Could not resolve skill name for %d: %s", skill_id, e)
 
     return f"Unknown Skill ({skill_id})"

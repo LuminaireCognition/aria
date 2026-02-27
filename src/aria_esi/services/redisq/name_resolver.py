@@ -47,7 +47,7 @@ class NameResolver:
                 self._graph = load_universe_graph()
                 self._graph_loaded = True
                 logger.debug("Universe graph loaded for name resolution")
-            except Exception as e:
+            except (ImportError, RuntimeError) as e:
                 logger.warning("Failed to load universe graph: %s", e)
                 self._graph = None
                 self._graph_loaded = True  # Don't retry on failure
@@ -121,7 +121,7 @@ def _resolve_type_name_cached(type_id: int) -> str | None:
     Uses LRU cache to avoid repeated DB queries for common types.
     """
     try:
-        from ...mcp.market.database import get_market_database
+        from aria_esi.store.market.database import get_market_database
 
         db = get_market_database()
         conn = db._get_connection()
@@ -132,7 +132,7 @@ def _resolve_type_name_cached(type_id: int) -> str | None:
         row = cursor.fetchone()
         if row:
             return row[0]
-    except Exception as e:
+    except (ImportError, RuntimeError) as e:
         logger.debug("Failed to resolve type %d: %s", type_id, e)
     return None
 

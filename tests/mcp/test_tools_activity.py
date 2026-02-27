@@ -10,9 +10,11 @@ import asyncio
 import time
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
 
-from aria_esi.mcp.activity import (
+from aria_esi.mcp.dispatchers.universe import register_activity_tools
+from aria_esi.store.activity import (
     ActivityCache,
     ActivityData,
     FWSystemData,
@@ -20,7 +22,6 @@ from aria_esi.mcp.activity import (
     get_faction_id,
     get_faction_name,
 )
-from aria_esi.mcp.dispatchers.universe import register_activity_tools
 
 from .conftest import create_mock_universe
 
@@ -166,7 +167,7 @@ class TestActivityCacheRefresh:
         mock_client.get.return_value = mock_kills_data
 
         # Patch at the source module where get_async_esi_client is defined
-        with patch("aria_esi.mcp.esi_client.get_async_esi_client", new=AsyncMock(return_value=mock_client)):
+        with patch("aria_esi.store.esi_client.get_async_esi_client", new=AsyncMock(return_value=mock_client)):
             # First call - should trigger refresh
             await cache.get_activity(30000142)
             first_timestamp = cache._kills_timestamp
@@ -188,10 +189,10 @@ class TestActivityCacheRefresh:
         cache._kills_timestamp = 0  # Expired
 
         mock_client = AsyncMock()
-        mock_client.get.side_effect = Exception("ESI down")
+        mock_client.get.side_effect = httpx.RequestError("ESI down")
 
         # Patch at the source module where get_async_esi_client is defined
-        with patch("aria_esi.mcp.esi_client.get_async_esi_client", new=AsyncMock(return_value=mock_client)):
+        with patch("aria_esi.store.esi_client.get_async_esi_client", new=AsyncMock(return_value=mock_client)):
             data = await cache.get_activity(30000142)
             assert data.ship_kills == 10  # Stale data preserved
 
@@ -367,7 +368,7 @@ class TestUniverseActivity:
         assert tool is not None
 
         # Mock the activity cache
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(
                 system_id=30000142,
@@ -390,7 +391,7 @@ class TestUniverseActivity:
         """Unknown systems are added to warnings."""
         tool = capture_tool(activity_universe, "universe_activity")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(30000142))
             cache.get_kills_cache_age.return_value = 300
@@ -410,7 +411,7 @@ class TestUniverseHotspots:
         """Finds high-activity systems within range."""
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Tama the hotspot with high kills
@@ -433,7 +434,7 @@ class TestUniverseHotspots:
         """Filters by security status."""
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0, ship_kills=10))
             cache.get_kills_cache_age.return_value = 300
@@ -458,7 +459,7 @@ class TestUniverseGatecampRisk:
         """Identifies security transition chokepoints."""
         tool = capture_tool(activity_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Nourvukaiken dangerous
@@ -481,7 +482,7 @@ class TestUniverseGatecampRisk:
         """Returns high_risk_systems list for avoidance."""
         tool = capture_tool(activity_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             async def mock_activity(system_id):
@@ -509,7 +510,7 @@ class TestFWFrontlines:
         """Returns FW systems grouped by status."""
         tool = capture_tool(activity_universe, "fw_frontlines")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             async def mock_all_fw():
@@ -544,7 +545,7 @@ class TestActivityCacheStatus:
         """Returns status for all cache layers."""
         tool = capture_tool(activity_universe, "activity_cache_status")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_cache_status.return_value = {
                 "kills": {"cached_systems": 100, "age_seconds": 300, "ttl_seconds": 600, "stale": False},
@@ -593,7 +594,7 @@ class TestUniverseHotspotsErrors:
 
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
@@ -611,7 +612,7 @@ class TestUniverseHotspotsErrors:
 
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
@@ -629,7 +630,7 @@ class TestUniverseHotspotsErrors:
 
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
@@ -647,7 +648,7 @@ class TestUniverseHotspotsErrors:
 
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
@@ -665,7 +666,7 @@ class TestUniverseHotspotsErrors:
 
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
@@ -681,7 +682,7 @@ class TestUniverseHotspotsErrors:
         """Jumps activity type should use ship_jumps for ranking."""
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Tama the hotspot with high jumps
@@ -705,7 +706,7 @@ class TestUniverseHotspotsErrors:
         """Ratting activity type should use npc_kills for ranking."""
         tool = capture_tool(activity_universe, "universe_hotspots")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Tama the hotspot with high NPC kills
@@ -736,7 +737,7 @@ class TestUniverseGatecampRiskErrors:
 
         tool = capture_tool(activity_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
@@ -753,7 +754,7 @@ class TestUniverseGatecampRiskErrors:
 
         tool = capture_tool(activity_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
@@ -770,7 +771,7 @@ class TestUniverseGatecampRiskErrors:
 
         tool = capture_tool(activity_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
@@ -786,7 +787,7 @@ class TestUniverseGatecampRiskErrors:
 
         tool = capture_tool(disconnected_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
@@ -808,7 +809,7 @@ class TestFWFrontlinesErrors:
 
         tool = capture_tool(activity_universe, "fw_frontlines")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_all_fw = AsyncMock(return_value={})
             cache.get_kills_cache_age.return_value = 300
@@ -829,7 +830,7 @@ class TestGatecampChokepoints:
         """Systems with <= 2 neighbors in lowsec should be classified as pipe."""
         tool = capture_tool(extended_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Give activity to Niarja to detect it as a chokepoint
@@ -852,7 +853,7 @@ class TestGatecampChokepoints:
         """Extreme risk should recommend alternate route or waiting."""
         tool = capture_tool(activity_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Nourvukaiken extremely dangerous
@@ -879,7 +880,7 @@ class TestGatecampChokepoints:
         """High-sec to low-sec transitions should be marked as lowsec_entry."""
         tool = capture_tool(activity_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Give activity to the lowsec entry system
@@ -903,7 +904,7 @@ class TestGatecampChokepoints:
         """High and extreme risk systems should be in high_risk_systems list."""
         tool = capture_tool(activity_universe, "universe_gatecamp_risk")
 
-        with patch("aria_esi.mcp.dispatchers.universe.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             async def mock_activity(system_id):

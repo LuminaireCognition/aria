@@ -14,11 +14,12 @@ import asyncio
 from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 
+import httpx
 from pydantic import BaseModel, ConfigDict, Field
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
-from aria_esi.mcp.sde.queries import SDENotSeededError, get_sde_query_service
+from aria_esi.store.market.database import get_market_database
+from aria_esi.store.sde.queries import SDENotSeededError, get_sde_query_service
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
@@ -77,7 +78,7 @@ async def _scan_region_for_npc_orders(
         # Filter for NPC orders (364+ day duration)
         return [order for order in data if order.get("duration", 0) >= NPC_ORDER_DURATION_THRESHOLD]
 
-    except Exception as e:
+    except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
         logger.debug("Failed to scan region %d for type %d: %s", region_id, type_id, e)
         return []
 
@@ -111,7 +112,7 @@ async def _esi_fallback_scan(
     except SDENotSeededError:
         warnings.append("SDE not seeded - cannot perform ESI fallback scan.")
         return sources, warnings, total_orders
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- SDE query
         warnings.append(f"Failed to get NPC regions: {e}")
         return sources, warnings, total_orders
 
@@ -127,10 +128,10 @@ async def _esi_fallback_scan(
     )
 
     try:
-        from aria_esi.mcp.esi_client import get_async_esi_client
+        from aria_esi.store.esi_client import get_async_esi_client
 
         client = await get_async_esi_client()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler
         warnings.append(f"ESI client not available for fallback scan: {e}")
         return sources, warnings, total_orders
 
@@ -174,7 +175,7 @@ async def _esi_fallback_scan(
     # Look up station ownership
     try:
         station_info = query_service.get_stations_bulk(station_ids)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler
         logger.warning("Failed to look up station info: %s", e)
         station_info = {}
 
@@ -397,7 +398,7 @@ async def _npc_sources_impl(item: str, limit: int = 10) -> dict:
     # Get the query service for dynamic region lookups
     try:
         query_service = get_sde_query_service()
-    except Exception:
+    except Exception:  # noqa: BLE001 -- SDE query
         query_service = None
 
     for corp_id, corp_name in seeding_corps:
@@ -444,7 +445,7 @@ async def _npc_sources_impl(item: str, limit: int = 10) -> dict:
     total_orders = 0
 
     try:
-        from aria_esi.mcp.esi_client import get_async_esi_client
+        from aria_esi.store.esi_client import get_async_esi_client
 
         client = await get_async_esi_client()
 
@@ -496,11 +497,11 @@ async def _npc_sources_impl(item: str, limit: int = 10) -> dict:
                     )
                     total_orders += len(npc_orders)
 
-            except Exception as e:
+            except (httpx.HTTPStatusError, httpx.RequestError, TimeoutError, ValueError) as e:
                 logger.warning("Failed to fetch orders from region %s: %s", region_id, e)
                 warnings.append(f"Failed to query {region_name}: {e}")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- MCP handler boundary
         return {
             "error": {
                 "code": "ESI_UNAVAILABLE",

@@ -1,6 +1,6 @@
 # Contributing to ARIA
 
-Thank you for your interest in contributing to ARIA! This project aims to create an immersive tactical advisory AI experience for all Eve Online players.
+Thank you for your interest in contributing to ARIA! This project aims to create an immersive tactical advisory AI experience for all EVE Online players.
 
 ## Licensing Notice
 
@@ -39,9 +39,8 @@ The most valuable contributions are example configurations for different faction
 To contribute an example:
 1. Create a directory under `examples/` (e.g., `examples/caldari-trader/`)
 2. Include at minimum:
-   - `pilot_profile.md`
-   - `operational_profile.md`
-   - `ship_status.md`
+   - `profile.md`
+   - `operations.md`
 3. Optionally include populated logs with sample data
 4. Submit a pull request
 
@@ -84,7 +83,7 @@ Help make ARIA more accessible:
 ### Keep It In-Universe
 
 ARIA maintains immersion. When contributing:
-- Use Eve Online terminology
+- Use EVE Online terminology
 - Frame advice through in-universe context
 - Respect faction lore and cultural differences
 
@@ -129,7 +128,7 @@ When contributing Python code:
 ## Code of Conduct
 
 Be respectful and constructive:
-- Welcome newcomers to Eve Online
+- Welcome newcomers to EVE Online
 - Don't mock playstyles different from your own
 - Keep discussions focused on improving ARIA
 - Remember: we're all capsuleers here

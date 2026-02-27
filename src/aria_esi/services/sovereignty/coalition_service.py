@@ -8,7 +8,7 @@ Coalitions are player-defined groupings not tracked by ESI.
 from __future__ import annotations
 
 from ...core.logging import get_logger
-from .database import CoalitionRecord, get_sovereignty_database
+from .database import CoalitionRecord, SovereigntyDatabase, get_sovereignty_database
 
 logger = get_logger(__name__)
 
@@ -35,16 +35,70 @@ class CoalitionRegistry:
         db = get_sovereignty_database()
         coalitions = db.get_all_coalitions()
 
-        # If no coalitions in DB, warn user to run the proper load command
-        # Per DATA_AUTHORITY.md: Community data must be validated before caching
-        # Auto-loading from YAML would bypass ESI validation
+        # If no coalitions in DB, attempt auto-load from YAML
+        # This skips ESI validation (best-effort for MCP/runtime use)
         if not coalitions:
-            logger.warning(
-                "No coalition data in database. "
-                "Run 'uv run aria-esi sov-load-coalitions' to load validated data."
-            )
+            self._auto_load_from_yaml(db)
 
         self._loaded = True
+
+    def _auto_load_from_yaml(self, db: SovereigntyDatabase) -> None:
+        """Auto-load coalition data from YAML when DB is empty.
+
+        Best-effort: logs warnings on failure, never raises.
+        Skips ESI validation — use 'uv run aria-esi sov-load-coalitions'
+        for validated data.
+        """
+        try:
+            import time
+            from pathlib import Path
+
+            import yaml
+
+            yaml_path = (
+                Path(__file__).parent.parent.parent / "data" / "sovereignty" / "coalitions.yaml"
+            )
+            if not yaml_path.exists():
+                logger.warning(
+                    "No coalition data in database and YAML not found at %s. "
+                    "Run 'uv run aria-esi sov-load-coalitions' to load validated data.",
+                    yaml_path,
+                )
+                return
+
+            with open(yaml_path) as f:
+                data = yaml.safe_load(f)
+
+            now = int(time.time())
+            coalitions_loaded = 0
+
+            coalitions_data = data.get("coalitions", {})
+            for coalition_id, coalition_info in coalitions_data.items():
+                record = CoalitionRecord(
+                    coalition_id=coalition_id,
+                    display_name=coalition_info.get("display_name", coalition_id),
+                    aliases=coalition_info.get("aliases", []),
+                    updated_at=now,
+                )
+                db.save_coalition(record)
+                coalitions_loaded += 1
+
+                alliances = coalition_info.get("alliances", [])
+                alliance_ids = [a["id"] for a in alliances if "id" in a]
+                if alliance_ids:
+                    db.save_coalition_members(coalition_id, alliance_ids)
+
+            logger.info(
+                "Auto-loaded %d coalitions from %s (unvalidated)",
+                coalitions_loaded,
+                yaml_path,
+            )
+        except Exception:  # noqa: BLE001 -- best-effort auto-load
+            logger.warning(
+                "Failed to auto-load coalitions from YAML. "
+                "Run 'uv run aria-esi sov-load-coalitions' to load validated data.",
+                exc_info=True,
+            )
 
     def get_coalition(self, coalition_id: str) -> CoalitionRecord | None:
         """
@@ -202,7 +256,7 @@ def analyze_territory(
     # Load universe for region mapping
     try:
         universe = load_universe_graph()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- service handler
         return {
             "entity_name": entity_name,
             "entity_type": entity_type,

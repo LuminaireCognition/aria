@@ -11,8 +11,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aria_esi.mcp.sde.tools_item import _find_suggestions, _lookup_item, register_item_tools
 from aria_esi.mcp.sde.tools_search import register_search_tools
+from aria_esi.store.sde.queries import SDEQueryService
 
 # =============================================================================
 # Mock Database Fixtures
@@ -93,6 +93,21 @@ def mock_sde_db():
         );
         INSERT INTO npc_corporations VALUES (1000129, 'Outer Ring Excavations', 'outer ring excavations');
 
+        CREATE TABLE stations (
+            station_id INTEGER PRIMARY KEY,
+            station_name TEXT,
+            station_name_lower TEXT,
+            system_id INTEGER,
+            region_id INTEGER,
+            corporation_id INTEGER
+        );
+
+        CREATE TABLE regions (
+            region_id INTEGER PRIMARY KEY,
+            region_name TEXT,
+            region_name_lower TEXT
+        );
+
         CREATE TABLE skill_attributes (
             type_id INTEGER PRIMARY KEY,
             rank INTEGER,
@@ -103,10 +118,10 @@ def mock_sde_db():
         INSERT INTO skill_attributes VALUES (3301, 3, 'willpower', 'perception');
 
         CREATE TABLE skill_prerequisites (
-            type_id INTEGER,
-            required_skill_id INTEGER,
-            required_level INTEGER,
-            PRIMARY KEY (type_id, required_skill_id)
+            skill_type_id INTEGER,
+            prerequisite_skill_id INTEGER,
+            prerequisite_level INTEGER,
+            PRIMARY KEY (skill_type_id, prerequisite_skill_id)
         );
         INSERT INTO skill_prerequisites VALUES (3301, 3300, 4);
         """
@@ -130,6 +145,12 @@ def mock_db_object(mock_sde_db, tmp_path):
 
 
 @pytest.fixture
+def query_service(mock_db_object):
+    """Create an SDEQueryService with the mock database."""
+    return SDEQueryService(mock_db_object)
+
+
+@pytest.fixture
 def empty_db():
     """Create a database without SDE tables."""
     conn = sqlite3.connect(":memory:")
@@ -139,56 +160,56 @@ def empty_db():
 
 
 # =============================================================================
-# _lookup_item Tests
+# SDEQueryService.lookup_item Tests
 # =============================================================================
 
 
 class TestLookupItem:
-    """Tests for the _lookup_item helper function."""
+    """Tests for the SDEQueryService.lookup_item method."""
 
-    def test_exact_match_found(self, mock_sde_db):
+    def test_exact_match_found(self, query_service):
         """Exact match should find the item."""
-        result = _lookup_item(mock_sde_db, "venture", exact=True)
+        result = query_service.lookup_item("venture", exact=True)
         assert result is not None
         assert result["type_id"] == 32880
         assert result["type_name"] == "Venture"
 
-    def test_exact_match_case_insensitive(self, mock_sde_db):
-        """Exact match should be case-insensitive."""
-        result = _lookup_item(mock_sde_db, "VENTURE", exact=True)
-        # type_name_lower column stores lowercase, so this won't match
-        assert result is None
+    def test_exact_match_case_insensitive(self, query_service):
+        """Exact match should be case-insensitive (lowered internally)."""
+        result = query_service.lookup_item("VENTURE", exact=True)
+        assert result is not None
+        assert result["type_name"] == "Venture"
 
-    def test_exact_match_not_found(self, mock_sde_db):
+    def test_exact_match_not_found(self, query_service):
         """Non-existent item should return None."""
-        result = _lookup_item(mock_sde_db, "nonexistent", exact=True)
+        result = query_service.lookup_item("nonexistent", exact=True)
         assert result is None
 
-    def test_fuzzy_prefix_match(self, mock_sde_db):
+    def test_fuzzy_prefix_match(self, query_service):
         """Fuzzy match should find prefix matches."""
-        result = _lookup_item(mock_sde_db, "vent", exact=False)
+        result = query_service.lookup_item("vent", exact=False)
         assert result is not None
         assert result["type_id"] == 32880
 
-    def test_fuzzy_contains_match(self, mock_sde_db):
+    def test_fuzzy_contains_match(self, query_service):
         """Fuzzy match should find contains matches."""
-        result = _lookup_item(mock_sde_db, "entur", exact=False)
+        result = query_service.lookup_item("entur", exact=False)
         assert result is not None
         assert result["type_id"] == 32880
 
-    def test_fuzzy_no_match(self, mock_sde_db):
+    def test_fuzzy_no_match(self, query_service):
         """Fuzzy match should return None for no matches."""
-        result = _lookup_item(mock_sde_db, "zzzzzzz", exact=False)
+        result = query_service.lookup_item("zzzzzzz", exact=False)
         assert result is None
 
-    def test_fuzzy_excludes_unpublished(self, mock_sde_db):
+    def test_fuzzy_excludes_unpublished(self, query_service):
         """Fuzzy match should exclude unpublished items."""
-        result = _lookup_item(mock_sde_db, "unpublished", exact=False)
+        result = query_service.lookup_item("unpublished", exact=False)
         assert result is None
 
-    def test_returns_all_fields(self, mock_sde_db):
+    def test_returns_all_fields(self, query_service):
         """Should return all expected fields."""
-        result = _lookup_item(mock_sde_db, "tritanium", exact=True)
+        result = query_service.lookup_item("tritanium", exact=True)
         assert result is not None
         assert "type_id" in result
         assert "type_name" in result
@@ -204,77 +225,152 @@ class TestLookupItem:
 
 
 # =============================================================================
-# _find_suggestions Tests
+# SDEQueryService.find_item_suggestions Tests
 # =============================================================================
 
 
 class TestFindSuggestions:
-    """Tests for the _find_suggestions helper function."""
+    """Tests for the SDEQueryService.find_item_suggestions method."""
 
-    def test_prefix_suggestions(self, mock_sde_db):
+    def test_prefix_suggestions(self, query_service):
         """Should find prefix match suggestions."""
-        suggestions = _find_suggestions(mock_sde_db, "vent")
+        suggestions = query_service.find_item_suggestions("vent")
         assert "Venture" in suggestions
         assert "Venture Blueprint" in suggestions
 
-    def test_contains_suggestions(self, mock_sde_db):
+    def test_contains_suggestions(self, query_service):
         """Should find contains match suggestions when prefix exhausted."""
-        suggestions = _find_suggestions(mock_sde_db, "rit", limit=5)
+        suggestions = query_service.find_item_suggestions("rit", limit=5)
         assert "Tritanium" in suggestions
 
-    def test_limit_respected(self, mock_sde_db):
+    def test_limit_respected(self, query_service):
         """Should respect the limit parameter."""
-        suggestions = _find_suggestions(mock_sde_db, "vent", limit=1)
+        suggestions = query_service.find_item_suggestions("vent", limit=1)
         assert len(suggestions) == 1
 
-    def test_no_suggestions(self, mock_sde_db):
+    def test_no_suggestions(self, query_service):
         """Should return empty list for no matches."""
-        suggestions = _find_suggestions(mock_sde_db, "zzzzzzz")
+        suggestions = query_service.find_item_suggestions("zzzzzzz")
         assert suggestions == []
 
-    def test_excludes_unpublished(self, mock_sde_db):
+    def test_excludes_unpublished(self, query_service):
         """Should exclude unpublished items from suggestions."""
-        suggestions = _find_suggestions(mock_sde_db, "unpublish", limit=10)
+        suggestions = query_service.find_item_suggestions("unpublish", limit=10)
         assert "Unpublished Item" not in suggestions
 
 
 # =============================================================================
-# sde_item_info Tool Tests
+# SDEQueryService.resolve_skill_type_id Tests
 # =============================================================================
 
 
-class TestSdeItemInfoTool:
-    """Tests for the sde_item_info MCP tool."""
+class TestResolveSkillTypeId:
+    """Tests for the SDEQueryService.resolve_skill_type_id method."""
 
-    @pytest.fixture
-    def captured_tool(self, mock_db_object):
-        """Capture the registered tool function."""
-        captured = None
+    def test_resolve_existing_skill(self, query_service):
+        """Should resolve a known skill name to type ID."""
+        result = query_service.resolve_skill_type_id("Spaceship Command")
+        assert result == 3300
 
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured
-                captured = func
-                return func
-            return decorator
+    def test_resolve_case_insensitive(self, query_service):
+        """Should be case-insensitive."""
+        result = query_service.resolve_skill_type_id("spaceship command")
+        assert result == 3300
 
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
+    def test_resolve_nonexistent_skill(self, query_service):
+        """Should return None for nonexistent skill."""
+        result = query_service.resolve_skill_type_id("Nonexistent Skill")
+        assert result is None
 
-        with patch(
-            "aria_esi.mcp.sde.tools_item.get_market_database", return_value=mock_db_object
-        ):
-            register_item_tools(mock_server)
+    def test_resolve_non_skill_type(self, query_service):
+        """Should return None for non-skill items (category != 16)."""
+        result = query_service.resolve_skill_type_id("Venture")
+        assert result is None
 
-        return captured
+
+# =============================================================================
+# SDEQueryService.get_type_name Tests
+# =============================================================================
+
+
+class TestGetTypeName:
+    """Tests for the SDEQueryService.get_type_name method."""
+
+    def test_get_existing_type_name(self, query_service):
+        """Should return type name for existing type ID."""
+        result = query_service.get_type_name(32880)
+        assert result == "Venture"
+
+    def test_get_nonexistent_type_name(self, query_service):
+        """Should return None for nonexistent type ID."""
+        result = query_service.get_type_name(999999)
+        assert result is None
+
+
+# =============================================================================
+# SDEQueryService.resolve_item_type Tests
+# =============================================================================
+
+
+class TestResolveItemType:
+    """Tests for the SDEQueryService.resolve_item_type method."""
+
+    def test_exact_match(self, query_service):
+        """Should resolve exact item name."""
+        result = query_service.resolve_item_type("Venture")
+        assert result is not None
+        type_id, type_name, category_name, category_id = result
+        assert type_id == 32880
+        assert type_name == "Venture"
+        assert category_name == "Ship"
+        assert category_id == 6
+
+    def test_prefix_fallback(self, query_service):
+        """Should fall back to prefix match."""
+        result = query_service.resolve_item_type("Vent")
+        assert result is not None
+        assert result[1] == "Venture"
+
+    def test_not_found(self, query_service):
+        """Should return None for nonexistent item."""
+        result = query_service.resolve_item_type("zzzznonexistent")
+        assert result is None
+
+
+# =============================================================================
+# SDEQueryService.has_table Tests
+# =============================================================================
+
+
+class TestHasTable:
+    """Tests for the SDEQueryService.has_table method."""
+
+    def test_existing_table(self, query_service):
+        """Should return True for existing table."""
+        assert query_service.has_table("categories") is True
+
+    def test_nonexistent_table(self, query_service):
+        """Should return False for nonexistent table."""
+        assert query_service.has_table("nonexistent_table") is False
+
+
+# =============================================================================
+# _item_info_impl Tool Tests
+# =============================================================================
+
+
+class TestItemInfoImpl:
+    """Tests for the _item_info_impl function."""
 
     @pytest.mark.asyncio
-    async def test_exact_match_returns_item(self, captured_tool, mock_db_object):
+    async def test_exact_match_returns_item(self, query_service):
         """Should return item info for exact match."""
+        from aria_esi.mcp.sde.tools_item import _item_info_impl
+
         with patch(
-            "aria_esi.mcp.sde.tools_item.get_market_database", return_value=mock_db_object
+            "aria_esi.mcp.sde.tools_item.get_sde_query_service", return_value=query_service
         ):
-            result = await captured_tool(item="Venture")
+            result = await _item_info_impl("Venture")
 
         assert result["found"] is True
         assert result["item"]["type_id"] == 32880
@@ -282,65 +378,61 @@ class TestSdeItemInfoTool:
         assert result["item"]["is_blueprint"] is False
 
     @pytest.mark.asyncio
-    async def test_blueprint_detected(self, captured_tool, mock_db_object):
+    async def test_blueprint_detected(self, query_service):
         """Should detect blueprint items."""
+        from aria_esi.mcp.sde.tools_item import _item_info_impl
+
         with patch(
-            "aria_esi.mcp.sde.tools_item.get_market_database", return_value=mock_db_object
+            "aria_esi.mcp.sde.tools_item.get_sde_query_service", return_value=query_service
         ):
-            result = await captured_tool(item="Venture Blueprint")
+            result = await _item_info_impl("Venture Blueprint")
 
         assert result["found"] is True
         assert result["item"]["is_blueprint"] is True
 
     @pytest.mark.asyncio
-    async def test_fuzzy_match_fallback(self, captured_tool, mock_db_object):
+    async def test_fuzzy_match_fallback(self, query_service):
         """Should fall back to fuzzy match when exact fails."""
+        from aria_esi.mcp.sde.tools_item import _item_info_impl
+
         with patch(
-            "aria_esi.mcp.sde.tools_item.get_market_database", return_value=mock_db_object
+            "aria_esi.mcp.sde.tools_item.get_sde_query_service", return_value=query_service
         ):
-            result = await captured_tool(item="vent")
+            result = await _item_info_impl("vent")
 
         assert result["found"] is True
         assert result["item"]["type_id"] == 32880
 
     @pytest.mark.asyncio
-    async def test_not_found_returns_suggestions(self, captured_tool, mock_db_object):
+    async def test_not_found_returns_suggestions(self, query_service):
         """Should return suggestions when item not found."""
+        from aria_esi.mcp.sde.tools_item import _item_info_impl
+
         with patch(
-            "aria_esi.mcp.sde.tools_item.get_market_database", return_value=mock_db_object
+            "aria_esi.mcp.sde.tools_item.get_sde_query_service", return_value=query_service
         ):
-            result = await captured_tool(item="zzznonexistent")
+            result = await _item_info_impl("zzznonexistent")
 
         assert result["found"] is False
         assert result["item"] is None
         assert "not found" in result["warnings"][0].lower()
 
     @pytest.mark.asyncio
-    async def test_sde_not_seeded_warning(self, mock_db_object):
+    async def test_sde_not_seeded_warning(self):
         """Should warn if SDE not seeded."""
-        # Create empty database
+        from aria_esi.mcp.sde.tools_item import _item_info_impl
+
         empty_conn = sqlite3.connect(":memory:")
         empty_conn.row_factory = sqlite3.Row
-        mock_db_object._get_connection.return_value = empty_conn
-
         try:
-            captured = None
-
-            def mock_tool():
-                def decorator(func):
-                    nonlocal captured
-                    captured = func
-                    return func
-                return decorator
-
-            mock_server = MagicMock()
-            mock_server.tool = mock_tool
+            mock_db = MagicMock()
+            mock_db._get_connection.return_value = empty_conn
+            service = SDEQueryService(mock_db)
 
             with patch(
-                "aria_esi.mcp.sde.tools_item.get_market_database", return_value=mock_db_object
+                "aria_esi.mcp.sde.tools_item.get_sde_query_service", return_value=service
             ):
-                register_item_tools(mock_server)
-                result = await captured(item="Venture")
+                result = await _item_info_impl("Venture")
 
             assert result["found"] is False
             assert any("not seeded" in w.lower() for w in result["warnings"])
@@ -348,12 +440,14 @@ class TestSdeItemInfoTool:
             empty_conn.close()
 
     @pytest.mark.asyncio
-    async def test_skill_item_returns_attributes(self, captured_tool, mock_db_object):
+    async def test_skill_item_returns_attributes(self, query_service):
         """Should return skill attributes for skill items."""
+        from aria_esi.mcp.sde.tools_item import _item_info_impl
+
         with patch(
-            "aria_esi.mcp.sde.tools_item.get_market_database", return_value=mock_db_object
+            "aria_esi.mcp.sde.tools_item.get_sde_query_service", return_value=query_service
         ):
-            result = await captured_tool(item="Spaceship Command")
+            result = await _item_info_impl("Spaceship Command")
 
         assert result["found"] is True
         assert result["item"]["type_id"] == 3300
@@ -362,12 +456,14 @@ class TestSdeItemInfoTool:
         assert result["item"]["skill_secondary_attribute"] == "willpower"
 
     @pytest.mark.asyncio
-    async def test_non_skill_has_no_skill_attributes(self, captured_tool, mock_db_object):
+    async def test_non_skill_has_no_skill_attributes(self, query_service):
         """Non-skill items should have null skill attributes."""
+        from aria_esi.mcp.sde.tools_item import _item_info_impl
+
         with patch(
-            "aria_esi.mcp.sde.tools_item.get_market_database", return_value=mock_db_object
+            "aria_esi.mcp.sde.tools_item.get_sde_query_service", return_value=query_service
         ):
-            result = await captured_tool(item="Tritanium")
+            result = await _item_info_impl("Tritanium")
 
         assert result["found"] is True
         assert result["item"]["skill_rank"] is None
@@ -581,33 +677,33 @@ class TestSdeCacheStatusTool:
 
 
 # =============================================================================
-# Additional Helper Function Tests
+# Additional Helper Method Tests
 # =============================================================================
 
 
-class TestHelperFunctions:
-    """Additional tests for helper functions to improve coverage."""
+class TestHelperMethods:
+    """Additional tests for SDEQueryService helper methods to improve coverage."""
 
-    def test_lookup_item_returns_none_for_nonexistent(self, mock_sde_db):
+    def test_lookup_item_returns_none_for_nonexistent(self, query_service):
         """lookup_item should return None for nonexistent items."""
-        result = _lookup_item(mock_sde_db, "this_does_not_exist", exact=True)
+        result = query_service.lookup_item("this_does_not_exist", exact=True)
         assert result is None
 
-    def test_lookup_item_fuzzy_prefers_shorter_names(self, mock_sde_db):
+    def test_lookup_item_fuzzy_prefers_shorter_names(self, query_service):
         """Fuzzy match should prefer shorter names (ORDER BY length)."""
         # "vent" should match "Venture" not "Venture Blueprint"
-        result = _lookup_item(mock_sde_db, "vent", exact=False)
+        result = query_service.lookup_item("vent", exact=False)
         assert result is not None
         assert result["type_name"] == "Venture"
 
-    def test_find_suggestions_deduplicates(self, mock_sde_db):
+    def test_find_suggestions_deduplicates(self, query_service):
         """Suggestions should not have duplicates from prefix and contains."""
-        suggestions = _find_suggestions(mock_sde_db, "venture", limit=10)
+        suggestions = query_service.find_item_suggestions("venture", limit=10)
         # Should have Venture and Venture Blueprint but no duplicates
         assert len(suggestions) == len(set(suggestions))
 
-    def test_find_suggestions_default_limit(self, mock_sde_db):
+    def test_find_suggestions_default_limit(self, query_service):
         """Default limit should be 5."""
         # Even if there are many matches, default is 5
-        suggestions = _find_suggestions(mock_sde_db, "e")  # Matches many items
+        suggestions = query_service.find_item_suggestions("e")  # Matches many items
         assert len(suggestions) <= 5

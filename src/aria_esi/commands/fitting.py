@@ -13,13 +13,26 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ..core import get_utc_timestamp
-from ..core.data_integrity import (
-    get_eos_repository,
-    get_pinned_eos_commit,
-    get_pinned_eos_tag,
-    is_break_glass_enabled,
-    verify_eos_commit,
-)
+
+
+def _get_data_integrity():
+    """Lazy import data integrity functions."""
+    from ..core.data_integrity import (
+        get_eos_repository,
+        get_pinned_eos_commit,
+        get_pinned_eos_tag,
+        is_break_glass_enabled,
+        verify_eos_commit,
+    )
+
+    return (
+        get_eos_repository,
+        get_pinned_eos_commit,
+        get_pinned_eos_tag,
+        is_break_glass_enabled,
+        verify_eos_commit,
+    )
+
 
 # =============================================================================
 # Constants
@@ -195,6 +208,14 @@ def download_pyfa_staticdata(
     print("  This may take a moment...")
 
     repo_dir = temp_dir / "pyfa"
+    (
+        get_eos_repository,
+        get_pinned_eos_commit,
+        get_pinned_eos_tag,
+        is_break_glass_enabled,
+        verify_eos_commit,
+    ) = _get_data_integrity()
+
     repo_url = get_eos_repository()
     pinned_tag = get_pinned_eos_tag()
     pinned_commit = get_pinned_eos_commit()
@@ -291,7 +312,7 @@ def download_pyfa_staticdata(
                 raise RuntimeError(
                     f"Pinned tag ({pinned_tag or 'none'}) and commit ({pinned_commit[:12]}) "
                     f"are both unavailable. Cannot proceed with --strict-pin."
-                )
+                ) from None
             print("falling back to HEAD...")
 
     elif strict_pin and pinned_tag:
@@ -498,7 +519,7 @@ def cmd_eos_seed(args: argparse.Namespace) -> dict:
                 "message": str(e),
                 "query_timestamp": query_ts,
             }
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- CLI error barrier
             print(f"\n✗ Error: {e}")
             return {
                 "error": "seed_error",

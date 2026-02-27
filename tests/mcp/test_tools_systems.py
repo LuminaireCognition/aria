@@ -13,8 +13,8 @@ import igraph as ig
 import numpy as np
 import pytest
 
-from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.dispatchers.universe import register_systems_tools
+from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.utils import build_system_info
 from aria_esi.universe import UniverseGraph
 

@@ -2,7 +2,7 @@
 Tests for Asset Snapshot Service.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -70,7 +70,7 @@ class TestAssetSnapshotService:
         self, snapshot_service: AssetSnapshotService, sample_snapshot_data: dict
     ):
         """save_snapshot should use provided timestamp for filename."""
-        custom_time = datetime(2026, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+        custom_time = datetime(2026, 1, 15, 12, 0, 0, tzinfo=UTC)
         filepath = snapshot_service.save_snapshot(
             **sample_snapshot_data, timestamp=custom_time
         )
@@ -82,7 +82,7 @@ class TestAssetSnapshotService:
         self, snapshot_service: AssetSnapshotService, sample_snapshot_data: dict
     ):
         """load_snapshot should return saved data."""
-        custom_time = datetime(2026, 1, 20, 12, 0, 0, tzinfo=timezone.utc)
+        custom_time = datetime(2026, 1, 20, 12, 0, 0, tzinfo=UTC)
         snapshot_service.save_snapshot(**sample_snapshot_data, timestamp=custom_time)
 
         loaded = snapshot_service.load_snapshot("2026-01-20")
@@ -105,9 +105,9 @@ class TestAssetSnapshotService:
     ):
         """list_snapshots should return dates in reverse chronological order."""
         dates = [
-            datetime(2026, 1, 10, tzinfo=timezone.utc),
-            datetime(2026, 1, 15, tzinfo=timezone.utc),
-            datetime(2026, 1, 20, tzinfo=timezone.utc),
+            datetime(2026, 1, 10, tzinfo=UTC),
+            datetime(2026, 1, 15, tzinfo=UTC),
+            datetime(2026, 1, 20, tzinfo=UTC),
         ]
 
         for dt in dates:
@@ -134,13 +134,13 @@ class TestAssetSnapshotService:
         old_data = sample_snapshot_data.copy()
         old_data["total_value"] = 1000000000.0
         snapshot_service.save_snapshot(
-            **old_data, timestamp=datetime(2026, 1, 10, tzinfo=timezone.utc)
+            **old_data, timestamp=datetime(2026, 1, 10, tzinfo=UTC)
         )
 
         # Create newer snapshot
         snapshot_service.save_snapshot(
             **sample_snapshot_data,
-            timestamp=datetime(2026, 1, 20, tzinfo=timezone.utc),
+            timestamp=datetime(2026, 1, 20, tzinfo=UTC),
         )
 
         latest = snapshot_service.get_latest_snapshot()
@@ -168,7 +168,7 @@ class TestAssetSnapshotService:
             data["total_value"] = value
             snapshot_service.save_snapshot(
                 **data,
-                timestamp=datetime(2026, 1, 10 + i, tzinfo=timezone.utc),
+                timestamp=datetime(2026, 1, 10 + i, tzinfo=UTC),
             )
 
         high = snapshot_service.get_high_water_mark()
@@ -182,7 +182,7 @@ class TestAssetSnapshotService:
     ):
         """calculate_trends should compute value changes."""
         # Create old snapshot (8 days ago relative to "current")
-        base_date = datetime(2026, 1, 20, tzinfo=timezone.utc)
+        base_date = datetime(2026, 1, 20, tzinfo=UTC)
         old_data = sample_snapshot_data.copy()
         old_data["total_value"] = 1200000000.0
         snapshot_service.save_snapshot(
@@ -216,7 +216,7 @@ class TestAssetSnapshotService:
     ):
         """cleanup_old_snapshots should remove old files."""
         # Create snapshots spanning 100 days
-        base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        base = datetime(2026, 1, 1, tzinfo=UTC)
         for i in [0, 30, 60, 100]:
             snapshot_service.save_snapshot(
                 **sample_snapshot_data, timestamp=base + timedelta(days=i)

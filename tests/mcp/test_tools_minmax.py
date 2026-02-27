@@ -9,7 +9,6 @@ from __future__ import annotations
 import pytest
 
 from aria_esi.mcp.sde.tools_minmax import (
-    IMPACT_TIER_ORDER,
     MINIMUM_SCORED_SKILLS,
     _build_role_skill_set,
     _score_breakpoint,
@@ -20,7 +19,6 @@ from aria_esi.mcp.sde.tools_minmax import (
     scope_skills_to_roles,
 )
 from aria_esi.mcp.sde.tools_skills import calculate_sp_for_level
-
 
 # =============================================================================
 # Synthetic Test Data Builders

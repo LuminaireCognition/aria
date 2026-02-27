@@ -2,17 +2,19 @@
 Tests for Character Industry Service.
 """
 
-import pytest
 from unittest.mock import Mock
+
+import httpx
+import pytest
 
 from aria_esi.services.character_industry import (
     INDUSTRY_SKILL_IDS,
     SKILL_ID_TO_NAME,
-    get_character_blueprints,
+    calculate_character_invention_bonus,
     find_blueprint_for_item,
+    get_character_blueprints,
     get_character_industry_skills,
     get_invention_skills_for_item,
-    calculate_character_invention_bonus,
     summarize_industry_capabilities,
 )
 
@@ -89,7 +91,7 @@ class TestGetCharacterBlueprints:
     def test_handles_esi_error(self):
         """Should return empty list on ESI error."""
         mock_client = Mock()
-        mock_client.get.side_effect = Exception("ESI Error")
+        mock_client.get.side_effect = httpx.RequestError("ESI Error")
 
         blueprints = get_character_blueprints(123456789, mock_client)
 
@@ -206,7 +208,7 @@ class TestGetCharacterIndustrySkills:
     def test_handles_esi_error(self):
         """Should return empty dict on ESI error."""
         mock_client = Mock()
-        mock_client.get.side_effect = Exception("ESI Error")
+        mock_client.get.side_effect = httpx.RequestError("ESI Error")
 
         skills = get_character_industry_skills(123456789, mock_client)
 

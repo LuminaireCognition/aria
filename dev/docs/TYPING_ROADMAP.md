@@ -2,7 +2,7 @@
 
 ARIA uses a gradual typing adoption strategy with mypy. This document tracks progress and provides guidance for contributors.
 
-## Current Status: Phase 4 (In Progress)
+## Current Status: Phase 5 (Complete)
 
 | Phase | Focus | Status |
 |-------|-------|--------|
@@ -10,7 +10,7 @@ ARIA uses a gradual typing adoption strategy with mypy. This document tracks pro
 | 2 | `union-attr`, `attr-defined` | Complete |
 | 3 | `arg-type`, `return-value` | Complete |
 | 4 | `assignment`, `index`, `operator` | In Progress |
-| 5 | `disallow_untyped_defs` on core modules | Planned |
+| 5 | `check_untyped_defs=true`, `disallow_untyped_defs` on `core.*` | Complete |
 | 6 | Strict mode on all modules | Planned |
 
 ## Running Type Checks
@@ -26,18 +26,20 @@ uv run mypy src/aria_esi/core/auth.py
 uv run mypy src/aria_esi/ --show-error-context
 ```
 
-## Security-Critical Modules (Strict Typing)
+## Core Modules (Strict Typing)
 
-The following modules handle credentials and have strict typing enforced (Phase 5 partial):
+All `aria_esi.core.*` modules (17 total) have strict typing enforced:
 
-- `aria_esi.core.auth` - OAuth token management
-- `aria_esi.core.keyring_backend` - Secure credential storage
-
-These modules have:
 - `disallow_untyped_defs = true` - All functions must have type hints
-- `check_untyped_defs = true` - Type check inside untyped functions
 - `disallow_incomplete_defs = true` - No partial type hints
+
+Security-critical modules (`auth`, `keyring_backend`) additionally have:
 - `warn_return_any = true` - Warn on returning `Any`
+
+## Global Settings (Phase 5)
+
+- `check_untyped_defs = true` - Type check bodies of all functions, even untyped ones
+- Vendored code (`aria_esi._vendor.*`) excluded via `ignore_errors = true`
 
 ## Disabled Error Codes
 

@@ -6,6 +6,67 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-02-26
+
+### Added
+
+#### ADR-006: Self-Contained Skill Ownership Model
+- All 45 skills migrated to self-contained model across 8 batches
+- Each skill now owns its own SKILL.md, metadata, prerequisite files, and data sources
+- 32KB token savings (-5.3%) from eliminating centralized routing overhead
+- New `aria-review` skill for template-driven review dispatch against skills and codebases
+- ADR-006 migration guide and review prompt for auditing skill compliance
+
+#### Test Infrastructure Expansion
+- Codecov integration for coverage trend tracking
+- ESI pagination contract tests (+25 tests, 4 classes)
+- Backfill service tests (+36 tests, 4 classes, 0% → 100%)
+- AsyncMarketDatabase unit tests (+62 tests, 10 classes, 33% → 92%)
+- Organized root-level test files into subdirectories
+
+#### Drone Operation Skills
+- Added drone operation skills to `MULTIPLIER_SKILLS` in Easy 80% planner
+
+### Changed
+
+#### Architecture Cleanup
+- Extracted data access layer from `mcp/` into new `store/` package
+- Extracted inline SQL from SDE/skills dispatchers into `SDEQueryService`
+- Removed legacy cache query module, migrated commands to `UniverseGraph`
+- Deduplicated `aria-esi-sync.py`: moved ESI sync into CLI command
+- Lazy CLI command loading: deferred heavy imports, compacted `build_parser()`
+
+#### Code Quality
+- mypy Phase 5: enabled `check_untyped_defs`, strict core modules
+- Coverage threshold raised to 68%
+- B904 enablement (exception chaining)
+- Tier 2 residual fixes: exception hierarchy, `AsyncESIError` alias, noqa justifications
+
+### Fixed
+- **Mission-brief grounding:** Added prerequisite gate, fit validation, SDE checks to prevent hallucinated mission data
+- **Killmail store:** Fixed `BoundedKillQueue` truthiness bug that prevented store from ever populating
+- **Fitting SDE gate:** Fixed Stormbringer reference, expanded help listing, strengthened SDE verification
+- **SKILL.md references:** Fixed reference data bugs and added mandatory tool call sections across multiple skills
+- **Activity cache mocking:** Fixed `get_activity_cache` mocked at wrong import path in dispatcher tests
+- **Asset pagination:** Fixed ESI asset pagination and improved sec-status pricing
+- **Broken references:** Fixed 18+ broken references from structural reorganization (two audit passes)
+- **Benchmark CI:** Added `--no-cov` to benchmark pytest command to prevent coverage interference
+
+### Security
+
+#### Tier 1: Input Sanitization and Hardening
+- Input sanitization for user-facing parameters
+- Rate limit enforcement on external API calls
+- Pickle deserialization eliminated (replaced with safe alternatives)
+- Integrity hardening for cached data
+
+#### Tier 2: Exception Hierarchy and Code Quality
+- Structured exception hierarchy replacing bare `Exception` raises
+- BLE001 (blind exception catches) enabled project-wide
+- Universe dispatcher decomposed for maintainability
+
+## [0.2.0] - 2026-02-25
+
 ### Added
 
 #### aria-init: Automated Game Data Seeding

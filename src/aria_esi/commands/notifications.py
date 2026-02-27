@@ -11,10 +11,17 @@ import asyncio
 from typing import Any
 
 from ..core import get_utc_timestamp
-from ..services.redisq.notifications import (
-    ProfileLoader,
-    get_profiles_summary,
-)
+
+
+def _get_notifications():
+    """Lazy import notification services (pulls in RedisQ dependencies)."""
+    from ..services.redisq.notifications import (
+        ProfileLoader,
+        get_profiles_summary,
+    )
+
+    return ProfileLoader, get_profiles_summary
+
 
 # =============================================================================
 # List Command
@@ -31,6 +38,7 @@ def cmd_notifications_list(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict with profile list
     """
+    _, get_profiles_summary = _get_notifications()
     query_ts = get_utc_timestamp()
 
     summary = get_profiles_summary()
@@ -57,6 +65,7 @@ def cmd_notifications_show(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict with profile details
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
     name = args.name
 
@@ -142,6 +151,7 @@ def cmd_notifications_create(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict with created profile
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
     name = args.name
     template = args.template
@@ -197,7 +207,7 @@ def cmd_notifications_create(args: argparse.Namespace) -> dict[str, Any]:
             persona=persona,
         )
         path = ProfileLoader.save_profile(profile)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "query_timestamp": query_ts,
             "status": "error",
@@ -268,6 +278,7 @@ def _set_profile_enabled(name: str, enabled: bool) -> dict[str, Any]:
     Returns:
         Result dict
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
 
     try:
@@ -322,6 +333,7 @@ def cmd_notifications_test(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
     name = args.name
 
@@ -388,6 +400,7 @@ def cmd_notifications_validate(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict with validation results
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
 
     results = ProfileLoader.validate_all_profiles()
@@ -420,6 +433,7 @@ def cmd_notifications_templates(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict with template list
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
 
     templates = ProfileLoader.list_templates()
@@ -439,7 +453,7 @@ def cmd_notifications_templates(args: argparse.Namespace) -> dict[str, Any]:
                     ),
                 }
             )
-        except Exception:
+        except Exception:  # noqa: BLE001 -- CLI handler
             template_details.append(
                 {
                     "name": name,
@@ -472,6 +486,7 @@ def cmd_notifications_delete(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
     name = args.name
 
@@ -525,6 +540,7 @@ def cmd_notifications_explain(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict with explanation
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
     profile_name = args.profile
     _kill_id = args.kill_id  # Reserved for kill store integration
@@ -565,6 +581,7 @@ def cmd_notifications_simulate(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict with simulation summary
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
     profile_name = args.profile
     hours = getattr(args, "hours", 24)
@@ -612,6 +629,7 @@ def cmd_notifications_tune(args: argparse.Namespace) -> dict[str, Any]:
     Returns:
         Result dict with weight visualization
     """
+    ProfileLoader, _ = _get_notifications()
     query_ts = get_utc_timestamp()
     profile_name = args.profile
 

@@ -8,13 +8,13 @@ The `commentary` section of notification profiles now supports three LLM provide
 
 | Provider | Environment Variable | Default Model |
 |----------|---------------------|---------------|
-| `anthropic` | `ANTHROPIC_API_KEY` | `claude-sonnet-4-5-20241022` |
+| `anthropic` | `ANTHROPIC_API_KEY` | `claude-sonnet-4-6` |
 | `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` |
 | `gemini` | `GEMINI_API_KEY` | `gemini-2.0-flash` |
 
 A new `provider` field selects which backend to use. When omitted, it defaults to `"anthropic"`.
 
-The default Anthropic model also changed from `claude-3-haiku-20240307` to `claude-sonnet-4-5-20241022`. Profiles that specify a model explicitly are unaffected.
+The default Anthropic model also changed from `claude-3-haiku-20240307` to `claude-sonnet-4-6`. Profiles that specify a model explicitly are unaffected.
 
 ## Do I Need to Change Anything?
 
@@ -122,7 +122,7 @@ All three API keys can coexist in `.env`. Only the keys for providers you actual
 When you set `provider`, the system uses that provider's default model unless you override it with `model`. The `model` value must be valid for the chosen provider:
 
 ```yaml
-# Uses default anthropic model (claude-sonnet-4-5-20241022)
+# Uses default anthropic model (claude-sonnet-4-6)
 commentary:
   provider: "anthropic"
 
@@ -168,7 +168,7 @@ This is a non-blocking warning. The profile still loads, but commentary generati
 commentary:
   enabled: false                          # Enable/disable commentary
   provider: "anthropic"                   # "anthropic", "openai", or "gemini"
-  model: "claude-sonnet-4-5-20241022"     # Omit to use provider default
+  model: "claude-sonnet-4-6"     # Omit to use provider default
   timeout_ms: 3000                        # Max generation time (500-10000)
   max_tokens: 100                         # Max response tokens
   warrant_threshold: 0.3                  # Pattern significance threshold (0-1)

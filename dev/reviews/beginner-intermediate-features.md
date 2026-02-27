@@ -90,7 +90,7 @@ RECOMMENDED PATH:
   Tristan → Vexor → Myrmidon → Dominix
 ```
 
-**Integrates with:** Existing archetypes at `reference/archetypes/hulls/`
+**Integrates with:** Ship progression data (e.g., `reference/ships/*_progression.md`)
 
 ---
 

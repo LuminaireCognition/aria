@@ -133,10 +133,10 @@ The universe cache contains static EVE data (solar systems, stargates, regions).
 - Before major releases to ensure fresh data
 
 ```bash
-uv run python -m aria_esi.cache.builder
+uv run python -m aria_esi.universe.esi_fetcher
 ```
 
-This updates `.claude/scripts/aria_esi/data/universe_cache.json` with current system/stargate data from ESI. Takes ~3 hours due to API rate limits.
+This updates the universe cache with current system/stargate data from ESI. Takes ~3 hours due to API rate limits.
 
 The cache does **not** need rebuilding for:
 - Regular patches

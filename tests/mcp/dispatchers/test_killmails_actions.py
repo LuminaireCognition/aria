@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-
 
 # =============================================================================
 # Test Fixtures
@@ -68,7 +67,7 @@ def mock_killmail_store():
 @pytest.fixture
 def sample_killmails():
     """Sample killmail data for testing."""
-    base_time = int(datetime.utcnow().timestamp())
+    base_time = int(datetime.now(UTC).timestamp())
     return [
         MockKillmail(
             kill_id=1001,

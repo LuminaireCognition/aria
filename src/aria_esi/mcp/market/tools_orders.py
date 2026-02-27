@@ -9,7 +9,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from aria_esi.core.logging import get_logger
-from aria_esi.mcp.market.database import get_market_database
 from aria_esi.models.market import (
     TRADE_HUBS,
     MarketOrder,
@@ -17,9 +16,11 @@ from aria_esi.models.market import (
     RegionConfig,
     resolve_trade_hub,
 )
+from aria_esi.store.market.database import get_market_database
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
+import httpx
 
 logger = get_logger("aria_market.tools_orders")
 
@@ -103,7 +104,7 @@ def register_order_tools(server: FastMCP) -> None:
         resolved_region_id: int = hub["region_id"]
 
         # Fetch orders from ESI
-        from aria_esi.mcp.esi_client import get_async_esi_client
+        from aria_esi.store.esi_client import get_async_esi_client
 
         buy_orders: list[dict] = []
         sell_orders: list[dict] = []
@@ -121,7 +122,7 @@ def register_order_tools(server: FastMCP) -> None:
                     )
                     if isinstance(data, list):
                         buy_orders = data
-                except Exception as e:
+                except (httpx.HTTPStatusError, httpx.RequestError, TimeoutError, ValueError) as e:
                     logger.warning("Failed to fetch buy orders: %s", e)
                     warnings.append(f"Buy orders unavailable: {e}")
 
@@ -133,11 +134,11 @@ def register_order_tools(server: FastMCP) -> None:
                     )
                     if isinstance(data, list):
                         sell_orders = data
-                except Exception as e:
+                except (httpx.HTTPStatusError, httpx.RequestError, TimeoutError, ValueError) as e:
                     logger.warning("Failed to fetch sell orders: %s", e)
                     warnings.append(f"Sell orders unavailable: {e}")
 
-        except Exception as e:
+        except (httpx.HTTPStatusError, httpx.RequestError, ConnectionError, ValueError) as e:
             return {
                 "error": {
                     "code": "ESI_UNAVAILABLE",

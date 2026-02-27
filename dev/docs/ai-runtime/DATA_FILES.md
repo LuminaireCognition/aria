@@ -96,15 +96,9 @@ These files contain static game data, shared across all pilots.
 | `tanking_mechanics.md` | Tank theory |
 | `fitting_theory.md` | Fitting principles |
 
-### Faction Lore (`reference/lore/`)
-
-- `gallente.md`, `caldari.md`, `minmatar.md`, `amarr.md`
-- `factions.md` - Pirate and NPC corporations
-
 ### Ship Data (`reference/ships/`)
 
 - `{faction}_progression.md` - Ship training roadmaps
-- `fittings/` - Ready-to-use EFT format fittings
 
 ### PvE Intel (`reference/pve-intel/`)
 

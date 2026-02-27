@@ -123,7 +123,7 @@ class TestRouteBenchmarks:
         def run():
             return benchmark_universe.graph.get_shortest_paths(src, dst)[0]
 
-        result = benchmark(run)
+        benchmark(run)
         # May return empty path if disconnected
 
 

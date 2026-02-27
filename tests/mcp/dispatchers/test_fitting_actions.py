@@ -10,13 +10,12 @@ Tests the individual action implementations in the fitting dispatcher:
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
 from aria_esi.mcp.errors import InvalidParameterError
 from aria_esi.mcp.policy import PolicyConfig, PolicyEngine, SensitivityLevel
-
 
 # =============================================================================
 # Test Fixtures
@@ -120,10 +119,11 @@ class TestCalculateStatsAction:
 
     def test_calculate_stats_authenticated_denied_falls_back(self, fitting_dispatcher):
         """When authenticated is denied, falls back to all-V with warning."""
-        # Configure policy to deny authenticated
+        # Configure policy to fully deny authenticated (not even require_confirmation)
         engine = PolicyEngine.get_instance()
         engine.config = PolicyConfig(
-            allowed_levels={SensitivityLevel.PUBLIC, SensitivityLevel.AGGREGATE, SensitivityLevel.MARKET}
+            allowed_levels={SensitivityLevel.PUBLIC, SensitivityLevel.AGGREGATE, SensitivityLevel.MARKET},
+            require_confirmation=set(),
         )
 
         mock_result = {
@@ -170,7 +170,7 @@ class TestCalculateStatsAction:
             new_callable=AsyncMock,
             return_value=mock_result
         ) as mock_calc:
-            result = asyncio.run(
+            asyncio.run(
                 fitting_dispatcher(
                     action="calculate_stats",
                     eft=SAMPLE_EFT

@@ -180,7 +180,7 @@ class TestAriaSettings:
     def test_invalid_log_level_rejected(self):
         """Test invalid log level is rejected."""
         with mock.patch.dict(os.environ, {"ARIA_LOG_LEVEL": "INVALID"}, clear=True):
-            with pytest.raises(Exception):  # Pydantic validation error
+            with pytest.raises(ValueError):  # Pydantic validation error
                 AriaSettings()
 
 

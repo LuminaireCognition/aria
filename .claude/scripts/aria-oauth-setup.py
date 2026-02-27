@@ -656,9 +656,9 @@ def exchange_code_for_tokens(
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8") if e.fp else "No details"
-        raise RuntimeError(f"Token exchange failed (HTTP {e.code}): {error_body}")
+        raise RuntimeError(f"Token exchange failed (HTTP {e.code}): {error_body}") from e
     except urllib.error.URLError as e:
-        raise RuntimeError(f"Network error: {e.reason}")
+        raise RuntimeError(f"Network error: {e.reason}") from e
 
 
 def verify_token(access_token: str) -> dict:
@@ -676,7 +676,7 @@ def verify_token(access_token: str) -> dict:
             return json.loads(response.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         error_body = e.read().decode("utf-8") if e.fp else "No details"
-        raise RuntimeError(f"Token verification failed (HTTP {e.code}): {error_body}")
+        raise RuntimeError(f"Token verification failed (HTTP {e.code}): {error_body}") from e
 
 
 def extract_code_from_callback(callback_input: str) -> str:
@@ -733,7 +733,7 @@ def get_character_corporation(access_token: str, character_id: int) -> dict:
     try:
         with urllib.request.urlopen(char_url, timeout=30) as resp:
             char_info = json.loads(resp.read().decode("utf-8"))
-    except Exception:
+    except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
 
     corp_id = char_info.get("corporation_id")
@@ -745,7 +745,7 @@ def get_character_corporation(access_token: str, character_id: int) -> dict:
     try:
         with urllib.request.urlopen(corp_url, timeout=30) as resp:
             corp_info = json.loads(resp.read().decode("utf-8"))
-    except Exception:
+    except (urllib.error.URLError, json.JSONDecodeError, OSError):
         return None
 
     return {
@@ -869,7 +869,7 @@ def run_automatic_flow(client_id: str, scopes: list[str]) -> dict:
     try:
         port = find_available_port()
     except RuntimeError as e:
-        raise RuntimeError(f"Could not start callback server: {e}")
+        raise RuntimeError(f"Could not start callback server: {e}") from e
 
     callback_url = f"http://localhost:{port}/callback"
 

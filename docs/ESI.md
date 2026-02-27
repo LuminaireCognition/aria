@@ -112,7 +112,7 @@ SESSION START
     ↓
 Boot hook detects credentials
     ↓
-Spawns aria-esi-sync.py in background (non-blocking)
+Spawns `aria-esi esi-sync` in background (non-blocking)
     ↓
 ARIA greeting displays immediately (no wait)
     ↓
@@ -172,14 +172,14 @@ The sync writes a manifest to `userdata/pilots/{id}_{slug}/.esi-sync.json`:
 ### Checking Sync Status
 
 ```bash
-uv run python .claude/scripts/aria-esi-sync.py --status
+uv run aria-esi sync-status
 ```
 
 ### Manual Sync
 
 To force a sync mid-session:
 ```bash
-uv run python .claude/scripts/aria-esi-sync.py
+uv run aria-esi esi-sync
 ```
 
 ---

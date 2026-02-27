@@ -18,7 +18,6 @@ import pytest
 
 from aria_esi.core.auth import Credentials, CredentialsError, get_pilot_directory
 
-
 # ── Credentials.resolve() Priority 3 ────────────────────────────
 
 

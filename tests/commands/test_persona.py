@@ -7,12 +7,6 @@ Tests focus on functions that exist and basic imports.
 
 from __future__ import annotations
 
-import argparse
-from unittest.mock import MagicMock, patch
-
-import pytest
-
-
 # =============================================================================
 # Module Import Tests
 # =============================================================================

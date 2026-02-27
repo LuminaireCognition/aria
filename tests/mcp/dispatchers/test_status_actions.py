@@ -10,9 +10,6 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import MagicMock, patch
 
-import pytest
-
-
 # =============================================================================
 # Status Tool Tests
 # =============================================================================
@@ -24,9 +21,9 @@ class TestStatusTool:
     def test_status_returns_dict(self, status_tool):
         """Status tool returns a dictionary."""
         # Mock all the cache/db dependencies to avoid real calls
-        with patch("aria_esi.mcp.activity.get_activity_cache") as mock_activity, \
-             patch("aria_esi.mcp.market.cache.MarketCache") as mock_market, \
-             patch("aria_esi.mcp.market.database.get_market_database") as mock_db, \
+        with patch("aria_esi.store.activity.get_activity_cache") as mock_activity, \
+             patch("aria_esi.store.market.cache.MarketCache") as mock_market, \
+             patch("aria_esi.store.market.database.get_market_database") as mock_db, \
              patch("aria_esi.fitting.eos_data.get_eos_data_manager") as mock_eos:
 
             # Setup minimal mocks
@@ -66,7 +63,7 @@ class TestStatusErrorHandling:
     def test_status_handles_missing_caches_gracefully(self, status_tool):
         """Status handles exceptions from caches gracefully."""
         # Mock caches to raise exceptions
-        with patch("aria_esi.mcp.activity.get_activity_cache") as mock_activity:
+        with patch("aria_esi.store.activity.get_activity_cache") as mock_activity:
             mock_activity.side_effect = Exception("Cache unavailable")
 
             # The status tool should handle errors gracefully, not crash
@@ -74,7 +71,7 @@ class TestStatusErrorHandling:
                 result = asyncio.run(status_tool())
                 # If it returns, check it's a dict (may contain error info)
                 assert isinstance(result, dict)
-            except Exception:
+            except (RuntimeError, OSError, KeyError):
                 # Some implementations may propagate exceptions
                 # which is also acceptable behavior
                 pass

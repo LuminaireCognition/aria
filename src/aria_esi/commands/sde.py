@@ -37,8 +37,8 @@ def cmd_sde_seed(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.market.database import MarketDatabase
-        from ..mcp.sde.importer import SDEImporter, seed_sde
+        from ..store.market.database import MarketDatabase
+        from ..store.sde.importer import SDEImporter, seed_sde
     except ImportError as e:
         return {
             "error": "import_error",
@@ -56,12 +56,23 @@ def cmd_sde_seed(args: argparse.Namespace) -> dict:
         db.close()
 
         if status.seeded:
+            # Compare stored SDE version against manifest's pinned version
+            from ..core.data_integrity import get_integrity_status
+
+            integrity = get_integrity_status()
+            sde_info = integrity.get("sources", {}).get("sde", {})
+            pinned = sde_info.get("pinned_version")
+            if pinned and pinned != "latest":
+                needs_update = status.sde_version != pinned
+            else:
+                needs_update = None  # Cannot determine without network check
+
             return {
                 "status": "seeded",
                 "blueprint_count": status.blueprint_count,
                 "type_count": status.type_count,
                 "import_timestamp": status.import_timestamp,
-                "needs_update": False,  # TODO: Check Fuzzwork for newer version
+                "needs_update": needs_update,
                 "query_timestamp": query_ts,
             }
         else:
@@ -102,7 +113,7 @@ def cmd_sde_seed(args: argparse.Namespace) -> dict:
             db, progress_callback, break_glass=break_glass, show_checksum=show_checksum
         )
         db.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         error_type = type(e).__name__
         return {
             "error": "seed_error",
@@ -121,7 +132,7 @@ def cmd_sde_seed(args: argparse.Namespace) -> dict:
             status = importer.get_sde_status()
             source_checksum = status.source_checksum
             db.close()
-        except Exception:
+        except Exception:  # noqa: BLE001 -- CLI handler
             source_checksum = None
 
         if show_checksum and source_checksum:
@@ -171,8 +182,8 @@ def cmd_sde_status(args: argparse.Namespace) -> dict:
     query_ts = get_utc_timestamp()
 
     try:
-        from ..mcp.market.database import MarketDatabase
-        from ..mcp.sde.importer import SDEImporter
+        from ..store.market.database import MarketDatabase
+        from ..store.sde.importer import SDEImporter
     except ImportError as e:
         return {
             "error": "import_error",
@@ -186,7 +197,7 @@ def cmd_sde_status(args: argparse.Namespace) -> dict:
         status = importer.get_sde_status()
         db_stats = db.get_stats()
         db.close()
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "error": "database_error",
             "message": f"Failed to read database: {e}",
@@ -241,8 +252,8 @@ def cmd_sde_item(args: argparse.Namespace) -> dict:
     item_name = " ".join(args.item_name) if isinstance(args.item_name, list) else args.item_name
 
     try:
-        from ..mcp.market.database import MarketDatabase
         from ..models.sde import CATEGORY_BLUEPRINT
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",
@@ -330,7 +341,7 @@ def cmd_sde_item(args: argparse.Namespace) -> dict:
                 "query_timestamp": query_ts,
             }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI error barrier
         return {
             "error": "lookup_error",
             "message": f"Failed to look up item: {e}",
@@ -357,7 +368,7 @@ def cmd_sde_blueprint(args: argparse.Namespace) -> dict:
     item_name = " ".join(args.item_name) if isinstance(args.item_name, list) else args.item_name
 
     try:
-        from ..mcp.market.database import MarketDatabase
+        from ..store.market.database import MarketDatabase
     except ImportError as e:
         return {
             "error": "import_error",
@@ -498,7 +509,7 @@ def cmd_sde_blueprint(args: argparse.Namespace) -> dict:
                 "query_timestamp": query_ts,
             }
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI error barrier
         return {
             "error": "lookup_error",
             "message": f"Failed to look up blueprint: {e}",

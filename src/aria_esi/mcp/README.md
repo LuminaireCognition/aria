@@ -146,7 +146,7 @@ The universe cache (`universe_cache.json`) contains static EVE Online system/sta
 
 ```bash
 # 1. Regenerate cache from ESI (requires network)
-uv run python -m aria_esi.cache.builder
+uv run aria-esi cache-fetch
 
 # 2. Rebuild the graph
 uv run aria-esi graph-build --force

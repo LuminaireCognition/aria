@@ -7,7 +7,7 @@ Removes runtime conditional evaluation from the LLM.
 Includes validation to detect stale or missing overlay dependencies.
 
 Security: Path validation centralized in core.path_security per
-dev/reviews/PYTHON_REVIEW_2026-01.md P0 #2
+dev/reviews/archive/PYTHON_REVIEW_2026-01.md P0 #2
 """
 
 import argparse
@@ -16,13 +16,10 @@ import re
 from pathlib import Path
 from typing import Any
 
-import yaml
-
 from ..core import get_pilot_directory, get_utc_timestamp
 from ..core.path_security import (
     validate_persona_path as validate_safe_path,
 )
-from ..persona.compiler import compile_persona_context, verify_persona_artifact
 
 # =============================================================================
 # Faction-to-Persona Mapping
@@ -181,6 +178,8 @@ def build_persona_context(
     rp_level = RP_LEVEL_MIGRATION.get(rp_level, rp_level)
     if rp_level not in VALID_RP_LEVELS:
         rp_level = "off"
+
+    import yaml
 
     # Handle persona override (manual selection via Persona: field)
     if persona_override:
@@ -365,7 +364,7 @@ def cmd_persona_context(args: argparse.Namespace) -> dict:
                 pilots_to_process.append(
                     {"id": pilot_id or "active", "directory": pilot_dir.name, "path": pilot_dir}
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- CLI handler
             return {
                 "query_timestamp": query_ts,
                 "status": "error",
@@ -417,6 +416,8 @@ def cmd_persona_context(args: argparse.Namespace) -> dict:
             profile_path.write_text(updated_content)
 
             # Compile persona context with untrusted-data wrapping
+            from ..persona.compiler import compile_persona_context
+
             compiled_artifact_path = pilot["path"] / ".persona-context-compiled.json"
             compile_persona_context(
                 persona_context=context,
@@ -466,6 +467,8 @@ def extract_persona_context_from_profile(content: str) -> dict | None:
     match = re.search(pattern, content, re.DOTALL)
     if not match:
         return None
+
+    import yaml
 
     try:
         parsed = yaml.safe_load(match.group(1))
@@ -846,7 +849,7 @@ def cmd_validate_overlays(args: argparse.Namespace) -> dict:
                         "path": pilot_dir,
                     }
                 )
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 -- CLI handler
             return {
                 "query_timestamp": query_ts,
                 "status": "error",
@@ -957,7 +960,7 @@ def cmd_verify_persona_context(args: argparse.Namespace) -> dict:
     pilot_id = getattr(args, "pilot", None)
     try:
         pilot_dir = get_pilot_directory(pilot_id)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "query_timestamp": query_ts,
             "status": "error",
@@ -970,6 +973,8 @@ def cmd_verify_persona_context(args: argparse.Namespace) -> dict:
             "status": "error",
             "message": "No pilot directory found",
         }
+
+    from ..persona.compiler import compile_persona_context, verify_persona_artifact
 
     # Path to compiled artifact
     artifact_path = pilot_dir / ".persona-context-compiled.json"

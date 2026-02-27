@@ -35,7 +35,7 @@ import argparse
 import asyncio
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -114,7 +114,7 @@ async def invoke_dispatcher(
     except ImportError as e:
         print(f"Warning: Cannot import dispatcher '{dispatcher}': {e}", file=sys.stderr)
         return {"error": f"Dispatcher not available: {dispatcher}"}
-    except Exception as e:
+    except (RuntimeError, OSError, KeyError, ValueError) as e:
         print(f"Warning: Error invoking {dispatcher}.{action}: {e}", file=sys.stderr)
         return {"error": str(e)}
 
@@ -218,7 +218,7 @@ def generate_fixture_yaml(
     # Add section separator and mock responses
     lines = [
         f"# Test fixture: {name}",
-        f"# Generated: {datetime.now(timezone.utc).isoformat()}",
+        f"# Generated: {datetime.now(UTC).isoformat()}",
         "",
     ]
 

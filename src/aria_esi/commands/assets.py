@@ -11,8 +11,6 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-import requests  # type: ignore[import-untyped]
-
 from ..core import (
     SLOT_ORDER,
     CredentialsError,
@@ -22,18 +20,56 @@ from ..core import (
     get_ship_group_ids,
     get_utc_timestamp,
 )
-from ..services.asset_insights import (
-    find_duplicate_ships,
-    generate_insights_summary,
-    get_trade_hub_station_ids,  # noqa: F401 (used via patch in tests)
-    identify_forgotten_assets,
-    suggest_consolidations,
-)
-from ..services.asset_snapshots import get_snapshot_service
+
+
+def _get_asset_insights():
+    """Lazy import asset insight services."""
+    from ..services.asset_insights import (
+        find_duplicate_ships,
+        generate_insights_summary,
+        identify_forgotten_assets,
+        suggest_consolidations,
+    )
+
+    return (
+        find_duplicate_ships,
+        generate_insights_summary,
+        identify_forgotten_assets,
+        suggest_consolidations,
+    )
+
+
+def _get_snapshot_service():
+    """Lazy import asset snapshot service."""
+    from ..services.asset_snapshots import get_snapshot_service
+
+    return get_snapshot_service
+
 
 # =============================================================================
 # Assets Command
 # =============================================================================
+
+
+def _fetch_all_assets(client: ESIClient, char_id: int) -> list:
+    """Fetch all character assets with ESI pagination."""
+    all_assets: list = []
+    page = 1
+    while True:
+        resp = client.get_with_headers(
+            f"/characters/{char_id}/assets/", auth=True, params={"page": page}
+        )
+        data = resp.data
+        if not isinstance(data, list) or not data:
+            break
+        all_assets.extend(data)
+        total_pages = resp.x_pages or 1
+        if page >= total_pages:
+            break
+        page += 1
+        if page > 20:  # Safety cap
+            break
+    return all_assets
 
 
 def cmd_assets(args: argparse.Namespace) -> dict:
@@ -86,9 +122,9 @@ def cmd_assets(args: argparse.Namespace) -> dict:
     if show_insights:
         return _handle_asset_insights(creds, query_ts, save_snapshot=save_snapshot)
 
-    # Fetch assets
+    # Fetch assets (paginated)
     try:
-        assets = client.get(f"/characters/{char_id}/assets/", auth=True)
+        assets = _fetch_all_assets(client, char_id)
     except ESIError as e:
         return {
             "error": "esi_error",
@@ -96,9 +132,6 @@ def cmd_assets(args: argparse.Namespace) -> dict:
             "hint": "Ensure esi-assets.read_assets.v1 scope is authorized",
             "query_timestamp": query_ts,
         }
-
-    if not isinstance(assets, list):
-        assets = []
 
     if not assets:
         return {
@@ -281,6 +314,7 @@ def _save_asset_snapshot(
         Dict with saved status, filename, and total_value
     """
     pilot_dir = _get_pilot_dir(creds)
+    get_snapshot_service = _get_snapshot_service()
     service = get_snapshot_service(pilot_dir)
 
     # Extract data from valuation
@@ -340,7 +374,7 @@ def _save_asset_snapshot(
             "total_value": total_value,
             "has_insights": insights_summary is not None,
         }
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 -- CLI handler
         return {
             "saved": False,
             "error": str(e),
@@ -350,6 +384,7 @@ def _save_asset_snapshot(
 def _handle_snapshot_history(creds: Any, query_ts: str) -> dict:
     """List available snapshots."""
     pilot_dir = _get_pilot_dir(creds)
+    get_snapshot_service = _get_snapshot_service()
     service = get_snapshot_service(pilot_dir)
 
     dates = service.list_snapshots()
@@ -384,6 +419,7 @@ def _handle_snapshot_history(creds: Any, query_ts: str) -> dict:
 def _handle_snapshot_trends(creds: Any, query_ts: str, days: int = 7) -> dict:
     """Show asset value trends."""
     pilot_dir = _get_pilot_dir(creds)
+    get_snapshot_service = _get_snapshot_service()
     service = get_snapshot_service(pilot_dir)
 
     trends = service.calculate_trends(days=days)
@@ -423,13 +459,22 @@ def _handle_asset_insights(creds: Any, query_ts: str, save_snapshot: bool = Fals
     """
     from collections import defaultdict
 
+    import requests  # type: ignore[import-untyped]
+
+    (
+        find_duplicate_ships,
+        generate_insights_summary,
+        identify_forgotten_assets,
+        suggest_consolidations,
+    ) = _get_asset_insights()
+
     char_id = creds.character_id
     client, _ = get_authenticated_client()
     public_client = ESIClient()
 
-    # Fetch assets
+    # Fetch assets (paginated)
     try:
-        assets = client.get(f"/characters/{char_id}/assets/", auth=True)
+        assets = _fetch_all_assets(client, char_id)
     except ESIError as e:
         return {
             "error": "esi_error",
@@ -437,7 +482,7 @@ def _handle_asset_insights(creds: Any, query_ts: str, save_snapshot: bool = Fals
             "query_timestamp": query_ts,
         }
 
-    if not isinstance(assets, list) or not assets:
+    if not assets:
         return {
             "query_timestamp": query_ts,
             "insights": {
@@ -637,6 +682,8 @@ def _calculate_asset_valuation(
     if not type_quantities:
         return {"total_value": 0, "item_values": [], "price_source": "none"}
 
+    import requests  # type: ignore[import-untyped]
+
     # Fetch prices from Fuzzwork API (Jita prices)
     type_ids_str = ",".join(str(tid) for tid in type_quantities.keys())
     try:
@@ -724,18 +771,15 @@ def cmd_fitting(args: argparse.Namespace) -> dict:
     char_id = creds.character_id
     public_client = ESIClient()
 
-    # Fetch all assets
+    # Fetch all assets (paginated)
     try:
-        assets = client.get(f"/characters/{char_id}/assets/", auth=True)
+        assets = _fetch_all_assets(client, char_id)
     except ESIError as e:
         return {
             "error": "esi_error",
             "message": f"Could not fetch assets: {e.message}",
             "query_timestamp": query_ts,
         }
-
-    if not isinstance(assets, list):
-        assets = []
 
     # Resolve type names for all assets
     type_ids = set(a["type_id"] for a in assets)
