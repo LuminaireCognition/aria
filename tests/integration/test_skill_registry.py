@@ -14,6 +14,8 @@ Skipped if SDE is not seeded.
 
 from __future__ import annotations
 
+import sqlite3
+
 import pytest
 
 from aria_esi.store.market.database import get_market_database
@@ -27,7 +29,7 @@ def sde_is_seeded() -> bool:
         cursor = conn.execute("SELECT COUNT(*) FROM types")
         count = cursor.fetchone()[0]
         return count > 1000
-    except Exception:
+    except (OSError, RuntimeError, sqlite3.OperationalError):
         return False
 
 
