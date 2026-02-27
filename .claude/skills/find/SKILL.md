@@ -15,24 +15,7 @@ requires_pilot: false
 
 # ARIA Proximity Market Search Module
 
-## Purpose
-
-Find market sources for items near a specific location. Unlike `/price` which shows region-wide market data, `/find` locates specific stations selling an item sorted by distance from your position. Particularly useful for:
-
-- Finding NPC-seeded blueprints (automatically filters to NPC orders)
-- Locating hard-to-find items in nearby stations
-- Identifying the closest source when you need something urgently
-
-Uses the `market_find_nearby` MCP tool for proximity-based market search.
-
-## Trigger Phrases
-
-- "/find"
-- "find [item] near me"
-- "where can I buy [item]"
-- "nearest [item]"
-- "find blueprint for [item]"
-- "NPC selling [item]"
+Unlike `/price` (region-wide market data), `/find` locates specific stations selling an item sorted by distance from your position. Particularly useful for NPC-seeded blueprints, hard-to-find items, and urgent purchases.
 
 ## Command Syntax
 
@@ -217,20 +200,6 @@ blueprint. Research it first for better efficiency!
 Venture BPO | Oursulaert (3j) | 250k | Fed Navy | NPC
            | Dodixie (8j) | 250k | Fed Navy Logistics | NPC
 ```
-
-## Use Cases
-
-### Finding NPC Blueprints
-
-"Where can I buy an Orca Blueprint?" - Searches for NPC-seeded BPOs, identifies ORE stations in Outer Ring.
-
-### Urgent Module Need
-
-"Find Damage Control II near Amarr" - Locates closest player market sources for immediate purchase.
-
-### Regional Shopping
-
-"Find Nanite Repair Paste within 10 jumps of Rens" - Limited radius search for consumables.
 
 ## Self-Sufficiency Integration
 

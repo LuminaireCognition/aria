@@ -17,16 +17,6 @@ requires_pilot: false
 
 # ARIA Local Orientation Module
 
-## Purpose
-Provide consolidated tactical intelligence when a pilot finds themselves in unknown space, typically after wormhole jumps, filaments, or other unexpected relocations.
-
-## Trigger Phrases
-- "orient me"
-- "what's around me"
-- "local intel"
-- "just landed in [system]"
-- "dropped into [system]"
-
 ## Data Authority
 
 Sovereignty data follows the authority hierarchy defined in `dev/docs/ai-runtime/DATA_AUTHORITY.md`:
@@ -69,34 +59,6 @@ Orientation intel MUST come from tool calls. Do NOT fabricate sovereignty, activ
 | Ratting banks (content) | local_area response `ratting_banks` | `universe(action="local_area", ...)` |
 | Escape routes (nearest safe) | local_area response `escape_routes` | `universe(action="local_area", ...)` |
 | FW warzone data | local_area response `fw_systems` | `universe(action="local_area", ...)` |
-
-## Data Sources
-
-### MCP Tools (preferred)
-
-If the `aria-universe` MCP server is connected, use the `universe` dispatcher:
-
-```
-universe(action="local_area", origin="ZZ-TOP", max_jumps=10, include_realtime=True)
-```
-
-**Response includes:**
-- Origin system details (security, region, constellation)
-- Sovereignty data (alliance, coalition) for null-sec systems
-- Threat summary (total kills, active camps, threat level)
-- Hotspots (high PvP activity systems)
-- Quiet zones (zero/low activity for stealth ops)
-- Ratting banks (high NPC kills indicating targets)
-- Escape routes (nearest low-sec, high-sec)
-- Security borders (transition points)
-
-### CLI Fallback
-
-If MCP tools are not available:
-
-```bash
-uv run aria-esi orient <system> [--max-jumps N] [--realtime]
-```
 
 ## Output Format
 
@@ -165,26 +127,6 @@ When `include_realtime=True` and the RedisQ poller is healthy:
 - Minute-level kill data instead of hourly
 - Force asymmetry detection (camps vs fleet fights)
 
-## Use Cases
-
-### Wormhole Exit
-"I just jumped out of a wormhole and landed in XYZ-12, orient me"
-- Immediate threat assessment
-- Nearest escape routes to k-space
-- Quiet systems for scanning
-
-### Filament Activation
-"Used a filament and now I'm in null-sec, what's around me?"
-- Regional threat picture
-- Ratting banks to hunt or avoid
-- Path back to safer space
-
-### Roaming Fleet
-"We're in hostile space, give me local intel"
-- Identify active systems (targets)
-- Avoid detected camps
-- Find staging points
-
 ## Sovereignty Context (Null-Sec Only)
 
 When the origin system is in null-sec (security <= 0.0), include sovereignty information:
@@ -211,26 +153,6 @@ SOVEREIGNTY: [GSF] Goonswarm Federation
 | Smaller Alliance | Variable response capability |
 | NPC Null-sec | No player sovereignty - NPC presence only |
 | Unclaimed | Disputed or recently lost - may be contested |
-
-### Getting Sovereignty Data
-
-Sovereignty is included in the `systems` response for null-sec systems:
-
-```
-universe(action="systems", systems=["1DQ1-A"])
-```
-
-Response includes:
-```json
-{
-  "sovereignty": {
-    "alliance_id": 1354830081,
-    "alliance_name": "[GSF] Goonswarm Federation",
-    "coalition_id": "imperium",
-    "coalition_name": "The Imperium"
-  }
-}
-```
 
 ## Faction Warfare Context
 

@@ -15,16 +15,6 @@ has_persona_overlay: true
 
 # ARIA Gatecamp Intelligence Module
 
-## Purpose
-Provide real-time gatecamp detection and analysis for specific systems or along routes. Uses RedisQ killmail data to identify active camps with attacker analysis and tactical recommendations.
-
-## Trigger Phrases
-- "/gatecamp"
-- "is there a camp in [system]"
-- "gatecamp check"
-- "camp status"
-- "any camps on route to [system]"
-
 ## Command Syntax
 
 ```

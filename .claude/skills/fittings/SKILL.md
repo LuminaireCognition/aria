@@ -16,11 +16,7 @@ esi_scopes:
 
 # ARIA Saved Fittings Browser
 
-## Purpose
-
-Query the capsuleer's saved fittings to list and export ship configurations. Enables reviewing fits stored in-game and exporting them to EFT format for sharing or analysis.
-
-**Note:** This is separate from the existing `/fitting` skill which provides fitting *assistance*. This skill reads *saved fittings* from ESI.
+**Note:** This is separate from `/fitting` which provides fitting *assistance*. This skill reads *saved fittings* from ESI.
 
 ## ESI Write Capability
 
@@ -37,16 +33,6 @@ Saved fittings data is **stable** - only changes when you save/delete fits:
 1. **Display query timestamp** - fittings rarely change
 2. **Safe to cache** - only updated by explicit action
 3. **Fitting IDs are unique** - useful for reference
-
-## Trigger Phrases
-
-- `/fittings`
-- "my saved fits"
-- "saved fittings"
-- "show my fits"
-- "list fittings"
-- "what fits do I have"
-- "export fit"
 
 ## ESI Requirement
 

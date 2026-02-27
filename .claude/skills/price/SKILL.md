@@ -15,17 +15,6 @@ requires_pilot: false
 
 # ARIA Market Price Module
 
-## Purpose
-Query market prices for items in EVE Online. Useful for loot valuation, manufacturing cost analysis, LP store comparisons, and general market awareness. Uses public ESI endpoints (no authentication required).
-
-## Trigger Phrases
-- "/price"
-- "price check [item]"
-- "how much is [item] worth"
-- "what's [item] selling for"
-- "market price for [item]"
-- "value of [item]"
-
 ## Command Syntax
 
 ```
@@ -258,20 +247,6 @@ uv run aria-esi price "Hammerhead II" --jita
 uv run aria-esi price Veldspar --amarr
 uv run aria-esi price "Medium Shield Extender II" --dodixie
 ```
-
-## Use Cases
-
-### Loot Valuation
-"Is this worth hauling back?" - Quick price check to decide if loot is valuable enough to transport.
-
-### Manufacturing Cost Analysis
-Check mineral and component prices to estimate production costs. Compare against finished product prices.
-
-### LP Store Optimization
-Compare LP store item prices against market to calculate ISK/LP ratios.
-
-### Salvage Prioritization
-Check salvage component prices to prioritize what to keep vs. reprocess.
 
 ## Self-Sufficiency Integration
 

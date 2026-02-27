@@ -19,20 +19,6 @@ data_sources:
 
 # Escape Route Module
 
-## Purpose
-
-Calculate fastest routes to safe harbor when the pilot needs to disengage. Factor in security status restrictions, station access, and pursuit evasion.
-
-## Trigger Phrases
-
-- "/escape-route"
-- "escape route"
-- "get me out"
-- "nearest safe"
-- "route to safety"
-- "where can I dock"
-- "I need to dock NOW"
-
 ## Command Syntax
 
 ```
@@ -177,28 +163,6 @@ When primary route is camped:
 - Route through adjacent region
 - Use jump clone if available
 - Wait out the camp (patience)
-
-## Data Sources (Fallback Chain)
-
-Escape route calculation uses multiple data sources. Use in order of preference:
-
-### 1. MCP Tools (preferred if available)
-
-If the `aria-universe` MCP server is connected:
-
-```
-universe_route(origin="Tama", destination="Jita", mode="safe")
-universe_nearest(origin="Tama", security_min=0.1, security_max=0.4)
-```
-
-### 2. CLI Commands (fallback)
-
-If MCP tools are not available:
-
-```bash
-uv run aria-esi route Tama Jita --safe
-uv run aria-esi borders --system Tama --limit 5
-```
 
 ## Integration with ESI
 

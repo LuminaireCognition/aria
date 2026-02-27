@@ -24,9 +24,6 @@ esi_scopes:
 
 # ARIA Pilot Identity Module
 
-## Purpose
-Provide a unified identity view combining local ARIA configuration with live ESI character data. This command answers "Who am I to ARIA?" for the authenticated pilot, or "Who is this pilot?" for public lookups.
-
 ## Command Syntax
 
 ```
@@ -35,16 +32,6 @@ Provide a unified identity view combining local ARIA configuration with live ESI
 /pilot <name>    # Look up another pilot (public data only)
 /pilot <id>      # Look up by character ID (public data only)
 ```
-
-## Trigger Phrases
-
-- `/pilot`
-- "who am I" (when referring to ARIA identity, not location)
-- "my profile" / "show my profile"
-- "pilot identity"
-- "check pilot <name>"
-- "look up <name>"
-- "who is <name>"
 
 ## Implementation
 
@@ -80,10 +67,6 @@ uv run aria-esi pilot 2123984364
 ### If ESI is AVAILABLE:
 
 Proceed with full `uv run aria-esi pilot` query.
-
-### Rationale
-
-The local profile contains all ARIA configuration data. ESI only adds live snapshots (wallet, SP) which aren't critical for identity queries.
 
 ## Data Sources by Query Type
 
@@ -254,17 +237,3 @@ Suggestion: [appropriate action]
 | Detailed standings | `/esi-query standings` |
 | Skills list | `/esi-query skills` |
 | Corporation details | `/corp` |
-
-## Example Interactions
-
-**User:** `/pilot`
-**ARIA:** [Shows full identity card for authenticated pilot]
-
-**User:** "who am I"
-**ARIA:** [Shows full identity if context suggests ARIA identity, otherwise may clarify]
-
-**User:** `/pilot Chribba`
-**ARIA:** [Public lookup for the famous trader/miner]
-
-**User:** "look up The Mittani"
-**ARIA:** [Public lookup for specified pilot]

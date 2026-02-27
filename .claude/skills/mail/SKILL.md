@@ -16,10 +16,6 @@ esi_scopes:
 
 # ARIA EVE Mail Reader
 
-## Purpose
-
-Query the capsuleer's EVE mail to display inbox and read messages. Essential for staying informed about corp communications, trade negotiations, and game events.
-
 ## ESI Write Capability
 
 Unlike most ESI endpoints, mail has **write capability**:
@@ -35,17 +31,6 @@ Mail data is **volatile** - changes frequently with new messages:
 1. **Display query timestamp** - mail can arrive any moment
 2. **Low cache time (30 seconds)** - reflects near-real-time state
 3. **Read status updates** - marking mail read is an in-game action
-
-## Trigger Phrases
-
-- `/mail`
-- "my mail"
-- "check mail"
-- "EVE mail"
-- "inbox"
-- "unread mail"
-- "read mail"
-- "show messages"
 
 ## ESI Requirement
 
@@ -93,22 +78,12 @@ Proceed with mail queries.
 
 ## Implementation
 
-### MCP (preferred if available)
-
 ```python
 # List mail
 pilot(action="mail_list", unread_only=True, limit=50)
 
 # Read specific mail
 pilot(action="mail_read", mail_id=987654321)
-```
-
-### CLI (fallback)
-
-```bash
-uv run python -m aria_esi mail [options]
-uv run python -m aria_esi mail-read <mail_id>
-uv run python -m aria_esi mail-labels
 ```
 
 ### Commands
