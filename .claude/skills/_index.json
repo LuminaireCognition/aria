@@ -774,6 +774,10 @@
         "[mission name] L[N]"
       ],
       "requires_pilot": true,
+      "prerequisite_files": [
+        "reference/mechanics/npc_damage_types.md",
+        "reference/mechanics/drones.json"
+      ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md",
@@ -788,10 +792,6 @@
       ],
       "path": ".claude/skills/mission-brief/SKILL.md",
       "directory": "mission-brief",
-      "prerequisite_files": [
-        "reference/mechanics/npc_damage_types.md",
-        "reference/mechanics/drones.json"
-      ],
       "esi_scopes": [],
       "has_persona_overlay": true
     },

@@ -11,6 +11,7 @@ This directory contains Architecture Decision Records (ADRs) documenting signifi
 | [003](ADR-003-data-volatility-protocol.md) | Data Volatility Protocol | Accepted | 2026-01 | Never proactively mention volatile data; query on request only |
 | [004](ADR-004-roleplay-opt-in.md) | Roleplay Opt-In Design | Accepted | 2026-01 | Three RP levels (off/on/full) defaulting to off |
 | [005](ADR-005-boot-modularization.md) | Boot Script Modularization | Accepted | 2026-01 | Modular boot scripts with parallel execution |
+| [006](ADR-006-skill-context-ownership.md) | Skill Context Ownership | Accepted | 2026-02 | Self-contained SKILL.md files; CLAUDE.md for mechanisms only |
 
 ## ADR Format
 

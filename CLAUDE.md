@@ -434,50 +434,6 @@ sde(action="agent_divisions")  # List all division types
 | System/station details | DOTLAN | `evemaps.dotlan.net/system/{name}` |
 | Agent locations (fallback) | DOTLAN | `evemaps.dotlan.net/npc/{Corp_Name}/agents` |
 
-### Mission Data Lookup
-
-When a request involves **mission context** (fitting for a mission, mission intel, preparing for a mission), follow this lookup protocol.
-
-**Recognition triggers:**
-- Explicit: "mission brief", "/mission-brief", "prepare for [mission]"
-- Implicit: "fitting for [ship] running [mission]", "[mission name] L[N]", "against [faction] mission"
-
-**Lookup sequence (cache-first pattern):**
-
-```
-1. Check reference/pve-intel/cache/INDEX.md
-   ├─ Intel cached? → Read from cache file → Present to user
-   └─ Not cached? → Continue to step 2
-
-2. Fetch from wiki.eveuniversity.org/{Site_Name}
-   (NEVER use general web search)
-
-3. Write cache file BEFORE presenting:
-   ├─ Create: reference/pve-intel/cache/{site_name}_{suffix}.md
-   └─ Update: reference/pve-intel/cache/INDEX.md
-
-4. Read from cache file → Present to user
-```
-
-**Filename suffixes by content type:**
-- Agent missions: `_l{N}.md` (e.g., `the_blockade_blood_raiders_l3.md`)
-- DED sites: `_ded{N}.md` (e.g., `mul_zatah_monastery_ded4.md`)
-- Unrated sites: `_unrated.md` (e.g., `desolate_site_unrated.md`)
-- Expeditions: `_expedition.md` (e.g., `mare_sargassum_expedition.md`)
-
-**CRITICAL:** Never present PvE intel directly from WebFetch response.
-All intel must be read from local cache. This ensures caching is a
-prerequisite for presentation, not an afterthought.
-
-**Quick reference available without fetch:**
-- `reference/pve-intel/INDEX.md` has static damage profiles for all factions (tracked in git)
-- `reference/pve-intel/cache/INDEX.md` has the cache index of fetched missions (gitignored)
-- Rogue Drones: Omni damage → weak to EM > Thermal
-- Serpentis: Kin/Therm → weak to Thermal
-- (See INDEX.md for complete table)
-
-**For full mission briefings**, invoke `/mission-brief` which handles disambiguation, wiki fetching, and caching automatically.
-
 ## Skills
 
 ARIA has slash commands for tactical intel, operations, and economy. Type `/help` for the full list. Natural language also works: "prepare for mission", "is this system safe", "what should I mine".
