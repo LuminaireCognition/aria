@@ -14,12 +14,13 @@ triggers:
   - "[mission name] level [N]"
   - "[mission name] L[N]"
 requires_pilot: true
+prerequisite_files:
+  - reference/mechanics/npc_damage_types.md
+  - reference/mechanics/drones.json
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
   - reference/pve-intel/cache/INDEX.md
-  - reference/mechanics/npc_damage_types.md
-  - reference/mechanics/drones.json
   - reference/mechanics/missiles.json
   - reference/mechanics/projectile_turrets.json
   - reference/mechanics/laser_turrets.json
@@ -101,6 +102,13 @@ The brief follows a strict information hierarchy optimized for in-game usability
 - Swap ammo/charges/crystals to match enemy weakness (from weapon JSON files)
 - Preserve pilot's module tier (T1/Meta/T2)
 - OMIT rigs (pilots keep general-purpose rigs installed)
+
+**⚠️ VALIDATION GATE — Complete before presenting ANY fit:**
+1. Read `reference/mechanics/drones.json` → look up `enemy_recommendations.{faction}` → select correct drones (see §Drone Recommendation Validation Protocol)
+2. Read the appropriate weapon JSON file for the pilot's weapon system → select correct ammo (see §Weapon Ammo Recommendation Validation Protocol)
+3. Verify swapped module names via `sde(action="item_info")` or `reference/fittings/MODULE_NAMES.md` — EVE module naming is inconsistent and training data may use outdated names
+4. Validate the complete adapted fit via `fitting(action="calculate_stats", eft="...")` — check for `validation_errors`, CPU/PG overload, or unknown module types
+5. If validation fails, fix the fit and re-validate. **Never present an unvalidated fit.**
 
 **Ammo Section (always present for turret/missile fits):**
 Include recommended ammo after the drone bay section:

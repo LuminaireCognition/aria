@@ -542,6 +542,7 @@ When a skill is invoked:
    | `exploration` | `exploration_sites.md`, `hacking_guide.md` | Wrong hacking mechanics, site prefixes |
    | `mining-advisory` | `ore_database.md` | Wrong ore security bands |
    | `fitting` | `EFT-FORMAT.md`, `drones.json`, `MODULE_NAMES.md` | Wrong module names, drone data |
+   | `mission-brief` | `npc_damage_types.md`, `drones.json` | Wrong tank/deal/drone recommendations |
    | `skillplan` | `skill_plans.yaml`, `ship_efficacy_rules.yaml`, `meta_module_alternatives.yaml` | Wrong training recommendations |
 
 5. **Use `data_sources` from `_index.json`** — If the skill entry lists a `data_sources` array, read those files directly. Do not explore the filesystem for reference data that is already enumerated.

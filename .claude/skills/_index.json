@@ -778,8 +778,6 @@
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md",
         "reference/pve-intel/cache/INDEX.md",
-        "reference/mechanics/npc_damage_types.md",
-        "reference/mechanics/drones.json",
         "reference/mechanics/missiles.json",
         "reference/mechanics/projectile_turrets.json",
         "reference/mechanics/laser_turrets.json",
@@ -790,7 +788,10 @@
       ],
       "path": ".claude/skills/mission-brief/SKILL.md",
       "directory": "mission-brief",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "reference/mechanics/npc_damage_types.md",
+        "reference/mechanics/drones.json"
+      ],
       "esi_scopes": [],
       "has_persona_overlay": true
     },
