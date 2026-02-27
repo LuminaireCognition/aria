@@ -7,7 +7,7 @@ Parses ESI killmail responses and filters based on configuration.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from ...core.logging import get_logger
@@ -58,7 +58,7 @@ def parse_esi_killmail(
         # ESI returns ISO format: 2024-01-15T12:34:56Z
         kill_time = datetime.fromisoformat(kill_time_str.replace("Z", "+00:00"))
     except (ValueError, AttributeError):
-        kill_time = datetime.utcnow()
+        kill_time = datetime.now(UTC)
 
     # Extract victim data
     victim = esi_data.get("victim", {})
@@ -101,7 +101,7 @@ def parse_esi_killmail(
 
     return ProcessedKill(
         kill_id=esi_data.get("killmail_id", 0),
-        kill_time=kill_time.replace(tzinfo=None),  # Store as naive UTC
+        kill_time=kill_time,
         solar_system_id=esi_data.get("solar_system_id", 0),
         victim_ship_type_id=victim_ship_type_id,
         victim_corporation_id=victim_corporation_id,

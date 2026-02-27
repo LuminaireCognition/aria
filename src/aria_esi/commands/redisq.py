@@ -151,13 +151,13 @@ def cmd_redisq_backfill(args: argparse.Namespace) -> dict:
     """
     Manually trigger a backfill from zKillboard.
     """
-    from datetime import datetime, timedelta
+    from datetime import UTC, datetime, timedelta
 
     from ..services.redisq.backfill import backfill_from_zkillboard
 
     # Parse time range
     hours = args.hours if args.hours else 1
-    since = datetime.utcnow() - timedelta(hours=hours)
+    since = datetime.now(UTC) - timedelta(hours=hours)
 
     regions = args.regions if args.regions else None
     max_kills = args.limit if args.limit else 500

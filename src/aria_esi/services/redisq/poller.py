@@ -10,7 +10,7 @@ import asyncio
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 import httpx
@@ -357,7 +357,7 @@ class RedisQPoller:
 
         # Check for recent activity
         if self._last_poll_time:
-            since_poll = (datetime.utcnow() - self._last_poll_time).total_seconds()
+            since_poll = (datetime.now(UTC) - self._last_poll_time).total_seconds()
             if since_poll > 120:  # No poll in 2 minutes
                 return False
 
@@ -408,7 +408,7 @@ class RedisQPoller:
                 dropped_total=queue_metrics.dropped_total,
                 queue_depth=queue_metrics.queue_depth,
                 last_drop_time=(
-                    datetime.fromtimestamp(queue_metrics.last_drop_time)
+                    datetime.fromtimestamp(queue_metrics.last_drop_time, tz=UTC)
                     if queue_metrics.last_drop_time
                     else None
                 ),
@@ -463,7 +463,7 @@ class RedisQPoller:
 
         try:
             response = await self._client.get(REDISQ_URL, params=params)
-            self._last_poll_time = datetime.utcnow()
+            self._last_poll_time = datetime.now(UTC)
 
             # Persist poll time periodically for gap recovery
             now_ts = time.time()

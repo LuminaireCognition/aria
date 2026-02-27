@@ -11,7 +11,7 @@ from __future__ import annotations
 import time
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from ...core.logging import get_logger
@@ -54,18 +54,18 @@ class WarRelationship:
     defender_type: str = "alliance"  # "alliance" or "corporation"
     is_mutual: bool = False
     source: str = "inferred"  # "esi_sync" or "inferred"
-    first_observed: datetime = field(default_factory=datetime.utcnow)
-    last_observed: datetime = field(default_factory=datetime.utcnow)
+    first_observed: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_observed: datetime = field(default_factory=lambda: datetime.now(UTC))
     kill_count: int = 1
 
     def is_stale(self, ttl_seconds: int = WAR_RELATIONSHIP_TTL_SECONDS) -> bool:
         """Check if this relationship has not been observed recently."""
-        age = (datetime.utcnow() - self.last_observed).total_seconds()
+        age = (datetime.now(UTC) - self.last_observed).total_seconds()
         return age > ttl_seconds
 
     def touch(self) -> None:
         """Update last observed time and increment kill count."""
-        self.last_observed = datetime.utcnow()
+        self.last_observed = datetime.now(UTC)
         self.kill_count += 1
 
 
@@ -184,8 +184,8 @@ class WarContextProvider:
                     defender_type=defender_type,
                     is_mutual=bool(row["is_mutual"]),
                     source=row["source"],
-                    first_observed=datetime.fromtimestamp(row["first_observed"]),
-                    last_observed=datetime.fromtimestamp(row["last_observed"]),
+                    first_observed=datetime.fromtimestamp(row["first_observed"], tz=UTC),
+                    last_observed=datetime.fromtimestamp(row["last_observed"], tz=UTC),
                     kill_count=row["kill_count"],
                 )
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from ....core.logging import get_logger
@@ -102,7 +102,7 @@ class WorkerSupervisor:
     def metrics(self) -> SupervisorMetrics:
         """Get supervisor metrics."""
         if self._start_time:
-            self._metrics.uptime_seconds = (datetime.utcnow() - self._start_time).total_seconds()
+            self._metrics.uptime_seconds = (datetime.now(UTC) - self._start_time).total_seconds()
         return self._metrics
 
     async def start(self) -> None:
@@ -117,7 +117,7 @@ class WorkerSupervisor:
             return
 
         self._running = True
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(UTC)
 
         logger.info(
             "Starting worker supervisor with %d profiles",
@@ -277,7 +277,7 @@ class WorkerSupervisor:
         return {
             "running": self._running,
             "uptime_seconds": (
-                (datetime.utcnow() - self._start_time).total_seconds() if self._start_time else 0
+                (datetime.now(UTC) - self._start_time).total_seconds() if self._start_time else 0
             ),
             "workers": {
                 "total": self.worker_count,

@@ -33,7 +33,7 @@ def make_kill(
 ) -> ProcessedKill:
     """Create a test kill with sensible defaults."""
     if kill_time is None:
-        kill_time = datetime.now(UTC).replace(tzinfo=None)
+        kill_time = datetime.now(UTC)
 
     return ProcessedKill(
         kill_id=kill_id,
@@ -134,7 +134,7 @@ class TestThreatCacheHealth:
 
         # Set stale poll time
         stale_time = datetime.now(UTC) - timedelta(minutes=10)
-        temp_db.set_last_poll_time(stale_time.replace(tzinfo=None))
+        temp_db.set_last_poll_time(stale_time)
 
         cache = ThreatCache()
         cache._db = temp_db
@@ -149,7 +149,7 @@ class TestThreatCacheHealth:
 
         # Set fresh poll time
         fresh_time = datetime.now(UTC) - timedelta(minutes=2)
-        temp_db.set_last_poll_time(fresh_time.replace(tzinfo=None))
+        temp_db.set_last_poll_time(fresh_time)
 
         cache = ThreatCache()
         cache._db = temp_db
@@ -167,7 +167,7 @@ class TestThreatCacheQueries:
         monkeypatch.setattr(tc, "_threat_cache", None)
 
         # Add some kills
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
         for i in range(5):
             kill = make_kill(
                 kill_id=i,
@@ -251,7 +251,7 @@ class TestGatecampStatusRetrieval:
 
         monkeypatch.setattr(tc, "_threat_cache", None)
 
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
         system_id = 30000142
 
         # Add kills that match camp pattern
@@ -282,7 +282,7 @@ class TestGatecampStatusRetrieval:
 
         monkeypatch.setattr(tc, "_threat_cache", None)
 
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
         system_id = 30000142
 
         # Only 2 kills (need 3 minimum)
@@ -311,7 +311,7 @@ class TestActivitySummary:
 
         monkeypatch.setattr(tc, "_threat_cache", None)
 
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
         system_id = 30000142
 
         # 2 kills in last 10 minutes
@@ -363,7 +363,7 @@ class TestDetectionDeduplication:
 
         monkeypatch.setattr(tc, "_threat_cache", None)
 
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
         system_id = 30000142
 
         # Add kills that trigger gatecamp detection
@@ -406,7 +406,7 @@ class TestDetectionDeduplication:
 
         monkeypatch.setattr(tc, "_threat_cache", None)
 
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
         system_id = 30000142
         conn = temp_db._get_connection()
 
@@ -455,7 +455,7 @@ class TestCleanup:
 
         monkeypatch.setattr(tc, "_threat_cache", None)
 
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
         conn = temp_db._get_connection()
 
         # Add old and new kills
@@ -759,7 +759,7 @@ class TestDataclassSerialization:
 
     def test_gatecamp_status_to_dict(self):
         """GatecampStatus should serialize correctly."""
-        now = datetime.now(UTC).replace(tzinfo=None)
+        now = datetime.now(UTC)
 
         status = GatecampStatus(
             system_id=30000142,

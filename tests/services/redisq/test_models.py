@@ -5,7 +5,7 @@ Tests for RedisQ models.
 from __future__ import annotations
 
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 
 from aria_esi.services.redisq.models import (
     PollerStatus,
@@ -298,7 +298,7 @@ class TestPollerStatus:
 
     def test_to_dict(self):
         """Test conversion to JSON-serializable dict."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         status = PollerStatus(
             is_running=True,
             queue_id="test-123",

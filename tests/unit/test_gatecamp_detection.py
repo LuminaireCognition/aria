@@ -7,7 +7,7 @@ from kill patterns.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from aria_esi.services.redisq.models import ProcessedKill
 from aria_esi.services.redisq.threat_cache import (
@@ -32,7 +32,7 @@ def make_kill(
 ) -> ProcessedKill:
     """Create a test kill with sensible defaults."""
     if kill_time is None:
-        kill_time = datetime.utcnow()
+        kill_time = datetime.now(UTC)
     if attacker_corps is None:
         attacker_corps = [100]
     if attacker_alliances is None:
@@ -159,7 +159,7 @@ class TestSmartbombDetection:
 
     def test_smartbomb_detection_with_valid_ships_and_timing(self):
         """Kills within 60s with smartbomb ships = smartbomb camp."""
-        base_time = datetime.utcnow()
+        base_time = datetime.now(UTC)
         rokh_type_id = 24690  # Rokh is a known smartbomb platform
 
         kills = [
@@ -193,7 +193,7 @@ class TestSmartbombDetection:
 
     def test_smartbomb_requires_ship_types(self):
         """Fast kills without smartbomb ships = not smartbomb camp."""
-        base_time = datetime.utcnow()
+        base_time = datetime.now(UTC)
         rifter_type_id = 587  # Rifter is not a smartbomb ship
 
         kills = [
@@ -228,7 +228,7 @@ class TestSmartbombDetection:
 
     def test_smartbomb_requires_timing(self):
         """Smartbomb ships but slow kills = not smartbomb camp."""
-        base_time = datetime.utcnow()
+        base_time = datetime.now(UTC)
         rokh_type_id = 24690
 
         kills = [
@@ -261,7 +261,7 @@ class TestConfidenceFactors:
 
     def test_high_confidence_multiple_factors(self):
         """High pod ratio + consistent attackers + force asymmetry = high confidence."""
-        base_time = datetime.utcnow()
+        base_time = datetime.now(UTC)
         attackers = [100, 101]
 
         kills = [
@@ -431,7 +431,7 @@ class TestEdgeCases:
 
     def test_last_kill_time_tracked(self):
         """Result should include the most recent kill time."""
-        base_time = datetime.utcnow()
+        base_time = datetime.now(UTC)
         latest_time = base_time + timedelta(minutes=5)
 
         kills = [

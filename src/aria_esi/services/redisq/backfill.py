@@ -8,7 +8,7 @@ from zKillboard's REST API.
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING
 
 import httpx
@@ -55,7 +55,7 @@ async def backfill_from_zkillboard(
         List of ProcessedKill objects fetched and processed
     """
     if since is None:
-        since = datetime.utcnow() - timedelta(hours=1)
+        since = datetime.now(UTC) - timedelta(hours=1)
 
     db = get_realtime_database()
     processed_kills: list[ProcessedKill] = []
@@ -88,7 +88,7 @@ async def backfill_from_zkillboard(
             # Parse kill time
             try:
                 kill_time = datetime.fromisoformat(kill_time_str.replace("Z", "+00:00"))
-                kill_time = kill_time.replace(tzinfo=None)
+                kill_time = kill_time.astimezone(UTC)
             except (ValueError, AttributeError):
                 continue
 
@@ -239,7 +239,7 @@ async def startup_recovery(config: RedisQConfig) -> dict:
         }
 
     # Calculate gap
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     gap = now - last_poll
 
     # Only recover if gap > 10 minutes

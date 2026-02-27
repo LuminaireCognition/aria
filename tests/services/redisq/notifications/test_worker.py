@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock
 
@@ -30,7 +30,7 @@ pytestmark = pytest.mark.asyncio
 
 def make_kill(kill_id: int, kill_time: datetime | None = None) -> KillmailRecord:
     """Create a test killmail record."""
-    kt = kill_time or datetime.utcnow()
+    kt = kill_time or datetime.now(UTC)
     return KillmailRecord(
         kill_id=kill_id,
         kill_time=int(kt.timestamp()),

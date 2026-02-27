@@ -130,7 +130,7 @@ class TestPollTimePersistence:
                 poller = RedisQPoller(config=config)
 
                 # Simulate having polled
-                poller._last_poll_time = datetime.now(UTC).replace(tzinfo=None)
+                poller._last_poll_time = datetime.now(UTC)
                 poller._running = True
 
                 # Stop should persist the poll time
@@ -441,10 +441,10 @@ class TestPollerHealth:
         poller = RedisQPoller(config=config)
         poller._running = True
         # Set poll time to 3 minutes ago (> 2 minute threshold)
-        poller._last_poll_time = datetime.utcnow()
+        poller._last_poll_time = datetime.now(UTC)
         # Simulate stale poll by manipulating the datetime comparison
         from datetime import timedelta
-        poller._last_poll_time = datetime.utcnow() - timedelta(minutes=3)
+        poller._last_poll_time = datetime.now(UTC) - timedelta(minutes=3)
 
         assert poller.is_healthy() is False
 
@@ -452,7 +452,7 @@ class TestPollerHealth:
         """Test is_healthy returns False with too many errors."""
         poller = RedisQPoller(config=config)
         poller._running = True
-        poller._last_poll_time = datetime.utcnow()
+        poller._last_poll_time = datetime.now(UTC)
         # Add 51 errors in the last hour
         now = time.time()
         poller._errors_last_hour = [now - i for i in range(51)]
@@ -463,7 +463,7 @@ class TestPollerHealth:
         """Test is_healthy returns True when all conditions met."""
         poller = RedisQPoller(config=config)
         poller._running = True
-        poller._last_poll_time = datetime.utcnow()
+        poller._last_poll_time = datetime.now(UTC)
         poller._errors_last_hour = []
 
         assert poller.is_healthy() is True
@@ -479,8 +479,8 @@ class TestPollerStatus:
             poller._running = True
             poller._kills_processed = 100
             poller._kills_filtered = 50
-            poller._last_poll_time = datetime.utcnow()
-            poller._last_kill_time = datetime.utcnow()
+            poller._last_poll_time = datetime.now(UTC)
+            poller._last_kill_time = datetime.now(UTC)
 
             status = poller.get_status()
 
@@ -837,7 +837,7 @@ class TestOnKillProcessed:
 
         kill = ProcessedKill(
             kill_id=1,
-            kill_time=datetime.utcnow(),
+            kill_time=datetime.now(UTC),
             solar_system_id=30000142,
             victim_ship_type_id=587,
             victim_corporation_id=123,
@@ -868,7 +868,7 @@ class TestOnKillProcessed:
 
         kill = ProcessedKill(
             kill_id=1,
-            kill_time=datetime.utcnow(),
+            kill_time=datetime.now(UTC),
             solar_system_id=30000142,
             victim_ship_type_id=587,
             victim_corporation_id=123,
@@ -899,7 +899,7 @@ class TestOnKillProcessed:
 
         kill = ProcessedKill(
             kill_id=12345,
-            kill_time=datetime.utcnow(),
+            kill_time=datetime.now(UTC),
             solar_system_id=30000142,
             victim_ship_type_id=587,
             victim_corporation_id=123,
@@ -935,7 +935,7 @@ class TestOnKillProcessed:
 
         kill = ProcessedKill(
             kill_id=12345,
-            kill_time=datetime.utcnow(),
+            kill_time=datetime.now(UTC),
             solar_system_id=30000142,
             victim_ship_type_id=587,
             victim_corporation_id=123,

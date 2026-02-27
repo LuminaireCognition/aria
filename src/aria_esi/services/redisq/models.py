@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -190,7 +190,7 @@ class ProcessedKill:
             hull_value = row[13] if len(row) > 13 else None
             return cls(
                 kill_id=row[0],
-                kill_time=datetime.fromtimestamp(row[1]),
+                kill_time=datetime.fromtimestamp(row[1], tz=UTC),
                 solar_system_id=row[2],
                 victim_ship_type_id=row[3],
                 victim_corporation_id=row[4],
@@ -214,7 +214,7 @@ class ProcessedKill:
 
             return cls(
                 kill_id=row["kill_id"],
-                kill_time=datetime.fromtimestamp(row["kill_time"]),
+                kill_time=datetime.fromtimestamp(row["kill_time"], tz=UTC),
                 solar_system_id=row["solar_system_id"],
                 victim_ship_type_id=row["victim_ship_type_id"],
                 victim_corporation_id=row["victim_corporation_id"],

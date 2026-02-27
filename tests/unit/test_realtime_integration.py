@@ -28,8 +28,7 @@ def make_kill(
 ) -> ProcessedKill:
     """Create a test kill."""
     if kill_time is None:
-        kill_time = datetime.now(UTC).replace(tzinfo=None)
-
+        kill_time = datetime.now(UTC)
     return ProcessedKill(
         kill_id=kill_id,
         kill_time=kill_time,

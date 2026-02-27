@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import sqlite3
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -268,7 +268,7 @@ class RealtimeKillsDatabase:
         row = conn.execute("SELECT MAX(kill_time) as max_time FROM realtime_kills").fetchone()
 
         if row and row["max_time"]:
-            return datetime.fromtimestamp(row["max_time"])
+            return datetime.fromtimestamp(row["max_time"], tz=UTC)
         return None
 
     def kill_exists(self, kill_id: int) -> bool:
@@ -497,7 +497,7 @@ class RealtimeKillsDatabase:
         """
         value = self.get_state("last_poll_time")
         if value:
-            return datetime.fromtimestamp(float(value))
+            return datetime.fromtimestamp(float(value), tz=UTC)
         return None
 
     def set_last_poll_time(self, timestamp: datetime) -> None:
@@ -556,7 +556,7 @@ class RealtimeKillsDatabase:
         return {
             "total_kills": total_count,
             "kills_last_hour": hour_count,
-            "latest_kill_time": datetime.fromtimestamp(latest_time).isoformat()
+            "latest_kill_time": datetime.fromtimestamp(latest_time, tz=UTC).isoformat()
             if latest_time
             else None,
             "last_poll_time": last_poll.isoformat() if last_poll else None,

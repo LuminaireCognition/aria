@@ -11,7 +11,7 @@ from __future__ import annotations
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
@@ -298,7 +298,7 @@ class NotificationWorker:
 
     async def _poll_once(self) -> None:
         """Execute a single poll iteration."""
-        self._metrics.last_poll_time = datetime.utcnow()
+        self._metrics.last_poll_time = datetime.now(UTC)
 
         # Check if we should send rollup
         if self.profile.rate_limit_strategy.force_rollup:
@@ -328,7 +328,7 @@ class NotificationWorker:
             system_ids = self.profile._v2_scope_systems
 
         # Query kills from store with system filtering
-        since = datetime.fromtimestamp(since_time) if since_time > 0 else None
+        since = datetime.fromtimestamp(since_time, tz=UTC) if since_time > 0 else None
         kills = await self.store.query_kills(
             systems=system_ids,
             since=since,
@@ -427,7 +427,7 @@ class NotificationWorker:
 
                 if success:
                     self._metrics.notifications_sent += 1
-                    self._metrics.last_notification_time = datetime.utcnow()
+                    self._metrics.last_notification_time = datetime.now(UTC)
                 else:
                     self._metrics.notifications_failed += 1
 

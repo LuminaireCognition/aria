@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -343,7 +343,7 @@ class TestBackfillFromZkillboard:
         patches = self._patch_deps()
         mocks = self._setup_mocks(patches)
         try:
-            now = datetime(2024, 6, 15, 12, 30, 0)
+            now = datetime(2024, 6, 15, 12, 30, 0, tzinfo=UTC)
             since = now - timedelta(hours=1)
             kill = _make_zkb_kill(100, "2024-06-15T12:00:00Z", "hash1")
             mocks["fetch_zkb"].return_value = [kill]
@@ -365,7 +365,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_zkb"].return_value = []
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 12, 0, 0)
+                since=datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
             )
 
             assert result == []
@@ -376,8 +376,8 @@ class TestBackfillFromZkillboard:
     @patch("aria_esi.services.redisq.backfill.datetime")
     async def test_default_since_one_hour_ago(self, mock_dt) -> None:
         """Test since=None defaults to utcnow() - 1 hour."""
-        now = datetime(2024, 6, 15, 13, 0, 0)
-        mock_dt.utcnow.return_value = now
+        now = datetime(2024, 6, 15, 13, 0, 0, tzinfo=UTC)
+        mock_dt.now.return_value = now
         mock_dt.fromisoformat = datetime.fromisoformat
         mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
 
@@ -405,7 +405,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_zkb"].return_value = [kill]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             assert result == []
@@ -426,7 +426,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_zkb"].return_value = [kill]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             assert result == []
@@ -444,7 +444,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_zkb"].return_value = [kill]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             assert result == []
@@ -462,7 +462,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_zkb"].return_value = [kill]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             assert result == []
@@ -480,7 +480,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_zkb"].return_value = [old_kill]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             assert result == []
@@ -501,7 +501,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_zkb"].return_value = [kill]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             assert result == []
@@ -526,7 +526,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_zkb"].return_value = [kill]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             # kill_id=0 is falsy, so it gets filtered in the first loop
@@ -546,7 +546,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_esi"].side_effect = [None, {"killmail_id": 101}]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             assert len(result) == 1
@@ -574,7 +574,7 @@ class TestBackfillFromZkillboard:
             ]
 
             result = await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             assert len(result) == 1
@@ -591,7 +591,7 @@ class TestBackfillFromZkillboard:
 
             await backfill_from_zkillboard(
                 regions=[10000002, 10000043],
-                since=datetime(2024, 6, 15, 11, 0, 0),
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC),
             )
 
             call_args = mocks["fetch_zkb"].call_args
@@ -611,7 +611,7 @@ class TestBackfillFromZkillboard:
             mocks["fetch_esi"].return_value = {"killmail_id": 100}
 
             await backfill_from_zkillboard(
-                since=datetime(2024, 6, 15, 11, 0, 0)
+                since=datetime(2024, 6, 15, 11, 0, 0, tzinfo=UTC)
             )
 
             # sleep called once per kill in the processing loop
@@ -658,10 +658,10 @@ class TestStartupRecovery:
     @patch("aria_esi.services.redisq.backfill.get_realtime_database")
     async def test_small_gap_no_recovery(self, mock_get_db, mock_dt) -> None:
         """Test gap < 600s → gap_too_small."""
-        now = datetime(2024, 6, 15, 12, 5, 0)
-        last_poll = datetime(2024, 6, 15, 12, 0, 0)  # 5 min gap
+        now = datetime(2024, 6, 15, 12, 5, 0, tzinfo=UTC)
+        last_poll = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)  # 5 min gap
 
-        mock_dt.utcnow.return_value = now
+        mock_dt.now.return_value = now
         mock_db = MagicMock()
         mock_db.get_last_poll_time.return_value = last_poll
         mock_get_db.return_value = mock_db
@@ -680,10 +680,10 @@ class TestStartupRecovery:
         self, mock_get_db, mock_dt, mock_backfill
     ) -> None:
         """Test gap == 600s → triggers recovery (not < 600)."""
-        now = datetime(2024, 6, 15, 12, 10, 0)
-        last_poll = datetime(2024, 6, 15, 12, 0, 0)  # Exactly 10 min
+        now = datetime(2024, 6, 15, 12, 10, 0, tzinfo=UTC)
+        last_poll = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)  # Exactly 10 min
 
-        mock_dt.utcnow.return_value = now
+        mock_dt.now.return_value = now
         mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
         mock_dt.return_value = now
         # Need timedelta to work
@@ -707,10 +707,10 @@ class TestStartupRecovery:
         self, mock_get_db, mock_dt, mock_backfill
     ) -> None:
         """Test 30min gap → recovery with kills."""
-        now = datetime(2024, 6, 15, 12, 30, 0)
-        last_poll = datetime(2024, 6, 15, 12, 0, 0)  # 30 min gap
+        now = datetime(2024, 6, 15, 12, 30, 0, tzinfo=UTC)
+        last_poll = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)  # 30 min gap
 
-        mock_dt.utcnow.return_value = now
+        mock_dt.now.return_value = now
         mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
         mock_processed = MagicMock(spec=ProcessedKill)
         mock_backfill.return_value = [mock_processed, mock_processed]
@@ -732,10 +732,10 @@ class TestStartupRecovery:
         self, mock_get_db, mock_dt, mock_backfill
     ) -> None:
         """Test 5-hour gap → since = now - 2h (not last_poll)."""
-        now = datetime(2024, 6, 15, 17, 0, 0)
-        last_poll = datetime(2024, 6, 15, 12, 0, 0)  # 5 hour gap
+        now = datetime(2024, 6, 15, 17, 0, 0, tzinfo=UTC)
+        last_poll = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)  # 5 hour gap
 
-        mock_dt.utcnow.return_value = now
+        mock_dt.now.return_value = now
         mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
         mock_backfill.return_value = []
 
@@ -747,7 +747,7 @@ class TestStartupRecovery:
 
         # Since should be now - 2h = 15:00, not last_poll 12:00
         call_kwargs = mock_backfill.call_args[1]
-        assert call_kwargs["since"] == datetime(2024, 6, 15, 15, 0, 0)
+        assert call_kwargs["since"] == datetime(2024, 6, 15, 15, 0, 0, tzinfo=UTC)
 
     @pytest.mark.asyncio
     @patch("aria_esi.services.redisq.backfill.backfill_from_zkillboard", new_callable=AsyncMock)
@@ -757,10 +757,10 @@ class TestStartupRecovery:
         self, mock_get_db, mock_dt, mock_backfill
     ) -> None:
         """Test 30min gap → since = last_poll."""
-        now = datetime(2024, 6, 15, 12, 30, 0)
-        last_poll = datetime(2024, 6, 15, 12, 0, 0)
+        now = datetime(2024, 6, 15, 12, 30, 0, tzinfo=UTC)
+        last_poll = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
-        mock_dt.utcnow.return_value = now
+        mock_dt.now.return_value = now
         mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
         mock_backfill.return_value = []
 
@@ -782,10 +782,10 @@ class TestStartupRecovery:
         self, mock_get_db, mock_dt, mock_backfill
     ) -> None:
         """Test filter_regions forwarded to backfill."""
-        now = datetime(2024, 6, 15, 13, 0, 0)
-        last_poll = datetime(2024, 6, 15, 12, 0, 0)
+        now = datetime(2024, 6, 15, 13, 0, 0, tzinfo=UTC)
+        last_poll = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
-        mock_dt.utcnow.return_value = now
+        mock_dt.now.return_value = now
         mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
         mock_backfill.return_value = []
 
@@ -807,10 +807,10 @@ class TestStartupRecovery:
         self, mock_get_db, mock_dt, mock_backfill
     ) -> None:
         """Test filter_regions=[] → regions=None."""
-        now = datetime(2024, 6, 15, 13, 0, 0)
-        last_poll = datetime(2024, 6, 15, 12, 0, 0)
+        now = datetime(2024, 6, 15, 13, 0, 0, tzinfo=UTC)
+        last_poll = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
-        mock_dt.utcnow.return_value = now
+        mock_dt.now.return_value = now
         mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
         mock_backfill.return_value = []
 
@@ -832,10 +832,10 @@ class TestStartupRecovery:
         self, mock_get_db, mock_dt, mock_backfill
     ) -> None:
         """Test recovery result dict has all expected keys."""
-        now = datetime(2024, 6, 15, 13, 0, 0)
-        last_poll = datetime(2024, 6, 15, 12, 0, 0)
+        now = datetime(2024, 6, 15, 13, 0, 0, tzinfo=UTC)
+        last_poll = datetime(2024, 6, 15, 12, 0, 0, tzinfo=UTC)
 
-        mock_dt.utcnow.return_value = now
+        mock_dt.now.return_value = now
         mock_dt.side_effect = lambda *a, **kw: datetime(*a, **kw)
         mock_backfill.return_value = [MagicMock(spec=ProcessedKill)]
 
