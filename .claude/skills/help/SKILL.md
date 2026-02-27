@@ -41,47 +41,82 @@ Surface available commands, capabilities, and reference data. Reduce the need fo
 ```markdown
 ## ARIA Commands
 
-**Identity:**
+**Identity & Status:**
 | Command | Description |
 |---------|-------------|
 | `/pilot` | Full identity card (ARIA config + ESI data) |
 | `/pilot <name>` | Public lookup of another pilot |
+| `/aria-status` | Operational status report |
+| `/sec-status` | Security status, tag costs, empire access |
+| `/standings` | Faction standings and agent access planning |
+| `/clones` | Clone location and active implants |
 
-**Tactical:**
+**Tactical & Navigation:**
 | Command | Description |
 |---------|-------------|
-| `/aria-status` | Operational status report |
-| `/esi-query` | Live data (location, wallet, skills) |
-| `/skillqueue` | Skill training queue and ETA |
-| `/industry-jobs` | Manufacturing and research job monitoring |
 | `/route` | Route planning between systems |
-| `/mission-brief` | Mission intel and enemy analysis |
 | `/threat-assessment` | System security and risk evaluation |
-| `/fitting` | Ship fitting assistance and EFT export |
+| `/gatecamp` | Real-time gatecamp detection |
+| `/orient` | Local area intel (after wormhole/filament) |
+| `/escape-route` | Fastest route to safe harbor |
+| `/mission-brief` | Mission intel and enemy analysis |
+| `/abyssal` | Abyssal Deadspace weather/tier guide |
+| `/hunting-grounds` | System analysis for target hunting |
+| `/mark-assessment` | Evaluate a potential target |
+| `/watchlist` | Track corporations and alliances |
 
-**Financial:**
+**Ships & Fitting:**
+| Command | Description |
+|---------|-------------|
+| `/fitting` | Ship fitting assistance and EFT export |
+| `/fit-check` | Validate skill/cost requirements for a fit |
+| `/fit-budget` | Downgrade fit to match your skills |
+| `/fittings` | View saved fittings from ESI |
+| `/skillplan` | Skill plan with training times |
+| `/skillqueue` | Skill training queue and ETA |
+| `/ship-next` | Ship progression recommendations |
+
+**Financial & Market:**
 | Command | Description |
 |---------|-------------|
 | `/price` | Market price lookup |
-| `/wallet-journal` | Transaction history and income analysis |
+| `/orders` | Active market orders and history |
+| `/contracts` | Personal contracts (exchange, courier, auction) |
+| `/assets` | Asset inventory with valuation |
+| `/wallet-journal` | Transaction history and ISK flow |
+| `/arbitrage` | Cross-region trade opportunities |
+| `/find` | Find items/blueprints near your location |
+| `/isk-compare` | Compare ISK/hour across activities |
+| `/lp-store` | LP balance and store offers |
+| `/ransom-calc` | Calculate ransom amounts |
+
+**Industry:**
+| Command | Description |
+|---------|-------------|
+| `/build-cost` | Manufacturing cost calculator |
+| `/reactions` | Moon reactions and fuel blocks |
+| `/industry-jobs` | Manufacturing and research monitoring |
+| `/agents-research` | Research agent RP tracking |
 
 **Operations:**
 | Command | Description |
 |---------|-------------|
 | `/mining-advisory` | Ore recommendations and belt guidance |
+| `/mining` | Mining ledger (last 30 days) |
 | `/exploration` | Relic/data site analysis, hacking tips |
+| `/pi` | Planetary Interaction production chains |
+| `/mail` | Read EVE mail |
+| `/killmail` | Analyze a specific killmail |
+| `/killmails` | Kill and loss history analysis |
 | `/journal` | Log missions and discoveries |
-
-**Corporation:**
-| Command | Description |
-|---------|-------------|
-| `/corp` | Corporation management (status, wallet, assets, etc.) |
 
 **System:**
 | Command | Description |
 |---------|-------------|
 | `/help` | This command listing |
-| `/help <topic>` | Detailed help (rp, status, missions, fitting, corp, pilot, etc.) |
+| `/help <topic>` | Detailed help on a topic |
+| `/esi-query` | Live data (location, wallet, skills) |
+| `/corp` | Corporation management |
 | `/setup` | Profile configuration |
 
 Natural language works too: "is Hek safe", "fit my Vexor", "prepare for Serpentis"
@@ -95,42 +130,76 @@ Roleplay is off by default. See `/help rp` to enable immersive mode.
 ═══════════════════════════════════════════════════════════════════
 ARIA COMMAND INTERFACE
 ───────────────────────────────────────────────────────────────────
-IDENTITY:
+IDENTITY & STATUS:
 
   /pilot ............... Full identity card (ARIA config + ESI)
   /pilot <name> ........ Public lookup of another pilot
+  /aria-status ......... Operational status report
+  /sec-status .......... Security status and tag costs
+  /standings ........... Faction standings and agent access
+  /clones .............. Clone location and implants
 
-TACTICAL MODULES:
+TACTICAL & NAVIGATION:
 
-  /aria-status ......... Operational status report (stable data)
-  /esi-query ........... Live GalNet data (location, wallet, skills)
-  /skillqueue .......... Skill training queue and ETA
-  /industry-jobs ....... Manufacturing/research job monitoring
   /route ............... Route planning between systems
-  /mission-brief ....... Mission intel and enemy analysis
   /threat-assessment ... System security and risk evaluation
+  /gatecamp ............ Real-time gatecamp detection
+  /orient .............. Local area intel (wormhole/filament)
+  /escape-route ........ Fastest route to safe harbor
+  /mission-brief ....... Mission intel and enemy analysis
+  /abyssal ............. Abyssal Deadspace guide
+  /hunting-grounds ..... Target hunting analysis
+  /mark-assessment ..... Evaluate a potential target
+  /watchlist ........... Track corps and alliances
+
+SHIPS & FITTING:
+
   /fitting ............. Ship fitting assistance and EFT export
+  /fit-check ........... Validate skill/cost for a fit
+  /fit-budget .......... Downgrade fit to match skills
+  /fittings ............ View saved fittings (ESI)
+  /skillplan ........... Skill plan with training times
+  /skillqueue .......... Skill training queue and ETA
+  /ship-next ........... Ship progression recommendations
 
-FINANCIAL:
+FINANCIAL & MARKET:
 
-  /price ............... Market price lookup (buy/sell orders)
-  /wallet-journal ...... Transaction history and income analysis
+  /price ............... Market price lookup
+  /orders .............. Active market orders
+  /contracts ........... Personal contracts
+  /assets .............. Asset inventory with valuation
+  /wallet-journal ...... Transaction history and ISK flow
+  /arbitrage ........... Cross-region trade opportunities
+  /find ................ Find items near your location
+  /isk-compare ......... Compare ISK/hour across activities
+  /lp-store ............ LP balance and store offers
+  /ransom-calc ......... Calculate ransom amounts
+
+INDUSTRY:
+
+  /build-cost .......... Manufacturing cost calculator
+  /reactions ........... Moon reactions and fuel blocks
+  /industry-jobs ....... Manufacturing/research monitoring
+  /agents-research ..... Research agent RP tracking
 
 OPERATIONS:
 
   /mining-advisory ..... Ore recommendations and belt guidance
+  /mining .............. Mining ledger (last 30 days)
   /exploration ......... Relic/data site analysis, hacking tips
-  /journal ............. Log missions and exploration discoveries
-
-CORPORATION:
-
-  /corp ................ Corporation management (status, wallet, etc.)
+  /pi .................. Planetary Interaction guide
+  /mail ................ Read EVE mail
+  /killmail ............ Analyze a specific killmail
+  /killmails ........... Kill and loss history
+  /journal ............. Log missions and discoveries
 
 SYSTEM:
 
   /help ................ This command listing
   /help <topic> ........ Detailed help on specific topic
-  /setup ............... Conversational profile configuration
+  /esi-query ........... Live data (location, wallet, skills)
+  /corp ................ Corporation management
+  /setup ............... Profile configuration
 
 ───────────────────────────────────────────────────────────────────
 Natural language works too: "prepare for mission", "is this system

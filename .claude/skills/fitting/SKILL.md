@@ -136,16 +136,22 @@ Ammo/charge lines (e.g., `Scourge Heavy Missile x1000`) in EFT format may be mis
 
 Before presenting ANY fit:
 
-#### Step 1: Verify Module Names via SDE
+#### Step 1: Verify ALL Item Names via SDE (BLOCKING GATE)
 
-For each module in the proposed fit:
+**Every module, charge, drone, and rig** in the proposed fit must be verified before proceeding:
 ```
 sde(action="item_info", item="Module Name")
 ```
 
+Run this for **each distinct item**. Do NOT skip items you are "confident" about — training data contains fabricated names (e.g., "Precursor Beam Weapon", "EM Ward Amplifier II", "EMP Heavy Missile" — none exist in SDE).
+
 - Confirm the exact item name (many modules lack "I" suffix)
 - Confirm the module exists and is published
+- Confirm charges match the weapon system (e.g., Heavy Missiles for HMLs, not "EMP Heavy Missile")
+- Confirm drone tier (T1/T2/Faction/Augmented are distinct — don't call T2 "Faction")
 - Reference: `reference/fittings/MODULE_NAMES.md` for common naming issues
+
+**If SDE returns no match:** The item name is wrong. Do NOT include it in the fit. Search SDE for the correct name before continuing.
 
 #### Step 2: Build and Validate via EOS
 
