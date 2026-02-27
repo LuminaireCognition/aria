@@ -12,7 +12,7 @@ triggers:
   - "PI guide"
   - "what planets have [resource]"
 requires_pilot: false
-data_sources:
+prerequisite_files:
   - reference/mechanics/planetary-interaction.json
 ---
 
