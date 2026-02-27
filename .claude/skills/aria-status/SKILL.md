@@ -51,79 +51,15 @@ Status reports use **stable and semi-stable data only**:
 
 ## Response Format
 
-```
-═══════════════════════════════════════════════════════════════════
-ARIA OPERATIONAL STATUS
-───────────────────────────────────────────────────────────────────
-CAPSULEER: [Name]
-HOME BASE: [Region] - [Station]
-OPERATIONAL RANGE: [Security preference]
-───────────────────────────────────────────────────────────────────
-SHIP ROSTER:
-• [Ship 1] - [Role]
-• [Ship 2] - [Role]
+Sections: CAPSULEER, HOME BASE, OPERATIONAL RANGE, SHIP ROSTER, STANDINGS SUMMARY, CURRENT OBJECTIVES, RECOMMENDATIONS. End with: "For live telemetry (location, ship, wallet), use /esi-query."
 
-STANDINGS SUMMARY:
-• Federation Navy: [standing] (L[X] missions)
-• [Other key standings]
-
-CURRENT OBJECTIVES:
-• [Goals from pilot_profile.md]
-
-RECOMMENDATIONS:
-• [Contextual suggestions]
-═══════════════════════════════════════════════════════════════════
-
-For live telemetry (location, ship, wallet), use /esi-query.
-```
-
-## Data Sources
-
-### Primary (Always Safe)
-- **Operational Profile** - Home base, ship roster, operational patterns
-- **Pilot Profile** - Identity, standings, goals
-
-### Secondary
-- **Mission Log** - Recent mission history
-- **Ship Status** - Ship fittings only (NOT current ship/location)
-
-### Never Read For Status
-- Current location/ship fields (deprecated)
-- Any volatile ESI data
-
-## Example Output
-
-```
-═══════════════════════════════════════════════════════════════════
-ARIA OPERATIONAL STATUS
-───────────────────────────────────────────────────────────────────
-CAPSULEER: Federation Navy Suwayyah
-HOME BASE: Sinq Laison - Masalle (X-Sense Chemical Refinery)
-OPERATIONAL RANGE: Highsec (0.5+)
-───────────────────────────────────────────────────────────────────
-SHIP ROSTER:
-• Imicus "im0" - Exploration
-• Venture - Mining operations
-• [Pending] - L2 mission runner
-
-STANDINGS:
-• Federation Navy: 3.52 (L2 access, L3 pending at 3.0)
-• Gallente Federation: 0.99
-
-OBJECTIVES:
-• L3 mission access (need 3.0+ Fed Navy)
-• Ship progression: Vexor for L2 missions
-═══════════════════════════════════════════════════════════════════
-
-For current location/ship, query: /esi-query
-```
+If profile or operations data is missing, suggest `/setup` and present only available data.
 
 ## Behavior Notes
 - **Brevity:** Keep reports compact (<20 lines)
 - Omit empty sections
 - Offer `/esi-query` for live data rather than guessing location
 - Reference ship roster by role, not "currently flying"
-- Maintain ARIA persona throughout
 
 ## Contextual Suggestions
 

@@ -24,16 +24,11 @@ Accept these formats:
 
 ## Data Flow
 
-1. **Parse Input** → Extract kill ID from URL or raw input
-2. **Fetch from zKillboard** → `https://zkillboard.com/api/killID/{id}/`
-   - Returns: kill hash, zkb metadata (value, points, NPC flag)
-3. **Fetch from ESI** → `GET /v1/killmails/{id}/{hash}/`
-   - Returns: Full killmail with victim, attackers, items
-4. **Enrich Data** → Use SDE for ship/module names
-5. **Cross-reference** → Check threat cache for gatecamp context
-6. **Present** → Format with persona voice
+1. Call `killmails(action="analyze", killmail_input=<url_or_id>)` — handles fetching, parsing, and enrichment in one call
+2. If the MCP response contains unresolved type IDs, use `sde(action="item_info")` to resolve them
+3. Present with persona voice
 
-## CLI Command
+### Fallback (if MCP unavailable)
 
 ```bash
 uv run aria-esi analyze-killmail https://zkillboard.com/kill/12345678/
@@ -77,76 +72,6 @@ https://zkillboard.com/kill/12345678/
 ═══════════════════════════════════════════════════════════════════
 ```
 
-## Implementation
-
-### URL Parsing
-
-```python
-import re
-
-def parse_killmail_input(input_str: str) -> int | None:
-    """Extract kill ID from various input formats."""
-    # Try raw ID first
-    if input_str.isdigit():
-        return int(input_str)
-
-    # Try URL patterns
-    match = re.search(r'kill/(\d+)', input_str)
-    if match:
-        return int(match.group(1))
-
-    return None
-```
-
-### zKillboard API
-
-```bash
-# Get kill data (includes hash and zkb metadata)
-curl https://zkillboard.com/api/killID/12345678/
-```
-
-Response:
-```json
-[{
-  "killmail_id": 12345678,
-  "killmail_time": "2026-01-15T14:32:18Z",
-  "solar_system_id": 30002813,
-  "victim": {...},
-  "attackers": [...],
-  "zkb": {
-    "hash": "abc123...",
-    "totalValue": 12400000000.00,
-    "points": 42,
-    "npc": false
-  }
-}]
-```
-
-### ESI Killmail
-
-```bash
-# Get full killmail with fitting
-curl https://esi.evetech.net/v1/killmails/12345678/abc123.../?datasource=tranquility
-```
-
-### SDE Enrichment
-
-Use `sde(action="item_info")` to resolve:
-- Ship type ID → Name
-- Module type IDs → Names
-- System ID → Name, security
-
-### Threat Cache Integration
-
-Check for gatecamp context:
-```python
-from aria_esi.services.redisq.threat_cache import get_threat_cache
-
-cache = get_threat_cache()
-gatecamp = cache.get_gatecamp_status(system_id)
-activity = cache.get_activity_summary(system_id)
-```
-
 ## Error Handling
 
 ### Kill Not Found
@@ -169,23 +94,6 @@ Try again in a moment, or check the URL at:
 https://zkillboard.com/kill/12345678/
 ```
 
-## Differences from /killmails
+## Disambiguation
 
-| Feature | /killmail | /killmails |
-|---------|-----------|------------|
-| Input | Any kill URL/ID | Your character only |
-| Source | zKillboard public API | ESI authenticated |
-| Auth | Not required | Requires ESI scope |
-| Use case | Intel on any kill | Your personal history |
-| Context | Gatecamp detection | Loss patterns |
-
-## Related Commands
-
-After presenting killmail, suggest contextually:
-
-| Context | Suggest |
-|---------|---------|
-| Kill in dangerous system | `/threat-assessment {system}` |
-| Expensive fitting | `/fitting` for similar builds |
-| Part of gatecamp | `/gatecamp {system}` for current status |
-| Watched entity involved | `/watchlist` to track them |
+`/killmail` analyzes any public kill by URL/ID (no auth required). `/killmails` shows your personal kill/loss history (requires ESI auth).

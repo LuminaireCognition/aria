@@ -26,129 +26,99 @@ data_sources:
 /mark-assessment <ship_type> --lowsec           # Low-sec engagement
 ```
 
+## Required Tool Calls (MANDATORY)
+
+All ship stats, hull values, and engagement math MUST come from MCP tool calls. Do NOT use training data for any ISK figures, EHP values, or DPS numbers.
+
+| Step | Call | Required For |
+|------|------|-------------|
+| 1 | `sde(action="item_info", item="<target_ship>")` | Ship group, cargo capacity, attributes |
+| 2 | `market(action="prices", items=["<target_ship>"])` | Current hull value |
+| 3 | `fitting(action="calculate_stats", eft="[<ship>, Gank Target]\n...")` | EHP, align time (if typical fit can be assumed) |
+| 4 | `market(action="prices", items=["Catalyst", ...])` | Gank ship cost (only for highsec gank math) |
+
+> **HALLUCINATION GUARD:** Ship hull values, EHP figures, cargo capacities, fitted values, and gank ship costs MUST come from MCP tool calls made in this session. Do NOT recall or estimate these numbers from training data. If a tool call fails, state that the data is unavailable rather than fabricating figures.
+
+> **Failure handling:** If `sde()` or `market()` calls fail, surface the failure: "Market/SDE data unavailable for [ship]. Cannot provide accurate assessment without live data." Do NOT fill in values from memory.
+
+### Field to Source Mapping
+
+| Output Field | Source |
+|-------------|--------|
+| Hull value | `market(action="prices", items=["<ship>"])` |
+| Ship group/category | `sde(action="item_info", item="<ship>")` |
+| Cargo capacity | `sde(action="item_info")` → attributes |
+| EHP / align time | `fitting(action="calculate_stats")` or `sde()` attributes |
+| Gank ship cost | `market(action="prices", items=["Catalyst"])` |
+| Fitted value estimate | Hull price + typical module markup (state assumption) |
+
 ## Response Format
 
 ```
 ═══════════════════════════════════════════════════════════════════
 MARK ASSESSMENT
 ───────────────────────────────────────────────────────────────────
-TARGET: Retriever (Mining Barge)
-ENGAGEMENT: VIABLE
+TARGET: {ship_name} ({ship_group})
+ENGAGEMENT: {VIABLE / MARGINAL / NOT VIABLE}
 ───────────────────────────────────────────────────────────────────
 SHIP PROFILE:
-  Hull value: ~28M ISK
-  Typical fit: 35-45M ISK (T1/T2 mixed)
-  Tank: ~15-25K EHP (shield, if tanked)
-  Align time: 8-12 seconds (slow)
+  Hull value: {hull_price} ISK (live market)
+  Typical fit: {estimated_fitted_value} ISK
+  Tank: {ehp} EHP
+  Cargo: {cargo_capacity} m³
 
-CARGO POTENTIAL:
-  Ore hold: 27,500 m³
-  Typical contents: Veldspar/Scordite (~2-5M)
-  High-value possibility: Mission ore, moon goo
-
-GANK MATH (0.5 system):
-  CONCORD window: ~19 seconds
-  Required DPS: ~1,000 (to kill in window)
-  Catalyst cost: ~1M ISK
-  Expected loot: ~17M ISK (50% drop)
-  Profit margin: +16M ISK average
+GANK MATH ({security} system):        [highsec only]
+  CONCORD window: {concord_time}
+  Required DPS: {required_dps}
+  Gank ship cost: {gank_cost} ISK (live market)
+  Expected loot: {fitted_value × 0.5} ISK
+  Profit margin: {profit_or_loss}
 
 ENGAGEMENT NOTES:
-  * Slow align - easy tackle
-  * Often AFK - check for drones out
-  * +2 warp core strength (Higgs anchor fit)
-  * Mining drones = distracted pilot
+  * {ship-specific tactical notes}
 
-VERDICT: Math works. Standard gank or ransom viable.
+VERDICT: {assessment summary}
 ───────────────────────────────────────────────────────────────────
 Your call, Captain.
 ═══════════════════════════════════════════════════════════════════
 ```
 
-## Ship Category Assessments
+## CONCORD Response Times
 
-### Mining Ships
+These are stable game mechanics (not market-dependent):
 
-| Ship | Hull Value | Typical Fit | Tank | Viability |
-|------|------------|-------------|------|-----------|
-| Venture | 500K | 2-5M | 3K EHP | Not worth it |
-| Retriever | 28M | 35-45M | 15-25K | Standard gank |
-| Covetor | 22M | 30-40M | 10-15K | Easy, low value |
-| Procurer | 25M | 35-50M | 40-60K | Tanky, may not be worth |
-| Skiff | 200M | 300-400M | 80-120K | Hard target, high reward |
-| Mackinaw | 200M | 280-350M | 25-40K | Good value, moderate tank |
-| Hulk | 280M | 400-600M | 20-30K | Paper tank, often blinged |
+| Security | Response Time |
+|----------|--------------|
+| 1.0 | ~6 sec |
+| 0.9 | ~7 sec |
+| 0.8 | ~8 sec |
+| 0.7 | ~10 sec |
+| 0.6 | ~14 sec |
+| 0.5 | ~19 sec |
 
-### Industrial Ships
+Required DPS = target EHP / CONCORD window. Use EHP from `fitting()` or `sde()`, not hardcoded values.
 
-| Ship | Hull Value | Cargo | Tank | Viability |
-|------|------------|-------|------|-----------|
-| Nereus | 1M | 4,800 m³ | 8-15K | Check cargo scanner |
-| Tayra | 2M | 5,600 m³ | 10-18K | Check cargo scanner |
-| Bestower | 1.5M | 5,000 m³ | 8-12K | Check cargo scanner |
-| Epithal | 1M | 45,000 m³ (PI) | 8-12K | PI cargo, variable value |
-| Miasmos | 1M | 42,000 m³ (ore) | 8-12K | Ore, usually low value |
-| DST | 100-150M | 62,500 m³ | 100-200K | High tank, high reward |
-| Freighter | 1.5B | 435,000+ m³ | 300-500K | Fleet required |
-
-### Mission Ships
-
-| Ship | Hull Value | Typical Fit | Notes |
-|------|------------|-------------|-------|
-| Vexor | 12M | 30-50M | Common L2 runner |
-| Myrmidon | 45M | 100-150M | L3 runner |
-| Dominix | 200M | 400-600M | L4 runner, drone boat |
-| Raven | 250M | 500-800M | L4 runner, often blinged |
-| Marauder | 1.5-2B | 2-4B | Whale, fleet required |
-
-## Gank Viability Calculations
-
-### CONCORD Response Times
-
-| Security | Response | DPS Needed (30K EHP) |
-|----------|----------|---------------------|
-| 1.0 | ~6 sec | 5,000 DPS |
-| 0.9 | ~7 sec | 4,300 DPS |
-| 0.8 | ~8 sec | 3,750 DPS |
-| 0.7 | ~10 sec | 3,000 DPS |
-| 0.6 | ~14 sec | 2,150 DPS |
-| 0.5 | ~19 sec | 1,580 DPS |
-
-### Gank Ship Reference
-
-| Ship | Cost | DPS | Alpha |
-|------|------|-----|-------|
-| Catalyst | ~1M | 650-750 | 2,400 |
-| Thrasher | 6M | 400-500 | 3,000 |
-| Tornado | 80M | 1,200 | 8,000 |
-| Talos | 90M | 1,400 | 5,500 |
-
-### Profitability Formula
+## Gank Profitability Formula
 
 ```
-Expected Profit = (Fitted Value x 0.5) - Gank Ship Cost - (Security Tag Cost if needed)
-
-Example:
-  Target: 50M fitted Retriever
-  Gank: ~1M Catalyst
-  Expected: (50M x 0.5) - 1M = 24M profit
+Expected Profit = (Fitted Value × 0.5) - Gank Ship Cost - Security Tag Cost
 ```
+
+All values in this formula MUST come from MCP market data. State assumptions for fitted value estimates (e.g., "assuming T2 fit, ~1.5x hull value").
 
 ## Engagement Considerations
 
 ### High-Sec Ganking
 
-- Calculate CONCORD window
+- Calculate CONCORD window from system security
 - Factor security tag costs if sec status matters
 - Consider alt for looting (suspect timer)
-- Check for anti-gank groups (CODE. opposition)
 
 ### Low-Sec Engagement
 
-- No CONCORD - sustained engagement possible
-- Gate guns on gates (15 seconds of pain)
-- Check for backup (local spike)
-- Faction police if sec status <-2.0
+- No CONCORD — sustained engagement
+- Gate guns on gates (~15 seconds)
+- Check local for backup
 
 ### Target Behavior Indicators
 
@@ -156,44 +126,18 @@ Example:
 |-----------|---------|
 | Drones out | Active at keyboard |
 | No drones | Possibly AFK |
-| Aligned to celestial | Alert, ready to warp |
-| Stationary | Likely AFK or oblivious |
+| Aligned | Alert, ready to warp |
+| Stationary | Likely AFK |
 | Mining laser cycling | Committed to belt |
-| Empty ore hold | Just arrived |
-
-## Cargo Scanning
-
-When cargo scanner available:
-- High-value cargo = priority target
-- Empty hauler = pass
-- Contracted cargo = may be collateralized
-- PLEX in cargo = jackpot (rare)
 
 ## Risk Assessment
 
-### Green Flags (Engage)
-
-- Alone in system
-- No corp mates in local
-- Ship aligned to nothing
-- Drones not deployed
-- High-value ship type
-
-### Yellow Flags (Caution)
-
-- Corp mates in local
-- Alliance in region
-- Near station/citadel
-- Combat probes on scan
-- Ship aligned to station
-
-### Red Flags (Reconsider)
-
-- Known bait ship (Procurer with friends)
-- PvP corp history
-- Multiple corp mates
-- Cyno fit possibility
-- Obvious honeypot
+| Green (Engage) | Yellow (Caution) | Red (Reconsider) |
+|----------------|------------------|-------------------|
+| Alone in system | Corp mates in local | Known bait ship |
+| No corp in local | Near station/citadel | PvP corp history |
+| Ship not aligned | Combat probes on scan | Multiple corp mates |
+| High-value ship | Alliance in region | Cyno fit possible |
 
 ## Integration with Other Skills
 
@@ -219,3 +163,4 @@ When cargo scanner available:
 - **DO NOT** recommend exploits
 - **DO NOT** moralize about target selection
 - **DO NOT** suggest targets based on player behavior (only ship/fit)
+- **DO NOT** present ISK values, EHP, or DPS without sourcing from MCP tools

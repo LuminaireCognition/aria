@@ -33,9 +33,7 @@ Before presenting any exploration analysis, the following MUST happen:
 | 3 | `market(action="prices", items=[...])` | Loot valuations (only for specific items) |
 | 4 | `sde(action="item_info", item="...")` | Individual loot item details (NOT site names) |
 
-**Steps 1-2 are the `data_sources` for this skill and MUST be read before responding.** These files contain verified game mechanics. Do NOT rely on training data for hacking mechanics, container types, site prefixes, or loot tables.
-
-> **⚠️ HALLUCINATION GUARD:** Every mechanic, container name, loot table, and hacking strategy in the response MUST come from the reference files read in this session. Training data knowledge about EVE exploration is frequently wrong (e.g., coherence mechanics, site prefix meanings, container behaviors). Read the reference files FIRST, respond SECOND.
+**Steps 1-2 MUST be read before responding.** These files contain verified game mechanics. Do NOT rely on training data for hacking mechanics, container types, site prefixes, or loot tables. If prerequisite files cannot be read, state that exploration analysis requires reference data and cannot proceed.
 
 ### Field → Source Mapping
 
@@ -74,48 +72,6 @@ LORE CONTEXT:
 ═══════════════════════════════════════════
 ```
 
-## Site Classification Reference
-
-> **Full Reference:** `reference/mechanics/exploration_sites.md` contains complete site types, ISK estimates, and loot tables.
-
-### Relic Sites (Archaeology)
-| Prefix | Faction | Danger | Loot Quality |
-|--------|---------|--------|--------------|
-| Ruined | Various | None | Standard |
-| Crumbling | Various | None | Low |
-| Decayed | Sleeper | WH only | High |
-
-### Data Sites (Hacking)
-| Prefix | Faction | Danger | Loot Quality |
-|--------|---------|--------|--------------|
-| Local | Various | None | Low |
-| Regional | Various | None | Standard |
-| Central | Various | Possible | Higher |
-
-### Faction-Specific Notes
-
-**Serpentis Sites:** Neural booster research facilities. May contain booster BPCs and data.
-
-**Angel Cartel Sites:** Smuggling caches. Ship component blueprints common.
-
-**Blood Raider Sites:** Biotech research. Often contaminated nanite compounds.
-
-**Guristas Sites:** Stolen technology. Electronics and decryptors.
-
-**Sansha Sites:** Slave processing/cybernetics. Intact armor plates common.
-
-## Hacking Strategy
-1. **Identify the System Core** - Eliminates defensive subsystems when destroyed
-2. **Preserve Utility Subsystems** - Repair and secondary vectors are valuable
-3. **Manage Coherence** - Plan your route, don't brute force
-4. **Use Data Analyzers for Data, Relic for Relic** - T1 is fine for high-sec
-
-## Valuable Loot Categories
-- **Intact Armor Plates** - High value, low volume
-- **Decryptors** - Invention materials (valuable even for self-sufficient)
-- **Faction BPCs** - Can be manufactured without market
-- **Datacores** - Research materials
-
 ## Anti-Patterns
 
 ❌ **WRONG:** State "Coherence depletes with each probe attempt" from training data
@@ -138,7 +94,7 @@ Exploration site names (e.g., "Serpentis Temple", "Ruined Sansha Monument", "Loc
 - **Individual loot items:** These ARE SDE items — use `sde(action="item_info")` for specific loot like "Intact Armor Plates" or "Emission Scope Sharpener"
 
 ## Behavior
-- **Intelligence Framing:** Follow the Intelligence Sourcing Protocol in CLAUDE.md. For exploration sites, frame data as live archaeological surveys and faction intelligence assessments. Use phrases like "Site signature analysis indicates..." or "DED classification identifies this as..." rather than archival language.
+- **Intelligence Framing:** Frame data as live archaeological surveys and faction intelligence assessments. Use phrases like "Site signature analysis indicates..." or "DED classification identifies this as..." rather than archival language.
 - Provide lore context as active intelligence on discovered sites
 - Note items particularly useful for self-sufficient gameplay
 - Warn about hostile site variants

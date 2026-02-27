@@ -63,51 +63,12 @@ Connect now? (yes/skip)
 ```
 
 2. **If "yes", start background watcher and instruct user:**
+   - Run the credential watcher in background: `uv run python .claude/scripts/aria-credential-watch.py --timeout 300`
+   - Tell user to run `uv run python .claude/scripts/aria-oauth-setup.py` in their terminal
+   - Wait for watcher to complete (it outputs JSON with `status` and `character_id`)
+   - If `status: found`, continue with the character ID; if `status: timeout`, offer retry
 
-```python
-# Start credential watcher in background FIRST
-watcher = Bash(
-    command="uv run python .claude/scripts/aria-credential-watch.py --timeout 300",
-    run_in_background=True,
-    description="Watch for OAuth completion"
-)
-# Save the task_id for polling
-watcher_task_id = watcher.task_id
-```
-
-Then tell user:
-```
-I'm watching for your credentials. Run this in your terminal:
-
-  uv run python .claude/scripts/aria-oauth-setup.py
-
-Complete the setup there - I'll automatically continue when done.
-```
-
-3. **Wait for watcher to detect credentials:**
-
-```python
-# Block until watcher completes (finds credentials or times out)
-result = TaskOutput(
-    task_id=watcher_task_id,
-    block=True,
-    timeout=310000  # 310 seconds (slightly longer than watcher timeout)
-)
-
-# Parse JSON result from watcher
-# Output: {"status": "found", "character_id": "12345", ...}
-# Or:     {"status": "timeout", ...}
-import json
-watch_result = json.loads(result.output)
-
-if watch_result["status"] == "found":
-    char_id = watch_result["character_id"]
-    credentials_found = True
-else:
-    credentials_found = False
-```
-
-4. **On success, continue immediately:**
+3. **On success, continue immediately:**
 ```
 ✓ Credentials detected for character {char_id}!
 
@@ -116,14 +77,12 @@ Fetching your character data from ESI...
 
 Then continue to Phase 2.
 
-5. **On timeout, offer options:**
+4. **On timeout, offer options:**
 ```
 Haven't detected new credentials yet.
 
 Type "retry" to watch again, or "skip" for manual setup.
 ```
-
-**Key UX improvement:** User doesn't need to return and type "done" - the background watcher detects completion automatically. The conversation stays responsive.
 
 **If "skip":** Continue to Manual Setup flow (Phase 1b).
 
@@ -176,52 +135,11 @@ Based on your standings, I suggest the Gallente persona (ARIA).
 
 ### Phase 3: Preferences (Single Combined Prompt)
 
-**IMPORTANT:** Ask all preferences in ONE AskUserQuestion call to reduce round-trips.
+Present all three preferences in a single message and ask the user to respond:
 
-Use AskUserQuestion with multiple questions:
-
-```json
-{
-  "questions": [
-    {
-      "question": "Which faction persona? (Based on your standings, Gallente/ARIA is suggested)",
-      "header": "Faction",
-      "options": [
-        {"label": "Gallente (Recommended)", "description": "ARIA - warm, witty, libertarian"},
-        {"label": "Caldari", "description": "AURA-C - formal, precise, professional"},
-        {"label": "Minmatar", "description": "VIND - direct, passionate, loyal"},
-        {"label": "Amarr", "description": "THRONE - reverent, formal, devoted"}
-      ],
-      "multiSelect": false
-    },
-    {
-      "question": "How much roleplay flavor?",
-      "header": "RP Level",
-      "options": [
-        {"label": "Off (Recommended)", "description": "Just facts, no theater"},
-        {"label": "On", "description": "Light personality, EVE terminology, formatted reports"},
-        {"label": "Full", "description": "Maximum immersion, ship AI roleplay"}
-      ],
-      "multiSelect": false
-    },
-    {
-      "question": "Your EVE experience level?",
-      "header": "Experience",
-      "options": [
-        {"label": "New", "description": "Still learning - I'll explain mechanics"},
-        {"label": "Intermediate (Recommended)", "description": "Comfortable with basics"},
-        {"label": "Veteran", "description": "Know mechanics well - skip basics"}
-      ],
-      "multiSelect": false
-    }
-  ]
-}
-```
-
-**Note:** Mark the suggested option as "(Recommended)" based on:
-- Faction: Highest standing from ESI
-- RP Level: Always "Off"
-- Experience: Based on SP (< 5M = New, 5-50M = Intermediate, > 50M = Veteran)
+1. **Faction persona** — Gallente (ARIA), Caldari (AURA-C), Minmatar (VIND), Amarr (THRONE). Mark recommended based on highest ESI standing.
+2. **RP level** — Off (recommended), On, Full
+3. **Experience** — New, Intermediate, Veteran. Recommend based on SP (< 5M = New, 5-50M = Intermediate, > 50M = Veteran).
 
 ### Phase 4: Save (No Separate Confirmation)
 
@@ -262,7 +180,7 @@ Generate the pilot profile by substituting collected values:
 - **Corporation:** [corporation]
 - **Alliance:** [alliance or "None"]
 - **Security Status:** 0.0
-- **Capsuleer Since:** [birthday_yc]
+- **Capsuleer Since:** [birthday_yc] <!-- YC year = real year - 1898, format: YC128.01.14 -->
 - **EVE Experience:** [experience]
 - **RP Level:** [rp_level]
 
@@ -300,21 +218,6 @@ Generate the pilot profile by substituting collected values:
 - Train core skills
 ```
 
-## Faction Lookup Table
-
-| Faction | Mission Corp | Hostile Factions | Target Pirates |
-|---------|--------------|------------------|----------------|
-| Gallente | Federation Navy | Caldari State | Serpentis |
-| Caldari | Caldari Navy | Gallente Federation | Guristas |
-| Minmatar | Republic Fleet | Amarr Empire | Angel Cartel |
-| Amarr | Imperial Navy | Minmatar Republic | Blood Raiders |
-
-## Date Formatting
-
-Convert dates to YC format:
-- Real year 2026 = YC128 (YC year = real year - 1898)
-- Format: YC128.01.14 for January 14, 2026
-
 ## Directory Structure
 
 Create this structure for each pilot:
@@ -329,37 +232,11 @@ userdata/pilots/
         └── .gitkeep
 ```
 
-## Registry Format
+## Registry and Config Formats
 
-Update `userdata/pilots/_registry.json`:
+Update `userdata/pilots/_registry.json` — `pilots` array with entries: `character_id`, `character_name`, `directory` (`{id}_{slug}`), `corporation`, `faction`, `added_date`. Top-level `last_updated`.
 
-```json
-{
-  "pilots": [
-    {
-      "character_id": "2119654321",
-      "character_name": "Suwayyah",
-      "directory": "2119654321_suwayyah",
-      "corporation": "Federal Navy Academy",
-      "faction": "Gallente",
-      "added_date": "2026-01-14T18:45:00Z"
-    }
-  ],
-  "last_updated": "2026-01-14T18:45:00Z"
-}
-```
-
-## Config Format
-
-Update `userdata/config.json`:
-
-```json
-{
-  "version": "2.0",
-  "active_pilot": "2119654321",
-  "last_active": "2026-01-14T18:45:00Z"
-}
-```
+Update `userdata/config.json` — `version: "2.0"`, `active_pilot: "{character_id}"`, `last_active`.
 
 ## Slug Generation
 
@@ -420,11 +297,3 @@ I couldn't save your profile. Please check:
 Or create the profile manually (run ./aria-init to regenerate).
 ```
 
-## Behavior Notes
-
-- **ESI-First:** Always try to connect ESI before asking questions
-- **Minimal Questions:** Only ask what ESI can't answer
-- **Smart Defaults:** Use SP to hint experience, standings to suggest faction
-- **One Question at a Time:** Don't overwhelm
-- **Allow Corrections:** User can say "go back" or "change [field]"
-- **Graceful Fallback:** If ESI fails, smoothly transition to manual setup

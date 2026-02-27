@@ -124,25 +124,6 @@ ALLIANCES:
 ===============================================================
 ```
 
-### War Sync Result
-
-```
-===============================================================
-ARIA WAR TARGET SYNC
----------------------------------------------------------------
-Corporation: My Corp [98000001]
-Wars checked: 3
----------------------------------------------------------------
-SYNC RESULTS:
-  Entities added: 2
-  Entities removed: 1
-
-CURRENT WAR TARGETS:
-  [99000001] Enemy Alliance
-  [98000002] Mercenary Corp
-===============================================================
-```
-
 ## Entity Resolution
 
 Before adding an entity by name, resolve it to a numeric ID:
@@ -163,39 +144,17 @@ uv run aria-esi watchlist-add "Hostiles" 99005338 --type alliance --entity-name 
 
 **Note:** The SDE `corporation_info` action only indexes NPC corporations. Player corps and alliances must be resolved via `sde(action="resolve_names")` (which calls ESI `POST /universe/ids/`). This action is MCP-only.
 
-## Integration with Threat Assessment
-
-When watched entities appear in kills, they are flagged:
-
-1. **In `/threat-assessment`**: Shows "Watched entity activity" section
-2. **In `/gatecamp`**: Notes if attackers are on watchlist
-3. **In database**: Kills are tagged with `watched_entity_match=1`
-
-Example in threat assessment:
-
-```
-WATCHED ENTITY ACTIVITY:
-  3 kills involving watched entities in last hour
-  - CODE. (attacker) - 2 kills in Uedama
-  - Enemy Alliance (victim) - 1 kill in Tama
-```
-
 ## War Target Synchronization
 
-The `/watchlist sync-wars` command:
+Requires `esi-wars.read_wars.v1`. Auto-syncs every 4 hours when poller active, or on demand via `/watchlist sync-wars`.
 
-1. Queries ESI for corporation wars
-2. Identifies enemy corps/alliances
-3. Creates/updates "War Targets" watchlist
-4. Removes ended wars
+## Error Handling
 
-**ESI Scopes Required:**
-- `esi-wars.read_wars.v1` (corporation wars)
-
-**Sync Schedule:**
-- On demand via command
-- Automatic on poller startup
-- Every 4 hours while poller running
+| Error | Response |
+|-------|----------|
+| Entity name not resolvable | Report that the name could not be resolved via ESI; ask pilot for numeric ID |
+| Watchlist not found | List existing watchlists and suggest correct name |
+| Duplicate entity in watchlist | Note the entity is already tracked |
 
 ## Behavior Notes
 
@@ -215,14 +174,3 @@ After watchlist operations, suggest related commands:
 | Synced wars | "Check `/gatecamp` on common routes for enemy activity" |
 | Tracking gankers | "Use `/route --safe` to avoid their hotspots" |
 
----
-
-## Persona Adaptation
-
-This skill supports persona-specific overlays. When active persona has an overlay file, load additional context from:
-
-```
-personas/{active_persona}/skill-overlays/watchlist.md
-```
-
-If no overlay exists, use the default framing above.

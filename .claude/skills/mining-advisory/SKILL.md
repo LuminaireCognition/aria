@@ -30,11 +30,11 @@ Before presenting any mining advisory, the following MUST happen:
 | 2 | `universe(action="systems", systems=["..."])` | System security status verification |
 | 3 | `market(action="prices", items=[...])` | Current ore/mineral prices (if ISK comparison needed) |
 
-**Step 1 is a `data_source` for this skill and MUST be read before responding.** The ore database contains verified security band data. Do NOT rely on training data for which ores spawn in which security levels.
+> **HALLUCINATION GUARD:** Every ore name, security band, and mineral yield in the response MUST come from `ore_database.md` or an MCP tool call in this session. Training data about ore availability by security level is frequently wrong. Read the reference file FIRST, respond SECOND.
 
-> **⚠️ HALLUCINATION GUARD:** Every ore name, security band, and mineral yield in the response MUST come from `ore_database.md` or an MCP tool call in this session. Training data about ore availability by security level is frequently wrong. Read the reference file FIRST, respond SECOND.
+If market prices are unavailable, present ore recommendations based on mineral utility without ISK rankings. If system security lookup fails, ask the user to confirm their system's security level.
 
-### Field → Source Mapping
+### Field to Source Mapping
 
 | Output Field | Required Source | Source |
 |-------------|----------------|--------|
@@ -43,77 +43,50 @@ Before presenting any mining advisory, the following MUST happen:
 | Mineral yields per ore | `ore_database.md` | Prerequisite file |
 | System security status | Universe dispatcher | `universe(action="systems", systems=["..."])` |
 | Current ore/mineral prices | Market dispatcher | `market(action="prices", items=[...])` |
-| ISK/m³ rankings | Derived | Calculate from `ore_database.md` yields × market prices |
+| ISK/m3 rankings | Derived | Calculate from `ore_database.md` yields x market prices |
 | Pilot ship/skills context | Pilot profile | `data_sources` pilot files |
 
 ## Response Format
 
 ```
-═══════════════════════════════════════════
 ARIA MINING OPERATIONS ADVISORY
 ───────────────────────────────────────────
 LOCATION: [System if known]
 SECURITY: [Sec level]
-PILOT VESSEL: Venture-class Mining Frigate
+PILOT VESSEL: [Ship if known]
 ───────────────────────────────────────────
-ORE PRIORITY (for self-sufficient operations):
+ORE PRIORITY:
 
 HIGH PRIORITY:
-• [Ores with minerals needed for manufacturing]
+- [Ores with minerals needed for manufacturing]
 
 MODERATE PRIORITY:
-• [Secondary ores]
+- [Secondary ores]
 
 EFFICIENCY NOTES:
-[Venture-specific considerations]
+[Ship-specific considerations]
 
 SAFETY ADVISORY:
 [Security-appropriate warnings]
-═══════════════════════════════════════════
 ```
 
-## Ore Reference (Gallente High-Sec)
+## Venture Tips
 
-### Manufacturing Priority Ores
-| Ore | Primary Minerals | Notes |
-|-----|------------------|-------|
-| Plagioclase | Tritanium, Mexallon | Best Mexallon source in high-sec |
-| Pyroxeres | Tritanium, Pyerite, Mexallon | Good all-rounder |
-| Kernite | Tritanium, Mexallon, Isogen | Isogen source |
-| Omber | Tritanium, Pyerite, Isogen | Dense, good for Venture |
-| Hemorphite | Tritanium, Isogen, Nocxium, Zydrine | Rare in high-sec (0.5 only) |
-| Jaspet | Mexallon, Nocxium, Zydrine | Rare in high-sec (0.5 only) |
-
-### Avoid for Venture
-| Ore | Reason |
-|-----|--------|
-| Veldspar | Bulk ore, fills hold fast with low value |
-| Scordite | Similar issue, better alternatives |
-
-## Venture Optimization Tips
-- Fit Mining Laser Upgrade in low slot
-- Use the Venture's built-in +2 warp core stabilization — no WCS module needed
-- Keep ore hold under 5000 m3 focus on dense ores
 - Align while mining in lower security
 - Use Survey Scanner to find best rocks
+- Keep ore hold focused on dense ores
 
 ## Anti-Patterns
 
-❌ **WRONG:** Claim "Kernite is available in 0.7 systems" from training data
-✅ **RIGHT:** Read `ore_database.md` for verified security bands per ore type
-
-❌ **WRONG:** Present ore ISK/m³ rankings without querying current market prices
-✅ **RIGHT:** Call `market(action="prices")` for current mineral prices, then calculate
-
-❌ **WRONG:** State mineral yields per ore unit from memory
-✅ **RIGHT:** Read `ore_database.md` for exact reprocessing outputs
+- **WRONG:** Claim ore availability from training data. **RIGHT:** Read `ore_database.md` for verified security bands.
+- **WRONG:** Present ISK/m3 rankings without querying current market prices. **RIGHT:** Call `market(action="prices")` first.
+- **WRONG:** State mineral yields from memory. **RIGHT:** Read `ore_database.md` for exact reprocessing outputs.
 
 ## Behavior
-- Account for pilot's self-sufficient status - prioritize manufacturing utility over ISK/hour
+- Account for pilot's self-sufficient status — prioritize manufacturing utility over ISK/hour
 - Consider mineral needs for ships/modules pilot might want to build
 - Always include safety reminders for non-1.0 systems
 - Reference reprocessing skills if discussing yield
-- **Intelligence Framing:** Follow the Intelligence Sourcing Protocol in CLAUDE.md. Present ore data as live survey scans and current belt analysis, not static reference data. Use phrases like "Belt survey indicates..." or "Current extraction analysis shows..." rather than archival language.
 - **Brevity:** Lead with top 2-3 ore recommendations. Full mineral breakdown on request.
 
 ## Contextual Suggestions

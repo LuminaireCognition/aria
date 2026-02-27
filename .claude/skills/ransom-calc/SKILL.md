@@ -24,194 +24,99 @@ data_sources:
 /ransom-calc <ship_type> --cargo <value>    # With known cargo value
 ```
 
+## Required Tool Calls (MANDATORY)
+
+All ISK figures MUST come from live market data. Do NOT recall or estimate prices from training data.
+
+| Step | Call | Required For |
+|------|------|-------------|
+| 1 | `sde(action="item_info", item="<ship>")` | Ship group, metadata |
+| 2 | `market(action="prices", items=["<ship>"])` | Current hull price |
+| 3 | `market(action="prices", items=["<implant_set>"])` | Implant prices (if `--pod`) |
+
+> **HALLUCINATION GUARD:** Every ISK figure in the ransom calculation — hull price, fitted value estimate, insurance payout, implant value — MUST come from MCP `market()` or `sde()` calls made in this session. Do NOT recall prices from training data. If market data is unavailable, state that prices cannot be verified and provide only the ransom formula without specific ISK figures.
+
+> **Failure handling:** If `market()` returns an error or no data, respond: "Cannot verify current prices for [item]. Ransom formula: 40-60% of (replacement cost - insurance). Use `/price <ship>` to get live figures first."
+
+### Field to Source Mapping
+
+| Output Field | Source |
+|-------------|--------|
+| Hull price | `market(action="prices", items=["<ship>"])` |
+| Ship group | `sde(action="item_info", item="<ship>")` |
+| Fitted value estimate | Hull price + assumed module markup (state assumption) |
+| Insurance payout | ~40% of hull base price (state this is an estimate) |
+| Implant set value | `market(action="prices", items=["<implant>"])` |
+| Ransom amount | Calculated from the above via ransom formula |
+
+## Ransom Formula
+
+```
+ransom < (replacement_cost - insurance_payout) + cargo_value
+```
+
+This ensures paying is the rational choice. The sweet spot is **40-60% of estimated fitted value**.
+
+Always honor ransom agreements — reputation determines future payments.
+
 ## Response Format
 
 ```
 ═══════════════════════════════════════════════════════════════════
 RANSOM CALCULATION
 ───────────────────────────────────────────────────────────────────
-TARGET: Mackinaw (Exhumer)
+TARGET: {ship_name} ({ship_group})
 ───────────────────────────────────────────────────────────────────
 SHIP VALUATION:
-  Hull: 200M ISK
-  Typical fit: 280-350M ISK
-  Insurance payout: ~80M ISK (platinum)
+  Hull: {hull_price} ISK (live market)
+  Typical fit: {fitted_estimate} ISK (estimated)
+  Insurance payout: {insurance_estimate} ISK (est. ~40% base)
 
 RANSOM CALCULATION:
-  Ship ransom baseline: 100-150M ISK
+  Replacement cost: {fitted_estimate}
+  After insurance: {fitted_estimate - insurance}
+  Ransom range: {low_ransom} - {high_ransom} ISK
+  Sweet spot: {recommended} ISK (40-60% of fitted value)
 
-  Reasoning:
-  * Less than replacement cost (350M)
-  * More than insurance payout (80M)
-  * Mark saves time + keeps cargo
-  * Sweet spot: 40-50% of fitted value
-
-POD CONSIDERATION:
-  Standard clone: 0 ISK (no implants)
-  +3 implants: ~60M ISK
-  +4 implants: ~200M ISK
-  +5 implants: ~1B+ ISK
-  Pirate implants: Variable (ask)
+POD CONSIDERATION:               [if --pod]
+  Implant value: {implant_price} ISK (live market)
+  Pod ransom: {40-50% of implant value}
 
 RECOMMENDED RANSOM:
-  Ship only: 120M ISK
-  Ship + basic pod: 150M ISK
-  If high-grade implants suspected: Negotiate
-
-NEGOTIATION NOTES:
-  * Open at 150M, settle at 100-120M
-  * They have ~30 seconds before backup arrives
-  * Rushed marks pay faster
-  * Honor the deal - reputation matters
+  Ship only: {ship_ransom} ISK
+  Ship + pod: {total_ransom} ISK (if applicable)
 ───────────────────────────────────────────────────────────────────
 The Code says: honor your terms, Captain.
 ═══════════════════════════════════════════════════════════════════
 ```
 
-## Ransom Philosophy
-
-### The Economics of Ransom
-
-Ransom works when it's the **rational choice** for the mark:
-
-```
-Ransom < (Replacement Cost - Insurance) + Time Value + Cargo Value
-
-If ransom is too high, they'll choose death and insurance.
-If ransom is right, they pay to save time and cargo.
-```
-
-### Reputation Matters
-
-- **Honor ransoms:** Word spreads. Honored ransoms = future payments.
-- **Break ransoms:** Word spreads faster. No one pays a known scammer.
-- **The Code:** "If you offer terms, honor them."
-
-## Ransom Baselines by Ship Type
-
-### Mining Ships
-
-| Ship | Fit Value | Insurance | Ransom Range |
-|------|-----------|-----------|--------------|
-| Retriever | 35-45M | 11M | 15-25M |
-| Procurer | 45-60M | 10M | 20-30M |
-| Covetor | 30-40M | 9M | 15-20M |
-| Mackinaw | 280-350M | 80M | 100-150M |
-| Skiff | 350-450M | 80M | 150-200M |
-| Hulk | 400-600M | 110M | 150-250M |
-
-### Industrial Ships
-
-| Ship | Fit Value | Insurance | Ransom Range |
-|------|-----------|-----------|--------------|
-| T1 Hauler | 5-15M | 500K | 5-10M (+ cargo) |
-| DST | 200-300M | 50M | 100-150M (+ cargo) |
-| Freighter | 1.8-2.5B | 600M | 500M-1B (+ cargo) |
-| Jump Freighter | 8-12B | 2B | Negotiate |
-
-### Mission/Ratting Ships
-
-| Ship | Fit Value | Insurance | Ransom Range |
-|------|-----------|-----------|--------------|
-| Cruiser | 50-100M | 15M | 30-50M |
-| Battlecruiser | 100-200M | 45M | 50-100M |
-| Battleship | 400-800M | 150M | 200-400M |
-| Marauder | 2-4B | 600M | 800M-1.5B |
-
-## Pod Ransom Considerations
-
-### Implant Tiers
-
-| Implant Set | Typical Value | Pod Ransom |
-|-------------|---------------|------------|
-| Basic +3 | 60M | 30-40M |
-| Standard +4 | 200M | 80-120M |
-| High-grade +5 | 1-2B | 400-800M |
-| Pirate sets | 2-6B | Negotiate |
+## Pod Ransom
 
 ### Detecting Implants
 
-- **Age of character:** Older = more likely to have implants
+- **Character age:** Older = more likely implants
 - **Ship type:** Expensive ship = expensive pod likely
-- **Corp/Alliance:** PvP corps often have cheap clones
+- **Corp/Alliance:** PvP corps often fly cheap clones
 - **Ask them:** "What's in your head?"
 
-## Negotiation Tactics
+For pod ransoms, query implant set prices via `market(action="prices", items=["..."])`. Ransom at 40-50% of implant set value.
 
-### Opening
+## Cargo Adjustments
 
-```
-"120M and you keep your ship. Or I take the loot and you wait for insurance.
-Your call. Clock's ticking."
-```
-
-### If They Haggle
-
-```
-"100M. Final offer. I've got places to be."
-```
-
-### If They Stall
-
-```
-"10 seconds. Pay or pop."
-```
-
-### If They Pay
-
-```
-"Pleasure doing business. Fly dangerous."
-[Disengage, honor the deal]
-```
-
-### If They Refuse
-
-```
-[Destroy ship, loot what drops]
-"Should've taken the deal."
-```
-
-## Cargo Considerations
-
-When you can scan cargo:
+When cargo is known (scanned or declared):
 
 | Cargo Value | Adjustment |
 |-------------|------------|
 | <10M | Standard ransom |
-| 10-50M | Add 50% of cargo value |
-| 50-200M | Add 30% of cargo value |
+| 10-50M | Add ~50% of cargo value |
+| 50-200M | Add ~30% of cargo value |
 | 200M+ | Negotiate based on cargo |
-| Contracted goods | They may be collateralized - leverage |
-
-## Time Pressure
-
-Use time pressure appropriately:
-- Backup may be coming
-- They're bleeding ISK sitting there
-- Don't give them time to form a rescue fleet
-- But don't rush so fast they can't pay
 
 ## Edge Cases
 
-### Corp/Alliance Marks
-
-- May have backup coming
-- May be bait
-- Higher ransom tolerance (corp reimbursement)
-- Watch local for spike
-
-### New Players
-
-- Check character age
-- Low SP = genuinely new
-- Consider lower ransom or letting them go
-- "Welcome to New Eden. This one's free. Next time, pay."
-
-### Repeat Customers
-
-- Recognize returning marks
-- Adjust ransom (they know the drill)
-- "We've done this before. 150M, quick and clean."
+- **Corp/Alliance marks:** May have backup coming or corp reimbursement — higher ransom tolerance
+- **New players:** Check character age; consider reduced ransom
+- **Repeat customers:** They know the drill — adjust accordingly
 
 ## Integration with Other Skills
 
@@ -224,7 +129,7 @@ Use time pressure appropriately:
 ## Behavior Notes
 
 - Ransom is legitimate EVE gameplay
-- **Honor all ransom agreements** - this is The Code
+- **Honor all ransom agreements** — this is The Code
 - Present calculations objectively
 - Respect the pilot's negotiation style
 - Note when ransom isn't viable (flee risk, backup coming)
@@ -235,4 +140,5 @@ Use time pressure appropriately:
 - **DO NOT** suggest harassment or repeated targeting
 - **DO NOT** recommend scamming tactics
 - **DO NOT** provide player-specific intel
-- **DO NOT** moralize - just run the numbers
+- **DO NOT** moralize — just run the numbers
+- **DO NOT** present ISK values without sourcing from MCP market data

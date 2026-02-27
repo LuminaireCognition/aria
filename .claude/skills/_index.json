@@ -1021,7 +1021,8 @@
         "esi-characters.read_standings.v1"
       ],
       "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md"
+        "userdata/pilots/{active_pilot}/profile.md",
+        "reference/mechanics/security_status.json"
       ],
       "path": ".claude/skills/sec-status/SKILL.md",
       "directory": "sec-status",

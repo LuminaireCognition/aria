@@ -19,16 +19,7 @@ requires_pilot: false
 
 ## Data Authority
 
-Sovereignty data follows the authority hierarchy defined in `dev/docs/ai-runtime/DATA_AUTHORITY.md`:
-
-| Data Type | Source | Authority |
-|-----------|--------|-----------|
-| Alliance ID/Name | ESI `/sovereignty/map/` | Authoritative |
-| Coalition membership | `coalitions.yaml` | Community (validated against ESI) |
-| System security | Universe graph (SDE) | Authoritative |
-| Activity data | ESI `/kills/`, RedisQ | Authoritative |
-
-**Validation:** Coalition data is validated against ESI before loading into cache. Run `sov-validate` to verify.
+Data authority hierarchy follows `dev/docs/ai-runtime/DATA_AUTHORITY.md`. Coalition data is validated against ESI before loading into cache; run `sov-validate` to verify.
 
 ## Required Tool Calls (MANDATORY)
 
@@ -45,22 +36,13 @@ Orientation intel MUST come from tool calls. Do NOT fabricate sovereignty, activ
 
 > ❌ **NEVER** use `include_realtime=False` — this disables real-time gatecamp detection and recent kill alerts. The MCP default is `false`, so you MUST explicitly set `include_realtime=True`.
 
-### Field → Source Mapping
+> **Failure handling:** If `local_area` fails or returns an error, surface the failure explicitly: "Orientation data unavailable: [error]. Cannot assess this system without live MCP data." Do NOT fabricate threat levels, sovereignty, or escape routes from training knowledge.
 
-| Output Field | Required Source | Tool Call |
-|-------------|----------------|-----------|
-| Origin system (name, security, region, constellation) | local_area response `origin` | `universe(action="local_area", origin="...", max_jumps=10, include_realtime=True)` |
-| Threat level (LOW/MEDIUM/HIGH/EXTREME) | local_area response `threat_summary` | `universe(action="local_area", ...)` |
-| Total kills within radius | local_area response `threat_summary` | `universe(action="local_area", ...)` |
-| Active gatecamp warnings | local_area response (realtime) | `universe(action="local_area", ..., include_realtime=True)` |
-| Sovereignty (alliance, coalition) | local_area response `sovereignty` or systems response | `universe(action="local_area", ...)` or `universe(action="systems", systems=[...])` |
-| Hotspot systems (avoid list) | local_area response `hotspots` | `universe(action="local_area", ...)` |
-| Quiet zones (stealth ops) | local_area response `quiet_zones` | `universe(action="local_area", ...)` |
-| Ratting banks (content) | local_area response `ratting_banks` | `universe(action="local_area", ...)` |
-| Escape routes (nearest safe) | local_area response `escape_routes` | `universe(action="local_area", ...)` |
-| FW warzone data | local_area response `fw_systems` | `universe(action="local_area", ...)` |
+All output fields come from the `local_area` response. Key response fields: `origin`, `threat_summary`, `sovereignty`, `hotspots`, `quiet_zones`, `ratting_banks`, `escape_routes`, `fw_systems`. If `sovereignty` is absent from `local_area`, supplement via `universe(action="systems", systems=[...])`.
 
 ## Output Format
+
+Present sections in this order. FW warzone data follows sovereignty when present. Omit empty sections.
 
 ```
 ═══════════════════════════════════════════════════════════════
@@ -102,23 +84,9 @@ ESCAPE ROUTES
 
 ## System Classification
 
-### Hotspots (Avoid or Hunt)
-Systems with 5+ PvP kills in the last hour. These are active combat zones:
-- Gate camps
-- Fleet engagements
-- Roaming gangs
-
-### Quiet Zones (Stealth Ops)
-Systems with 0 PvP kills. Good for:
-- Stealth mining
-- Safe passage
-- Staging operations
-
-### Ratting Banks (Content)
-Systems with 100+ NPC kills. Indicates:
-- Active ratting activity
-- Potential targets for hunters
-- Profitable PvE areas
+- **Hotspots (Avoid or Hunt):** Systems with 5+ PvP kills in the last hour.
+- **Quiet Zones (Stealth Ops):** Systems with 0 PvP kills.
+- **Ratting Banks (Content):** Systems with 100+ NPC kills.
 
 ## Real-Time Enhancement
 
@@ -186,24 +154,8 @@ FACTION WARFARE WARZONE
 
 ## Anti-Patterns
 
-❌ **WRONG:** Show "SOVEREIGNTY: [GSF] Goonswarm Federation / The Imperium" when `local_area` returned no sovereignty field
-✅ **RIGHT:** Only show sovereignty data if it appears in the `local_area` or `systems` response
-
 ❌ **WRONG:** Present activity data for systems outside the `max_jumps` radius
 ✅ **RIGHT:** Only include systems returned by `local_area`
 
 ❌ **WRONG:** State "Region: Delve" or other regional context from training data memory
 ✅ **RIGHT:** Region name comes from the `local_area` response `origin.region` field
-
-❌ **WRONG:** Add FW contestation percentages when no `fw_systems` data was returned
-✅ **RIGHT:** FW data appears only when `fw_systems` is present and non-empty in the response
-
-## Response Priority
-
-When presenting results, prioritize:
-1. **Immediate threats** - Active camps, extreme activity
-2. **Sovereignty context** - Whose space you're in (null-sec only)
-3. **Faction Warfare** - FW warzone status (low-sec FW systems)
-4. **Escape routes** - How to get to safer space
-5. **Tactical opportunities** - Quiet zones, ratting banks
-6. **Context** - Regional info, border systems

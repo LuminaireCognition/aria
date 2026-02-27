@@ -29,31 +29,17 @@ data_sources:
 
 Every activity metric in a hunting ground analysis MUST come from a tool call. Do NOT fabricate kill counts, jump counts, or system activity.
 
-| Query Type | Required Call | Data Provided |
-|------------|-------------|---------------|
-| System analysis | `universe(action="activity", systems=["..."], include_realtime=True)` | Kill/jump data for the specific system |
-| Area scan | `universe(action="hotspots", origin="...", max_jumps=N, activity_type="kills")` | Active systems within search radius |
-| Null-sec intel | `universe(action="systems", systems=[...])` | Sovereignty data |
-| Coalition intel | `universe(action="territory_analysis", coalition="...")` | Regional breakdown |
+| Output Field | Tool Call |
+|-------------|-----------|
+| System name, security, kills, pods, NPC kills, jumps | `universe(action="activity", systems=[...], include_realtime=True)` |
+| Top hunting grounds list | `universe(action="hotspots", origin="...", max_jumps=N, activity_type="kills")` |
+| Sovereignty / alliance | `universe(action="systems", systems=[...])` |
+| Coalition intel | `universe(action="territory_analysis", coalition="...")` |
+| Viability / competition assessment | Derived from kill/jump metrics above |
 
-**CRITICAL:** Systems outside the `max_jumps` search radius MUST NOT appear in results. If `hotspots` was called with `max_jumps=5`, do not present data for systems 9-10 jumps away.
+**CRITICAL:** Systems outside the `max_jumps` search radius MUST NOT appear in results. If `hotspots` was called with `max_jumps=5`, do not present data for systems 9-10 jumps away. If `hotspots` returned 3 systems, present 3 systems — not 5.
 
-> **⚠️ HALLUCINATION GUARD:** Every system name, kill count, jump count, and activity level MUST come from MCP calls made in this session. Do NOT present activity data for systems that were not returned by any tool call. If `hotspots` returned 3 systems, present 3 systems — not 5.
-
-### Field → Source Mapping
-
-| Output Field | Required Source | Tool Call |
-|-------------|----------------|-----------|
-| System name and security | Hotspots or activity response | `universe(action="hotspots", ...)` or `universe(action="activity", ...)` |
-| Ship kills (last hour) | Activity dispatcher | `universe(action="activity", systems=[...], include_realtime=True)` |
-| Pod kills (last hour) | Activity dispatcher | `universe(action="activity", systems=[...], include_realtime=True)` |
-| NPC kills (last hour) | Activity dispatcher | `universe(action="activity", systems=[...], include_realtime=True)` |
-| Jumps (last hour) | Activity dispatcher | `universe(action="activity", systems=[...], include_realtime=True)` |
-| Top hunting grounds list | Hotspots dispatcher | `universe(action="hotspots", origin="...", max_jumps=N)` |
-| Sovereignty / alliance | Systems dispatcher | `universe(action="systems", systems=[...])` |
-| Coalition intel | Territory analysis | `universe(action="territory_analysis", coalition="...")` |
-| Viability assessment | Derived | Calculate from kill/jump metrics in response |
-| Competition assessment | Derived | Infer from ship kill counts in response |
+**MCP failure:** If `activity` or `hotspots` calls fail entirely, report that hunting ground analysis requires live activity data and cannot proceed without it.
 
 ## Live Activity Intel
 
@@ -129,158 +115,15 @@ Your call, Captain.
 | 10-30 | Active hunting - competition |
 | 30+ | Crowded - consider elsewhere |
 
-## System Type Analysis
-
-### Low-Sec Entry Points
-
-Systems where high-sec borders low-sec:
-- High traffic from unaware travelers
-- Gate camps viable
-- Quick escape to low-sec
-
-### Chokepoint Systems
-
-Systems on major routes:
-- Tama, Rancer, Amamake, Huola
-- Consistent traffic
-- Heavy competition
-
-### Dead-End Pockets
-
-Low-sec systems with limited exits:
-- Trapped marks
-- Less traffic but higher kill rate
-- Good for small gangs
-
-### Mission Hubs
-
-Systems with L4 agents nearby:
-- Mission runners in expensive ships
-- Predictable locations (mission pockets)
-- Valuable loot potential
-
 ## Coalition Intelligence (Null-Sec Hunting)
 
-When hunting in null-sec, sovereignty data provides tactical intelligence.
+For null-sec systems, use `universe(action="systems", systems=[...])` for sovereignty data and `universe(action="territory_analysis", coalition="...")` for coalition-level intel.
 
-### Getting Sovereignty Data
+**Coalition Data Availability:** `territory_analysis` requires a populated coalition registry. If it returns `coalition_not_found`, skip sovereignty analysis gracefully and note the limitation. Fall back to basic alliance sovereignty on individual systems.
 
-```
-universe(action="systems", systems=["1DQ1-A"])
-universe(action="territory_analysis", coalition="imperium")
-```
+Use `territory_analysis` response to assess defense posture. Larger coalitions with more systems in a region indicate stronger defense. Renter space indicators: small alliance holding sov in major coalition region, high NPC kills with low PvP kills.
 
-**Coalition Data Availability:** `territory_analysis` requires a populated coalition registry. If it returns `coalition_not_found`, skip sovereignty analysis gracefully and note the limitation. Fall back to `universe(action="systems", systems=[...])` for basic alliance sovereignty on individual systems.
-
-### Coalition Response Analysis
-
-| Coalition | Response Characteristics | Hunting Viability |
-|-----------|-------------------------|-------------------|
-| **Imperium** | Standing fleets, organized caps, rapid intel | LOW - fast organized response |
-| **PanFam** | Blops hunters, coordinated intel | LOW - active counter-hunters |
-| **FIRE** | Regional defense, variable response | MODERATE - depends on TZ |
-| **Smaller Alliances** | Less organized, slower response | HIGHER - softer targets |
-| **Renter Space** | Minimal defense, no standing fleets | HIGH - soft ratters/miners |
-
-### Renter Space Identification
-
-Renter space (soft targets) indicators:
-- Small alliance holding sov in major coalition region
-- High NPC kills (ratting) with low PvP kills
-- No historical defense activity
-- Alliance with "Rental" or similar in name
-
-### Entry Point Analysis
-
-When hunting coalition space:
-
-```
-universe(action="borders", origin="Jita", limit=20)
-```
-
-Look for:
-- Border systems between NPC null and sov null
-- Systems with multiple exits (escape routes)
-- Low-ADM systems on coalition edges
-
-### Sovereignty Response Block
-
-Include in hunting ground analysis for null-sec:
-
-```
-SOVEREIGNTY: [CONDI] Initiative Associates
-  Coalition: The Imperium
-  Response Risk: HIGH
-  Notes: Imperium standing fleet within 3 jumps
-         Expect caps on grid within 5 minutes
-
-RECOMMENDATION: Hit-and-run only. Pre-aligned hunting.
-```
-
-### Coalition Staging Systems
-
-Major staging systems to avoid for extended operations:
-- These have standing fleets and rapid response
-- Use `territory_analysis` to identify concentration
-
-```
-universe(action="territory_analysis", coalition="imperium")
-```
-
-Response shows region breakdown - systems in top regions are likely staging or well-defended.
-
-## Regional Analysis
-
-When analyzing a region, provide:
-
-```
-═══════════════════════════════════════════════════════════════════
-REGIONAL HUNTING BRIEF
-───────────────────────────────────────────────────────────────────
-REGION: The Citadel
-───────────────────────────────────────────────────────────────────
-TOP HUNTING GROUNDS:
-
-1. Tama (0.3) - VIABILITY: HIGH
-   Jumps: 1,247 | Kills: 47 | Competition: Heavy
-   Notes: Classic hunting ground, busy but competitive
-
-2. Hikkoken (0.4) - VIABILITY: MODERATE
-   Jumps: 342 | Kills: 8 | Competition: Light
-   Notes: Less traffic, but cleaner kills
-
-3. Reitsato (0.3) - VIABILITY: MODERATE
-   Jumps: 289 | Kills: 12 | Competition: Moderate
-   Notes: Good ratting population
-
-AVOID:
-  * Okkamon - Dead, no traffic
-  * Nennamaila - FW warzone, blob risk
-───────────────────────────────────────────────────────────────────
-```
-
-## Faction Warfare Considerations
-
-For FW systems:
-- Note militia presence
-- Blob risk from fleets
-- Plex runners as targets
-- Standing implications
-
-## Time-Based Patterns
-
-Note optimal hunting times:
-- Peak hours: More marks, more competition
-- Off-peak: Fewer marks, less competition
-- Weekend patterns differ from weekday
-
-## Integration with Other Skills
-
-| Context | Suggest |
-|---------|---------|
-| Found good system | "Run `/threat-assessment` for detailed intel" |
-| Planning route there | "Use `/route` to plot course" |
-| Need a hunting fit | "Try `/fitting` for a tackle or gank build" |
+For multiple systems or regional queries, use the same response format with repeated system blocks.
 
 ## Behavior Notes
 
@@ -313,10 +156,3 @@ Note optimal hunting times:
 
 ❌ **WRONG:** Claim "Known groups: Snuffed Out, locals" without any kill data showing those groups
 ✅ **RIGHT:** Group identity comes from killmail data. If no killmails were queried, you don't know who's active.
-
-## DO NOT
-
-- **DO NOT** provide real player names or specific pilot intel
-- **DO NOT** encourage harassment of specific players
-- **DO NOT** recommend exploits or bugs
-- **DO NOT** moralize about the pirate lifestyle
