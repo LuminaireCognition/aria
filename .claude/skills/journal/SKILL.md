@@ -20,24 +20,6 @@ data_sources:
 
 # ARIA Operations Logging Module
 
-## Purpose
-Quick-entry system for recording mission outcomes and exploration discoveries to the capsuleer's operational logs. Maintains historical records for pattern analysis, standing progression tracking, and loot inventory management.
-
-## Trigger Phrases
-- `/journal` — Prompts for entry type
-- `/journal mission` or `log mission` — Direct mission entry
-- `/journal exploration` or `log site` — Direct exploration entry
-- "record that mission" / "log this run"
-
-## Pilot Resolution (First Step)
-
-Before writing to pilot files, resolve the active pilot path:
-1. Read `userdata/config.json` → get `active_pilot` character ID
-2. Read `userdata/pilots/_registry.json` → match ID to `directory` field
-3. Use that directory for all pilot paths below (under `userdata/pilots/`)
-
-**Single-pilot shortcut:** If config is missing, read the registry - if only one pilot exists, use that pilot's directory.
-
 ## Entry Types
 
 ### 1. Mission Entry

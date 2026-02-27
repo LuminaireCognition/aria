@@ -15,26 +15,6 @@ requires_pilot: false
 
 # ARIA Market Arbitrage Module (V2)
 
-## Purpose
-
-Scan for cross-region arbitrage opportunities across EVE's major trade hubs. Identifies items where buying in one region and selling in another yields profit.
-
-**V2 Features:**
-- **Hauling Score:** Ranks by profit per m³ of transport capacity (requires `--cargo`).
-- **Net Profit:** Calculates true profit after broker fees and sales tax.
-- **Liquidity Analysis:** Caps quantity at 10% of daily volume (requires `--history`).
-- **Transport Capacity:** Limits quantity by your ship's cargo space.
-- **Ad-hoc Scopes:** Extend analysis beyond trade hubs to custom regions, stations, or structures.
-
-## Trigger Phrases
-
-- "/arbitrage"
-- "arbitrage opportunities"
-- "trade route finder"
-- "what can I haul for profit"
-- "cross-region trading"
-- "price gaps between hubs"
-
 ## Command Syntax
 
 ```

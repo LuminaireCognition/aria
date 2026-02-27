@@ -15,16 +15,6 @@ has_persona_overlay: true
 
 # ARIA Entity Watchlist Module
 
-## Purpose
-Manage entity watchlists for tracking specific corporations and alliances. When watched entities appear in kills (as victims or attackers), they are flagged in threat intelligence. Supports manual lists and automatic war target synchronization from ESI.
-
-## Trigger Phrases
-- "/watchlist"
-- "who am I tracking"
-- "add [corp] to watchlist"
-- "track [alliance]"
-- "sync war targets"
-
 ## Command Syntax
 
 ```

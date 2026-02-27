@@ -18,20 +18,6 @@ data_sources:
 
 # ARIA Abyssal Deadspace Module
 
-## Purpose
-
-Provide tactical guidance for EVE Online Abyssal Deadspace content including weather type selection, tier difficulty, ship recommendations, NPC threat priorities, and fitting considerations. Uses static reference data for mechanics and can integrate with fitting tools for ship analysis.
-
-## Trigger Phrases
-
-- "/abyssal"
-- "abyssal deadspace"
-- "abyssal guide"
-- "what weather for [ship]"
-- "abyssal tier [N]"
-- "abyssal fit"
-- "filament guide"
-
 ## Command Syntax
 
 ```

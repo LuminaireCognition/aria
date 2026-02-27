@@ -22,16 +22,6 @@ data_sources:
 
 # ARIA Exploration Analysis Module
 
-## Purpose
-Provide exploration site analysis, hacking strategies, and loot identification with appropriate lore context.
-
-## Trigger Phrases
-- "exploration analysis"
-- "I found a [site name]"
-- "hacking tips"
-- "what's this loot worth"
-- "relic site" / "data site"
-
 ## Required Tool Calls (MANDATORY)
 
 Before presenting any exploration analysis, the following MUST happen:

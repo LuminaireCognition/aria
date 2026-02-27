@@ -20,20 +20,6 @@ data_sources:
 
 # Security Status Module
 
-## Purpose
-
-Track security status, calculate implications for empire access, and provide tag cost estimates for status recovery. Help the pilot understand where they can and cannot operate.
-
-## Trigger Phrases
-
-- "/sec-status"
-- "sec status"
-- "security status"
-- "can I go to high-sec"
-- "empire access"
-- "how much to fix sec"
-- "tag costs"
-
 ## Command Syntax
 
 ```

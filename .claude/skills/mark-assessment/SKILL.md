@@ -18,19 +18,6 @@ data_sources:
 
 # Mark Assessment Module
 
-## Purpose
-
-Evaluate potential targets (marks) for engagement viability. Analyze ship type, likely fit, cargo potential, and risk/reward calculations to help the pilot make informed decisions.
-
-## Trigger Phrases
-
-- "/mark-assessment"
-- "mark assessment"
-- "assess target"
-- "is this worth ganking"
-- "evaluate [ship type]"
-- "should I engage"
-
 ## Command Syntax
 
 ```

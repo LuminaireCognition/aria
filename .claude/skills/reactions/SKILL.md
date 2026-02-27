@@ -15,19 +15,7 @@ requires_pilot: false
 
 # ARIA Reactions Calculator
 
-## Purpose
-
-Calculate costs, production times, and profitability for moon material reactions and fuel blocks. Helps industrialists optimize their reaction operations.
-
 **Scope:** Fuel blocks and common reactions. Does not cover T2 component manufacturing (use `/build-cost` with `--full-chain` for those).
-
-## Trigger Phrases
-
-- "/reactions"
-- "fuel block cost"
-- "reaction profitability"
-- "how much to make [fuel block]"
-- "fuel block calculator"
 
 ## Command Syntax
 
