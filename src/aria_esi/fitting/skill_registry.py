@@ -167,6 +167,7 @@ def get_skill_registry() -> SkillRegistry | None:
 
         try:
             from aria_esi.store.sde.queries import (
+                SDENotSeededError,
                 SDEResolutionError,
                 get_sde_query_service,
             )
@@ -184,7 +185,7 @@ def get_skill_registry() -> SkillRegistry | None:
                 e.missing_names,
             )
             return None
-        except (ImportError, RuntimeError) as e:
+        except (ImportError, RuntimeError, SDENotSeededError) as e:
             _registry_attempted = True
             logger.warning("Skill registry unavailable (SDE infrastructure): %s", e)
             return None

@@ -6,6 +6,7 @@ All commands require authentication.
 """
 
 import argparse
+import sqlite3
 from datetime import UTC, datetime
 
 from ..core import (
@@ -107,7 +108,7 @@ def cmd_agents_research(args: argparse.Namespace) -> dict:
                 else:
                     agent_names[aid] = f"Agent-{aid}"
                     agent_corps[aid] = "Unknown Corp"
-    except (ImportError, RuntimeError):
+    except (ImportError, RuntimeError, sqlite3.OperationalError):
         # Graceful fallback when SDE not seeded or DB unavailable
         for aid in agent_ids:
             if aid:
