@@ -139,6 +139,8 @@ uv run python -m aria_esi <args>
 uv run pytest -n auto
 ```
 
+**Check call signatures before invoking tools.** For CLI subcommands, run `<command> --help` to confirm exact flag names. For MCP tools, review the parameter schema in the tool definition. Do not guess parameter or flag names from memory.
+
 **Full reference:** `dev/docs/PYTHON_ENVIRONMENT.md`
 
 ## Universe Navigation
