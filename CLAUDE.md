@@ -92,6 +92,8 @@ In skill docs, `{active_pilot}` = the resolved pilot directory from boot.
 
 ### Persona Loading (runtime)
 
+If boot context is unavailable (e.g., after `/clear`), resolve `{active_pilot}` from `userdata/pilots/_registry.json`, read `profile.md` for `rp_level`, and read `.persona-context-compiled.json` for `persona.name` and overlay paths.
+
 If `persona.name` is not "ARIA" and `rp_level` is not "off":
 1. Read the compiled persona artifact: `userdata/pilots/{active_pilot}/.persona-context-compiled.json`
 2. Validate staleness: profile `faction` should map to the persona branch (empire factions → `empire`, pirate → `pirate`). If mismatch, warn the user and suggest `uv run aria-esi persona-context`. Continue with current context.
