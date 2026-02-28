@@ -172,8 +172,7 @@
       "external_sources": [],
       "esi_scopes": [],
       "required_tools": [
-        "sde.blueprint_info",
-        "market.prices"
+        "market.build_cost"
       ]
     },
     {

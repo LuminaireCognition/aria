@@ -49,6 +49,7 @@ class TestParameterSchemas:
             "npc_sources",
             "arbitrage_scan",
             "arbitrage_detail",
+            "build_cost",
             "route_value",
             "watchlist_create",
             "watchlist_add_item",
