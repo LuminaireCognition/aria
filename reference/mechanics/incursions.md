@@ -243,7 +243,7 @@ Tachyon Beam Laser II
 Tachyon Beam Laser II
 Tachyon Beam Laser II
 
-Large Anti-EM Screen Reinforcer II
+Large EM Shield Reinforcer II
 Large Energy Locus Coordinator II
 Large Energy Locus Coordinator II
 ```

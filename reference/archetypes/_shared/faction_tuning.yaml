@@ -15,7 +15,7 @@ armor_active:
   serpentis:
     modules:
       - slot: resist
-        to: ["Armor Kinetic Hardener I", "Armor Thermal Hardener I"]
+        to: ["Kinetic Armor Hardener I", "Thermal Armor Hardener I"]
     drones:
       primary: thermal
       anti_frigate: thermal
@@ -23,7 +23,7 @@ armor_active:
   guristas:
     modules:
       - slot: resist
-        to: ["Armor Kinetic Hardener I", "Armor Thermal Hardener I"]
+        to: ["Kinetic Armor Hardener I", "Thermal Armor Hardener I"]
     drones:
       primary: kinetic
       anti_frigate: kinetic
@@ -31,7 +31,7 @@ armor_active:
   blood_raiders:
     modules:
       - slot: resist
-        to: ["Armor EM Hardener I", "Armor Thermal Hardener I"]
+        to: ["EM Armor Hardener I", "Thermal Armor Hardener I"]
     drones:
       primary: em
       anti_frigate: em
@@ -42,10 +42,10 @@ armor_active:
   angel_cartel:
     modules:
       - slot: resist
-        to: ["Armor Explosive Hardener I", "Armor Kinetic Hardener I"]
+        to: ["Explosive Armor Hardener I", "Kinetic Armor Hardener I"]
     rigs:
       - slot: tank_rig
-        optional_swap: "Medium Anti-Explosive Pump I"
+        optional_swap: "Medium Explosive Armor Reinforcer I"
     drones:
       primary: explosive
       anti_frigate: explosive
@@ -53,7 +53,7 @@ armor_active:
   rogue_drones:
     modules:
       - slot: resist
-        to: ["Armor EM Hardener I", "Armor Thermal Hardener I"]
+        to: ["EM Armor Hardener I", "Thermal Armor Hardener I"]
     drones:
       primary: em
       anti_frigate: em
@@ -61,7 +61,7 @@ armor_active:
   triglavian:
     modules:
       - slot: resist
-        to: ["Armor Thermal Hardener I", "Armor Explosive Hardener I"]
+        to: ["Thermal Armor Hardener I", "Explosive Armor Hardener I"]
     drones:
       primary: thermal
       anti_frigate: thermal
@@ -69,7 +69,7 @@ armor_active:
   mercenaries:
     modules:
       - slot: resist
-        to: ["Multispectrum Energized Membrane I", "Armor Thermal Hardener I"]
+        to: ["Multispectrum Energized Membrane I", "Thermal Armor Hardener I"]
     drones:
       primary: thermal
       anti_frigate: thermal
@@ -108,7 +108,7 @@ shield_passive:
         to: ["Explosive Shield Hardener I", "Kinetic Shield Hardener I"]
     rigs:
       - slot: tank_rig
-        optional_swap: "Medium Anti-Explosive Screen Reinforcer I"
+        optional_swap: "Medium Explosive Shield Reinforcer I"
     drones:
       primary: explosive
       anti_frigate: explosive

@@ -319,7 +319,7 @@ Different modules provide resists in different ways.
 | **Can Be Neuted** | Keeps working, but drains cap |
 | **Best For** | When you have cap to spare |
 
-Examples: Armor EM Hardener II, Adaptive Invulnerability Field II
+Examples: EM Armor Hardener II, Adaptive Invulnerability Field II
 
 ### Energized Membranes (Passive)
 

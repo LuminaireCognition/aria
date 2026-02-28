@@ -76,33 +76,33 @@ armor_hardeners:
       effectiveness: 95
       notes: "Better than T2, but expensive (~50M ISK)"
 
-  Armor EM Hardener II:
+  EM Armor Hardener II:
     requires_v:
       - Hull Upgrades
     meta_alternative:
-      name: Armor EM Hardener I
+      name: EM Armor Hardener I
       effectiveness: 80
       notes: "Active hardener, simpler requirements"
 
-  Armor Thermal Hardener II:
+  Thermal Armor Hardener II:
     requires_v:
       - Hull Upgrades
     meta_alternative:
-      name: Armor Thermal Hardener I
+      name: Thermal Armor Hardener I
       effectiveness: 80
 
-  Armor Kinetic Hardener II:
+  Kinetic Armor Hardener II:
     requires_v:
       - Hull Upgrades
     meta_alternative:
-      name: Armor Kinetic Hardener I
+      name: Kinetic Armor Hardener I
       effectiveness: 80
 
-  Armor Explosive Hardener II:
+  Explosive Armor Hardener II:
     requires_v:
       - Hull Upgrades
     meta_alternative:
-      name: Armor Explosive Hardener I
+      name: Explosive Armor Hardener I
       effectiveness: 80
 
 shield_hardeners:

@@ -133,10 +133,10 @@ SHIELD_RIG_PATTERNS = (
     "Core Defense Capacitor Safeguard",
     "Core Defense Charge Economizer",
     "Core Defense Operational Solidifier",
-    "Anti-EM Screen Reinforcer",
-    "Anti-Thermal Screen Reinforcer",
-    "Anti-Kinetic Screen Reinforcer",
-    "Anti-Explosive Screen Reinforcer",
+    "EM Shield Reinforcer",
+    "Thermal Shield Reinforcer",
+    "Kinetic Shield Reinforcer",
+    "Explosive Shield Reinforcer",
 )
 
 
