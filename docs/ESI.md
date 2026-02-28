@@ -168,6 +168,7 @@ The sync writes a manifest to `userdata/pilots/{id}_{slug}/.esi-sync.json`:
 - Read from `ships.md` - the "Fitting Details" section below the sync marker
 - This section is preserved across syncs and manually maintained
 - Contains EFT-format fittings, roles, and notes
+- See [SHIPS.md](SHIPS.md) for the full guide on adding fittings
 
 ### Checking Sync Status
 

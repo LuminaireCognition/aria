@@ -21,6 +21,8 @@ prerequisite_files:
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
+  - reference/archetypes/INDEX.md
+  - reference/archetypes/_shared/module_tiers.yaml
   - reference/mechanics/missiles.json
   - reference/mechanics/projectile_turrets.json
   - reference/mechanics/laser_turrets.json
@@ -39,6 +41,14 @@ data_sources:
 4. **Query ship slot layout:** `sde(action="item_info", item="[ship name]")` - Know how many slots to fill
 
 These files MUST be loaded before the first `fitting(action="calculate_stats")` call. Do not attempt to build a fit from memory—the iteration cost of failed validations exceeds the cost of reading documentation upfront.
+
+### Archetype Reference
+
+When building a new fit for a hull + activity:
+1. Check `reference/archetypes/INDEX.md` for matching archetype
+2. If found: use archetype EFT as template, adjust tier per pilot profile
+3. For tier adjustments: read `reference/archetypes/_shared/module_tiers.yaml`
+4. Proceed to validation (existing SDE + EOS pipeline)
 
 **Slot Layout Verification:** The ship info query returns slot counts. Plan modules for ALL available slots before building the EFT string. Empty slots are a fitting error.
 

@@ -25,7 +25,8 @@
       "directory": "abyssal",
       "prerequisite_files": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": []
     },
     {
       "name": "agents-research",
@@ -47,7 +48,10 @@
       "directory": "agents-research",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": [
+        "sde.agent_search"
+      ]
     },
     {
       "name": "arbitrage",
@@ -68,7 +72,10 @@
       "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "market.arbitrage_scan"
+      ]
     },
     {
       "name": "aria-review",
@@ -88,7 +95,8 @@
       "directory": "aria-review",
       "prerequisite_files": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": []
     },
     {
       "name": "aria-status",
@@ -114,7 +122,8 @@
       "directory": "aria-status",
       "prerequisite_files": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": []
     },
     {
       "name": "assets",
@@ -137,7 +146,10 @@
       "directory": "assets",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": [
+        "market.valuation"
+      ]
     },
     {
       "name": "build-cost",
@@ -158,7 +170,11 @@
       "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "sde.blueprint_info",
+        "market.prices"
+      ]
     },
     {
       "name": "clones",
@@ -183,7 +199,8 @@
       "directory": "clones",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "contracts",
@@ -205,7 +222,8 @@
       "directory": "contracts",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "corp",
@@ -231,7 +249,8 @@
       "directory": "corp",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "escape-route",
@@ -256,7 +275,10 @@
       "path": ".claude/skills/escape-route/SKILL.md",
       "directory": "escape-route",
       "prerequisite_files": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": [
+        "universe.route"
+      ]
     },
     {
       "name": "esi-query",
@@ -290,7 +312,8 @@
       "path": ".claude/skills/esi-query/SKILL.md",
       "directory": "esi-query",
       "prerequisite_files": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "exploration",
@@ -318,7 +341,8 @@
       "path": ".claude/skills/exploration/SKILL.md",
       "directory": "exploration",
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": []
     },
     {
       "name": "find",
@@ -339,7 +363,10 @@
       "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "market.find_nearby"
+      ]
     },
     {
       "name": "first-run-setup",
@@ -360,7 +387,8 @@
       "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": []
     },
     {
       "name": "fit-budget",
@@ -382,12 +410,18 @@
         "esi-wallet.read_character_wallet.v1"
       ],
       "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md"
+        "userdata/pilots/{active_pilot}/profile.md",
+        "reference/archetypes/_shared/module_tiers.yaml"
       ],
       "external_sources": [],
       "path": ".claude/skills/fit-budget/SKILL.md",
       "directory": "fit-budget",
-      "prerequisite_files": []
+      "prerequisite_files": [],
+      "required_tools": [
+        "fitting.calculate_stats",
+        "sde.meta_variants",
+        "market.prices"
+      ]
     },
     {
       "name": "fit-check",
@@ -414,7 +448,12 @@
       "external_sources": [],
       "path": ".claude/skills/fit-check/SKILL.md",
       "directory": "fit-check",
-      "prerequisite_files": []
+      "prerequisite_files": [],
+      "required_tools": [
+        "fitting.calculate_stats",
+        "fitting.extract_requirements",
+        "market.valuation"
+      ]
     },
     {
       "name": "fitting",
@@ -441,6 +480,8 @@
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md",
+        "reference/archetypes/INDEX.md",
+        "reference/archetypes/_shared/module_tiers.yaml",
         "reference/mechanics/missiles.json",
         "reference/mechanics/projectile_turrets.json",
         "reference/mechanics/laser_turrets.json",
@@ -450,7 +491,11 @@
       "directory": "fitting",
       "external_sources": [],
       "esi_scopes": [],
-      "has_persona_overlay": true
+      "has_persona_overlay": true,
+      "required_tools": [
+        "fitting.calculate_stats",
+        "sde.item_info"
+      ]
     },
     {
       "name": "fittings",
@@ -472,7 +517,8 @@
       "directory": "fittings",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "gatecamp",
@@ -493,7 +539,10 @@
       "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "universe.activity"
+      ]
     },
     {
       "name": "help",
@@ -517,7 +566,8 @@
       "directory": "help",
       "prerequisite_files": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": []
     },
     {
       "name": "hunting-grounds",
@@ -540,7 +590,11 @@
       "directory": "hunting-grounds",
       "prerequisite_files": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "universe.hotspots",
+        "universe.activity"
+      ]
     },
     {
       "name": "industry-jobs",
@@ -563,7 +617,8 @@
       "directory": "industry-jobs",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "isk-compare",
@@ -592,7 +647,8 @@
       "external_sources": [],
       "path": ".claude/skills/isk-compare/SKILL.md",
       "directory": "isk-compare",
-      "prerequisite_files": []
+      "prerequisite_files": [],
+      "required_tools": []
     },
     {
       "name": "journal",
@@ -618,7 +674,8 @@
       "directory": "journal",
       "prerequisite_files": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": []
     },
     {
       "name": "killmail",
@@ -639,7 +696,10 @@
       "directory": "killmail",
       "prerequisite_files": [],
       "data_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "killmails.analyze"
+      ]
     },
     {
       "name": "killmails",
@@ -663,7 +723,8 @@
       "directory": "killmails",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "lp-store",
@@ -685,7 +746,10 @@
       "directory": "lp-store",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": [
+        "market.prices"
+      ]
     },
     {
       "name": "mail",
@@ -707,7 +771,10 @@
       "directory": "mail",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": [
+        "pilot.mail_list"
+      ]
     },
     {
       "name": "mark-assessment",
@@ -731,7 +798,11 @@
       "directory": "mark-assessment",
       "prerequisite_files": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "sde.item_info",
+        "market.prices"
+      ]
     },
     {
       "name": "mining",
@@ -753,7 +824,10 @@
       "directory": "mining",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": [
+        "pilot.mining_ledger"
+      ]
     },
     {
       "name": "mining-advisory",
@@ -779,7 +853,10 @@
       "path": ".claude/skills/mining-advisory/SKILL.md",
       "directory": "mining-advisory",
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "market.prices"
+      ]
     },
     {
       "name": "mission-brief",
@@ -800,16 +877,17 @@
       "requires_pilot": true,
       "prerequisite_files": [
         "reference/mechanics/npc_damage_types.md",
-        "reference/mechanics/drones.json",
-        "reference/mechanics/missiles.json",
-        "reference/mechanics/projectile_turrets.json",
-        "reference/mechanics/laser_turrets.json",
-        "reference/mechanics/hybrid_turrets.json"
+        "reference/mechanics/drones.json"
       ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md",
-        "reference/pve-intel/cache/INDEX.md"
+        "reference/pve-intel/cache/INDEX.md",
+        "reference/archetypes/INDEX.md",
+        "reference/mechanics/missiles.json",
+        "reference/mechanics/projectile_turrets.json",
+        "reference/mechanics/laser_turrets.json",
+        "reference/mechanics/hybrid_turrets.json"
       ],
       "external_sources": [
         "wiki.eveuniversity.org"
@@ -817,7 +895,8 @@
       "path": ".claude/skills/mission-brief/SKILL.md",
       "directory": "mission-brief",
       "esi_scopes": [],
-      "has_persona_overlay": true
+      "has_persona_overlay": true,
+      "required_tools": []
     },
     {
       "name": "orders",
@@ -839,7 +918,8 @@
       "directory": "orders",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "orient",
@@ -862,7 +942,10 @@
       "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "universe.local_area"
+      ]
     },
     {
       "name": "pi",
@@ -886,7 +969,10 @@
         "reference/mechanics/planetary-interaction.json"
       ],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "market.prices"
+      ]
     },
     {
       "name": "pilot",
@@ -916,7 +1002,10 @@
       "path": ".claude/skills/pilot/SKILL.md",
       "directory": "pilot",
       "prerequisite_files": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": [
+        "sde.resolve_names"
+      ]
     },
     {
       "name": "price",
@@ -938,7 +1027,10 @@
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
-      "has_persona_overlay": true
+      "has_persona_overlay": true,
+      "required_tools": [
+        "market.prices"
+      ]
     },
     {
       "name": "ransom-calc",
@@ -960,7 +1052,11 @@
       "directory": "ransom-calc",
       "prerequisite_files": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "sde.item_info",
+        "market.prices"
+      ]
     },
     {
       "name": "reactions",
@@ -981,7 +1077,11 @@
       "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "sde.blueprint_info",
+        "market.prices"
+      ]
     },
     {
       "name": "route",
@@ -1004,7 +1104,11 @@
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
-      "has_persona_overlay": true
+      "has_persona_overlay": true,
+      "required_tools": [
+        "universe.route",
+        "universe.activity"
+      ]
     },
     {
       "name": "sec-status",
@@ -1031,7 +1135,10 @@
       "path": ".claude/skills/sec-status/SKILL.md",
       "directory": "sec-status",
       "prerequisite_files": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": [
+        "market.prices"
+      ]
     },
     {
       "name": "ship-next",
@@ -1054,12 +1161,18 @@
       ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/operations.md"
+        "userdata/pilots/{active_pilot}/operations.md",
+        "reference/archetypes/INDEX.md"
       ],
       "external_sources": [],
       "path": ".claude/skills/ship-next/SKILL.md",
       "directory": "ship-next",
-      "prerequisite_files": []
+      "prerequisite_files": [],
+      "required_tools": [
+        "sde.item_info",
+        "skills.easy_80_plan",
+        "market.prices"
+      ]
     },
     {
       "name": "skillplan",
@@ -1090,7 +1203,10 @@
       "external_sources": [],
       "path": ".claude/skills/skillplan/SKILL.md",
       "directory": "skillplan",
-      "data_sources": []
+      "data_sources": [],
+      "required_tools": [
+        "skills.easy_80_plan"
+      ]
     },
     {
       "name": "skillqueue",
@@ -1113,7 +1229,8 @@
       "directory": "skillqueue",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "standings",
@@ -1147,7 +1264,10 @@
       "external_sources": [],
       "path": ".claude/skills/standings/SKILL.md",
       "directory": "standings",
-      "prerequisite_files": []
+      "prerequisite_files": [],
+      "required_tools": [
+        "sde.agent_search"
+      ]
     },
     {
       "name": "threat-assessment",
@@ -1171,7 +1291,10 @@
       "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": [],
-      "has_persona_overlay": true
+      "has_persona_overlay": true,
+      "required_tools": [
+        "universe.local_area"
+      ]
     },
     {
       "name": "wallet-journal",
@@ -1196,7 +1319,8 @@
       "directory": "wallet-journal",
       "prerequisite_files": [],
       "data_sources": [],
-      "external_sources": []
+      "external_sources": [],
+      "required_tools": []
     },
     {
       "name": "watchlist",
@@ -1216,7 +1340,10 @@
       "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "esi_scopes": []
+      "esi_scopes": [],
+      "required_tools": [
+        "sde.resolve_names"
+      ]
     }
   ],
   "by_category": {

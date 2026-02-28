@@ -122,7 +122,7 @@ Edit `userdata/pilots/{your_pilot}/operations.md`:
 
 1. Set your **Home Region** and **Primary Station**
 2. Define your **Primary Activities**
-3. Ship roster is managed in `ships.md` (populated by ESI sync)
+3. Ship roster and fittings live in `ships.md` — see [SHIPS.md](SHIPS.md) for details
 
 ### Step 4: Launch ARIA
 

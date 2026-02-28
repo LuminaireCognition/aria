@@ -30,6 +30,7 @@ PERSONAS_DIR = PROJECT_ROOT / "personas"
 
 VALID_CATEGORIES = {"tactical", "operations", "financial", "identity", "system", "industry"}
 VALID_MODELS = {"haiku", "sonnet"}
+VALID_DISPATCHERS = {"universe", "market", "sde", "skills", "fitting", "killmails", "pilot", "status"}
 
 # Known trigger collisions: triggers claimed by multiple SKILL.md files where
 # the trigger_map intentionally resolves to one skill over another.
@@ -132,6 +133,7 @@ class TestIndexSchemaIntegrity:
             "prerequisite_files": list,
             "external_sources": list,
             "esi_scopes": list,
+            "required_tools": list,
         }
         for skill in skills_list:
             for field, expected_type in type_rules.items():
@@ -160,6 +162,48 @@ class TestIndexSchemaIntegrity:
             if "model" in skill:
                 assert skill["model"] in VALID_MODELS, (
                     f"Skill '{skill['name']}' has unknown model '{skill['model']}'"
+                )
+
+    def test_required_tools_field_present(self, skills_list):
+        """Every skill has a required_tools field."""
+        for skill in skills_list:
+            assert "required_tools" in skill, (
+                f"Skill '{skill['name']}' missing required_tools field"
+            )
+
+    def test_required_tools_is_list_of_strings(self, skills_list):
+        """required_tools is a list of strings."""
+        for skill in skills_list:
+            rt = skill.get("required_tools")
+            if rt is None:
+                continue
+            assert isinstance(rt, list), (
+                f"Skill '{skill['name']}': required_tools should be list, "
+                f"got {type(rt).__name__}"
+            )
+            for entry in rt:
+                assert isinstance(entry, str), (
+                    f"Skill '{skill['name']}': required_tools entry {entry!r} "
+                    f"should be str, got {type(entry).__name__}"
+                )
+
+    def test_required_tools_format(self, skills_list):
+        """required_tools entries follow dispatcher.action format with known dispatchers."""
+        for skill in skills_list:
+            for entry in skill.get("required_tools", []):
+                parts = entry.split(".", 1)
+                assert len(parts) == 2, (
+                    f"Skill '{skill['name']}': required_tools entry '{entry}' "
+                    f"must be 'dispatcher.action' format"
+                )
+                dispatcher, action = parts
+                assert dispatcher in VALID_DISPATCHERS, (
+                    f"Skill '{skill['name']}': unknown dispatcher '{dispatcher}' "
+                    f"in required_tools entry '{entry}'. "
+                    f"Valid: {sorted(VALID_DISPATCHERS)}"
+                )
+                assert action, (
+                    f"Skill '{skill['name']}': empty action in '{entry}'"
                 )
 
 

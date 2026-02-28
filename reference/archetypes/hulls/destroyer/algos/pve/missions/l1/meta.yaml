@@ -1,0 +1,112 @@
+# Algos L1 Missions - Shield Drone
+#
+# Shield-tanked drone Algos for L1 missions.
+# Drone DPS primary, meta autocannons for supplemental damage.
+# Probe launcher in utility high for exploration between missions.
+
+archetype:
+  hull: Algos
+  skill_tier: meta
+  omega_required: false
+
+attribution:
+  author: iBeast (adapted)
+  source: HiSec PvE Community Fits
+  license: community
+
+eft: |
+  [Algos, L1 Missions - Shield Drone]
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Nanofiber Internal Structure I
+
+  1MN Monopropellant Enduring Afterburner
+  Medium Azeotropic Restrained Shield Extender
+  Compact Multispectrum Shield Hardener
+
+  150mm Light Prototype Automatic Cannon
+  150mm Light Prototype Automatic Cannon
+  150mm Light Prototype Automatic Cannon
+  150mm Light Prototype Automatic Cannon
+  150mm Light Prototype Automatic Cannon
+  Core Probe Launcher I
+
+  Small EM Shield Reinforcer I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+  Hobgoblin I x5
+
+  Phased Plasma S x2800
+  Core Scanner Probe I x16
+
+skill_requirements:
+  required:
+    Gallente Destroyer: 3
+    Drones: 4
+    Light Drone Operation: 3
+    Drone Avionics: 3
+  recommended:
+    Drone Sharpshooting: 3
+    Drone Durability: 3
+    Small Projectile Turret: 3
+    Astrometrics: 3
+
+stats:
+  dps: 146  # drone-only (turret DPS from cargo ammo not calculated by EOS)
+  ehp: 9084
+  align_time: 5.0
+  speed_ab: 698
+  validated_date: "2026-02-27"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: shield_buffer
+
+  overrides:
+    serpentis:
+      drones:
+        light: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal - Hobgoblins deal Thermal"
+
+    angel_cartel:
+      drones:
+        light: "Warrior I"
+      notes: "Angels weak to Explosive - Warriors deal Explosive"
+
+    blood_raiders:
+      drones:
+        light: "Acolyte I"
+      notes: "Blood Raiders weak to EM - Acolytes deal EM"
+
+    guristas:
+      drones:
+        light: "Hornet I"
+      notes: "Guristas weak to Kinetic - Hornets deal Kinetic"
+
+    rogue_drones:
+      drones:
+        light: "Acolyte I"
+      notes: "Drones weak to EM - Acolytes deal EM"
+
+notes:
+  purpose: "L1 mission runner with probe launcher for opportunistic exploration"
+  engagement: "Orbit at 10-15km with AB, let drones do primary DPS, autocannons for supplemental"
+  warnings:
+    - "Nanofiber improves align time for warping between rooms"
+    - "Probe launcher sacrifices 1 turret slot for scanning utility"
+    - "EM shield reinforcer plugs the shield EM hole"
+    - "Autocannons use no cap - good synergy with shield tank"
+    - "Swap drone damage type to match faction weakness"
+
+upgrade_path:
+  next_tier: t2
+  key_upgrades:
+    - module: "150mm Light Prototype Automatic Cannon"
+      upgrade_to: "150mm AutoCannon II"
+      skill_required: "Small Projectile Turret 5"
+    - module: "Compact Multispectrum Shield Hardener"
+      upgrade_to: "Multispectrum Shield Hardener II"
+      skill_required: "Tactical Shield Manipulation 4"
+    - ship: "Vexor"
+      notes: "Cruiser upgrade for L2 missions with 75 Mbit drone bandwidth"

@@ -92,6 +92,8 @@ In skill docs, `{active_pilot}` = the resolved pilot directory from boot.
 
 ### Persona Loading (runtime)
 
+If boot context is unavailable (e.g., after `/clear`), resolve `{active_pilot}` from `userdata/pilots/_registry.json`, read `profile.md` for `rp_level`, and read `.persona-context-compiled.json` for `persona.name` and overlay paths.
+
 If `persona.name` is not "ARIA" and `rp_level` is not "off":
 1. Read the compiled persona artifact: `userdata/pilots/{active_pilot}/.persona-context-compiled.json`
 2. Validate staleness: profile `faction` should map to the persona branch (empire factions → `empire`, pirate → `pirate`). If mismatch, warn the user and suggest `uv run aria-esi persona-context`. Continue with current context.
@@ -136,6 +138,8 @@ uv run python -m aria_esi <args>
 # Tests (always use -n auto for parallel execution)
 uv run pytest -n auto
 ```
+
+**Check call signatures before invoking tools.** For CLI subcommands, run `<command> --help` to confirm exact flag names. For MCP tools, review the parameter schema in the tool definition. Do not guess parameter or flag names from memory.
 
 **Full reference:** `dev/docs/PYTHON_ENVIRONMENT.md`
 
@@ -183,6 +187,8 @@ When a skill is invoked:
 2. **Check for overlay** if `has_persona_overlay: true` in `_index.json`: check `{skill_overlay_path}/{name}.md`, fall back to `overlay_fallback_path` if set.
 3. **Pre-read prerequisite files (MANDATORY GATE)** — If the skill declares `prerequisite_files`, read ALL listed files before producing any output. This is a blocking requirement — skipping it causes hallucination from training data.
 4. **Use `data_sources`** — Read contextual files when relevant (pilot profiles, etc.).
+
+**Pilot resolution:** `{active_pilot}` is resolved by the boot hook. If boot context is unavailable (e.g., after `/clear`), read `userdata/pilots/_registry.json` to get the pilot directory. Always use exact paths via Read — never Glob through `userdata/` (it is gitignored).
 
 **Path security:** All persona/overlay paths must start with `personas/` or `.claude/skills/`, end with `.md`/`.yaml`/`.json`, contain no `..` traversal, and be relative. See `personas/_shared/skill-loading.md`.
 

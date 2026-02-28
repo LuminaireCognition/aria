@@ -18,6 +18,7 @@ esi_scopes:
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/operations.md
+  - reference/archetypes/INDEX.md
 external_sources: []
 ---
 
@@ -122,7 +123,7 @@ Categorize recommendations:
 For each recommendation, provide:
 - **Why this ship**: What makes it good for the activity (verified from SDE)
 - **Key skills**: Most important skills to train
-- **Fit budget**: Typical hull + fit cost
+- **Fit budget**: Typical hull + fit cost (check `reference/archetypes/INDEX.md` for reference fit and use archetype `skill_requirements.required` for readiness calculation)
 - **Upgrade path**: What comes after this ship
 
 ## Response Format
