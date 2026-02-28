@@ -1,0 +1,108 @@
+# Raven L4 Missions - Low Skill Variant
+#
+# Entry-level fit for pilots new to L4 missions.
+# Cruise missiles with active shield tank.
+
+archetype:
+  hull: Raven
+  skill_tier: t1
+  omega_required: false
+
+eft: |
+  [Raven, L4 Missions - Low Skills]
+
+  Ballistic Control System I
+  Ballistic Control System I
+  Ballistic Control System I
+  Nanofiber Internal Structure I
+  [Empty Low slot]
+
+  X-Large Shield Booster I
+  Multispectrum Shield Hardener I
+  Multispectrum Shield Hardener I
+  Large Compact Pb-Acid Cap Battery
+  100MN Y-S8 Compact Afterburner
+  Cap Recharger I
+  Cap Recharger I
+
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  [Empty High slot]
+
+  Large Capacitor Control Circuit I
+  Large Capacitor Control Circuit I
+  Large Capacitor Control Circuit I
+
+  Hobgoblin I x5
+
+  Scourge Cruise Missile x2000
+
+skill_requirements:
+  required:
+    Caldari Battleship: 3
+    Cruise Missiles: 3
+    Missile Launcher Operation: 4
+    Shield Operation: 4
+    Shield Management: 4
+    Shield Upgrades: 3
+  recommended:
+    Warhead Upgrades: 4
+    Rapid Launch: 3
+    Guided Missile Precision: 3
+    Capacitor Management: 4
+
+stats:
+  dps: null  # missile DPS from cargo ammo not calculated by EOS
+  ehp: 45594
+  align_time: 15.0
+  speed_ab: 391
+  validated_date: "2026-02-27"
+
+damage_tuning:
+  default_damage: kinetic  # Scourge missiles - Caldari bonus
+  tank_profile: shield_active
+
+  overrides:
+    serpentis:
+      ammo: "Inferno Cruise Missile"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Nova Cruise Missile"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "Mjolnir Cruise Missile"
+      notes: "Blood Raiders weak to EM - watch for neuts"
+    guristas:
+      ammo: "Scourge Cruise Missile"
+      notes: "Guristas weak to Kinetic - default ammo optimal"
+    sansha:
+      ammo: "Mjolnir Cruise Missile"
+      notes: "Sansha weak to EM"
+
+notes:
+  purpose: "Entry-level L4 mission runner - iconic Caldari battleship"
+  engagement: "Warp in at 70km, engage at 80-100km range"
+  warnings:
+    - "Pulse shield booster - don't run constantly"
+    - "Missiles apply poorly to frigates - use drones"
+    - "Cap battery helps vs neuts"
+    - "EM hole with 2x Multispectrum only - add EM hardener when CPU allows"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Cruise Missile Launcher I"
+      upgrade_to: "Cruise Missile Launcher II"
+      skill_required: "Cruise Missiles 5"
+    - module: "Multispectrum Shield Hardener I"
+      upgrade_to: "Multispectrum Shield Hardener II"
+      skill_required: "Tactical Shield Manipulation 4"
+    - module: "X-Large Shield Booster I"
+      upgrade_to: "X-Large Shield Booster II"
+      skill_required: "Shield Operation 5"
+    - ship: "Golem (Marauder)"
+      notes: "2x DPS with Bastion, requires 2B+ ISK"

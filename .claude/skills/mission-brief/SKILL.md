@@ -21,6 +21,7 @@ data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
   - reference/pve-intel/cache/INDEX.md
+  - reference/archetypes/INDEX.md
   - reference/mechanics/missiles.json
   - reference/mechanics/projectile_turrets.json
   - reference/mechanics/laser_turrets.json
@@ -178,7 +179,7 @@ After writing, update `reference/pve-intel/cache/INDEX.md` under the appropriate
 
 ### Adaptation Rules
 
-- Start from pilot's existing fit for that hull (from ships.md). If no fit exists for this hull: build a basic fit matching the hull's role and pilot's module tier, mark it as "(suggested fit — not from pilot's hangar)" in the brief, and check whether ships.md has a better hull with an existing fit.
+- Start from pilot's existing fit for that hull (from ships.md). If no fit exists for this hull: check `reference/archetypes/INDEX.md` for a matching hull + activity archetype. If found, read the archetype YAML, use its `eft` block as baseline, apply `damage_tuning.overrides.{faction}` for hardener/drone/ammo swaps, and check `skill_requirements.required` against pilot tier. If no archetype match: build a basic fit matching the hull's role and pilot's module tier. Mark suggested fits as "(suggested fit — not from pilot's hangar)" in the brief.
 - Swap hardeners to match enemy damage profile (from `reference/mechanics/npc_damage_types.md`)
 - Swap drones to deal enemy's weakness — read `reference/mechanics/drones.json → enemy_recommendations.{faction}`
 - Swap ammo/charges/crystals — read the weapon JSON (see Weapon JSON Lookup below) → `enemy_recommendations.{faction}`

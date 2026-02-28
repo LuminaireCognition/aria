@@ -410,7 +410,8 @@
         "esi-wallet.read_character_wallet.v1"
       ],
       "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md"
+        "userdata/pilots/{active_pilot}/profile.md",
+        "reference/archetypes/_shared/module_tiers.yaml"
       ],
       "external_sources": [],
       "path": ".claude/skills/fit-budget/SKILL.md",
@@ -479,6 +480,8 @@
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md",
+        "reference/archetypes/INDEX.md",
+        "reference/archetypes/_shared/module_tiers.yaml",
         "reference/mechanics/missiles.json",
         "reference/mechanics/projectile_turrets.json",
         "reference/mechanics/laser_turrets.json",
@@ -874,16 +877,17 @@
       "requires_pilot": true,
       "prerequisite_files": [
         "reference/mechanics/npc_damage_types.md",
-        "reference/mechanics/drones.json",
-        "reference/mechanics/missiles.json",
-        "reference/mechanics/projectile_turrets.json",
-        "reference/mechanics/laser_turrets.json",
-        "reference/mechanics/hybrid_turrets.json"
+        "reference/mechanics/drones.json"
       ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md",
-        "reference/pve-intel/cache/INDEX.md"
+        "reference/pve-intel/cache/INDEX.md",
+        "reference/archetypes/INDEX.md",
+        "reference/mechanics/missiles.json",
+        "reference/mechanics/projectile_turrets.json",
+        "reference/mechanics/laser_turrets.json",
+        "reference/mechanics/hybrid_turrets.json"
       ],
       "external_sources": [
         "wiki.eveuniversity.org"
@@ -1157,7 +1161,8 @@
       ],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/operations.md"
+        "userdata/pilots/{active_pilot}/operations.md",
+        "reference/archetypes/INDEX.md"
       ],
       "external_sources": [],
       "path": ".claude/skills/ship-next/SKILL.md",

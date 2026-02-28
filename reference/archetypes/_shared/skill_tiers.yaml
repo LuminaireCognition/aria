@@ -1,0 +1,201 @@
+# Skill Tier Definitions
+#
+# Defines what each skill tier represents in terms of training level
+# and expected capability.
+#
+# New tier names (v2):
+#   t1 -> Basic T1/Meta 0 modules, minimal skills
+#   meta -> Meta/Compact modules, moderate skills
+#   t2_budget -> Mix of T1/T2 modules, good skills
+#   t2_optimal -> Full T2 modules, maxed relevant skills
+#
+# Migration from legacy names:
+#   low -> t1
+#   medium -> meta
+#   high -> t2_optimal
+#   alpha -> t1 (with omega_required: false)
+
+tiers:
+  t1:
+    description: "Entry-level fit with basic modules"
+    typical_sp: "500k - 2M"
+    core_skills: 3
+    weapon_skills: 3
+    ship_skills: 3
+    omega_required: false  # Can be flown by alpha clones
+    notes: "Focus on core skills, T1/Meta 0 modules, basic understanding"
+    expected_capabilities:
+      - "Can fly T1 frigates and destroyers effectively"
+      - "Basic tank skills (Mechanics, Shield Management III)"
+      - "Basic weapon skills at III"
+      - "May struggle with T1 cruisers fitting-wise"
+    module_expectations:
+      - "T1 base modules (Meta 0)"
+      - "Some Compact meta modules for fitting"
+      - "T1 drones only"
+    validation_rules:
+      forbidden_module_patterns:
+        - " II$"  # No T2 modules
+      max_skill_level: 5
+
+  meta:
+    description: "Established pilot with meta/compact modules"
+    typical_sp: "5M - 15M"
+    core_skills: 4
+    weapon_skills: 4
+    ship_skills: 4
+    omega_required: true  # Requires omega for T2 tank typically
+    notes: "Solid foundation, meta modules for better stats, T2 tank"
+    expected_capabilities:
+      - "Comfortable in T1 cruisers and battlecruisers"
+      - "T2 tank modules (repairers, hardeners)"
+      - "Support skills at IV"
+      - "Drone skills for drone boats at IV"
+    module_expectations:
+      - "Meta/Compact modules (better stats, easier fitting)"
+      - "T2 tank modules"
+      - "T1 or T2 drones depending on training"
+
+  t2_budget:
+    description: "Skilled pilot with selective T2 upgrades"
+    typical_sp: "15M - 25M"
+    core_skills: 5
+    weapon_skills: 4
+    ship_skills: 5
+    omega_required: true
+    notes: "Strategic T2 upgrades where most impactful, budget-conscious"
+    expected_capabilities:
+      - "Full T2 tank modules"
+      - "T2 weapons in primary system"
+      - "T2 drones for drone boats"
+      - "Core support skills at V"
+    module_expectations:
+      - "T2 modules in key slots"
+      - "Meta modules where T2 doesn't add significant value"
+      - "Faction modules where ISK-efficient"
+
+  t2_optimal:
+    description: "Specialized pilot with maxed relevant skills"
+    typical_sp: "25M+"
+    core_skills: 5
+    weapon_skills: 5
+    ship_skills: 5
+    omega_required: true
+    notes: "Full T2 capability, maximum performance for hull"
+    expected_capabilities:
+      - "All T2 modules in role"
+      - "T2 drones for drone boats"
+      - "Support skills at V"
+      - "Near-maximum performance for hull"
+    module_expectations:
+      - "T2 everything"
+      - "May use faction modules where beneficial"
+      - "Deadspace/Officer only where justified by cost/benefit"
+
+# Legacy tier definitions (deprecated, kept for reference)
+legacy_tiers:
+  alpha:
+    description: "Alpha clone limitations"
+    max_skill_level: 5
+    module_restriction: "T1 and Meta only, no T2 weapons"
+    notes: "Cannot use T2 weapons, limited ship selection"
+    migration_target: "t1"  # Migrate to t1 with omega_required: false
+    typical_ships:
+      - "Venture (Mining Frigate)"
+      - "Heron (Exploration Frigate)"
+      - "Caracal (Cruiser)"
+      - "Vexor (Cruiser)"
+      - "Drake (Battlecruiser)"
+      - "Praxis (Battleship - special)"
+    validation_rules:
+      forbidden_module_patterns:
+        - " II$"  # No T2 modules
+        - "Siege Module"
+        - "Bastion Module"
+      forbidden_ship_patterns:
+        - "^Marauder"
+        - "^Strategic Cruiser"
+        - "^Black Ops"
+        - "^Command Ship"
+
+  low:
+    description: "New pilot, basic trained (legacy name for t1)"
+    migration_target: "t1"
+
+  medium:
+    description: "Established pilot, focused training (legacy name for meta)"
+    migration_target: "meta"
+
+  high:
+    description: "Specialized pilot, maxed relevant skills (legacy name for t2_optimal)"
+    migration_target: "t2_optimal"
+
+# Core skills by category
+# Used for generating skill requirements
+core_skill_categories:
+  tank_armor:
+    - "Mechanics"
+    - "Hull Upgrades"
+    - "Armor Repair Systems"
+
+  tank_shield:
+    - "Shield Management"
+    - "Shield Operation"
+    - "Shield Upgrades"
+    - "Tactical Shield Manipulation"
+
+  capacitor:
+    - "Capacitor Management"
+    - "Capacitor Systems Operation"
+
+  navigation:
+    - "Navigation"
+    - "Acceleration Control"
+    - "Evasive Maneuvering"
+    - "Warp Drive Operation"
+
+  targeting:
+    - "Long Range Targeting"
+    - "Target Management"
+    - "Signature Analysis"
+
+  drones:
+    - "Drones"
+    - "Drone Durability"
+    - "Drone Navigation"
+    - "Drone Sharpshooting"
+    - "Drone Interfacing"
+
+  missiles:
+    - "Missile Launcher Operation"
+    - "Warhead Upgrades"
+    - "Rapid Launch"
+    - "Target Navigation Prediction"
+
+  gunnery:
+    - "Gunnery"
+    - "Motion Prediction"
+    - "Rapid Firing"
+    - "Sharpshooter"
+    - "Surgical Strike"
+    - "Trajectory Analysis"
+
+# Tank thresholds by mission level
+# Used by selection algorithm for adequacy checking
+tank_thresholds:
+  l1:
+    active: 15       # EHP/s
+    buffer: 8000     # EHP
+    passive: 15      # EHP/s
+  l2:
+    active: 50
+    buffer: 20000
+    passive: 50
+  l3:
+    active: 150
+    buffer: 45000
+    passive: 150
+  l4:
+    active: 300
+    buffer: 80000
+    passive: 300

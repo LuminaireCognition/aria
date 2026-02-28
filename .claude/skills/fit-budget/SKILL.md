@@ -17,6 +17,7 @@ esi_scopes:
   - esi-wallet.read_character_wallet.v1
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
+  - reference/archetypes/_shared/module_tiers.yaml
 external_sources: []
 ---
 
@@ -93,6 +94,7 @@ sde(action="meta_variants", item="Module Name")
 ```
 
 Common downgrade tiers: Faction → T2 → Meta 4 → Meta 1-3 → T1 base.
+For systematic module downgrades, reference `reference/archetypes/_shared/module_tiers.yaml`.
 For drones: T2 → T1 (same name without "II"). Use `meta_variants` to confirm.
 
 **Selection priority:**
