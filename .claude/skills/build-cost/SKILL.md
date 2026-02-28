@@ -53,6 +53,20 @@ market(action="build_cost", item="Dominix", me_level=10)
 
 Present as a comparison table showing cost and savings at each ME level.
 
+## Scope Boundaries
+
+The `build_cost` tool calculates manufacturing cost from an existing BPC/BPO. It does **NOT** cover:
+
+- **T2 invention costs** — datacores, decryptors, success rates, amortized attempt costs
+- **Recursive build chains** — build-vs-buy at each component tier, vertical integration analysis
+- **Job installation fees** — system cost indices, facility taxes, SCC surcharges
+
+If the user's question involves any of these, **state the limitation upfront** before presenting results. Example:
+
+> **Note:** `build_cost` covers manufacturing material cost only. Invention economics (datacore costs, decryptor modifiers, success rates) are not included — the margin shown is manufacturing-only and does not reflect total T2 production cost.
+
+Then present what the tool can provide. Do not attempt to fill the gap with generated analysis. End with a brief actionable pointer for the user (e.g., "Use an external T2 invention calculator to factor in decryptor economics" or "A full vertical integration analysis requires comparing component build costs individually").
+
 ## Response Presentation
 
 **Never do arithmetic.** Use pre-formatted strings directly from the response.
@@ -91,7 +105,7 @@ The totals below are UNDERSTATED.
 (use materials[] — present unit_price_formatted and total_cost_formatted directly)
 
 ### Category Subtotals
-(use category_subtotals[] — present total_cost_formatted directly)
+(use category_subtotals[] — present items count and total_cost_formatted directly)
 
 **Total Material Cost:** total_material_cost_formatted
 
@@ -106,6 +120,8 @@ The totals below are UNDERSTATED.
 | **Margin** | **profitability.margin_pct%** |
 
 *Prices from region. Does not include job fees, facility bonuses beyond ME, or taxes.*
+
+(If margin is negative and ME < 10 or no facility bonus, suggest: "Consider re-running with higher ME or a facility bonus — e.g. `/build-cost <item> --me 10 --facility Azbel`")
 ```
 
 ### ME Comparison Table
@@ -129,3 +145,5 @@ For savings, use the raw `total_material_cost` numbers to compute the difference
 - **DO NOT** query `sde(action="blueprint_info")` or `market(action="prices")` separately
 - **DO NOT** present incomplete calculations as complete
 - **DO NOT** include speculative pricing or predictions
+- **DO NOT** fabricate build chain analysis, vertical integration comparisons, or cost estimates not sourced from the tool response
+- **DO NOT** answer T2 invention or decryptor questions as if the manufacturing-only margin is the full answer
