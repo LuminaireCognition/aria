@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import shutil
 import subprocess
@@ -142,6 +143,9 @@ def run_query(
     if model:
         cmd.extend(["--model", model])
 
+    # Strip CLAUDECODE env var so subprocesses aren't blocked by nesting check
+    env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+
     start = time.monotonic()
 
     try:
@@ -152,6 +156,7 @@ def run_query(
             text=True,
             timeout=timeout,
             cwd=str(PROJECT_ROOT),
+            env=env,
         )
         duration = time.monotonic() - start
 
