@@ -184,6 +184,8 @@ When a skill is invoked:
 3. **Pre-read prerequisite files (MANDATORY GATE)** — If the skill declares `prerequisite_files`, read ALL listed files before producing any output. This is a blocking requirement — skipping it causes hallucination from training data.
 4. **Use `data_sources`** — Read contextual files when relevant (pilot profiles, etc.).
 
+**Pilot resolution:** `{active_pilot}` is resolved by the boot hook. If boot context is unavailable (e.g., after `/clear`), read `userdata/pilots/_registry.json` to get the pilot directory. Always use exact paths via Read — never Glob through `userdata/` (it is gitignored).
+
 **Path security:** All persona/overlay paths must start with `personas/` or `.claude/skills/`, end with `.md`/`.yaml`/`.json`, contain no `..` traversal, and be relative. See `personas/_shared/skill-loading.md`.
 
 ## Reference Documentation
