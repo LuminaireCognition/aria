@@ -53,6 +53,12 @@ market(action="build_cost", item="Dominix", me_level=10)
 
 Present as a comparison table showing cost and savings at each ME level.
 
+### T2 Items
+
+T2 BPC ME is fixed by the invention process (base ME 0, modified by decryptor). When the item is T2 and no ME is specified, **skip ME comparison mode** — use ME 0 and present a single result. Add a note:
+
+> T2 BPC ME depends on the decryptor used during invention. Showing ME 0 (invention base). Specify `--me N` to calculate at a different level.
+
 ## Scope Boundaries
 
 The `build_cost` tool calculates manufacturing cost from an existing BPC/BPO. It does **NOT** cover:
@@ -91,7 +97,7 @@ The totals below are UNDERSTATED.
 ### Standard Response
 
 ```
-## Build Cost: [Item] [complexity]
+## Build Cost: {item_name} ({complexity})
 
 **Blueprint:** blueprint.blueprint_name
 **ME Level:** blueprint.me_level (N% material reduction)
@@ -119,7 +125,9 @@ The totals below are UNDERSTATED.
 | **Gross Profit** | **profitability.gross_profit_formatted** |
 | **Margin** | **profitability.margin_pct%** |
 
-*Prices from region. Does not include job fees, facility bonuses beyond ME, or taxes.*
+(REQUIRED — always include this footer)
+---
+*Prices from {region}. Does not include job fees, facility bonuses beyond ME, or taxes.*
 
 (If margin is negative and ME < 10 or no facility bonus, suggest: "Consider re-running with higher ME or a facility bonus — e.g. `/build-cost <item> --me 10 --facility Azbel`")
 ```
@@ -137,6 +145,16 @@ When showing ME 0/5/10:
 ```
 
 For savings, use the raw `total_material_cost` numbers to compute the difference, then describe using formatted values from each result.
+
+### Output Checklist
+
+Every response MUST include all of these elements:
+1. Heading: `## Build Cost: {item_name} ({complexity})`
+2. Blueprint metadata block (name, ME, runs, facility)
+3. Bill of Materials table
+4. Profitability table
+5. Footer disclaimer line
+6. Negative-margin suggestion (if margin < 0 and ME < 10 or no facility)
 
 ## DO NOT
 
