@@ -38,6 +38,28 @@ def _make_client(**overrides: Any) -> MagicMock:
     return client
 
 
+def _mock_resolve_type_ids(type_ids, *, esi_client=None):
+    """Test helper: resolve type IDs from a fixed lookup table."""
+    lookup = {
+        100: {"name": "Rifter", "group_id": 25, "market_group_id": None},
+        200: {"name": "1MN Afterburner", "group_id": 999, "market_group_id": None},
+    }
+    # Also support Vexor (group 26) and Venture (group 25) for other tests
+    lookup.update({
+        101: {"name": "Vexor", "group_id": 26, "market_group_id": None},
+        102: {"name": "Venture", "group_id": 25, "market_group_id": None},
+    })
+    return {tid: lookup.get(tid, {"name": f"Unknown-{tid}", "group_id": 0, "market_group_id": None}) for tid in type_ids}
+
+
+def _mock_resolve_station_names(station_ids, *, esi_client=None):
+    """Test helper: resolve station IDs from a fixed lookup table."""
+    lookup = {
+        60003760: "Jita IV - Moon 4",
+    }
+    return {sid: lookup.get(sid, f"Structure-{sid}") for sid in station_ids}
+
+
 # =============================================================================
 # TestFetchShipRoster
 # =============================================================================
@@ -56,7 +78,9 @@ class TestFetchShipRoster:
         client.get_list.side_effect = ESIError("server error")
         assert fetch_ship_roster(client, 123) == []
 
-    def test_filters_non_ship_assets(self) -> None:
+    @patch("aria_esi.commands._resolution.resolve_station_names", side_effect=_mock_resolve_station_names)
+    @patch("aria_esi.commands._resolution.resolve_type_ids", side_effect=_mock_resolve_type_ids)
+    def test_filters_non_ship_assets(self, mock_types, mock_stations) -> None:
         """Only items whose group_id is in SHIP_GROUP_IDS are returned."""
         client = _make_client()
         # Two assembled hangar items: one ship (group 25), one module (group 999)
@@ -64,17 +88,6 @@ class TestFetchShipRoster:
             {"item_id": 1, "type_id": 100, "is_singleton": True, "location_flag": "Hangar", "location_id": 60003760},
             {"item_id": 2, "type_id": 200, "is_singleton": True, "location_flag": "Hangar", "location_id": 60003760},
         ]
-        # Type 100 = Frigate (group 25), Type 200 = Module (group 999)
-        def type_lookup(endpoint, **kwargs):
-            if "100" in endpoint:
-                return {"name": "Rifter", "group_id": 25}
-            if "200" in endpoint:
-                return {"name": "1MN Afterburner", "group_id": 999}
-            if "stations" in endpoint:
-                return {"name": "Jita IV - Moon 4"}
-            return {}
-
-        client.get_dict_safe.side_effect = type_lookup
         client.post_safe.return_value = [
             {"item_id": 1, "name": "Rifter"},
         ]
@@ -83,21 +96,18 @@ class TestFetchShipRoster:
         assert len(ships) == 1
         assert ships[0]["type_name"] == "Rifter"
 
-    def test_custom_names_applied(self) -> None:
+    @patch("aria_esi.commands._resolution.resolve_station_names", side_effect=_mock_resolve_station_names)
+    @patch("aria_esi.commands._resolution.resolve_type_ids")
+    def test_custom_names_applied(self, mock_types, mock_stations) -> None:
         """Custom ship names different from type name are applied."""
+        mock_types.side_effect = lambda ids, **kw: {
+            tid: {"name": "Vexor", "group_id": 26, "market_group_id": None} for tid in ids
+        }
+
         client = _make_client()
         client.get_list.return_value = [
             {"item_id": 1, "type_id": 100, "is_singleton": True, "location_flag": "Hangar", "location_id": 60003760},
         ]
-
-        def type_lookup(endpoint, **kwargs):
-            if "types/100" in endpoint:
-                return {"name": "Vexor", "group_id": 26}
-            if "stations" in endpoint:
-                return {"name": "Dodixie IX - Moon 20"}
-            return {}
-
-        client.get_dict_safe.side_effect = type_lookup
         client.post_safe.return_value = [
             {"item_id": 1, "name": "My Special Vexor"},
         ]
@@ -105,21 +115,18 @@ class TestFetchShipRoster:
         ships = fetch_ship_roster(client, 123)
         assert ships[0]["custom_name"] == "My Special Vexor"
 
-    def test_custom_name_same_as_type_is_empty(self) -> None:
+    @patch("aria_esi.commands._resolution.resolve_station_names", side_effect=_mock_resolve_station_names)
+    @patch("aria_esi.commands._resolution.resolve_type_ids")
+    def test_custom_name_same_as_type_is_empty(self, mock_types, mock_stations) -> None:
         """If custom name == type name, custom_name should be empty string."""
+        mock_types.side_effect = lambda ids, **kw: {
+            tid: {"name": "Vexor", "group_id": 26, "market_group_id": None} for tid in ids
+        }
+
         client = _make_client()
         client.get_list.return_value = [
             {"item_id": 1, "type_id": 100, "is_singleton": True, "location_flag": "Hangar", "location_id": 60003760},
         ]
-
-        def type_lookup(endpoint, **kwargs):
-            if "types/100" in endpoint:
-                return {"name": "Vexor", "group_id": 26}
-            if "stations" in endpoint:
-                return {"name": "Dodixie"}
-            return {}
-
-        client.get_dict_safe.side_effect = type_lookup
         client.post_safe.return_value = [
             {"item_id": 1, "name": "Vexor"},
         ]
@@ -143,22 +150,21 @@ class TestFetchShipRoster:
         ]
         assert fetch_ship_roster(client, 123) == []
 
-    def test_structure_location_fallback(self) -> None:
+    @patch("aria_esi.commands._resolution.resolve_station_names")
+    @patch("aria_esi.commands._resolution.resolve_type_ids")
+    def test_structure_location_fallback(self, mock_types, mock_stations) -> None:
         """Unknown locations fall back to Structure-{id} name."""
+        mock_types.side_effect = lambda ids, **kw: {
+            tid: {"name": "Venture", "group_id": 25, "market_group_id": None} for tid in ids
+        }
+        mock_stations.side_effect = lambda ids, **kw: {
+            sid: f"Structure-{sid}" for sid in ids
+        }
+
         client = _make_client()
         client.get_list.return_value = [
             {"item_id": 1, "type_id": 100, "is_singleton": True, "location_flag": "Hangar", "location_id": 999999999},
         ]
-
-        def type_lookup(endpoint, **kwargs):
-            if "types/100" in endpoint:
-                return {"name": "Venture", "group_id": 25}
-            # Station lookup returns empty (it's a player structure)
-            if "stations" in endpoint:
-                return {}
-            return {}
-
-        client.get_dict_safe.side_effect = type_lookup
         client.post_safe.return_value = [{"item_id": 1, "name": "Venture"}]
 
         ships = fetch_ship_roster(client, 123)
@@ -233,21 +239,18 @@ class TestFetchCurrentLocation:
 class TestFetchBlueprints:
     """Tests for fetch_blueprints()."""
 
-    def test_separates_bpos_and_bpcs(self) -> None:
+    @patch("aria_esi.commands._resolution.resolve_type_ids")
+    def test_separates_bpos_and_bpcs(self, mock_types) -> None:
+        mock_types.side_effect = lambda ids, **kw: {
+            100: {"name": "Rifter Blueprint", "group_id": 0, "market_group_id": None},
+            200: {"name": "Vexor Blueprint", "group_id": 0, "market_group_id": None},
+        }
+
         client = _make_client()
         client.get_list.return_value = [
             {"type_id": 100, "quantity": -1, "material_efficiency": 10, "time_efficiency": 20},
             {"type_id": 200, "quantity": 5, "runs": 3, "material_efficiency": 0, "time_efficiency": 0},
         ]
-
-        def type_lookup(endpoint, **kwargs):
-            if "100" in endpoint:
-                return {"name": "Rifter Blueprint"}
-            if "200" in endpoint:
-                return {"name": "Vexor Blueprint"}
-            return {}
-
-        client.get_dict_safe.side_effect = type_lookup
 
         result = fetch_blueprints(client, 123)
         assert len(result["bpos"]) == 1
@@ -273,21 +276,18 @@ class TestFetchBlueprints:
         assert result["bpos"] == []
         assert result["bpcs"] == []
 
-    def test_results_sorted_by_name(self) -> None:
+    @patch("aria_esi.commands._resolution.resolve_type_ids")
+    def test_results_sorted_by_name(self, mock_types) -> None:
+        mock_types.side_effect = lambda ids, **kw: {
+            100: {"name": "Alpha Blueprint", "group_id": 0, "market_group_id": None},
+            200: {"name": "Beta Blueprint", "group_id": 0, "market_group_id": None},
+        }
+
         client = _make_client()
         client.get_list.return_value = [
             {"type_id": 200, "quantity": -1, "material_efficiency": 0, "time_efficiency": 0},
             {"type_id": 100, "quantity": -1, "material_efficiency": 0, "time_efficiency": 0},
         ]
-
-        def type_lookup(endpoint, **kwargs):
-            if "100" in endpoint:
-                return {"name": "Alpha Blueprint"}
-            if "200" in endpoint:
-                return {"name": "Beta Blueprint"}
-            return {}
-
-        client.get_dict_safe.side_effect = type_lookup
 
         result = fetch_blueprints(client, 123)
         assert result["bpos"][0]["name"] == "Alpha Blueprint"

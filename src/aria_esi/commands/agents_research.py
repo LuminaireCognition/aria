@@ -115,15 +115,12 @@ def cmd_agents_research(args: argparse.Namespace) -> dict:
                 agent_names.setdefault(aid, f"Agent-{aid}")
                 agent_corps.setdefault(aid, "Unknown Corp")
 
-    # Resolve skill type names
-    skill_names = {}
-    for tid in skill_type_ids:
-        if tid:
-            info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-            if info and "name" in info:
-                skill_names[tid] = info["name"]
-            else:
-                skill_names[tid] = f"Skill-{tid}"
+    # Resolve skill type names (batch)
+    from ._resolution import resolve_type_ids
+
+    skill_type_ids.discard(0)
+    _skill_info = resolve_type_ids(skill_type_ids, esi_client=public_client)
+    skill_names = {tid: info["name"] for tid, info in _skill_info.items()}
 
     # Process agents
     processed_agents = []

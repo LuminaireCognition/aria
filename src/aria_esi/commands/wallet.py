@@ -183,13 +183,15 @@ def cmd_wallet_journal(args: argparse.Namespace) -> dict:
         filtered_transactions, key=lambda x: x.get("date", ""), reverse=True
     )
 
+    # Batch-resolve type names for top transactions
+    from ._resolution import resolve_type_ids
+
+    _tx_type_ids = {tx["type_id"] for tx in sorted_transactions[:15] if tx.get("type_id")}
+    _tx_type_info = resolve_type_ids(_tx_type_ids, esi_client=public_client)
+    type_cache = {tid: info["name"] for tid, info in _tx_type_info.items()}
+
     for tx in sorted_transactions[:15]:
         type_id = tx.get("type_id")
-        if type_id and type_id not in type_cache:
-            type_info = public_client.get_dict_safe(f"/universe/types/{type_id}/")
-            type_cache[type_id] = (
-                type_info.get("name", f"Type {type_id}") if type_info else f"Type {type_id}"
-            )
 
         recent_transactions.append(
             {

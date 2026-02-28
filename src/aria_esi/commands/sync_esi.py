@@ -53,13 +53,11 @@ def fetch_ship_roster(client: ESIClient, char_id: int) -> list[dict[str, Any]]:
         type_ids.add(asset["type_id"])
         ship_assets.append(asset)
 
-    # Resolve type info to filter to ships and get names
+    # Resolve type info to filter to ships and get names (batch)
+    from ._resolution import resolve_type_ids
+
     ship_group_ids = get_ship_group_ids()
-    type_info: dict[int, dict[str, Any]] = {}
-    for tid in type_ids:
-        info = client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            type_info[tid] = {"name": info["name"], "group_id": info.get("group_id", 0)}
+    type_info = resolve_type_ids(type_ids, esi_client=client)
 
     # Filter to only ships and build roster
     ships: list[dict[str, Any]] = []
@@ -93,15 +91,11 @@ def fetch_ship_roster(client: ESIClient, char_id: int) -> list[dict[str, Any]]:
                 custom_name = name_lookup.get(ship["item_id"], "")
                 ship["custom_name"] = custom_name if custom_name != ship["type_name"] else ""
 
-    # Resolve location names
+    # Resolve location names (batch)
+    from ._resolution import resolve_station_names
+
     location_ids = {s["location_id"] for s in ships}
-    location_names: dict[int, str] = {}
-    for lid in location_ids:
-        station_info = client.get_dict_safe(f"/universe/stations/{lid}/")
-        if station_info and "name" in station_info:
-            location_names[lid] = station_info["name"]
-        else:
-            location_names[lid] = f"Structure-{lid}"
+    location_names = resolve_station_names(location_ids, esi_client=client)
 
     for ship in ships:
         ship["location_name"] = location_names.get(ship["location_id"], "Unknown")
@@ -154,13 +148,12 @@ def fetch_blueprints(client: ESIClient, char_id: int) -> dict[str, Any]:
     except ESIError:
         return {"error": "Failed to fetch blueprints", "bpos": [], "bpcs": []}
 
-    # Resolve type names
+    # Resolve type names (batch)
+    from ._resolution import resolve_type_ids
+
     type_ids = {bp["type_id"] for bp in blueprints}
-    type_names: dict[int, str] = {}
-    for tid in type_ids:
-        info = client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            type_names[tid] = info["name"]
+    _type_info = resolve_type_ids(type_ids, esi_client=client)
+    type_names: dict[int, str] = {tid: info["name"] for tid, info in _type_info.items()}
 
     bpos: list[dict[str, Any]] = []
     bpcs: list[dict[str, Any]] = []

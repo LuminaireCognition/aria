@@ -459,19 +459,11 @@ def cmd_corp_assets(args: argparse.Namespace) -> dict:
     type_ids = set(a["type_id"] for a in assets)
     location_ids = set(a["location_id"] for a in assets if a.get("location_type") == "station")
 
-    # Resolve type names (limit to first 100)
-    type_info = {}
-    for tid in list(type_ids)[:100]:
-        info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            type_info[tid] = {"name": info["name"], "group_id": info.get("group_id", 0)}
+    # Resolve type names and station names (batch, capped)
+    from ._resolution import resolve_station_names, resolve_type_ids
 
-    # Resolve station names (limit to first 50)
-    station_names = {}
-    for lid in list(location_ids)[:50]:
-        info = public_client.get_dict_safe(f"/universe/stations/{lid}/")
-        if info and "name" in info:
-            station_names[lid] = info["name"]
+    type_info = resolve_type_ids(set(list(type_ids)[:100]), esi_client=public_client)
+    station_names = resolve_station_names(set(list(location_ids)[:50]), esi_client=public_client)
 
     # Group assets by location
     assets_by_location = {}
@@ -603,12 +595,11 @@ def cmd_corp_blueprints(args: argparse.Namespace) -> dict:
     # Collect type IDs for resolution (limit to first 100)
     type_ids = set(bp["type_id"] for bp in blueprints)
 
-    # Resolve type names
-    type_names = {}
-    for tid in list(type_ids)[:100]:
-        info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            type_names[tid] = info["name"]
+    # Resolve type names (batch, capped)
+    from ._resolution import resolve_type_ids
+
+    _type_info = resolve_type_ids(set(list(type_ids)[:100]), esi_client=public_client)
+    type_names = {tid: info["name"] for tid, info in _type_info.items()}
 
     # Process blueprints
     bpos = []
@@ -732,15 +723,15 @@ def cmd_corp_jobs(args: argparse.Namespace) -> dict:
     product_ids = set(j.get("product_type_id") or j.get("blueprint_type_id") for j in jobs)
     installer_ids = set(j.get("installer_id") for j in jobs)
 
-    # Resolve product names (limit to 50)
-    product_names = {}
-    for tid in list(product_ids)[:50]:
-        if tid:
-            info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-            if info and "name" in info:
-                product_names[tid] = info["name"]
+    # Resolve product names (batch, capped at 50)
+    from ._resolution import resolve_type_ids
 
-    # Resolve installer names (limit to 20)
+    _product_ids = set(list(product_ids)[:50])
+    _product_ids.discard(0)
+    _product_info = resolve_type_ids(_product_ids, esi_client=public_client)
+    product_names = {tid: info["name"] for tid, info in _product_info.items()}
+
+    # Resolve installer names (limit to 20) — character names, not types
     installer_names = {}
     for cid in list(installer_ids)[:20]:
         if cid:
