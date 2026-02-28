@@ -73,6 +73,25 @@ If the user's question involves any of these, **state the limitation upfront** b
 
 Then present what the tool can provide. Do not attempt to fill the gap with generated analysis. End with a brief actionable pointer for the user (e.g., "Use an external T2 invention calculator to factor in decryptor economics" or "A full vertical integration analysis requires comparing component build costs individually").
 
+### Scope Limitation Ordering
+
+For T2 and complex items, the scope limitation notice MUST appear **immediately after the heading/metadata block and before the BOM table**. A single sentence is sufficient. Do NOT place scope limitations at the end of the response — users scanning quickly will miss them.
+
+### Fabrication Stop-Gate
+
+If you find yourself writing prices, rates, costs, or probabilities that did not come from a `build_cost` tool response, **STOP — you are fabricating**. This includes:
+
+- Datacore or decryptor prices
+- Invention success rates or attempt counts
+- Amortized invention costs per BPC
+- Component self-build cost estimates
+- Any "net profitability" that combines tool data with your own numbers
+
+**Bad example (DO NOT do this):**
+> Attainment Decryptor: ~2.54M ISK. Datacores: ~31.7K + ~90K ISK. Success rate: ~47%. Amortized invention cost: ~5.8M ISK/BPC. Net profit after invention: -2.7M ISK.
+
+Every number above is fabricated. The correct response states the limitation and stops.
+
 ## Response Presentation
 
 **Never do arithmetic.** Use pre-formatted strings directly from the response.
@@ -129,7 +148,8 @@ The totals below are UNDERSTATED.
 ---
 *Prices from {region}. Does not include job fees, facility bonuses beyond ME, or taxes.*
 
-(If margin is negative and ME < 10 or no facility bonus, suggest: "Consider re-running with higher ME or a facility bonus — e.g. `/build-cost <item> --me 10 --facility Azbel`")
+(REQUIRED when profitability.margin_pct < 0 AND (me_level < 10 OR no facility):)
+*Consider re-running with higher ME or a facility bonus — e.g. `/build-cost {item_name} --me 10 --facility Azbel`*
 ```
 
 ### ME Comparison Table
@@ -149,7 +169,7 @@ For savings, use the raw `total_material_cost` numbers to compute the difference
 ### Output Checklist
 
 Every response MUST include all of these elements:
-1. Heading: `## Build Cost: {item_name} ({complexity})`
+1. Heading: `## Build Cost: {item_name} ({complexity})` — pull `complexity` from `result.complexity` verbatim
 2. Blueprint metadata block (name, ME, runs, facility)
 3. Bill of Materials table
 4. Profitability table
