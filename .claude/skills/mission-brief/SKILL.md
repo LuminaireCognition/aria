@@ -18,6 +18,7 @@ prerequisite_files:
   - reference/mechanics/npc_damage_types.md
   - reference/mechanics/drones.json
   - userdata/pilots/{active_pilot}/profile.md
+  - userdata/pilots/{active_pilot}/skills.json
 data_sources:
   - userdata/pilots/{active_pilot}/ships.md
   - reference/pve-intel/cache/INDEX.md
@@ -206,13 +207,13 @@ Complete ALL steps before presenting ANY fit:
 1. Read `reference/mechanics/drones.json → enemy_recommendations.{faction}` → select drones matching faction weakness. Cross-check against Deal recommendation.
 2. Read the weapon JSON (see Weapon JSON Lookup) → `enemy_recommendations.{faction}` → select ammo matching faction weakness. Include primary + secondary ammo types with quantities in EFT output.
 3. Verify swapped module names via `sde(action="item_info")` or `reference/fittings/MODULE_NAMES.md` — EVE module naming is inconsistent.
-4. Validate the complete adapted fit via `fitting(action="calculate_stats", eft="...")`. Check BOTH `validation_errors` AND `warnings` in response metadata:
+4. Validate the complete adapted fit via `fitting(action="calculate_stats", eft="...", use_pilot_skills=True)`. This calculates stats at the pilot's actual skill levels (falls back to All V if skills cache is unavailable). Check `metadata.skill_mode` to confirm which mode was used (`"pilot_skills"` or `"all_v"`). Check BOTH `validation_errors` AND `warnings` in response metadata:
    - **Ignorable:** `"Empty X slots: N of M unused"` — normal for partially-filled fits
    - **Actionable:** `item_class` / `allowed_classes` errors — modules in wrong slots. Fix EFT section order (must be lows → mids → highs)
    - **Actionable:** CPU/PG overload, unknown module types — downgrade or correct modules
-4b. **Resource headroom check:** If CPU usage > 90% or Powergrid usage > 90% at All V skills, AND the pilot is < 60 days old (per profile.md `Capsuleer Since` — format `YCyy.mm.dd`; if absent, treat as new when no T2 modules appear in ships.md), add a warning: "Tight fit — CPU/PG may overflow at your current skill level. Train {relevant fitting skill} or downgrade {tightest module} to a compact/meta variant." Identify the fitting skill (CPU Management for CPU, Power Grid Management for PG). To identify the tightest module, check the highest-tier active module in the fit (propulsion mods and active tank modules are typically the largest consumers); name it and suggest its compact variant.
+4b. **Resource check:** If `metadata.skill_mode` = `"pilot_skills"`, CPU/PG values reflect the pilot's real skills — report them directly. If CPU or PG is overloaded (`overloaded: true`), the fit cannot be used as-is: identify the tightest module (propulsion mods and active tank are typically the largest consumers) and suggest downgrading to a compact/meta variant, or training the relevant fitting skill (CPU Management for CPU, Power Grid Management for PG). If `skill_mode` = `"all_v"` (skills cache miss), fall back to heuristic: warn if CPU/PG > 90% AND pilot < 60 days old.
 5. If any actionable warning or error exists, fix the fit and re-validate. **Never present an unvalidated fit.**
-6. **ALWAYS** call `fitting(action="extract_requirements", eft="...")` to list all skill requirements. For new pilots (< 60 days per profile.md `Capsuleer Since` — format `YCyy.mm.dd`; if absent, infer from ships.md module tiers), flag any module requiring a skill above level III as potentially unflyable. If ESI skill data is cached, also call `fitting(action="check_requirements")` for exact verification.
+6. **Skill gate (deterministic):** Read the pilot's skills from `userdata/pilots/{active_pilot}/skills.json` (loaded as prerequisite). Parse the `skills` object — keys are skill IDs (strings in JSON, convert to int), values are trained levels (int). Call `fitting(action="check_requirements", eft="...", pilot_skills={skill_id_int: level_int, ...})` — this returns `can_fly` (bool) and `missing_skills` (list with `skill_name`, `required` level, `current` level per entry). If `can_fly` is false, list the exact missing skills in the brief with required vs. current levels so the pilot knows exactly what to train. If `skills.json` is missing or unreadable (prerequisite load failed), fall back to `fitting(action="extract_requirements", eft="...")` and flag skills above level III for pilots < 60 days old (per profile.md `Capsuleer Since`).
 
 ### Gear Tier Validation
 
