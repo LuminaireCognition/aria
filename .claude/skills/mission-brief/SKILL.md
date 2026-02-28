@@ -17,8 +17,8 @@ requires_pilot: true
 prerequisite_files:
   - reference/mechanics/npc_damage_types.md
   - reference/mechanics/drones.json
-data_sources:
   - userdata/pilots/{active_pilot}/profile.md
+data_sources:
   - userdata/pilots/{active_pilot}/ships.md
   - reference/pve-intel/cache/INDEX.md
   - reference/archetypes/INDEX.md
@@ -210,8 +210,9 @@ Complete ALL steps before presenting ANY fit:
    - **Ignorable:** `"Empty X slots: N of M unused"` — normal for partially-filled fits
    - **Actionable:** `item_class` / `allowed_classes` errors — modules in wrong slots. Fix EFT section order (must be lows → mids → highs)
    - **Actionable:** CPU/PG overload, unknown module types — downgrade or correct modules
+4b. **Resource headroom check:** If CPU usage > 90% or Powergrid usage > 90% at All V skills, AND the pilot is < 60 days old (per profile.md `Capsuleer Since` — format `YCyy.mm.dd`; if absent, treat as new when no T2 modules appear in ships.md), add a warning: "Tight fit — CPU/PG may overflow at your current skill level. Train {relevant fitting skill} or downgrade {tightest module} to a compact/meta variant." Identify the fitting skill (CPU Management for CPU, Power Grid Management for PG). To identify the tightest module, check the highest-tier active module in the fit (propulsion mods and active tank modules are typically the largest consumers); name it and suggest its compact variant.
 5. If any actionable warning or error exists, fix the fit and re-validate. **Never present an unvalidated fit.**
-6. If pilot skill data is available, verify flyability via `fitting(action="check_requirements", eft="...")`. For new pilots (< 30 days), assume T1 modules only and flag any T2 items as potentially unflyable.
+6. **ALWAYS** call `fitting(action="extract_requirements", eft="...")` to list all skill requirements. For new pilots (< 60 days per profile.md `Capsuleer Since` — format `YCyy.mm.dd`; if absent, infer from ships.md module tiers), flag any module requiring a skill above level III as potentially unflyable. If ESI skill data is cached, also call `fitting(action="check_requirements")` for exact verification.
 
 ### Gear Tier Validation
 
