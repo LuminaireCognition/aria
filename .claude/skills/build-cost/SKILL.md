@@ -59,6 +59,8 @@ T2 BPC ME is fixed by the invention process (base ME 0, modified by decryptor). 
 
 > T2 BPC ME depends on the decryptor used during invention. Showing ME 0 (invention base). Specify `--me N` to calculate at a different level.
 
+**When the user names a specific decryptor** (e.g., "with the Attainment decryptor"), look up its ME modifier via `sde(action="item_info", item="Attainment Decryptor")` and use the resulting ME value in the `build_cost` call. This is SDE-sourced data, not fabrication. If the SDE lookup fails, fall back to ME 0 with the standard note above.
+
 ## Scope Boundaries
 
 The `build_cost` tool calculates manufacturing cost from an existing BPC/BPO. It does **NOT** cover:
@@ -115,6 +117,8 @@ The totals below are UNDERSTATED.
 
 ### Standard Response
 
+**Heading format uses parentheses**, not square brackets: `(complex)` not `[complex]`.
+
 ```
 ## Build Cost: {item_name} ({complexity})
 
@@ -130,7 +134,10 @@ The totals below are UNDERSTATED.
 (use materials[] — present unit_price_formatted and total_cost_formatted directly)
 
 ### Category Subtotals
-(use category_subtotals[] — present items count and total_cost_formatted directly)
+
+| Category | Items | Total |
+|----------|-------|-------|
+(use category_subtotals[] — present category_label, item_count, and total_cost_formatted directly)
 
 **Total Material Cost:** total_material_cost_formatted
 
@@ -144,12 +151,15 @@ The totals below are UNDERSTATED.
 | **Gross Profit** | **profitability.gross_profit_formatted** |
 | **Margin** | **profitability.margin_pct%** |
 
-(REQUIRED — always include this footer)
+(REQUIRED — always include this horizontal rule and footer)
 ---
 *Prices from {region}. Does not include job fees, facility bonuses beyond ME, or taxes.*
 
 (REQUIRED when profitability.margin_pct < 0 AND (me_level < 10 OR no facility):)
+For T1 items:
 *Consider re-running with higher ME or a facility bonus — e.g. `/build-cost {item_name} --me 10 --facility Azbel`*
+For T2 items (do NOT suggest --me 10 — it is unreachable via invention):
+*Consider re-running with a facility bonus — e.g. `/build-cost {item_name} --facility Azbel`. Specify `--me N` if your BPC has ME from a decryptor.*
 ```
 
 ### ME Comparison Table
