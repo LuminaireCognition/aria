@@ -35,7 +35,11 @@ Every activity metric in a hunting ground analysis MUST come from a tool call. D
 
 ## Response Format
 
-Present each system with: system name, security, region, viability rating, live intel (kills/pods/NPC kills/jumps from last hour), mark availability assessment, competition assessment, and tactical notes. End with "Your call, Captain."
+Present the top 5 systems maximum. If more match, summarize extras in a one-line-per-system table.
+
+For each system present: system name, security, region, viability rating, live intel (kills/pods/NPC kills/jumps from last hour), mark availability assessment, competition assessment, and tactical notes.
+
+**Closing (rp_level: on or full only):** End with "Your call, Captain." At rp_level: off, omit the closing line.
 
 ## Hunting Ground Metrics
 
@@ -77,3 +81,6 @@ Present each system with: system name, security, region, viability rating, live 
 
 ❌ **WRONG:** Claim "Known groups: Snuffed Out, locals" without any kill data showing those groups
 ✅ **RIGHT:** Group identity comes from killmail data. If no killmails were queried, you don't know who's active.
+
+❌ **WRONG:** Present 8 systems with 10+ lines each (92-line response)
+✅ **RIGHT:** Top 5 systems, concise per-system analysis. Extras in a summary table.

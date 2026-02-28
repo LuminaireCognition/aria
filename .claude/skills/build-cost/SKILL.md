@@ -99,6 +99,7 @@ Before presenting build cost results, verify:
 4. Profit calculation uses complete costs
 5. Any missing data is prominently flagged
 6. Complexity rating matches material types
+7. **ISK magnitude check:** Verify abbreviated values match raw numbers. Use K (thousands), M (millions), B (billions). Cross-check: 195,000,000 = 195M, NOT 195B. T1 subcapital hulls rarely exceed low billions; if your total shows "B", double-check the math.
 
 **If any step fails:** Do not present as complete. Show warning.
 

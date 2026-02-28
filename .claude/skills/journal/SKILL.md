@@ -34,11 +34,14 @@ On first use, replace the placeholder template entry under the header.
 
 ## Response Flow
 
-1. **Determine entry type** - If not specified, ask: "Mission or exploration entry?"
-2. **Collect required fields** (see below)
+1. **Determine entry type** — If not specified, ask: "Mission or exploration entry?"
+2. **Parse inline arguments** — Check the user's message for required fields (see Inline Argument Parsing below).
+   - **All required fields present:** Skip to step 3 (preview). Do NOT ask for fields already provided.
+   - **Some fields missing:** Prompt ONLY for missing fields.
+   - **No fields provided:** Collect all required fields interactively.
 3. **Preview the entry** using the format templates below, then ask for confirmation
 4. **Write entry** using Edit tool to insert after the appropriate section header
-5. **Statistics prompt** (exploration only) - Offer: "Update site statistics?"
+5. **Statistics prompt** (exploration only) — Offer: "Update site statistics?"
 
 ### Required Fields
 
