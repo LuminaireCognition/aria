@@ -35,6 +35,8 @@ Before presenting any exploration analysis, the following MUST happen:
 
 **Steps 1-2 MUST be read before responding.** Paths are relative to the repository root (e.g., read `reference/mechanics/exploration_sites.md` from the repo root, NOT from `.claude/skills/exploration/`). These files contain verified game mechanics. Do NOT rely on training data for hacking mechanics, container types, site prefixes, or loot tables. If a Read tool call is denied or fails, retry with the absolute path from the repository root. Only if files are truly missing after retrying should you inform the user that reference data is unavailable.
 
+> **Anti-pattern:** Do NOT invert or rephrase analyzer stats from memory. Quote coherence values exactly as they appear in `hacking_guide.md`. Example mistake: "T2 gives +10 vs T1's +20" — the file says T1=20, T2=30.
+
 ### Field → Source Mapping
 
 | Output Field | Required Source | Source |

@@ -32,6 +32,8 @@ Before presenting any mining advisory, the following MUST happen:
 
 > **HALLUCINATION GUARD:** Every ore name, security band, and mineral yield in the response MUST come from `ore_database.md` or an MCP tool call in this session. Training data about ore availability by security level is frequently wrong. Read the reference file FIRST, respond SECOND.
 
+**Step 1 MUST be read before responding.** Paths are relative to the repository root (e.g., read `reference/mechanics/ore_database.md` from the repo root, NOT from `.claude/skills/mining-advisory/`). If a Read tool call is denied or fails, retry with the absolute path from the repository root. Only if the file is truly missing after retrying should you inform the user that reference data is unavailable.
+
 If market prices are unavailable, present ore recommendations based on mineral utility without ISK rankings. If system security lookup fails, ask the user to confirm their system's security level.
 
 ### Field to Source Mapping

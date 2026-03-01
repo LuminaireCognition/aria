@@ -41,10 +41,16 @@ data_sources:
 - Do NOT fill in estimated numbers
 
 **Module size rules (NEVER violate):**
-- Frigates/destroyers: 1MN prop mods, small weapons/reps
-- Cruisers/battlecruisers: 10MN prop mods, medium weapons/reps
-- Battleships: 100MN/500MN prop mods, large weapons/reps
-- Using the wrong size (e.g., 50MN MWD on a cruiser) will fail fitting validation — catch this before building the EFT string
+
+| Hull Class | Afterburner | MWD | Weapons/Reps |
+|------------|-------------|-----|--------------|
+| Frigates/destroyers | 1MN AB | 5MN MWD | Small |
+| Cruisers/battlecruisers | 10MN AB | 50MN MWD | Medium |
+| Battleships | 100MN AB | 500MN MWD | Large |
+
+**PvE default: Afterburner.** MWDs cause signature bloom (more incoming damage) and heavy cap drain. Use ABs for missions and ratting unless the pilot specifically requests an MWD or the fit is for PvP/travel.
+
+- Using the wrong size will fail fitting validation — catch this before building the EFT string
 
 ## Prerequisites (Load Before Building Fits)
 

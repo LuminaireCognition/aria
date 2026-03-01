@@ -30,6 +30,8 @@ data_sources:
 
 All ship stats, hull values, and engagement math MUST come from MCP tool calls. Do NOT use training data for any ISK figures, EHP values, or DPS numbers.
 
+> **TOOL ATTEMPT REQUIRED:** You MUST actually call the tools listed above before claiming they are unavailable. Never preemptively refuse — attempt every MCP call. Only if a call returns an error should you report it as unavailable.
+
 | Step | Call | Required For |
 |------|------|-------------|
 | 1 | `sde(action="item_info", item="<target_ship>")` | Ship group, cargo capacity, attributes |
@@ -117,7 +119,7 @@ All values in this formula MUST come from MCP market data. State assumptions for
 ### Low-Sec Engagement
 
 - No CONCORD — sustained engagement
-- Gate guns on gates (~15 seconds)
+- **Gate/station sentry guns:** ~120 DPS (mixed EM/thermal), applied to aggressor for ~30 seconds. Manageable in cruisers, dangerous in frigates. Does NOT apply at celestials, belts, or safe spots — only gates and stations.
 - Check local for backup
 
 ### Target Behavior Indicators
