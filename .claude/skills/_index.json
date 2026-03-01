@@ -6,7 +6,7 @@
     {
       "name": "abyssal",
       "description": "Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/abyssal",
@@ -18,12 +18,12 @@
         "filament guide"
       ],
       "requires_pilot": false,
-      "data_sources": [
-        "reference/mechanics/abyssal_deadspace.json"
-      ],
+      "data_sources": [],
       "path": ".claude/skills/abyssal/SKILL.md",
       "directory": "abyssal",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "reference/mechanics/abyssal_deadspace.json"
+      ],
       "external_sources": [],
       "esi_scopes": [],
       "required_tools": []
@@ -153,8 +153,8 @@
     },
     {
       "name": "build-cost",
-      "description": "Manufacturing cost calculator for T1 items. Calculates material costs, profit margins, and ME efficiency.",
-      "model": "haiku",
+      "description": "Manufacturing cost calculator. Calculates material costs, profit margins, and ME efficiency.",
+      "model": "sonnet",
       "category": "industry",
       "triggers": [
         "/build-cost",
@@ -317,7 +317,7 @@
     {
       "name": "exploration",
       "description": "ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "operations",
       "triggers": [
         "/exploration",
@@ -778,7 +778,7 @@
     {
       "name": "mark-assessment",
       "description": "Target evaluation for Eve Online. Assess potential marks based on ship type, likely cargo, and engagement viability.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/mark-assessment",
@@ -831,7 +831,7 @@
     {
       "name": "mining-advisory",
       "description": "ARIA mining operations guidance for Eve Online. Use for ore recommendations, belt intel, Venture fitting, or mining optimization.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "operations",
       "triggers": [
         "/mining-advisory",
@@ -1009,7 +1009,7 @@
     {
       "name": "price",
       "description": "EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "financial",
       "triggers": [
         "/price",
@@ -1034,7 +1034,7 @@
     {
       "name": "ransom-calc",
       "description": "Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "financial",
       "triggers": [
         "/ransom-calc",
