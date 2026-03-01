@@ -1,7 +1,7 @@
 ---
 name: abyssal
 description: Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/abyssal"
@@ -16,79 +16,46 @@ prerequisite_files:
   - reference/mechanics/abyssal_deadspace.json
 ---
 
-# ARIA Abyssal Deadspace Module
-
-## Command Syntax
+# Abyssal Deadspace Module
 
 ```
 /abyssal weather <type>       # Weather type details and recommendations
 /abyssal tier <N>             # Tier difficulty and rewards
 /abyssal ship <hull>          # Ship recommendations for abyssals
 /abyssal npc <faction>        # NPC faction threat intel
-/abyssal fit <ship>           # Fitting guidance for a hull
+/abyssal fit <ship>           # Fitting guidance → redirects to /fitting
 ```
 
-## Data Source
+## Data Gate
 
-All abyssal data comes from `reference/mechanics/abyssal_deadspace.json`. Read this file before answering any abyssal question.
+Read `reference/mechanics/abyssal_deadspace.json` before any output. Every weather effect, tier stat, ship recommendation, NPC profile, and damage value in the response **must** trace to this file.
 
-## Response Patterns
+If the queried item has no entry in the file, state that no verified data is available and suggest [abyss.eve-nt.uk](https://abyss.eve-nt.uk). Do not backfill from training data.
 
-### Weather Type Query
+## Query Routing
 
-When asked about a weather type (e.g., "/abyssal electrical"):
+| Query Type | JSON Path | Present |
+|-----------|-----------|---------|
+| Weather | `weather_types[name]` | Effects, NPC damage profile, tank recommendation, best ships, avoid |
+| Tier | `tiers[N]` | Difficulty, time limit, ship class, loot range, requirements, progression |
+| Ship | `ship_recommendations[hull]` | Max tier, strengths, weaknesses, preferred/avoid weather |
+| NPC | `npc_factions[name]` + `special_npcs` | Damage dealt, resist profile, recommended damage, kill priority, special mechanics |
+| Fit | — | Redirect to `/fitting` (see below) |
 
-1. Read `reference/mechanics/abyssal_deadspace.json`
-2. Find the weather in `weather_types`
-3. Present: Environmental Effects / NPC Damage Profile / Tank Recommendation / Best Ships / Notes
+## Fitting Queries
 
-### Tier Query
+All fitting requests redirect. This skill provides general guidance only: tank style, weather-specific resist priority, drone strategy — all from reference data. No module names, no EFT blocks.
 
-When asked about a tier (e.g., "/abyssal tier 4"):
+> For a validated fit: `/fitting <ship> for <weather> abyssal`
 
-1. Read `reference/mechanics/abyssal_deadspace.json`
-2. Find the tier in `tiers`
-3. Present: Difficulty / Time Limit / Ship Class / Average Loot / Requirements / Risk Assessment / Recommended Progression
+## Safety Warning
 
-### Ship Recommendation Query
+Always include: Abyssal Deadspace has a strict **20-minute time limit** — failure means ship AND pod loss. Exiting a filament leaves a visible trace that can be camped.
 
-When asked about ships (e.g., "/abyssal ship gila"):
+## Rules
 
-1. Read `reference/mechanics/abyssal_deadspace.json`
-2. Find the ship in `ship_recommendations`
-3. Present: Hull Class / Max Recommended Tier / Strengths / Weaknesses / Preferred Weather / Avoid Weather / Notes
-
-### NPC Threat Query
-
-When asked about NPCs (e.g., "/abyssal npc triglavian"):
-
-1. Read `reference/mechanics/abyssal_deadspace.json`
-2. Find the faction in `npc_factions` and related `special_npcs`
-3. Present: Damage Dealt / Resist Profile / Recommended Damage Type / Kill Priority / Special Mechanics / Tactical Notes
-
-### Fitting Guidance
-
-When asked about fitting (e.g., "/abyssal fit gila"):
-
-1. Read reference data for general guidance on tank style and weather-specific resists
-2. **NEVER generate a complete ship fit** from this skill — no EFT blocks, no module lists, no specific module names
-3. Present: General Tank Approach / Weather-Specific Resist Priority / Drone Strategy (from reference data only)
-4. Direct the pilot to use `/fitting <ship> for <weather> abyssal` for a validated fit
-
-Module names and stats change across patches. The `/fitting` skill uses EOS for validated output.
-
-## Failure Handling
-
-If the reference file does not contain an entry for the queried weather type, ship, NPC faction, or tier, state that no verified data is available. Suggest checking community resources like abyss.eve-nt.uk or providing more details.
-
-## Safety Warnings
-
-Always warn: Abyssal Deadspace has a strict 20-minute time limit -- failure means ship AND pod loss. Exiting a filament leaves a visible trace that gankers can camp.
-
-## DO NOT
-
-- **DO NOT** guarantee specific loot values (RNG varies widely)
-- **DO NOT** recommend T5/T6 to inexperienced pilots
-- **DO NOT** provide exact fits without EOS validation
-- **DO NOT** claim knowledge of current meta without noting verification sources
-- **DO NOT** generate ship fits, module lists, or EFT-format fittings — defer ALL fitting requests to `/fitting`
+- Every stat must cite the reference file — no training-data backfill
+- If the reference file lacks the queried data, say so; do not guess
+- Do not guarantee specific loot values (RNG varies widely)
+- Do not recommend T5/T6 to inexperienced pilots
+- Do not generate fits, module lists, or EFT blocks — defer to `/fitting`

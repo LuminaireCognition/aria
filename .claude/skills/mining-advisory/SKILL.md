@@ -1,7 +1,7 @@
 ---
 name: mining-advisory
 description: ARIA mining operations guidance for Eve Online. Use for ore recommendations, belt intel, Venture fitting, or mining optimization.
-model: haiku
+model: sonnet
 category: operations
 triggers:
   - "/mining-advisory"
@@ -18,40 +18,40 @@ data_sources:
   - userdata/pilots/{active_pilot}/ships.md
 ---
 
-# ARIA Mining Operations Module
+# Mining Operations Module
 
-## Required Tool Calls (MANDATORY)
+```
+/mining-advisory                      # General ore recommendations for current location
+/mining-advisory <system>             # Ore recommendations for a specific system
+/mining-advisory --isk                # Rank ores by ISK/m3 (requires market lookup)
+```
 
-Before presenting any mining advisory, the following MUST happen:
+## Tool Calls
 
-| Step | Call | Required For |
-|------|------|-------------|
+| Step | Call | Provides |
+|------|------|----------|
 | 1 | Read `reference/mechanics/ore_database.md` | Ore types, security bands, mineral yields |
-| 2 | `universe(action="systems", systems=["..."])` | System security status verification |
+| 2 | `universe(action="systems", systems=["..."])` | System security status |
 | 3 | `market(action="prices", items=[...])` | Current ore/mineral prices (if ISK comparison needed) |
 
-> **HALLUCINATION GUARD:** Every ore name, security band, and mineral yield in the response MUST come from `ore_database.md` or an MCP tool call in this session. Training data about ore availability by security level is frequently wrong. Read the reference file FIRST, respond SECOND.
+Step 1 must complete before any output. If market prices are unavailable, recommend by mineral utility without ISK rankings. If system security lookup fails, ask the user to confirm.
 
-**Step 1 MUST be read before responding.** Paths are relative to the repository root (e.g., read `reference/mechanics/ore_database.md` from the repo root, NOT from `.claude/skills/mining-advisory/`). If a Read tool call is denied or fails, retry with the absolute path from the repository root. Only if the file is truly missing after retrying should you inform the user that reference data is unavailable.
+### Field → Source Mapping
 
-If market prices are unavailable, present ore recommendations based on mineral utility without ISK rankings. If system security lookup fails, ask the user to confirm their system's security level.
-
-### Field to Source Mapping
-
-| Output Field | Required Source | Source |
-|-------------|----------------|--------|
-| Ore names available in system | `ore_database.md` | Prerequisite file (read before output) |
-| Ore security bands (min sec to spawn) | `ore_database.md` | Prerequisite file |
-| Mineral yields per ore | `ore_database.md` | Prerequisite file |
-| System security status | Universe dispatcher | `universe(action="systems", systems=["..."])` |
-| Current ore/mineral prices | Market dispatcher | `market(action="prices", items=[...])` |
-| ISK/m3 rankings | Derived | Calculate from `ore_database.md` yields x market prices |
-| Pilot ship/skills context | Pilot profile | `data_sources` pilot files |
+| Output Field | Source |
+|-------------|--------|
+| Ore names available in system | `ore_database.md` |
+| Ore security bands (min sec to spawn) | `ore_database.md` |
+| Mineral yields per ore | `ore_database.md` |
+| System security status | `universe(action="systems")` |
+| Current ore/mineral prices | `market(action="prices")` |
+| ISK/m3 rankings | Derived: `ore_database.md` yields x market prices |
+| Pilot ship/skills context | `data_sources` pilot files |
 
 ## Response Format
 
 ```
-ARIA MINING OPERATIONS ADVISORY
+MINING OPERATIONS ADVISORY
 ───────────────────────────────────────────
 LOCATION: [System if known]
 SECURITY: [Sec level]
@@ -72,34 +72,23 @@ SAFETY ADVISORY:
 [Security-appropriate warnings]
 ```
 
-## Venture Tips
-
-- Align while mining in lower security
-- Use Survey Scanner to find best rocks
-- Keep ore hold focused on dense ores
-
-## Anti-Patterns
-
-- **WRONG:** Claim ore availability from training data. **RIGHT:** Read `ore_database.md` for verified security bands.
-- **WRONG:** Present ISK/m3 rankings without querying current market prices. **RIGHT:** Call `market(action="prices")` first.
-- **WRONG:** State mineral yields from memory. **RIGHT:** Read `ore_database.md` for exact reprocessing outputs.
-
-## Behavior
-- Account for pilot's self-sufficient status — prioritize manufacturing utility over ISK/hour
-- Consider mineral needs for ships/modules pilot might want to build
-- Always include safety reminders for non-1.0 systems
-- Reference reprocessing skills if discussing yield
-- **Brevity:** Lead with top 2-3 ore recommendations. Full mineral breakdown on request.
+Lead with top 2–3 ore recommendations. Full mineral breakdown on request.
 
 ## Contextual Suggestions
 
-After providing mining advice, suggest ONE related command when contextually relevant:
+After advisory, suggest ONE related command when relevant:
 
 | Context | Suggest |
 |---------|---------|
-| Mining in lower security space | "Check `/threat-assessment` for safety intel" |
-| Capsuleer needs a mining fit | "Try `/fitting` for an optimized Venture build" |
-| Discussing what to build with ore | "I can help with manufacturing plans" |
-| After a successful mining session | "Log notable hauls with `/journal`" |
+| Mining in lower security | `/threat-assessment` |
+| Needs a mining fit | `/fitting` |
+| Discussing what to build | `/build-cost` |
+| After a successful session | `/journal` |
 
-Don't add suggestions to every advisory - only when clearly helpful.
+## Rules
+
+- Every ore name, security band, and mineral yield must come from `ore_database.md` — training data about ore availability by security level is frequently wrong
+- Do not present ISK/m3 rankings without a `market(action="prices")` call in this session
+- Prioritize manufacturing utility over ISK/hour for self-sufficient pilots
+- Include safety reminders for non-1.0 systems
+- Align while mining in lower security; use Survey Scanner to find best rocks

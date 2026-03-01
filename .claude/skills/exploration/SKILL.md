@@ -1,7 +1,7 @@
 ---
 name: exploration
 description: ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification.
-model: haiku
+model: sonnet
 category: operations
 triggers:
   - "/exploration"
@@ -20,42 +20,50 @@ data_sources:
   - userdata/pilots/{active_pilot}/exploration.md
 ---
 
-# ARIA Exploration Analysis Module
+# Exploration Analysis Module
 
-## Required Tool Calls (MANDATORY)
+```
+/exploration <site_name>          # Site analysis (loot, containers, hacking)
+/exploration hacking              # Hacking mechanics guide
+/exploration loot <item_name>     # Loot identification and valuation
+```
 
-Before presenting any exploration analysis, the following MUST happen:
+## Tool Calls
 
-| Step | Call | Required For |
-|------|------|-------------|
-| 1 | Read `reference/mechanics/exploration_sites.md` | Site classification, loot tables, container types |
-| 2 | Read `reference/mechanics/hacking_guide.md` | Hacking mechanics, coherence rules, strategies |
-| 3 | `market(action="prices", items=[...])` | Loot valuations (only for specific items) |
-| 4 | `sde(action="item_info", item="...")` | Individual loot item details (NOT site names) |
+| Step | Call | Provides |
+|------|------|----------|
+| 1 | Read `reference/mechanics/exploration_sites.md` | Site classification, loot tables, container types, prefixes |
+| 2 | Read `reference/mechanics/hacking_guide.md` | Hacking mechanics, coherence values, strategies |
+| 3 | `market(action="prices", items=[...])` | Loot valuations (specific items only) |
+| 4 | `sde(action="item_info", item="...")` | Individual loot item details |
 
-**Steps 1-2 MUST be read before responding.** Paths are relative to the repository root (e.g., read `reference/mechanics/exploration_sites.md` from the repo root, NOT from `.claude/skills/exploration/`). These files contain verified game mechanics. Do NOT rely on training data for hacking mechanics, container types, site prefixes, or loot tables. If a Read tool call is denied or fails, retry with the absolute path from the repository root. Only if files are truly missing after retrying should you inform the user that reference data is unavailable.
-
-> **Anti-pattern:** Do NOT invert or rephrase analyzer stats from memory. Quote coherence values exactly as they appear in `hacking_guide.md`. Example mistake: "T2 gives +10 vs T1's +20" — the file says T1=20, T2=30.
+Steps 1–2 must complete before any output. If a read fails, retry with the absolute path from the repository root.
 
 ### Field → Source Mapping
 
-| Output Field | Required Source | Source |
-|-------------|----------------|--------|
-| Site classification (Relic/Data) | `exploration_sites.md` | Prerequisite file (read before output) |
-| Site prefix meaning (Ruined/Decayed/etc.) | `exploration_sites.md` | Prerequisite file |
-| Security band for site type | `exploration_sites.md` | Prerequisite file |
-| Container types and counts | `exploration_sites.md` | Prerequisite file |
-| Probable loot categories | `exploration_sites.md` | Prerequisite file |
-| Hacking mechanics (coherence, nodes) | `hacking_guide.md` | Prerequisite file (read before output) |
-| Hacking strategy | `hacking_guide.md` | Prerequisite file |
-| Individual loot item details | SDE | `sde(action="item_info", item="...")` |
-| Loot market value | Market dispatcher | `market(action="prices", items=[...])` |
+| Output Field | Source |
+|-------------|--------|
+| Site classification (Relic/Data) | `exploration_sites.md` |
+| Site prefix meaning (Ruined/Decayed/etc.) | `exploration_sites.md` |
+| Security band for site type | `exploration_sites.md` |
+| Container types and counts | `exploration_sites.md` |
+| Probable loot categories | `exploration_sites.md` |
+| Hacking mechanics (coherence, nodes) | `hacking_guide.md` |
+| Hacking strategy | `hacking_guide.md` |
+| Individual loot item details | `sde(action="item_info")` |
+| Loot market value | `market(action="prices")` |
+
+## Site Names vs SDE Items
+
+Site names (e.g., "Serpentis Temple", "Ruined Sansha Monument") are cosmic signatures, not SDE items. Do not search SDE for site names — use `exploration_sites.md` instead.
+
+Individual loot items (e.g., "Intact Armor Plates", "Emission Scope Sharpener") are SDE items — use `sde(action="item_info")`.
 
 ## Response Format
 
 ```
 ═══════════════════════════════════════════
-ARIA EXPLORATION SITE ANALYSIS
+EXPLORATION SITE ANALYSIS
 ───────────────────────────────────────────
 SITE NAME: [Full site name]
 CLASSIFICATION: [Relic/Data] Site ([Faction])
@@ -64,7 +72,7 @@ SECURITY ASSESSMENT: [Safe/Hostile presence expected]
 EXPECTED CONTAINERS: [Number and types]
 
 PROBABLE LOOT:
-• [Item categories with brief descriptions]
+- [Item categories with brief descriptions]
 
 HACKING ADVISORY:
 [Strategy for this site type]
@@ -74,47 +82,24 @@ LORE CONTEXT:
 ═══════════════════════════════════════════
 ```
 
-## Anti-Patterns
-
-❌ **WRONG:** State "Coherence depletes with each probe attempt" from training data
-✅ **RIGHT:** Read `hacking_guide.md` — coherence is HP lost when defensive nodes attack you
-
-❌ **WRONG:** Claim "System Core eliminates dangerous subsystems"
-✅ **RIGHT:** Read `hacking_guide.md` — the Core is the objective you destroy to win the hack
-
-❌ **WRONG:** State "One attempt per container" for regular data sites
-✅ **RIGHT:** Only true for Ghost Sites. Regular sites allow retries. Read `exploration_sites.md`.
-
-❌ **WRONG:** Accept "Ruined Serpentis Temple" in high-sec without questioning
-✅ **RIGHT:** "Ruined" prefix = nullsec/WH sites. High-sec uses "Decayed" prefix. Read `exploration_sites.md`.
-
-❌ **WRONG:** Cite "Rule of 6" or other numbered heuristics not present in reference files
-✅ **RIGHT:** Only state mechanics that appear verbatim in `hacking_guide.md`. If a mechanic isn't documented there, do not present it as fact.
-
-## Important: Site Names vs Items
-
-Exploration site names (e.g., "Serpentis Temple", "Ruined Sansha Monument", "Local Guristas Shattered Life-Support Unit") are **cosmic signature names**, NOT SDE items. Do NOT search SDE for site names — `sde(action="item_info", item="Serpentis Temple")` will fail or return wrong results.
-
-- **Site information:** Use the `data_sources` reference files listed in this skill's `_index.json`
-- **Individual loot items:** These ARE SDE items — use `sde(action="item_info")` for specific loot like "Intact Armor Plates" or "Emission Scope Sharpener"
-
-## Behavior
-- **Intelligence Framing:** Frame data as live archaeological surveys and faction intelligence assessments. Use phrases like "Site signature analysis indicates..." or "DED classification identifies this as..." rather than archival language.
-- Provide lore context as active intelligence on discovered sites
-- Note items particularly useful for self-sufficient gameplay
-- Warn about hostile site variants
-- Celebrate notable discoveries appropriately (in character)
-- **Brevity:** Quick site assessment first. Lore and full loot tables on request.
+Quick site assessment first. Lore and full loot tables on request.
 
 ## Contextual Suggestions
 
-After providing exploration analysis, suggest ONE related command when contextually relevant:
+After analysis, suggest ONE related command when relevant:
 
 | Context | Suggest |
 |---------|---------|
-| Site is in dangerous space | "Check `/threat-assessment` for local intel" |
-| Capsuleer needs exploration fit | "Try `/fitting` for an optimized scanning build" |
-| After discovering notable loot | "Log it with `/journal exploration`" |
-| Site has hostile NPCs | "Run `/mission-brief` for enemy damage profiles" |
+| Site in dangerous space | `/threat-assessment` |
+| Needs exploration fit | `/fitting` |
+| Notable loot discovered | `/journal exploration` |
+| Site has hostile NPCs | `/mission-brief` |
 
-Don't add suggestions to every analysis - only when clearly helpful.
+## Rules
+
+- Every coherence value, node mechanic, and container type must come from the prerequisite files — quote exactly as written
+- Do not cite "Rule of 6" or other numbered heuristics absent from `hacking_guide.md`
+- "Ruined" prefix = nullsec/WH; "Decayed" = highsec — flag mismatches with the reported system security
+- Regular sites allow retry on hack failure; only Ghost Sites are one-attempt — verify against `exploration_sites.md`
+- The System Core is the hack objective, not a defensive tool
+- Note items useful for self-sufficient gameplay
