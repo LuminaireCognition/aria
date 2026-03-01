@@ -1,7 +1,7 @@
 ---
 name: price
 description: EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis.
-model: haiku
+model: sonnet
 category: financial
 triggers:
   - "/price"
@@ -22,23 +22,19 @@ requires_pilot: false
 /price <item_name> [--jita|--amarr|--dodixie|--rens|--hek]
 ```
 
-If no region specified, defaults to Jita.
+Defaults to Jita if no region specified.
 
-## Hallucination Guard
+## Tool Calls
 
-**All prices and game mechanics MUST come from MCP tool calls or this skill document.** Do not recall, estimate, or assume any price from training data. Do not speculate about why items may or may not be tradeable. If a tool call fails, say so -- never fill in numbers or explanations from memory.
-
-## Mandatory Tool Calls
-
-| Query Type | MCP Dispatcher Call |
-|------------|---------------------|
-| Price lookup (single/multi) | `market(action="prices", items=["<item>"], region="<hub>")` |
-| Order book detail | `market(action="orders", item="<item>", region="<hub>")` |
-| Cross-region comparison | `market(action="spread", items=["<item>"])` |
+| Query Type | Call |
+|------------|------|
+| Price lookup | `market(action="prices", items=["<item>"], region="<hub>")` |
+| Order book | `market(action="orders", item="<item>", region="<hub>")` |
+| Cross-region | `market(action="spread", items=["<item>"])` |
 | Price history | `market(action="history", item="<item>", region="<hub>")` |
-| **CLI fallback** | `uv run aria-esi price "<item>" [--jita\|--amarr\|...]` |
+| CLI fallback | `uv run aria-esi price "<item>" [--jita|--amarr|...]` |
 
-Use MCP dispatchers as the primary path. Fall back to CLI only if MCP is unavailable.
+All prices come from tool calls. If a call fails, say so.
 
 ## Response Format
 
@@ -63,55 +59,34 @@ Use MCP dispatchers as the primary path. Fall back to CLI only if MCP is unavail
 *Regional orders from The Forge. Data cached up to 5 minutes.*
 ```
 
-## Error Handling
+Show top 5 buy and sell orders by default. Always include volume and spread.
 
-- **Item not found:** Suggest spelling corrections. Use `sde(action="search", query="<term>")` to find close matches.
-- **No market data:** Report "no orders found — this may be a data freshness issue." Show the global average price if available via `market(action="prices")`. Do NOT speculate about why orders are missing (e.g., do not claim items are untradeable or NES-only unless confirmed by the NES section below).
-- **No regional orders:** Show global average and suggest trying a different hub.
+## Empty Results
 
-## NES / PLEX Market Items
+**Item not found:** Use `sde(action="search", query="<term>")` for close matches.
 
-PLEX, Skill Extractors, Skill Injectors, and Multiple Pilot Training Certificates trade on the regional market -- query them normally.
+**No orders for PLEX, Large Skill Injector, Skill Extractor, or Multiple Pilot Training Certificate?**
 
-Some items (certain SKINs, apparel) are NES-only with no regional orders. Detection: `market(action="prices")` returns data but `market(action="orders")` returns no results. Inform the user and show `average_price` if available.
+These items always trade on the regional market. Empty results = data gap in the tool. Use this response verbatim:
 
-## Known Always-Tradeable Items
+> No orders returned — this is a data freshness issue with the market data source. [Item] trades on the regional market in-game. Last known price: [from history if available, or "unavailable"].
 
-The following items are ALWAYS available on the regional market. If `market()` returns zero results for any of these, it is a data freshness or connectivity issue — NOT an indication that the item was removed or is untradeable:
+Do not add explanation, speculation, or commentary about why the data is missing.
 
-- PLEX
-- Skill Injector (Large Skill Injector)
-- Skill Extractor
-- Multiple Pilot Training Certificate
-
-**If zero results for a known-tradeable item:** State "No orders returned — this is likely a data freshness issue. The item is tradeable on the regional market." Do NOT speculate about removal, NES migration, or game changes.
-
-## Experience-Based Adaptation
-
-For new players, explain spread concept and suggest regional lookup. For veterans, use compact single-line format.
+**No orders for other items:** Show `average_price` if available. If `prices` has data but `orders` is empty, it may be NES-only (some SKINs/apparel).
 
 ## Contextual Suggestions
 
-After providing price data, suggest ONE related command when contextually relevant:
+After price data, suggest ONE related command if relevant:
 
 | Context | Suggest |
 |---------|---------|
-| Looking up minerals | `/mining-advisory` |
-| Looking up ship | `/fitting` |
-| Blueprint output | `/find [blueprint] --from [system]` for nearby NPC sources |
-| Looking for nearest source | `/find [item] --from [system]` |
+| Minerals | `/mining-advisory` |
+| Ships | `/fitting` |
+| Blueprints | `/find [blueprint] --from [system]` |
 
 ## Behavior Notes
 
-- **Cache Awareness:** Global prices cached 1 hour, regional orders 5 minutes
-- **Volume Matters:** Show volume at each price point, not just price
-- **Spread Calculation:** Always show buy/sell spread for regional data
-- **Top N Orders:** Show top 5 buy and sell orders by default
-
-## DO NOT
-
-- **DO NOT** recommend selling items to pilots with `market_trading: false`
-- **DO NOT** provide trading advice (buy low, sell high strategies)
-- **DO NOT** speculate on price movements or market manipulation
-- **DO NOT** recall or estimate prices from training data -- always use tool calls
-- **DO NOT** claim that always-tradeable items (PLEX, Skill Injectors, etc.) have been removed from the market or moved to NES if tools return empty results
+- Global prices cached 1 hour, regional orders 5 minutes
+- No trading advice, price predictions, or market manipulation speculation
+- No selling recommendations for pilots with `market_trading: false`
