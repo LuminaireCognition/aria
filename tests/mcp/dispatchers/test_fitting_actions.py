@@ -340,6 +340,68 @@ class TestCheckRequirementsAction:
         assert result["can_fly"] is False
         assert len(result["missing_skills"]) > 0
 
+    def test_check_requirements_highest_level_wins(self, fitting_dispatcher):
+        """When multiple items require the same skill at different levels,
+        the highest required level must be checked (not just the first seen).
+
+        Regression test for: Cap Recharger II (EGU 3) shadowing
+        Large Cap Battery II (EGU 4) in deduplication.
+        """
+        # Mock parsed fit with two mid-slot modules
+        mock_parsed_fit = type("ParsedFit", (), {
+            "ship_type_id": 29340,  # Vexor
+            "low_slots": [],
+            "mid_slots": [
+                type("Module", (), {"type_id": 2032, "charge_type_id": None})(),  # Cap Recharger II
+                type("Module", (), {"type_id": 3504, "charge_type_id": None})(),  # Large Cap Battery II
+            ],
+            "high_slots": [],
+            "rigs": [],
+            "subsystems": [],
+            "drones": [],
+        })()
+
+        # Skill reqs: Cap Recharger II needs EGU 3, Large Cap Battery II needs EGU 4
+        mock_skill_reqs = {
+            29340: {},  # Ship has no additional reqs for this test
+            2032: {3424: 3},   # Cap Recharger II -> EGU III
+            3504: {3424: 4},   # Large Cap Battery II -> EGU IV
+        }
+
+        # Pilot has EGU III — should fail on EGU IV
+        pilot_skills = {3424: 3}
+
+        with (
+            patch(
+                "aria_esi.fitting.parse_eft",
+                return_value=mock_parsed_fit,
+            ),
+            patch(
+                "aria_esi.fitting.skills._load_skill_requirements",
+                return_value=mock_skill_reqs,
+            ),
+            patch(
+                "aria_esi.fitting.get_eos_data_manager",
+            ),
+            patch(
+                "aria_esi.mcp.dispatchers.fitting._resolve_skill_name",
+                return_value="Energy Grid Upgrades",
+            ),
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="check_requirements",
+                    eft="[Vexor, Test]\nCap Recharger II\nLarge Cap Battery II",
+                    pilot_skills=pilot_skills,
+                )
+            )
+
+        assert result["can_fly"] is False
+        assert len(result["missing_skills"]) == 1
+        assert result["missing_skills"][0]["skill_name"] == "Energy Grid Upgrades"
+        assert result["missing_skills"][0]["required"] == 4
+        assert result["missing_skills"][0]["current"] == 3
+
 
 # =============================================================================
 # Extract Requirements Action Tests

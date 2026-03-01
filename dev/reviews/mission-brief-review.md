@@ -101,7 +101,7 @@ Compare with the `fitting` skill which correctly lists `drones.json` in `prerequ
 The skill generates EFT fits for every mission brief but never validates them through `fitting(action="calculate_stats")`. The DATA_VERIFICATION.md protocol (lines 201-207) requires all fitting recommendations to pass EOS validation. The `fitting` skill has `requires_eos_validation: true` in its index entry; mission-brief does not.
 
 This means a mission-adapted fit could:
-- Use an invalid module name (e.g., "Thermal Armor Hardener I" instead of "Armor Thermal Hardener I")
+- Use an invalid module name (e.g., "Armor Thermal Hardener I" instead of the correct "Thermal Armor Hardener I")
 - Exceed CPU/powergrid
 - Place modules in wrong slots
 - Include modules that don't exist
@@ -136,7 +136,7 @@ Cache files include a `Source:` URL but no timestamp, game version, or TTL. Afte
 **File:** `.claude/skills/mission-brief/SKILL.md:97-103`
 **Severity:** Medium
 
-The fit adaptation rules say "Swap hardeners to match enemy damage profile" but don't require verifying the replacement module name via `sde(action="item_info")`. EVE module naming is notoriously inconsistent (e.g., "Armor EM Hardener I" vs "EM Armor Hardener I" — only one is correct). Without SDE verification, Claude will generate module names from training data, which may use outdated or incorrect naming conventions.
+The fit adaptation rules say "Swap hardeners to match enemy damage profile" but don't require verifying the replacement module name via `sde(action="item_info")`. EVE module naming is notoriously inconsistent (e.g., "Armor EM Hardener I" vs "EM Armor Hardener I" — the latter is the correct SDE name). Without SDE verification, Claude will generate module names from training data, which may use outdated or incorrect naming conventions.
 
 **Recommendation:** Add to fit adaptation rules: "Before including any module in the EFT output, verify its exact name via `sde(action='item_info')` or cross-reference with `reference/fittings/MODULE_NAMES.md`."
 

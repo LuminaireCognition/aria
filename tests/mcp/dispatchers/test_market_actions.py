@@ -369,6 +369,30 @@ class TestScopeRefreshAction:
 
 
 # =============================================================================
+# Build Cost Action Tests
+# =============================================================================
+
+
+class TestBuildCostAction:
+    """Tests for market build_cost action."""
+
+    def test_build_cost_requires_item(self, market_dispatcher):
+        """Build cost action requires item parameter."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(market_dispatcher(action="build_cost"))
+
+        assert "item" in str(exc.value).lower()
+
+    def test_build_cost_valid_action(self, market_dispatcher):
+        """Verifies build_cost is recognized as a valid action."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(market_dispatcher(action="build_cost"))
+        # Should raise about 'item', not 'action'
+        assert "item" in str(exc.value).lower()
+        assert "must be one of" not in str(exc.value).lower()
+
+
+# =============================================================================
 # Invalid Action Tests
 # =============================================================================
 

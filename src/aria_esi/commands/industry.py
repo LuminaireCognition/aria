@@ -77,24 +77,17 @@ def cmd_industry_jobs(args: argparse.Namespace) -> dict:
             if job.get("product_type_id"):
                 type_ids.add(job["product_type_id"])
 
-    # Resolve type names
-    type_names = {}
-    for tid in type_ids:
-        if tid:
-            info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-            if info and "name" in info:
-                type_names[tid] = info["name"]
+    # Resolve type names (batch)
+    from ._resolution import resolve_station_names, resolve_type_ids
 
-    # Resolve station/structure names
+    type_ids.discard(0)
+    _type_info = resolve_type_ids(type_ids, esi_client=public_client)
+    type_names = {tid: info["name"] for tid, info in _type_info.items()}
+
+    # Resolve station/structure names (batch)
     location_ids = set(job.get("facility_id", 0) for job in jobs_data if isinstance(job, dict))
-    location_names = {}
-    for lid in location_ids:
-        if lid:
-            station = public_client.get_dict_safe(f"/universe/stations/{lid}/")
-            if station and "name" in station:
-                location_names[lid] = station["name"]
-            else:
-                location_names[lid] = f"Structure-{lid}"
+    location_ids.discard(0)
+    location_names = resolve_station_names(location_ids, esi_client=public_client)
 
     now = datetime.now(UTC)
     processed_jobs = []

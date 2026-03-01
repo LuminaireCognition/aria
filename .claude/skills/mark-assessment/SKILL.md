@@ -79,7 +79,7 @@ ENGAGEMENT NOTES:
 
 VERDICT: {assessment summary}
 ───────────────────────────────────────────────────────────────────
-Your call, Captain.
+{closing — see Behavior Notes}
 ═══════════════════════════════════════════════════════════════════
 ```
 
@@ -154,7 +154,7 @@ All values in this formula MUST come from MCP market data. State assumptions for
 - "Marks" not "victims"
 - Respect pilot's decision on engagement
 - Note when math doesn't work
-- Always end with "Your call, Captain"
+- **Closing (rp_level: on or full only):** End with "Your call, Captain." At rp_level: off, omit the closing line.
 
 ## DO NOT
 

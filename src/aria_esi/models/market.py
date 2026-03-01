@@ -1099,3 +1099,88 @@ class ManagementError(MarketModel):
     code: str = Field(description="Error code")
     message: str = Field(description="Human-readable error message")
     suggestions: list[str] = Field(default_factory=list, description="Suggested corrections")
+
+
+# =============================================================================
+# Build Cost Models
+# =============================================================================
+
+
+class BuildCostMaterial(MarketModel):
+    """Single material line in a build cost calculation."""
+
+    type_id: int = Field(ge=1, description="EVE type ID")
+    type_name: str = Field(description="Material name")
+    category: str = Field(description="Classification: minerals, pi_p1, ship_components, etc.")
+    base_qty: int = Field(ge=0, description="Base quantity from blueprint")
+    me_qty: int = Field(ge=0, description="Quantity after ME reduction")
+    total_qty: int = Field(ge=0, description="me_qty * runs")
+    unit_price: float | None = Field(default=None, ge=0, description="Sell min price per unit")
+    unit_price_formatted: str = Field(description="Formatted unit price (e.g. '4.32 ISK')")
+    total_cost: float | None = Field(default=None, ge=0, description="unit_price * total_qty")
+    total_cost_formatted: str = Field(description="Formatted total (e.g. '31.1M ISK')")
+    price_missing: bool = Field(default=False, description="True if no price data available")
+
+
+class BuildCostCategorySubtotal(MarketModel):
+    """Subtotal for a material category (e.g. all minerals)."""
+
+    category: str = Field(description="Category key (e.g. 'minerals')")
+    category_label: str = Field(description="Display label (e.g. 'Minerals')")
+    item_count: int = Field(ge=0, description="Number of distinct materials")
+    total_cost: float = Field(ge=0, description="Sum of material costs in category")
+    total_cost_formatted: str = Field(description="Formatted total")
+
+
+class BuildCostBlueprint(MarketModel):
+    """Blueprint metadata for a build cost calculation."""
+
+    blueprint_type_id: int = Field(ge=1, description="Blueprint type ID")
+    blueprint_name: str = Field(description="Blueprint name")
+    product_type_id: int = Field(ge=1, description="Product type ID")
+    product_name: str = Field(description="Product name")
+    product_quantity: int = Field(ge=1, description="Units produced per run")
+    manufacturing_time: int | None = Field(default=None, ge=0, description="Seconds per run")
+    manufacturing_time_formatted: str | None = Field(
+        default=None, description="Human-readable time (e.g. '4h 30m')"
+    )
+    me_level: int = Field(ge=0, le=10, description="Material Efficiency level")
+    runs: int = Field(ge=1, description="Number of manufacturing runs")
+    facility: str | None = Field(default=None, description="Facility type (e.g. 'Azbel')")
+    facility_me_bonus: float = Field(default=0.0, ge=0, description="Facility ME bonus %")
+
+
+class BuildCostProfitability(MarketModel):
+    """Profitability analysis for a build cost calculation."""
+
+    product_sell_price: float = Field(ge=0, description="Product sell price per unit")
+    product_sell_formatted: str = Field(description="Formatted sell price")
+    product_total_value: float = Field(ge=0, description="sell_price * quantity * runs")
+    product_total_formatted: str = Field(description="Formatted total product value")
+    gross_profit: float = Field(description="product_total_value - total_material_cost")
+    gross_profit_formatted: str = Field(description="Formatted profit")
+    margin_pct: float = Field(description="Profit margin percentage")
+    profitable: bool = Field(description="True if gross_profit > 0")
+
+
+class BuildCostResult(MarketModel):
+    """Complete build cost calculation result."""
+
+    blueprint: BuildCostBlueprint = Field(description="Blueprint and parameter info")
+    materials: list[BuildCostMaterial] = Field(
+        default_factory=list, description="Itemized material costs"
+    )
+    category_subtotals: list[BuildCostCategorySubtotal] = Field(
+        default_factory=list, description="Per-category cost subtotals"
+    )
+    total_material_cost: float = Field(ge=0, description="Grand total material cost")
+    total_material_cost_formatted: str = Field(description="Formatted grand total")
+    complexity: str = Field(description="Supply chain complexity: simple, moderate, complex")
+    profitability: BuildCostProfitability | None = Field(
+        default=None, description="Profitability analysis (None if product price unavailable)"
+    )
+    region: str = Field(description="Market region used for pricing")
+    materials_priced: int = Field(ge=0, description="Number of materials with prices")
+    materials_missing: int = Field(ge=0, description="Number of materials without prices")
+    is_complete: bool = Field(description="True if all materials have prices")
+    warnings: list[str] = Field(default_factory=list, description="Warnings or notes")

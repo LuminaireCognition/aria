@@ -119,7 +119,7 @@ Rapid Light Missile Launcher II, Caldari Navy Scourge Light Missile
 Rapid Light Missile Launcher II, Caldari Navy Scourge Light Missile
 [Empty High slot]
 
-Medium Anti-EM Screen Reinforcer II
+Medium EM Shield Reinforcer II
 Medium Core Defense Field Purger II
 Medium Core Defense Field Purger II
 
@@ -152,7 +152,7 @@ Rapid Light Missile Launcher I, Scourge Light Missile
 Rapid Light Missile Launcher I, Scourge Light Missile
 Rapid Light Missile Launcher I, Scourge Light Missile
 
-Medium Anti-EM Screen Reinforcer I
+Medium EM Shield Reinforcer I
 Medium Core Defense Field Purger I
 Medium Core Defense Field Purger I
 

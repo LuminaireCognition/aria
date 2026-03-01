@@ -131,6 +131,7 @@ MARKET_ACTION_PARAMS: dict[str, set[str]] = {
         "scope_owner_id",
     },
     "arbitrage_detail": {"type_name", "buy_region", "sell_region"},
+    "build_cost": {"item", "me_level", "runs", "facility", "region"},
     "route_value": {"items", "route", "price_type"},
     "watchlist_create": {"name", "items", "owner_character_id"},
     "watchlist_add_item": {"watchlist_name", "item_name", "owner_character_id"},
@@ -260,6 +261,8 @@ def get_default_values(dispatcher: str) -> dict[str, Any]:
             "include_global": True,
             "include_core": True,
             "max_structure_pages": 5,
+            "me_level": 0,
+            "runs": 1,
         }
     elif dispatcher == "sde":
         return {

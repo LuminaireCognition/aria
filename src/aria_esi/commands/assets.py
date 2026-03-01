@@ -147,19 +147,11 @@ def cmd_assets(args: argparse.Namespace) -> dict:
     type_ids = set(a["type_id"] for a in assets)
     location_ids = set(a["location_id"] for a in assets if a.get("location_type") == "station")
 
-    # Resolve type names and group IDs
-    type_info = {}
-    for tid in type_ids:
-        info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            type_info[tid] = {"name": info["name"], "group_id": info.get("group_id", 0)}
+    # Resolve type names and group IDs (batch)
+    from ._resolution import resolve_station_names, resolve_type_ids
 
-    # Resolve station names
-    station_names = {}
-    for lid in location_ids:
-        info = public_client.get_dict_safe(f"/universe/stations/{lid}/")
-        if info and "name" in info:
-            station_names[lid] = info["name"]
+    type_info = resolve_type_ids(type_ids, esi_client=public_client)
+    station_names = resolve_station_names(location_ids, esi_client=public_client)
 
     # Filter and process assets
     result_assets = []
@@ -497,19 +489,11 @@ def _handle_asset_insights(creds: Any, query_ts: str, save_snapshot: bool = Fals
     type_ids = set(a["type_id"] for a in assets)
     location_ids = set(a["location_id"] for a in assets if a.get("location_type") == "station")
 
-    # Resolve type names and group IDs
-    type_info = {}
-    for tid in type_ids:
-        info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            type_info[tid] = {"name": info["name"], "group_id": info.get("group_id", 0)}
+    # Resolve type names and group IDs (batch)
+    from ._resolution import resolve_station_names, resolve_type_ids
 
-    # Resolve station names
-    station_names: dict[int, str] = {}
-    for lid in location_ids:
-        info = public_client.get_dict_safe(f"/universe/stations/{lid}/")
-        if info and "name" in info:
-            station_names[lid] = info["name"]
+    type_info = resolve_type_ids(type_ids, esi_client=public_client)
+    station_names = resolve_station_names(location_ids, esi_client=public_client)
 
     # Group assets by location and prepare for insights
     assets_by_location: dict[int, list[dict]] = defaultdict(list)
@@ -781,14 +765,11 @@ def cmd_fitting(args: argparse.Namespace) -> dict:
             "query_timestamp": query_ts,
         }
 
-    # Resolve type names for all assets
-    type_ids = set(a["type_id"] for a in assets)
-    type_info = {}
+    # Resolve type names for all assets (batch)
+    from ._resolution import resolve_station_names, resolve_type_ids
 
-    for tid in type_ids:
-        info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            type_info[tid] = {"name": info["name"], "group_id": info.get("group_id", 0)}
+    type_ids = set(a["type_id"] for a in assets)
+    type_info = resolve_type_ids(type_ids, esi_client=public_client)
 
     # Find matching ship
     target_ship = None
@@ -830,12 +811,10 @@ def cmd_fitting(args: argparse.Namespace) -> dict:
     ship_type_id = target_ship["type_id"]
     ship_type_name = type_info.get(ship_type_id, {}).get("name", "Unknown")
 
-    # Get station name
+    # Get station name (batch)
     loc_id = target_ship["location_id"]
-    station_info = public_client.get_dict_safe(f"/universe/stations/{loc_id}/")
-    station_name = (
-        station_info.get("name", f"Station-{loc_id}") if station_info else f"Station-{loc_id}"
-    )
+    _station_names = resolve_station_names({loc_id}, esi_client=public_client)
+    station_name = _station_names.get(loc_id, f"Station-{loc_id}")
 
     # Find all items fitted to this ship
     fitted_items = [a for a in assets if a.get("location_id") == ship_item_id]
@@ -1026,23 +1005,12 @@ def cmd_blueprints(args: argparse.Namespace) -> dict:
     type_ids = set(bp["type_id"] for bp in blueprints)
     location_ids = set(bp["location_id"] for bp in blueprints)
 
-    # Resolve type names
-    type_names = {}
-    for tid in type_ids:
-        info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            type_names[tid] = info["name"]
+    # Resolve type names and location names (batch)
+    from ._resolution import resolve_station_names, resolve_type_ids
 
-    # Resolve location names (stations)
-    location_names = {}
-    for lid in location_ids:
-        # Try station first
-        info = public_client.get_dict_safe(f"/universe/stations/{lid}/")
-        if info and "name" in info:
-            location_names[lid] = info["name"]
-        else:
-            # Could be a structure - would need auth, skip for now
-            location_names[lid] = f"Structure ({lid})"
+    _type_info = resolve_type_ids(type_ids, esi_client=public_client)
+    type_names = {tid: info["name"] for tid, info in _type_info.items()}
+    location_names = resolve_station_names(location_ids, esi_client=public_client)
 
     # Process blueprints
     bpos = []

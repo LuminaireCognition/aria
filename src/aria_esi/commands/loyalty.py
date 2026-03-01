@@ -283,13 +283,12 @@ def cmd_lp_offers(args: argparse.Namespace) -> dict:
         for req in offer.get("required_items", []):
             type_ids.add(req.get("type_id"))
 
-    # Resolve type names (batch, limit to avoid too many requests)
-    type_names = {}
-    for tid in list(type_ids)[:200]:
-        if tid:
-            info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-            if info and "name" in info:
-                type_names[tid] = info["name"]
+    # Resolve type names (batch, capped at 200)
+    from ._resolution import resolve_type_ids
+
+    type_ids.discard(None)
+    _type_info = resolve_type_ids(set(list(type_ids)[:200]), esi_client=public_client)
+    type_names = {tid: info["name"] for tid, info in _type_info.items()}
 
     # Process offers
     processed_offers = []
@@ -444,17 +443,11 @@ def cmd_lp_analyze(args: argparse.Namespace) -> dict:
     for offer in offers:
         type_ids.add(offer.get("type_id"))
 
-    # Resolve type names
-    type_info = {}
-    for tid in list(type_ids)[:200]:
-        if tid:
-            info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-            if info:
-                type_info[tid] = {
-                    "name": info.get("name", f"Unknown ({tid})"),
-                    "group_id": info.get("group_id", 0),
-                    "market_group_id": info.get("market_group_id"),
-                }
+    # Resolve type names (batch, capped at 200)
+    from ._resolution import resolve_type_ids
+
+    type_ids.discard(None)
+    type_info = resolve_type_ids(set(list(type_ids)[:200]), esi_client=public_client)
 
     # Categorize offers
     no_items_required = []  # LP + ISK only

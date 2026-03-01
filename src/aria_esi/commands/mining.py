@@ -104,15 +104,12 @@ def cmd_mining(args: argparse.Namespace) -> dict:
         type_ids.add(entry.get("type_id", 0))
         system_ids.add(entry.get("solar_system_id", 0))
 
-    # Resolve type names (ore names)
-    type_names = {}
-    for tid in type_ids:
-        if tid:
-            info = public_client.get_safe(f"/universe/types/{tid}/")
-            if info and "name" in info:
-                type_names[tid] = info["name"]
-            else:
-                type_names[tid] = f"Unknown-{tid}"
+    # Resolve type names (batch)
+    from ._resolution import resolve_type_ids
+
+    type_ids.discard(0)
+    _type_info = resolve_type_ids(type_ids, esi_client=public_client)
+    type_names = {tid: info["name"] for tid, info in _type_info.items()}
 
     # Resolve system names and security
     system_info = {}
@@ -298,15 +295,12 @@ def cmd_mining_summary(args: argparse.Namespace) -> dict:
         dates_seen.add(entry_date)
         total_quantity += quantity
 
-    # Resolve names
-    type_names = {}
-    for tid in type_ids:
-        if tid:
-            info = public_client.get_safe(f"/universe/types/{tid}/")
-            if info and "name" in info:
-                type_names[tid] = info["name"]
-            else:
-                type_names[tid] = f"Unknown-{tid}"
+    # Resolve names (batch)
+    from ._resolution import resolve_type_ids as _resolve_types
+
+    type_ids.discard(0)
+    _type_info = _resolve_types(type_ids, esi_client=public_client)
+    type_names = {tid: info["name"] for tid, info in _type_info.items()}
 
     system_names = {}
     for sid in system_ids:

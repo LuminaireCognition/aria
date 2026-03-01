@@ -99,7 +99,18 @@ If any input prices are missing, display a warning and mark the cost calculation
 
 ### Unknown Fuel Block
 
-If the fuel block name is not recognized, list the four available types: Nitrogen (Caldari), Hydrogen (Minmatar), Helium (Amarr), Oxygen (Gallente).
+If the fuel block name is not recognized, present the reference table below.
+
+### Fuel Block Faction Reference (MANDATORY — verify against this table)
+
+| Fuel Block | Faction | Isotope |
+|------------|---------|---------|
+| Nitrogen Fuel Block | Caldari | Nitrogen Isotopes |
+| Hydrogen Fuel Block | Minmatar | Hydrogen Isotopes |
+| Helium Fuel Block | Amarr | Helium Isotopes |
+| Oxygen Fuel Block | Gallente | Oxygen Isotopes |
+
+When presenting fuel block data, cross-reference faction assignments against this table. Do NOT guess faction assignments from training data.
 
 ## DO NOT
 

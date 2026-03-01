@@ -9,6 +9,31 @@ from __future__ import annotations
 import argparse
 from unittest.mock import MagicMock, patch
 
+
+def _mock_resolve_type_ids(type_ids, *, esi_client=None):
+    """Test helper: resolve type IDs from a fixed lookup table."""
+    lookup = {
+        587: {"name": "Rifter", "group_id": 25, "market_group_id": None},
+        34: {"name": "Tritanium", "group_id": 18, "market_group_id": None},
+    }
+    return {tid: lookup.get(tid, {"name": f"Unknown-{tid}", "group_id": 0, "market_group_id": None}) for tid in type_ids}
+
+
+def _mock_resolve_station_names(station_ids, *, esi_client=None):
+    """Test helper: resolve station IDs from a fixed lookup table."""
+    lookup = {
+        60003760: "Jita IV - Moon 4 - Caldari Navy Assembly Plant",
+        60004588: "Amarr VIII - Oris - Emperor Family Academy",
+    }
+    return {sid: lookup.get(sid, f"Station-{sid}") for sid in station_ids}
+
+
+_RESOLUTION_PATCHES = {
+    "aria_esi.commands._resolution.resolve_type_ids": _mock_resolve_type_ids,
+    "aria_esi.commands._resolution.resolve_station_names": _mock_resolve_station_names,
+}
+
+
 # =============================================================================
 # Assets Command Tests
 # =============================================================================
@@ -113,16 +138,12 @@ class TestCmdAssets:
         )
 
         mock_public_client = MagicMock()
-        # Rifter is a ship (group 25), Tritanium is not
-        mock_public_client.get_dict_safe.side_effect = lambda url: {
-            "/universe/types/587/": {"name": "Rifter", "group_id": 25},
-            "/universe/types/34/": {"name": "Tritanium", "group_id": 18},
-            "/universe/stations/60003760/": {"name": "Jita IV - Moon 4 - Caldari Navy Assembly Plant"},
-        }.get(url, {})
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
              patch("aria_esi.commands.assets._fetch_all_assets", return_value=mock_assets), \
-             patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client):
+             patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client), \
+             patch("aria_esi.commands._resolution.resolve_type_ids", side_effect=_mock_resolve_type_ids), \
+             patch("aria_esi.commands._resolution.resolve_station_names", side_effect=_mock_resolve_station_names):
             result = cmd_assets(args)
 
         # Ships filter should only return ship assets
@@ -194,11 +215,12 @@ class TestAssetsInsights:
         )
 
         mock_public_client = MagicMock()
-        mock_public_client.get_dict_safe.return_value = {"name": "Rifter", "group_id": 25}
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
              patch("aria_esi.commands.assets._fetch_all_assets", return_value=mock_assets), \
              patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client), \
+             patch("aria_esi.commands._resolution.resolve_type_ids", side_effect=_mock_resolve_type_ids), \
+             patch("aria_esi.commands._resolution.resolve_station_names", side_effect=_mock_resolve_station_names), \
              patch("aria_esi.services.asset_insights.generate_insights_summary") as mock_insights, \
              patch("aria_esi.services.asset_insights.find_duplicate_ships", return_value=[]), \
              patch("aria_esi.services.asset_insights.identify_forgotten_assets", return_value=[]), \
@@ -241,15 +263,12 @@ class TestAssetsTypeFilter:
         )
 
         mock_public_client = MagicMock()
-        mock_public_client.get_dict_safe.side_effect = lambda url: {
-            "/universe/types/587/": {"name": "Rifter", "group_id": 25},
-            "/universe/types/34/": {"name": "Tritanium", "group_id": 18},
-            "/universe/stations/60003760/": {"name": "Jita IV - Moon 4"},
-        }.get(url, {})
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
              patch("aria_esi.commands.assets._fetch_all_assets", return_value=mock_assets), \
-             patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client):
+             patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client), \
+             patch("aria_esi.commands._resolution.resolve_type_ids", side_effect=_mock_resolve_type_ids), \
+             patch("aria_esi.commands._resolution.resolve_station_names", side_effect=_mock_resolve_station_names):
             result = cmd_assets(args)
 
         # Should filter to Tritanium only
@@ -286,16 +305,12 @@ class TestAssetsLocationFilter:
         )
 
         mock_public_client = MagicMock()
-        mock_public_client.get_dict_safe.side_effect = lambda url: {
-            "/universe/types/587/": {"name": "Rifter", "group_id": 25},
-            "/universe/types/34/": {"name": "Tritanium", "group_id": 18},
-            "/universe/stations/60003760/": {"name": "Jita IV - Moon 4 - Caldari Navy Assembly Plant"},
-            "/universe/stations/60004588/": {"name": "Amarr VIII - Oris - Emperor Family Academy"},
-        }.get(url, {})
 
         with patch("aria_esi.commands.assets.get_authenticated_client", return_value=(mock_client, mock_creds)), \
              patch("aria_esi.commands.assets._fetch_all_assets", return_value=mock_assets), \
-             patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client):
+             patch("aria_esi.commands.assets.ESIClient", return_value=mock_public_client), \
+             patch("aria_esi.commands._resolution.resolve_type_ids", side_effect=_mock_resolve_type_ids), \
+             patch("aria_esi.commands._resolution.resolve_station_names", side_effect=_mock_resolve_station_names):
             result = cmd_assets(args)
 
         # Should filter to Jita only

@@ -64,9 +64,9 @@ damage_tuning:
       # Serpentis deal Kin/Therm, weak to Thermal
       modules:
         - from: "Multispectrum Energized Membrane I"
-          to: "Armor Kinetic Hardener I"
+          to: "Kinetic Armor Hardener I"
         - from: "Reactive Armor Hardener"
-          to: "Armor Thermal Hardener I"
+          to: "Thermal Armor Hardener I"
       drones:
         primary: "Hammerhead I"
         anti_frigate: "Hobgoblin I"
@@ -76,24 +76,24 @@ damage_tuning:
       # Angels deal Exp/Kin, weak to Explosive
       modules:
         - from: "Multispectrum Energized Membrane I"
-          to: "Armor Explosive Hardener I"
+          to: "Explosive Armor Hardener I"
         - from: "Reactive Armor Hardener"
-          to: "Armor Kinetic Hardener I"
+          to: "Kinetic Armor Hardener I"
       drones:
         primary: "Valkyrie I"
         anti_frigate: "Warrior I"
       rigs:
         - from: "Medium Auxiliary Nano Pump I"
-          to: "Medium Anti-Explosive Pump I"
+          to: "Medium Explosive Armor Reinforcer I"
       notes: "Angels are fast - use MWD to maintain range"
 
     blood_raiders:
       # Blood Raiders deal EM/Therm, weak to EM
       modules:
         - from: "Multispectrum Energized Membrane I"
-          to: "Armor EM Hardener I"
+          to: "EM Armor Hardener I"
         - from: "Reactive Armor Hardener"
-          to: "Armor Thermal Hardener I"
+          to: "Thermal Armor Hardener I"
       drones:
         primary: "Infiltrator I"
         anti_frigate: "Acolyte I"
@@ -103,9 +103,9 @@ damage_tuning:
       # Guristas deal Kin/Therm, weak to Kinetic
       modules:
         - from: "Multispectrum Energized Membrane I"
-          to: "Armor Kinetic Hardener I"
+          to: "Kinetic Armor Hardener I"
         - from: "Reactive Armor Hardener"
-          to: "Armor Thermal Hardener I"
+          to: "Thermal Armor Hardener I"
       drones:
         primary: "Vespa I"
         anti_frigate: "Hornet I"

@@ -126,7 +126,23 @@ fitting(action="calculate_stats", eft="[Ship, Fit Name]\n...", use_pilot_skills=
 | `resources.cpu.overloaded: true` | CPU exceeded - reduce/downgrade modules |
 | `resources.powergrid.overloaded: true` | PG exceeded - downgrade modules |
 | `metadata.warnings` | **Investigate before proceeding** (see Warning Protocol) |
-| Clean validation | Proceed to presentation |
+| Clean validation | Proceed to **Resist Sanity Check**, then presentation |
+
+### Resist Sanity Check (MANDATORY after EOS validation)
+
+**CRITICAL:** EOS may contain attribute mapping bugs where a hardener boosts the wrong resist type. After every EOS validation of a fit containing hardeners:
+
+1. **Compare armor/shield resists** against base hull resists (from `sde(action="item_info", item="[ship]")`)
+2. **For each active hardener**, verify the resist it claims to boost actually increased from base:
+   - Thermal Hardener → thermal resist should be higher than base
+   - Kinetic Hardener → kinetic resist should be higher than base
+   - EM Hardener → EM resist should be higher than base
+   - Explosive Hardener → explosive resist should be higher than base
+3. **If a hardener's target resist is unchanged** but a different resist increased, the hardener has a data mapping error
+4. **Action on mismatch:** Do NOT hand-wave or rationalize. Replace the broken hardener with a working alternative (e.g., Multispectrum Energized Membrane for armor, Multispectrum Shield Hardener for shield) and note the issue
+
+**Known EOS bugs:**
+- `Thermal Armor Hardener I` (type_id 11277): Boosts explosive resist instead of thermal. Use Multispectrum Energized Membrane I/Compact as substitute for thermal resist.
 
 ### Warning Investigation Protocol
 
@@ -156,6 +172,37 @@ If the fitting engine is unavailable:
 - **Warn the user** that the fit is unvalidated
 - **Do not present stats** as they would be estimates
 - **Suggest** verifying in-game with the Fitting Simulation tool
+
+## Pilot Skills Fallback Chain
+
+**CRITICAL:** Use actual pilot skills whenever possible. Stats at All V overstate performance by 15-25% for typical pilots.
+
+| Priority | Method | When to Use |
+|----------|--------|-------------|
+| 1 | `fitting(action="calculate_stats", eft="...", use_pilot_skills=true)` | MCP fitting tool available |
+| 2 | `uv run aria-esi skills` → pass skills to fitting tool | MCP pilot skills unavailable |
+| 3 | All Skills V (last resort) | Both above fail |
+
+If falling back to All V, include a **prominent warning** (not a footnote): "Stats shown at All V — your actual performance will be lower. Use `/fit-check` to see pilot-specific numbers."
+
+## Upgrade Path Guidance
+
+When suggesting upgrade paths, respect the correct module tier hierarchy:
+
+```
+T1 Base → Named Meta (Compact/Enduring/Restrained/etc.) → T2
+```
+
+**Named meta modules are SUPERIOR to T1 base** — they have better stats or lower fitting requirements. Never suggest replacing a named meta module with the T1 base version. That is a **downgrade**, not an upgrade.
+
+| Current Module | Correct Upgrade | WRONG "Upgrade" |
+|----------------|----------------|-----------------|
+| Heavy Missile Launcher I | 'Arbalest' HML (meta) or HML II (T2) | — |
+| 'Arbalest' Heavy Missile Launcher | Heavy Missile Launcher II (T2) | Heavy Missile Launcher I (downgrade!) |
+| Large Azeotropic Restrained Shield Extender | Large Shield Extender II (T2) | Large Shield Extender I (downgrade!) |
+| Compact Multispectrum Energized Membrane | Multispectrum Energized Membrane II (T2) | Multispectrum Energized Membrane I (downgrade!) |
+
+When building upgrade paths: the next step UP from any named meta variant is always T2 (if the pilot has skills) or a higher-tier meta, never the T1 base.
 
 ## Response Format
 

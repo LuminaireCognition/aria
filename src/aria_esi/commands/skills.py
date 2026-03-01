@@ -240,16 +240,12 @@ def cmd_skills(args: argparse.Namespace) -> dict:
     unallocated_sp = skills_data.get("unallocated_sp", 0)
     skills = skills_data.get("skills", [])
 
-    # Resolve skill names
-    type_ids = [s["skill_id"] for s in skills]
-    skill_names = {}
-    skill_groups = {}
+    # Resolve skill names (batch)
+    from ._resolution import resolve_type_ids
 
-    for tid in type_ids:
-        info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-        if info and "name" in info:
-            skill_names[tid] = info["name"]
-            skill_groups[tid] = info.get("group_id", 0)
+    type_ids = [s["skill_id"] for s in skills]
+    _type_info = resolve_type_ids(set(type_ids), esi_client=public_client)
+    skill_names = {tid: info["name"] for tid, info in _type_info.items()}
 
     # Build skill list with names
     skill_list = []
@@ -330,14 +326,12 @@ def cmd_skillqueue(args: argparse.Namespace) -> dict:
             "skills": [],
         }
 
-    # Collect skill IDs for name resolution
-    skill_ids = set(s["skill_id"] for s in queue_data if isinstance(s, dict) and "skill_id" in s)
-    skill_names = {}
+    # Collect skill IDs for name resolution (batch)
+    from ._resolution import resolve_type_ids as _resolve_types
 
-    for sid in skill_ids:
-        info = public_client.get_dict_safe(f"/universe/types/{sid}/")
-        if info and "name" in info:
-            skill_names[sid] = info["name"]
+    skill_ids = set(s["skill_id"] for s in queue_data if isinstance(s, dict) and "skill_id" in s)
+    _skill_info = _resolve_types(skill_ids, esi_client=public_client)
+    skill_names = {tid: info["name"] for tid, info in _skill_info.items()}
 
     now = datetime.now(UTC)
     queue_items = []

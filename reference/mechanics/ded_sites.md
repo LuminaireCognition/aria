@@ -378,7 +378,7 @@ Drone Link Augmentor I
 [Empty High slot]
 [Empty High slot]
 
-Medium Anti-Kinetic Screen Reinforcer I
+Medium Kinetic Shield Reinforcer I
 Medium Core Defense Field Extender I
 Medium Core Defense Field Extender I
 

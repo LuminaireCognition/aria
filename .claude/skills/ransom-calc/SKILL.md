@@ -86,7 +86,7 @@ RECOMMENDED RANSOM:
   Ship only: {ship_ransom} ISK
   Ship + pod: {total_ransom} ISK (if applicable)
 ───────────────────────────────────────────────────────────────────
-The Code says: honor your terms, Captain.
+{closing — see Behavior Notes}
 ═══════════════════════════════════════════════════════════════════
 ```
 
@@ -133,6 +133,7 @@ When cargo is known (scanned or declared):
 - Present calculations objectively
 - Respect the pilot's negotiation style
 - Note when ransom isn't viable (flee risk, backup coming)
+- **Closing (rp_level: on or full only):** End with "The Code says: honor your terms, Captain." At rp_level: off, end with "Always honor ransom agreements — reputation determines future payments."
 
 ## DO NOT
 

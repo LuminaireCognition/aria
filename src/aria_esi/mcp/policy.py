@@ -75,6 +75,7 @@ DEFAULT_ACTION_SENSITIVITY: dict[str, dict[str, SensitivityLevel]] = {
         "npc_sources": SensitivityLevel.PUBLIC,
         "arbitrage_scan": SensitivityLevel.MARKET,
         "arbitrage_detail": SensitivityLevel.MARKET,
+        "build_cost": SensitivityLevel.MARKET,
         "route_value": SensitivityLevel.MARKET,
         "watchlist_create": SensitivityLevel.PUBLIC,
         "watchlist_add_item": SensitivityLevel.PUBLIC,

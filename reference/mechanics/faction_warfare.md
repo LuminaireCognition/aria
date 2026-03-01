@@ -155,7 +155,7 @@ Light Neutron Blaster I, Antimatter Charge S
 Light Neutron Blaster I, Antimatter Charge S
 Light Neutron Blaster I, Antimatter Charge S
 
-Small Anti-EM Screen Reinforcer I
+Small EM Shield Reinforcer I
 Small Core Defense Field Extender I
 Small Core Defense Field Extender I
 ```

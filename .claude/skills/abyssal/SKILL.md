@@ -71,10 +71,11 @@ When asked about NPCs (e.g., "/abyssal npc triglavian"):
 When asked about fitting (e.g., "/abyssal fit gila"):
 
 1. Read reference data for general guidance on tank style and weather-specific resists
-2. Defer to `/fitting` skill or `fitting(action="calculate_stats")` for specific fits and stat validation
-3. Present: Tank Style / Weather-Specific Resist Advice / Drone Recommendations (from reference data)
+2. **NEVER generate a complete ship fit** from this skill — no EFT blocks, no module lists, no specific module names
+3. Present: General Tank Approach / Weather-Specific Resist Priority / Drone Strategy (from reference data only)
+4. Direct the pilot to use `/fitting <ship> for <weather> abyssal` for a validated fit
 
-**Do not provide specific module names or target stats from training data.** If the reference file contains fitting guidance, use it. Otherwise, suggest the pilot paste an EFT fit for analysis.
+Module names and stats change across patches. The `/fitting` skill uses EOS for validated output.
 
 ## Failure Handling
 
@@ -90,3 +91,4 @@ Always warn: Abyssal Deadspace has a strict 20-minute time limit -- failure mean
 - **DO NOT** recommend T5/T6 to inexperienced pilots
 - **DO NOT** provide exact fits without EOS validation
 - **DO NOT** claim knowledge of current meta without noting verification sources
+- **DO NOT** generate ship fits, module lists, or EFT-format fittings — defer ALL fitting requests to `/fitting`

@@ -44,6 +44,7 @@ MarketAction = Literal[
     "npc_sources",
     "arbitrage_scan",
     "arbitrage_detail",
+    "build_cost",
     "route_value",
     "watchlist_create",
     "watchlist_add_item",
@@ -66,6 +67,7 @@ VALID_ACTIONS: set[str] = {
     "npc_sources",
     "arbitrage_scan",
     "arbitrage_detail",
+    "build_cost",
     "route_value",
     "watchlist_create",
     "watchlist_add_item",
@@ -131,6 +133,10 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
         include_custom_scopes: bool = False,
         scopes: list[str] | None = None,
         scope_owner_id: int | None = None,
+        # build_cost params
+        me_level: int = 0,
+        runs: int = 1,
+        facility: str | None = None,
         # arbitrage_detail params
         buy_region: str | None = None,
         sell_region: str | None = None,
@@ -165,6 +171,7 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
         - npc_sources: Find NPC-seeded items
         - arbitrage_scan: Scan for arbitrage opportunities
         - arbitrage_detail: Detailed arbitrage analysis
+        - build_cost: Calculate manufacturing cost from blueprint
         - route_value: Calculate cargo value and risk
         - watchlist_create/add_item/list/get/delete: Manage watchlists
         - scope_create/list/delete/refresh: Manage market scopes
@@ -318,6 +325,9 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                 "include_core": include_core,
                 "scope_name": scope_name,
                 "max_structure_pages": max_structure_pages,
+                "me_level": me_level,
+                "runs": runs,
+                "facility": facility,
             },
         )
 
@@ -368,6 +378,8 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                 )
             case "arbitrage_detail":
                 result = await _arbitrage_detail(type_name, buy_region, sell_region)
+            case "build_cost":
+                result = await _build_cost(item, me_level, runs, facility, region)
             case "route_value":
                 result = await _route_value(items, route, price_type)
             case "watchlist_create":
@@ -1232,3 +1244,309 @@ async def _scope_refresh(
     return await _scope_refresh_impl(
         scope_name, owner_character_id, force_refresh, max_structure_pages
     )
+
+
+# =============================================================================
+# Build Cost Implementation
+# =============================================================================
+
+
+# Material category labels for display
+_CATEGORY_LABELS: dict[str, str] = {
+    "minerals": "Minerals",
+    "ice_products": "Ice Products",
+    "pi_p1": "PI (P1)",
+    "pi_p2": "PI (P2)",
+    "pi_p3": "PI (P3)",
+    "pi_p4": "PI (P4)",
+    "ship_components": "Ship Components",
+    "reaction_intermediates": "Reaction Intermediates",
+    "moon_materials": "Moon Materials",
+    "other": "Other",
+}
+
+
+def _load_material_classifications() -> dict[str, str]:
+    """
+    Load material_sources.json and build name->category lookup.
+
+    Returns:
+        Dict mapping material name (lowercase) to category key.
+    """
+    import json
+    from pathlib import Path
+
+    ref_path = (
+        Path(__file__).parent.parent.parent.parent.parent
+        / "reference"
+        / "industry"
+        / "material_sources.json"
+    )
+    if not ref_path.exists():
+        ref_path = Path("reference/industry/material_sources.json")
+
+    lookup: dict[str, str] = {}
+    if ref_path.exists():
+        with open(ref_path) as f:
+            data = json.load(f)
+        for category in (
+            "minerals",
+            "ice_products",
+            "pi_p1",
+            "pi_p2",
+            "pi_p3",
+            "pi_p4",
+            "ship_components",
+            "reaction_intermediates",
+            "moon_materials",
+        ):
+            for name in data.get(category, []):
+                lookup[name.lower()] = category
+
+    return lookup
+
+
+def _classify_material(name: str, lookup: dict[str, str]) -> str:
+    """Classify a material name into a category."""
+    return lookup.get(name.lower(), "other")
+
+
+def _determine_complexity(categories: set[str]) -> str:
+    """Determine supply chain complexity from material categories present."""
+    complex_cats = {"pi_p3", "pi_p4", "ship_components", "reaction_intermediates", "moon_materials"}
+    moderate_cats = {"ice_products", "pi_p1", "pi_p2"}
+
+    if categories & complex_cats:
+        return "complex"
+    if categories & moderate_cats:
+        return "moderate"
+    return "simple"
+
+
+async def _build_cost(
+    item: str | None,
+    me_level: int,
+    runs: int,
+    facility: str | None,
+    region: str,
+) -> dict:
+    """Build cost action - calculate manufacturing cost from blueprint."""
+    if not item:
+        raise InvalidParameterError("item", item, "Required for action='build_cost'")
+
+    # Clamp ME
+    me_level = max(0, min(10, me_level))
+    runs = max(1, runs)
+
+    from aria_esi.mcp.sde.tools_blueprint import _blueprint_info_impl
+    from aria_esi.models.market import (
+        BuildCostBlueprint,
+        BuildCostCategorySubtotal,
+        BuildCostMaterial,
+        BuildCostProfitability,
+        BuildCostResult,
+        resolve_region,
+    )
+    from aria_esi.services.industry_costs import (
+        apply_facility_me,
+        apply_me,
+        format_isk,
+        format_time_duration,
+        get_facility_info,
+    )
+    from aria_esi.store.market.cache import MarketCache
+    from aria_esi.store.market.database import get_market_database
+
+    # 1. Get blueprint
+    bp_result = await _blueprint_info_impl(item)
+    if not bp_result.get("found"):
+        return {
+            "found": False,
+            "query": item,
+            "suggestions": bp_result.get("suggestions", []),
+            "warnings": ["Blueprint not found. Use sde(action='search') to find similar items."],
+        }
+
+    bp = bp_result["blueprint"]
+    materials = bp["materials"]
+    product_name = bp["product_name"]
+    product_qty = bp.get("product_quantity", 1)
+
+    # 2. Facility ME bonus
+    facility_me_bonus = 0.0
+    facility_name = None
+    if facility:
+        finfo = get_facility_info(facility)
+        facility_me_bonus = finfo.get("me_bonus", 0)
+        facility_name = finfo.get("name")
+
+    # 3. Apply ME to each material
+    for mat in materials:
+        me_qty = apply_me(mat["quantity"], me_level)
+        if facility_me_bonus > 0:
+            me_qty = apply_facility_me(me_qty, facility_me_bonus)
+        mat["me_qty"] = me_qty
+        mat["total_qty"] = me_qty * runs
+
+    # 4. Resolve prices for all materials + product
+    hub = resolve_region(region) or resolve_region("jita")
+    assert hub is not None
+
+    db = get_market_database()
+    all_names = [m["type_name"] for m in materials] + [product_name]
+
+    type_ids: list[int] = []
+    type_names: dict[int, str] = {}
+    unresolved: list[str] = []
+
+    for name in all_names:
+        type_info = db.resolve_type_name(name)
+        if type_info:
+            type_ids.append(type_info.type_id)
+            type_names[type_info.type_id] = type_info.type_name
+        else:
+            unresolved.append(name)
+
+    is_trade_hub = hub.get("station_id") is not None
+    if is_trade_hub:
+        cache = MarketCache(region=region, station_only=True)
+    else:
+        cache = MarketCache(
+            region_id=hub["region_id"],
+            region_name=hub["region_name"],
+            station_only=False,
+        )
+    prices = await cache.get_prices(type_ids, type_names)
+
+    # Build price lookup: type_name (lowercase) -> ItemPrice
+    price_map: dict[str, object] = {}
+    for p in prices:
+        price_map[p.type_name.lower()] = p
+
+    # 5. Classify materials and compute costs
+    mat_lookup = _load_material_classifications()
+    warnings: list[str] = []
+    result_materials: list[BuildCostMaterial] = []
+    categories_seen: set[str] = set()
+    category_costs: dict[str, float] = {}
+    category_counts: dict[str, int] = {}
+    total_cost = 0.0
+    materials_priced = 0
+    materials_missing = 0
+
+    for mat in materials:
+        mat_name = mat["type_name"]
+        category = _classify_material(mat_name, mat_lookup)
+        categories_seen.add(category)
+
+        price_data = price_map.get(mat_name.lower())
+        unit_price: float | None = None
+        if price_data:
+            sell = price_data.sell
+            unit_price = sell.min_price if sell.min_price is not None else sell.weighted_avg
+
+        price_missing = unit_price is None
+        mat_total: float | None = None
+
+        if unit_price is not None:
+            mat_total = unit_price * mat["total_qty"]
+            total_cost += mat_total
+            materials_priced += 1
+            category_costs[category] = category_costs.get(category, 0.0) + mat_total
+        else:
+            materials_missing += 1
+
+        category_counts[category] = category_counts.get(category, 0) + 1
+
+        result_materials.append(
+            BuildCostMaterial(
+                type_id=mat["type_id"],
+                type_name=mat_name,
+                category=category,
+                base_qty=mat["quantity"],
+                me_qty=mat["me_qty"],
+                total_qty=mat["total_qty"],
+                unit_price=unit_price,
+                unit_price_formatted=format_isk(unit_price) if unit_price is not None else "N/A",
+                total_cost=mat_total,
+                total_cost_formatted=format_isk(mat_total) if mat_total is not None else "N/A",
+                price_missing=price_missing,
+            )
+        )
+
+    # 6. Category subtotals
+    subtotals: list[BuildCostCategorySubtotal] = []
+    for cat in sorted(category_costs.keys()):
+        subtotals.append(
+            BuildCostCategorySubtotal(
+                category=cat,
+                category_label=_CATEGORY_LABELS.get(cat, cat.replace("_", " ").title()),
+                item_count=category_counts.get(cat, 0),
+                total_cost=category_costs[cat],
+                total_cost_formatted=format_isk(category_costs[cat]),
+            )
+        )
+
+    # 7. Profitability
+    profitability: BuildCostProfitability | None = None
+    product_price_data = price_map.get(product_name.lower())
+    if product_price_data:
+        sell = product_price_data.sell
+        product_sell = sell.min_price if sell.min_price is not None else sell.weighted_avg
+        if product_sell is not None:
+            product_total_value = product_sell * product_qty * runs
+            gross_profit = product_total_value - total_cost
+            margin_pct = (
+                (gross_profit / product_total_value * 100) if product_total_value > 0 else 0
+            )
+
+            profitability = BuildCostProfitability(
+                product_sell_price=product_sell,
+                product_sell_formatted=format_isk(product_sell),
+                product_total_value=product_total_value,
+                product_total_formatted=format_isk(product_total_value),
+                gross_profit=gross_profit,
+                gross_profit_formatted=format_isk(gross_profit),
+                margin_pct=round(margin_pct, 1),
+                profitable=gross_profit > 0,
+            )
+
+    # 8. Warnings
+    if materials_missing > 0:
+        missing_names = [m.type_name for m in result_materials if m.price_missing]
+        warnings.append(
+            f"Missing prices for {materials_missing} material(s): {', '.join(missing_names)}"
+        )
+    if unresolved:
+        warnings.append(f"Could not resolve type names: {', '.join(unresolved)}")
+
+    # 9. Build result
+    mfg_time = bp.get("manufacturing_time")
+    blueprint_model = BuildCostBlueprint(
+        blueprint_type_id=bp["blueprint_type_id"],
+        blueprint_name=bp["blueprint_name"],
+        product_type_id=bp["product_type_id"],
+        product_name=product_name,
+        product_quantity=product_qty,
+        manufacturing_time=mfg_time,
+        manufacturing_time_formatted=format_time_duration(mfg_time) if mfg_time else None,
+        me_level=me_level,
+        runs=runs,
+        facility=facility_name,
+        facility_me_bonus=facility_me_bonus,
+    )
+
+    return BuildCostResult(
+        blueprint=blueprint_model,
+        materials=result_materials,
+        category_subtotals=subtotals,
+        total_material_cost=total_cost,
+        total_material_cost_formatted=format_isk(total_cost),
+        complexity=_determine_complexity(categories_seen),
+        profitability=profitability,
+        region=hub["region_name"],
+        materials_priced=materials_priced,
+        materials_missing=materials_missing,
+        is_complete=materials_missing == 0,
+        warnings=warnings,
+    ).model_dump()

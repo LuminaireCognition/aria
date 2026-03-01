@@ -896,6 +896,40 @@ class MarketDatabase:
 
         return self._row_to_type_info(row) if row else None
 
+    def resolve_type_ids_batch(self, type_ids: set[int]) -> dict[int, TypeInfo]:
+        """
+        Resolve multiple type IDs in a single query.
+
+        Uses chunked SQL queries (500 per chunk) to stay under SQLite's
+        999-variable limit while resolving all IDs efficiently.
+
+        Args:
+            type_ids: Set of type IDs to look up
+
+        Returns:
+            Dict mapping type_id to TypeInfo for all found types
+        """
+        if not type_ids:
+            return {}
+
+        conn = self._get_connection()
+        result: dict[int, TypeInfo] = {}
+        id_list = list(type_ids)
+        chunk_size = 500
+
+        for i in range(0, len(id_list), chunk_size):
+            chunk = id_list[i : i + chunk_size]
+            placeholders = ",".join("?" * len(chunk))
+            rows = conn.execute(
+                f"SELECT * FROM types WHERE type_id IN ({placeholders})",  # noqa: S608
+                chunk,
+            ).fetchall()
+            for row in rows:
+                info = self._row_to_type_info(row)
+                result[info.type_id] = info
+
+        return result
+
     def find_type_suggestions(self, name: str, limit: int = 5) -> list[str]:
         """
         Find type name suggestions for fuzzy matching.

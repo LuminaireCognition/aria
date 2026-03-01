@@ -160,15 +160,12 @@ def cmd_fittings(args: argparse.Namespace) -> dict:
         if isinstance(fit, dict):
             ship_type_ids.add(fit.get("ship_type_id", 0))
 
-    # Resolve ship names
-    ship_names = {}
-    for tid in ship_type_ids:
-        if tid:
-            info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-            if info and "name" in info:
-                ship_names[tid] = info["name"]
-            else:
-                ship_names[tid] = f"Unknown-{tid}"
+    # Resolve ship names (batch)
+    from ._resolution import resolve_type_ids
+
+    ship_type_ids.discard(0)
+    _ship_info = resolve_type_ids(ship_type_ids, esi_client=public_client)
+    ship_names = {tid: info["name"] for tid, info in _ship_info.items()}
 
     # Process fittings
     processed_fittings = []
@@ -285,15 +282,12 @@ def cmd_fittings_detail(args: argparse.Namespace) -> dict:
         if isinstance(item, dict):
             type_ids.add(item.get("type_id", 0))
 
-    # Resolve type names
-    type_names = {}
-    for tid in type_ids:
-        if tid:
-            info = public_client.get_dict_safe(f"/universe/types/{tid}/")
-            if info and "name" in info:
-                type_names[tid] = info["name"]
-            else:
-                type_names[tid] = f"Unknown-{tid}"
+    # Resolve type names (batch)
+    from ._resolution import resolve_type_ids as _resolve_types
+
+    type_ids.discard(0)
+    _type_info = _resolve_types(type_ids, esi_client=public_client)
+    type_names = {tid: info["name"] for tid, info in _type_info.items()}
 
     # Organize items by slot category
     slots = defaultdict(list)

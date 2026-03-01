@@ -36,6 +36,11 @@ If ESI is unavailable or the `esi-characters.read_standings.v1` scope is missing
 ## Execution Flow
 
 1. **Get current sec status** from ESI (or ask pilot if unavailable).
+1b. **Positive sec status gate:** If current security status is >= 0.0, the pilot has unrestricted highsec access and does not need security tags.
+   - Report current status and confirm full empire access
+   - Skip the TAG RECOVERY OPTIONS section entirely
+   - If `--tags` or `--target` was specified, explain: "Your security status is already positive. Tags only recover from negative status."
+   - Only proceed to steps 2-4 if sec status is negative
 2. **Read `reference/mechanics/security_status.json`** for threshold data, faction police response times, clone soldier tag values, tag farming locations, and sec loss values.
 3. **Present empire access** based on current status against thresholds from reference file.
 4. **If `--tags` or `--target`:** Fetch tag prices via `market(action="prices", items=["Clone Soldier Trainer", "Clone Soldier Recruiter", "Clone Soldier Transporter", "Clone Soldier Negotiator"])`. Compute ISK-per-sec-point for each tag type. Recommend cheapest tags first.
