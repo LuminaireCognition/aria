@@ -33,7 +33,7 @@ Before presenting any exploration analysis, the following MUST happen:
 | 3 | `market(action="prices", items=[...])` | Loot valuations (only for specific items) |
 | 4 | `sde(action="item_info", item="...")` | Individual loot item details (NOT site names) |
 
-**Steps 1-2 MUST be read before responding.** These files contain verified game mechanics. Do NOT rely on training data for hacking mechanics, container types, site prefixes, or loot tables. If prerequisite files cannot be read, state that exploration analysis requires reference data and cannot proceed.
+**Steps 1-2 MUST be read before responding.** Paths are relative to the repository root (e.g., read `reference/mechanics/exploration_sites.md` from the repo root, NOT from `.claude/skills/exploration/`). These files contain verified game mechanics. Do NOT rely on training data for hacking mechanics, container types, site prefixes, or loot tables. If a Read tool call is denied or fails, retry with the absolute path from the repository root. Only if files are truly missing after retrying should you inform the user that reference data is unavailable.
 
 ### Field → Source Mapping
 

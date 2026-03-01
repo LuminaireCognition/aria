@@ -26,7 +26,7 @@ If no region specified, defaults to Jita.
 
 ## Hallucination Guard
 
-**All prices MUST come from MCP tool calls.** Do not recall, estimate, or assume any price from training data. If a tool call fails, say so -- never fill in numbers from memory.
+**All prices and game mechanics MUST come from MCP tool calls or this skill document.** Do not recall, estimate, or assume any price from training data. Do not speculate about why items may or may not be tradeable. If a tool call fails, say so -- never fill in numbers or explanations from memory.
 
 ## Mandatory Tool Calls
 
@@ -66,7 +66,7 @@ Use MCP dispatchers as the primary path. Fall back to CLI only if MCP is unavail
 ## Error Handling
 
 - **Item not found:** Suggest spelling corrections. Use `sde(action="search", query="<term>")` to find close matches.
-- **No market data:** Inform the user the item may not be tradeable on the market. Provide the global average price if available.
+- **No market data:** Report "no orders found — this may be a data freshness issue." Show the global average price if available via `market(action="prices")`. Do NOT speculate about why orders are missing (e.g., do not claim items are untradeable or NES-only unless confirmed by the NES section below).
 - **No regional orders:** Show global average and suggest trying a different hub.
 
 ## NES / PLEX Market Items

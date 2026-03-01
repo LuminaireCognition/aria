@@ -26,6 +26,20 @@ requires_pilot: false
 /watchlist sync-wars                  # Sync war targets from ESI
 ```
 
+## Critical: Entity-Only Scope
+
+Watchlists track **player entities (corporations and alliances) only** — never market items, ships, or game objects. When a user says "add X to my watchlist", X is ALWAYS a corporation or alliance name.
+
+**Resolution workflow — do this FIRST for every add operation:**
+1. Call `sde(action="resolve_names", names=["<entity_name>"])` to get the numeric ID
+2. Extract the corporation or alliance ID from the response
+3. Pass the numeric ID to CLI: `watchlist-add "<list>" <id> --type <corporation|alliance> --entity-name "<name>"`
+
+Never use `sde(action="search")` or `sde(action="item_info")` for watchlist operations — those search game items, not player entities.
+
+- **MCP unavailable fallback:** No CLI equivalent for name resolution exists. Use the ESI Swagger UI or ask the pilot for the entity ID directly.
+- **NPC corporations:** The SDE `corporation_info` action only indexes NPC corporations. Player corps and alliances must be resolved via `sde(action="resolve_names")` (which calls ESI `POST /universe/ids/`). This action is MCP-only.
+
 ### Arguments
 
 | Argument | Description |
@@ -123,25 +137,6 @@ ALLIANCES:
 ===============================================================
 ```
 
-## Entity Resolution
-
-Before adding an entity by name, resolve it to a numeric ID:
-
-1. Call `sde(action="resolve_names", names=["Entity Name"])` via MCP
-2. Extract the corporation or alliance ID from the response
-3. Pass the numeric ID to the CLI: `watchlist-add "list" <id> --type corporation --entity-name "Entity Name"`
-
-**Example:** Adding "Pandemic Horde" to a watchlist:
-```
-sde(action="resolve_names", names=["Pandemic Horde"])
-→ {"alliances": [{"id": 99005338, "name": "Pandemic Horde"}]}
-
-uv run aria-esi watchlist-add "Hostiles" 99005338 --type alliance --entity-name "Pandemic Horde"
-```
-
-**MCP unavailable fallback:** No CLI equivalent exists. Use the ESI Swagger UI or ask the pilot for the entity ID directly.
-
-**Note:** The SDE `corporation_info` action only indexes NPC corporations. Player corps and alliances must be resolved via `sde(action="resolve_names")` (which calls ESI `POST /universe/ids/`). This action is MCP-only.
 
 ## War Target Synchronization
 
