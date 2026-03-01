@@ -86,6 +86,8 @@ Then compare against pilot skills (from `uv run aria-esi skills`) to identify wh
 
 **Do NOT** call `sde(action="skill_requirements")` per module — this wastes 5-10 calls that one batch call replaces.
 
+**CRITICAL — Skill gap table must use tool output ONLY.** The skill gap section of your response must contain ONLY requirements returned by `extract_requirements` or `check_requirements`. Do NOT supplement, correct, or override tool results with training data. If a skill does not appear in the tool output, it is not required — do not add it. If the tool says level IV is required, do not escalate to V.
+
 ### Step 3: Find Substitutes
 
 For each unflyable module, get alternatives:
@@ -104,6 +106,8 @@ For drones: T2 → T1 (same name without "II"). Use `meta_variants` to confirm.
 4. Prefer Enduring variants for cap-constrained fits
 
 **T1/Meta skill check shortcut:** T1 and named meta modules almost never require skills above level 1-2. After identifying T1 alternatives via `meta_variants`, assume they are flyable unless unusual (faction, storyline, or specialized). Only spot-check skill requirements for edge cases — do not re-verify every T1 substitute individually.
+
+Note: This shortcut applies to **substitution selection only**. The PILOT SKILL GAPS table in the output must still reflect ONLY the tool-verified requirements from Step 2 — never training-data assumptions.
 
 ### Step 4: Apply Budget Constraint
 
@@ -126,10 +130,15 @@ If `--target` specified:
 
 ### Step 5: Validate Budget Fit
 
-Run the budget fit through EOS:
+Run the budget fit through EOS, using actual pilot skills:
 ```
 fitting(action="calculate_stats", eft="[budget fit]", use_pilot_skills=true)
 ```
+
+**Pilot skills fallback chain** (same as fitting skill):
+1. MCP: `fitting(action="calculate_stats", ..., use_pilot_skills=true)`
+2. CLI: `uv run aria-esi skills` → pass to fitting tool
+3. All V (last resort) — label output clearly as "All V" if used
 
 Ensure:
 - CPU/PG fits
@@ -150,6 +159,12 @@ Calculate key metrics for both fits:
 
 Show percentage difference for each.
 
+**Column labeling rule:** Label columns by what actually differs between the two fits. If both fits are calculated at the same skill level (e.g., both All V), label by module tier, not skill source:
+- Both at All V → `Original (T2, All V)` vs `Budget (T1/Meta, All V)`
+- Different skill levels → `Original (All V)` vs `Budget (Pilot Skills)`
+
+Never label a column "Pilot" when the stats are calculated at All V — this implies pilot-specific skills were used when they were not.
+
 ## Response Format
 
 ```
@@ -162,12 +177,12 @@ SUBSTITUTIONS:
     [Stat change] | Saves [X]M
 
 PERFORMANCE COMPARISON:
-                      Original    Budget      Difference
-  DPS:                412         328         -20%
-  EHP:                18,200      16,100      -12%
-  Active Tank:        128 hp/s    102 hp/s    -20%
-  Cap Stable:         Yes         Yes         ─
-  Speed:              1,250 m/s   1,250 m/s   ─
+                      Original (T2, All V)  Budget (T1/Meta, All V)  Difference
+  DPS:                412                   328                      -20%
+  EHP:                18,200                16,100                   -12%
+  Active Tank:        128 hp/s              102 hp/s                 -20%
+  Cap Stable:         Yes                   Yes                      ─
+  Speed:              1,250 m/s             1,250 m/s                ─
 
 COST COMPARISON:
   Original:           37.0M
@@ -183,9 +198,17 @@ VERDICT:
 ───────────────────────────────────────────────────────────────────────────────
 BUDGET FIT (copy to clipboard):
 
-[EFT Block]
+[EFT Block — must follow EFT-FORMAT.md spec]
 ═══════════════════════════════════════════════════════════════════════════════
 ```
+
+### EFT Format Compliance
+
+Budget fit EFT blocks MUST follow the same format as all other fitting outputs. Read `.claude/skills/fitting/EFT-FORMAT.md` if uncertain. Key rules:
+- Blank line after `[Ship, Name]` header
+- Single blank line between slot sections (Low → Mid → High → Rig)
+- **Double** blank line before drones section
+- Include `[Empty High slot]` / `[Empty Mid slot]` / `[Empty Low slot]` markers for unused slots
 
 ## Fit Purpose Preservation
 
@@ -222,6 +245,10 @@ Based on performance comparison, provide a practical assessment:
 | 15-25% | "Budget fit handles [lower tier]. Train for T2 before [higher tier]." |
 | 25-40% | "Significant performance gap. Consider this a stepping stone." |
 | > 40% | "Major compromise. Original fit targets different content tier." |
+
+### Upgrade Path (if included)
+
+Any training recommendations must reference ONLY skills identified as missing by `extract_requirements` / `check_requirements` tool output from Step 2. Do NOT recommend training skills based on training data assumptions about module requirements. If the tool didn't flag it as missing, don't recommend training it.
 
 ## Error Handling
 
