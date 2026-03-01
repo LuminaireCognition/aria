@@ -457,7 +457,7 @@
     {
       "name": "fitting",
       "description": "ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/fitting",
@@ -1060,7 +1060,7 @@
     {
       "name": "reactions",
       "description": "Moon material reactions and fuel block calculator. Calculate costs, profits, and production times for reactions.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "industry",
       "triggers": [
         "/reactions",
@@ -1324,7 +1324,7 @@
     {
       "name": "watchlist",
       "description": "Manage entity watchlists for tracking corporations and alliances. Monitor war targets and get alerts when watched entities appear in kills.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/watchlist",

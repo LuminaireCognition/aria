@@ -1,7 +1,7 @@
 ---
 name: reactions
 description: Moon material reactions and fuel block calculator. Calculate costs, profits, and production times for reactions.
-model: haiku
+model: sonnet
 category: industry
 triggers:
   - "/reactions"
@@ -13,11 +13,9 @@ triggers:
 requires_pilot: false
 ---
 
-# ARIA Reactions Calculator
+# Reactions Calculator
 
-**Scope:** Fuel blocks and common reactions. Does not cover T2 component manufacturing (use `/build-cost` with `--full-chain` for those).
-
-## Command Syntax
+**Scope:** Fuel blocks and common reactions. T2 component manufacturing → `/build-cost`.
 
 ```
 /reactions fuel-blocks                     # List all fuel block types
@@ -27,58 +25,51 @@ requires_pilot: false
 /reactions fuel-blocks <type> --refinery Tatara  # With refinery bonus
 ```
 
-## Key Difference: Reactions vs Manufacturing
+## Fuel Block Reference (MANDATORY)
 
-| Aspect | Manufacturing | Reactions |
-|--------|--------------|-----------|
-| Material Efficiency | ME 0-10 (-10%) | **No ME** - fixed inputs |
-| Time Efficiency | TE 0-20 (-20%) | Reactions skill (-4%/level) |
-| Location | Any station/structure | **Refinery only** |
-| Slot skill | Mass Production | Mass Reactions |
-| Time bonus structure | Engineering Complex | Refinery (Tatara: -25%) |
+All fuel block queries — including simple enumerations — must use this table. Never answer from memory.
 
-## Execution Flow
+| Fuel Block | Faction | Isotope |
+|------------|---------|---------|
+| Nitrogen Fuel Block | Caldari | Nitrogen Isotopes |
+| Hydrogen Fuel Block | Minmatar | Hydrogen Isotopes |
+| Helium Fuel Block | Amarr | Helium Isotopes |
+| Oxygen Fuel Block | Gallente | Oxygen Isotopes |
 
-1. **Identify fuel block type:** Use `sde(action="blueprint_info", item="<Name> Fuel Block")` to get the blueprint, material inputs, and quantities. SDE categorizes fuel blocks as "Material", not "Charge".
-2. **Fetch all material prices in one call:** `market(action="prices", items=[...all inputs + output...])`. **CRITICAL:** Always fetch ALL material prices in a single call. Never split across multiple queries.
-3. **Calculate cost:** Use `calculate_fuel_block_cost()` from `aria_esi.services.reactions` with `fuel_block_name`, `material_prices`, `reactions_skill` (0-5), `refinery_name` ("Tatara" or "Athanor"), and `runs`.
-4. **Calculate profit (optional):** Use `calculate_fuel_block_profit()` with the same params plus `fuel_block_price` from market data.
-5. **Format output:** Use `format_fuel_block_summary()`.
+## Tool Calls
+
+| Step | Call | Purpose |
+|------|------|---------|
+| 1 | `sde(action="blueprint_info", item="<Name> Fuel Block")` | Materials, quantities |
+| 2 | `market(action="prices", items=[...all inputs + output...])` | All prices in one call |
+
+Fetch ALL material prices in a single `market(prices)` call. Never split across multiple queries.
 
 ## Reaction Time Formula
 
 ```
-effective_time = base_time * (1 - reactions_skill * 0.04) * (1 - refinery_bonus)
+effective_time = base_time × (1 - skill × 0.04) × (1 - refinery_bonus)
 ```
 
-Refinery bonuses: Athanor 0%, Tatara 25%. With Reactions V + Tatara: multiplicative 1 - (0.8 * 0.75) = 40% reduction.
+Refinery bonuses: Athanor 0%, Tatara 25%. Reactions V + Tatara: 60% of base time.
 
 ## Response Format
 
 ```
 ## Fuel Block Production: [Name] Fuel Block
 
-**Faction:** [Faction]
-**Isotope:** [Isotope type]
-**Runs:** [N] (Output: [N * 40] blocks)
+**Faction:** [from reference table]
+**Isotope:** [from reference table]
+**Runs:** [N] (Output: [N × 40] blocks)
 
 ### Input Materials
 
 | Material | Per Run | Total | Price | Cost |
 |----------|---------|-------|-------|------|
-| [from blueprint_info] | [computed] | [computed] | [fetched] | [computed] |
+| [from blueprint_info] | ... | ... | ... | ... |
 
 **Total Input Cost:** [computed]
 **Cost Per Block:** [computed]
-
-### Production Time
-
-| Setting | Value |
-|---------|-------|
-| Base Cycle | [from blueprint] |
-| Reactions Skill | -[skill * 4]% |
-| Refinery | -[bonus]% |
-| **Total Time** | **[computed]** |
 
 ### Profitability
 
@@ -88,30 +79,10 @@ Refinery bonuses: Athanor 0%, Tatara 25%. With Reactions V + Tatara: multiplicat
 | Revenue | [computed] |
 | **Gross Profit** | **[computed]** |
 | **Margin** | **[computed]** |
-| **Profit/Hour** | **[computed]** |
 ```
 
-## Edge Cases
+## Rules
 
-### Missing Material Prices
-
-If any input prices are missing, display a warning and mark the cost calculation as incomplete.
-
-### Unknown Fuel Block
-
-If the fuel block name is not recognized, present the reference table below.
-
-### Fuel Block Faction Reference (MANDATORY — verify against this table)
-
-| Fuel Block | Faction | Isotope |
-|------------|---------|---------|
-| Nitrogen Fuel Block | Caldari | Nitrogen Isotopes |
-| Hydrogen Fuel Block | Minmatar | Hydrogen Isotopes |
-| Helium Fuel Block | Amarr | Helium Isotopes |
-| Oxygen Fuel Block | Gallente | Oxygen Isotopes |
-
-When presenting fuel block data, cross-reference faction assignments against this table. Do NOT guess faction assignments from training data.
-
-## DO NOT
-
-- **DO NOT** apply ME to reactions - they have fixed input quantities
+- **No ME on reactions** — input quantities are fixed (unlike manufacturing)
+- All ISK figures from tool calls in this session
+- Reactions run in refineries only (Athanor or Tatara)
