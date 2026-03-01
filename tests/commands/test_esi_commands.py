@@ -974,19 +974,25 @@ class TestMiningCommand:
         # First call returns entries, second call returns empty (pagination)
         mock_client.get.side_effect = [mock_entries, []]
 
+        def mock_resolve_types(ids, **kw):
+            lookup = {
+                1230: {"name": "Veldspar", "group_id": 0, "market_group_id": None},
+                1228: {"name": "Scordite", "group_id": 0, "market_group_id": None},
+            }
+            return {tid: lookup.get(tid, {"name": f"Unknown-{tid}", "group_id": 0, "market_group_id": None}) for tid in ids}
+
         with patch(
             "aria_esi.commands.mining.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
+        ), patch(
+            "aria_esi.commands._resolution.resolve_type_ids",
+            side_effect=mock_resolve_types,
         ):
             with patch("aria_esi.commands.mining.ESIClient") as MockPublicClient:
                 mock_public = create_mock_public_client()
 
                 def get_safe_side_effect(url):
-                    if "/types/1230" in url:
-                        return {"name": "Veldspar"}
-                    elif "/types/1228" in url:
-                        return {"name": "Scordite"}
-                    elif "/systems/" in url:
+                    if "/systems/" in url:
                         return {"name": "Jita", "security_status": 0.95}
                     return {"name": "Unknown"}
 
@@ -1680,22 +1686,32 @@ class TestAssetsCommand:
         ]
 
         # Mock SHIP_GROUP_IDS to include 25 (Frigate)
+        def mock_resolve_types(ids, **kw):
+            lookup = {
+                587: {"name": "Rifter", "group_id": 25, "market_group_id": None},
+                34: {"name": "Tritanium", "group_id": 18, "market_group_id": None},
+            }
+            return {tid: lookup.get(tid, {"name": f"Unknown-{tid}", "group_id": 0, "market_group_id": None}) for tid in ids}
+
+        def mock_resolve_stations(ids, **kw):
+            return {sid: "Jita IV" for sid in ids}
+
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ), patch(
             "aria_esi.commands.assets._fetch_all_assets",
             return_value=mock_assets,
+        ), patch(
+            "aria_esi.commands._resolution.resolve_type_ids",
+            side_effect=mock_resolve_types,
+        ), patch(
+            "aria_esi.commands._resolution.resolve_station_names",
+            side_effect=mock_resolve_stations,
         ):
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
-                    mock_public.get_safe.side_effect = [
-                        {"name": "Rifter", "group_id": 25},
-                        {"name": "Rifter", "group_id": 25},
-                        {"name": "Tritanium", "group_id": 18},
-                        {"name": "Jita IV"},
-                    ]
                     MockPublicClient.return_value = mock_public
                     result = cmd_assets(empty_args)
 
@@ -1731,20 +1747,31 @@ class TestAssetsCommand:
             },
         ]
 
+        def mock_resolve_types(ids, **kw):
+            lookup = {
+                587: {"name": "Rifter", "group_id": 25, "market_group_id": None},
+                34: {"name": "Tritanium", "group_id": 18, "market_group_id": None},
+            }
+            return {tid: lookup.get(tid, {"name": f"Unknown-{tid}", "group_id": 0, "market_group_id": None}) for tid in ids}
+
+        def mock_resolve_stations(ids, **kw):
+            return {sid: "Jita IV" for sid in ids}
+
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ), patch(
             "aria_esi.commands.assets._fetch_all_assets",
             return_value=mock_assets,
+        ), patch(
+            "aria_esi.commands._resolution.resolve_type_ids",
+            side_effect=mock_resolve_types,
+        ), patch(
+            "aria_esi.commands._resolution.resolve_station_names",
+            side_effect=mock_resolve_stations,
         ):
             with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                 mock_public = create_mock_public_client()
-                mock_public.get_safe.side_effect = [
-                    {"name": "Rifter", "group_id": 25},
-                    {"name": "Tritanium", "group_id": 18},
-                    {"name": "Jita IV"},
-                ]
                 MockPublicClient.return_value = mock_public
                 result = cmd_assets(empty_args)
 
@@ -1928,6 +1955,33 @@ class TestFittingCommand:
         assert result.get("error") == "ship_not_found"
         assert "Megathron" in result.get("message", "")
 
+    def _fitting_type_lookup(self):
+        """Shared type lookup for fitting tests."""
+        return {
+            587: {"name": "Rifter", "group_id": 25, "market_group_id": None},
+            2046: {"name": "Damage Control II", "group_id": 60, "market_group_id": None},
+            527: {"name": "1MN Afterburner I", "group_id": 46, "market_group_id": None},
+            2881: {"name": "150mm Autocannon I", "group_id": 55, "market_group_id": None},
+            31117: {"name": "Small Projectile Burst Aerator I", "group_id": 782, "market_group_id": None},
+            2454: {"name": "Hobgoblin I", "group_id": 100, "market_group_id": None},
+            34: {"name": "Tritanium", "group_id": 18, "market_group_id": None},
+        }
+
+    def _fitting_resolution_patches(self):
+        """Return context managers for type/station resolution mocks."""
+        type_lookup = self._fitting_type_lookup()
+
+        def mock_resolve_types(ids, **kw):
+            return {tid: type_lookup.get(tid, {"name": f"Unknown-{tid}", "group_id": 0, "market_group_id": None}) for tid in ids}
+
+        def mock_resolve_stations(ids, **kw):
+            return {sid: "Jita IV - Moon 4" for sid in ids}
+
+        return (
+            patch("aria_esi.commands._resolution.resolve_type_ids", side_effect=mock_resolve_types),
+            patch("aria_esi.commands._resolution.resolve_station_names", side_effect=mock_resolve_stations),
+        )
+
     def test_cmd_fitting_success_by_name(
         self, empty_args, mock_credentials, mock_client, mock_fitting_assets_response
     ):
@@ -1936,37 +1990,17 @@ class TestFittingCommand:
 
         empty_args.ship = "Rifter"
 
+        p_types, p_stations = self._fitting_resolution_patches()
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ), patch(
             "aria_esi.commands.assets._fetch_all_assets",
             return_value=mock_fitting_assets_response,
-        ):
+        ), p_types, p_stations:
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
-
-                    def get_safe_handler(url):
-                        if "/types/587" in url:
-                            return {"name": "Rifter", "group_id": 25}
-                        elif "/types/2046" in url:
-                            return {"name": "Damage Control II", "group_id": 60}
-                        elif "/types/527" in url:
-                            return {"name": "1MN Afterburner I", "group_id": 46}
-                        elif "/types/2881" in url:
-                            return {"name": "150mm Autocannon I", "group_id": 55}
-                        elif "/types/31117" in url:
-                            return {"name": "Small Projectile Burst Aerator I", "group_id": 782}
-                        elif "/types/2454" in url:
-                            return {"name": "Hobgoblin I", "group_id": 100}
-                        elif "/types/34" in url:
-                            return {"name": "Tritanium", "group_id": 18}
-                        elif "/stations/" in url:
-                            return {"name": "Jita IV - Moon 4"}
-                        return {"name": "Unknown"}
-
-                    mock_public.get_safe.side_effect = get_safe_handler
                     MockPublicClient.return_value = mock_public
                     result = cmd_fitting(empty_args)
 
@@ -1983,17 +2017,17 @@ class TestFittingCommand:
 
         empty_args.ship = "1001"  # Item ID as string
 
+        p_types, p_stations = self._fitting_resolution_patches()
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ), patch(
             "aria_esi.commands.assets._fetch_all_assets",
             return_value=mock_fitting_assets_response,
-        ):
+        ), p_types, p_stations:
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
-                    mock_public.get_safe.return_value = {"name": "Rifter", "group_id": 25}
                     MockPublicClient.return_value = mock_public
                     result = cmd_fitting(empty_args)
 
@@ -2008,27 +2042,17 @@ class TestFittingCommand:
 
         empty_args.ship = "Rifter"
 
+        p_types, p_stations = self._fitting_resolution_patches()
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ), patch(
             "aria_esi.commands.assets._fetch_all_assets",
             return_value=mock_fitting_assets_response,
-        ):
+        ), p_types, p_stations:
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
-
-                    def get_safe_handler(url):
-                        if "/types/587" in url:
-                            return {"name": "Rifter", "group_id": 25}
-                        elif "/types/2454" in url:
-                            return {"name": "Hobgoblin I", "group_id": 100}
-                        elif "/stations/" in url:
-                            return {"name": "Jita IV"}
-                        return {"name": "Module", "group_id": 60}
-
-                    mock_public.get_safe.side_effect = get_safe_handler
                     MockPublicClient.return_value = mock_public
                     result = cmd_fitting(empty_args)
 
@@ -2046,27 +2070,17 @@ class TestFittingCommand:
 
         empty_args.ship = "Rifter"
 
+        p_types, p_stations = self._fitting_resolution_patches()
         with patch(
             "aria_esi.commands.assets.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ), patch(
             "aria_esi.commands.assets._fetch_all_assets",
             return_value=mock_fitting_assets_response,
-        ):
+        ), p_types, p_stations:
             with patch("aria_esi.commands.assets.get_ship_group_ids", return_value={25}):
                 with patch("aria_esi.commands.assets.ESIClient") as MockPublicClient:
                     mock_public = create_mock_public_client()
-
-                    def get_safe_handler(url):
-                        if "/types/587" in url:
-                            return {"name": "Rifter", "group_id": 25}
-                        elif "/types/34" in url:
-                            return {"name": "Tritanium", "group_id": 18}
-                        elif "/stations/" in url:
-                            return {"name": "Jita IV"}
-                        return {"name": "Module", "group_id": 60}
-
-                    mock_public.get_safe.side_effect = get_safe_handler
                     MockPublicClient.return_value = mock_public
                     result = cmd_fitting(empty_args)
 

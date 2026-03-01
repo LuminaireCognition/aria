@@ -176,14 +176,16 @@ class TestLPOffersCommand:
             {"offer_id": 2, "type_id": 17938, "quantity": 1, "lp_cost": 125000, "isk_cost": 25000000},
         ]
 
-        def get_dict_safe_impl(path):
-            if "17703" in path:
-                return {"name": "Federation Navy Comet"}
-            return {"name": "Some Other Item"}
+        def mock_resolve_types(ids, **kw):
+            lookup = {
+                17703: {"name": "Federation Navy Comet", "group_id": 0, "market_group_id": None},
+                17938: {"name": "Some Other Item", "group_id": 0, "market_group_id": None},
+                34: {"name": "Tritanium", "group_id": 0, "market_group_id": None},
+            }
+            return {tid: lookup.get(tid, {"name": f"Unknown-{tid}", "group_id": 0, "market_group_id": None}) for tid in ids}
 
-        mock_public.get_dict_safe.side_effect = get_dict_safe_impl
-
-        with patch("aria_esi.commands.loyalty.ESIClient") as mock_public_cls:
+        with patch("aria_esi.commands.loyalty.ESIClient") as mock_public_cls, \
+             patch("aria_esi.commands._resolution.resolve_type_ids", side_effect=mock_resolve_types):
             mock_public_cls.return_value = mock_public
 
             result = cmd_lp_offers(offers_args)
