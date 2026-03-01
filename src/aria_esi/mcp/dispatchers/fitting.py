@@ -415,29 +415,28 @@ async def _check_requirements(
     for drone in parsed_fit.drones:
         type_ids.append(drone.type_id)
 
-    # Check requirements for each type
-    missing_skills: list[dict] = []
-    checked_skills: set[int] = set()
-
+    # Collect the highest required level per skill across all items
+    max_required: dict[int, int] = {}
     for type_id in type_ids:
         reqs = skill_reqs.get(type_id, {})
         for skill_id, required_level in reqs.items():
-            if skill_id in checked_skills:
-                continue
-            checked_skills.add(skill_id)
+            if required_level > max_required.get(skill_id, 0):
+                max_required[skill_id] = required_level
 
-            current_level = pilot_skill_levels.get(skill_id, 0)
-            if current_level < required_level:
-                # Resolve skill name from SDE
-                skill_name = _resolve_skill_name(skill_id)
-                missing_skills.append(
-                    {
-                        "skill_id": skill_id,
-                        "skill_name": skill_name,
-                        "required": required_level,
-                        "current": current_level,
-                    }
-                )
+    # Check against pilot skills
+    missing_skills: list[dict] = []
+    for skill_id, required_level in max_required.items():
+        current_level = pilot_skill_levels.get(skill_id, 0)
+        if current_level < required_level:
+            skill_name = _resolve_skill_name(skill_id)
+            missing_skills.append(
+                {
+                    "skill_id": skill_id,
+                    "skill_name": skill_name,
+                    "required": required_level,
+                    "current": current_level,
+                }
+            )
 
     can_fly = len(missing_skills) == 0
 
@@ -445,9 +444,9 @@ async def _check_requirements(
         {
             "can_fly": can_fly,
             "missing_skills": sorted(missing_skills, key=lambda x: x["skill_name"]),
-            "total_skills_checked": len(checked_skills),
+            "total_skills_checked": len(max_required),
         },
-        count=len(checked_skills),
+        count=len(max_required),
         source="eos",
     )
 
