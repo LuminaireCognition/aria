@@ -96,7 +96,7 @@ class TestGenerateWarnings:
         warnings = generate_warnings(standard_universe, path, mode="shortest")
 
         # No security transitions in highsec
-        assert not any("low/null-sec" in w for w in warnings)
+        assert not any("dangerous space" in w for w in warnings)
 
     def test_lowsec_entry_warning(self, standard_universe):
         """Route entering lowsec generates warning."""
@@ -105,7 +105,7 @@ class TestGenerateWarnings:
         path = [0, 2, 4]  # Jita -> Maurasi -> Sivala (lowsec)
         warnings = generate_warnings(standard_universe, path, mode="shortest")
 
-        assert any("low/null-sec" in w for w in warnings)
+        assert any("dangerous space" in w for w in warnings)
 
     def test_safe_mode_unavailable_warning(self, standard_universe):
         """Safe mode warns when forced through dangerous space."""

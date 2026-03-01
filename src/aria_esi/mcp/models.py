@@ -60,7 +60,7 @@ class NeighborInfo(MCPModel):
 
     name: str
     security: float = Field(ge=-1.0, le=1.0)
-    security_class: Literal["HIGH", "LOW", "NULL"]
+    security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
 
 
 class SovereigntyInfo(MCPModel):
@@ -82,7 +82,7 @@ class SystemInfo(MCPModel):
     name: str
     system_id: int
     security: float = Field(ge=-1.0, le=1.0)
-    security_class: Literal["HIGH", "LOW", "NULL"]
+    security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
     constellation: str
     constellation_id: int
     region: str
@@ -201,7 +201,7 @@ class SystemSearchResult(MCPModel):
     name: str
     system_id: int
     security: float = Field(ge=-1.0, le=1.0)
-    security_class: Literal["HIGH", "LOW", "NULL"]
+    security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
     region: str
     jumps_from_origin: int | None = None
 
@@ -230,7 +230,7 @@ class WaypointInfo(MCPModel):
     name: str
     system_id: int
     security: float = Field(ge=-1.0, le=1.0)
-    security_class: Literal["HIGH", "LOW", "NULL"]
+    security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
     region: str
     visit_order: int = Field(ge=0, description="Order in optimized route (0-indexed)")
 
@@ -278,7 +278,7 @@ class SystemActivity(MCPModel):
     name: str
     system_id: int
     security: float = Field(ge=-1.0, le=1.0)
-    security_class: Literal["HIGH", "LOW", "NULL"]
+    security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
     ship_kills: int = Field(default=0, ge=0)
     pod_kills: int = Field(default=0, ge=0)
     npc_kills: int = Field(default=0, ge=0)
@@ -301,7 +301,7 @@ class HotspotSystem(MCPModel):
     name: str
     system_id: int
     security: float = Field(ge=-1.0, le=1.0)
-    security_class: Literal["HIGH", "LOW", "NULL"]
+    security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
     region: str
     jumps_from_origin: int = Field(ge=0)
     activity_value: int = Field(ge=0)
@@ -432,7 +432,7 @@ class LocalSystemActivity(MCPModel):
     system: str
     system_id: int
     security: float = Field(ge=-1.0, le=1.0)
-    security_class: Literal["HIGH", "LOW", "NULL"]
+    security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
     region: str
     jumps: int = Field(ge=0, description="Distance from origin")
     ship_kills: int = Field(default=0, ge=0)
@@ -490,7 +490,7 @@ class LocalAreaResult(MCPModel):
     origin: str
     origin_id: int
     security: float = Field(ge=-1.0, le=1.0)
-    security_class: Literal["HIGH", "LOW", "NULL"]
+    security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
     region: str
     constellation: str
 

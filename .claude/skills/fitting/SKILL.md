@@ -31,6 +31,21 @@ data_sources:
 
 # ARIA Fitting Module
 
+## Anti-Confabulation Gate (BLOCKING)
+
+**ALL DPS, EHP, CPU, powergrid, capacitor, and resist values MUST come from `fitting(action='calculate_stats')` MCP tool output.** Do NOT estimate, recall, or fabricate any numerical stats from training data. Training data contains plausible-sounding but wrong numbers (e.g., claiming 380 DPS for T1 drones when the real value is ~150).
+
+**If the fitting engine is unavailable or the tool call fails:**
+- Present the EFT block **without any stats**
+- State: "Fit could not be validated — verify in-game using the Fitting Simulation tool (Alt+F)"
+- Do NOT fill in estimated numbers
+
+**Module size rules (NEVER violate):**
+- Frigates/destroyers: 1MN prop mods, small weapons/reps
+- Cruisers/battlecruisers: 10MN prop mods, medium weapons/reps
+- Battleships: 100MN/500MN prop mods, large weapons/reps
+- Using the wrong size (e.g., 50MN MWD on a cruiser) will fail fitting validation — catch this before building the EFT string
+
 ## Prerequisites (Load Before Building Fits)
 
 **MANDATORY:** Before constructing ANY EFT string, load these files:

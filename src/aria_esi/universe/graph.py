@@ -18,7 +18,10 @@ import numpy as np
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
-SecurityClass = Literal["HIGH", "LOW", "NULL"]
+SecurityClass = Literal["HIGH", "LOW", "NULL", "POCHVEN"]
+
+# Pochven region (Triglavian-controlled space, distinct from null-sec)
+POCHVEN_REGION_ID = 10000070
 
 
 @dataclass(frozen=False, slots=True)
@@ -115,19 +118,22 @@ class UniverseGraph:
         Uses EVE Online's standard thresholds:
         - HIGH: security >= 0.45 (rounds to 0.5+)
         - LOW: 0.0 < security < 0.45 (rounds to 0.1-0.4)
-        - NULL: security <= 0.0
+        - POCHVEN: Triglavian-controlled space (region 10000070)
+        - NULL: security <= 0.0 (excluding Pochven)
 
         Args:
             idx: Vertex index
 
         Returns:
-            Security classification: "HIGH", "LOW", or "NULL"
+            Security classification: "HIGH", "LOW", "NULL", or "POCHVEN"
         """
         sec = self.security[idx]
         if sec >= 0.45:
             return "HIGH"
         elif sec > 0.0:
             return "LOW"
+        elif int(self.region_ids[idx]) == POCHVEN_REGION_ID:
+            return "POCHVEN"
         return "NULL"
 
     def neighbors_with_security(self, idx: int) -> list[tuple[int, float]]:

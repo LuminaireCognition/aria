@@ -57,8 +57,11 @@ Adapt format to RP level: markdown table for `off`, box-drawing for `on`/`full`.
 
 | Condition | Action |
 |-----------|--------|
-| ESI not configured | Direct to `uv run python .claude/scripts/aria-oauth-setup.py`, suggest in-game fitting window (Alt+F) as alternative |
+| ESI not configured | Explain saved fittings require ESI authentication. Offer two alternatives: (1) run `/fitting` to create a recommended fit for their hull, (2) use the in-game fitting window (Alt+F) to view/export saved fits |
 | Missing scope | Direct to setup script, specify `esi-fittings.read_fittings.v1` scope |
+| ESI configured but request fails | Report the error and suggest checking in-game (Alt+F) |
+
+**Never produce a dead-end response.** If ESI is unavailable, always offer an actionable alternative (create a fit via `/fitting`, or check in-game).
 
 ## Behavior Notes
 

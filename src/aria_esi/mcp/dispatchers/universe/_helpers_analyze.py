@@ -63,9 +63,9 @@ def _find_chokepoints(
         prev_class = universe.security_class(prev_idx)
         curr_class = universe.security_class(curr_idx)
 
-        if prev_class == "HIGH" and curr_class in ("LOW", "NULL"):
+        if prev_class == "HIGH" and curr_class in ("LOW", "NULL", "POCHVEN"):
             chokepoints.append(build_system_info(universe, curr_idx))
-        elif prev_class in ("LOW", "NULL") and curr_class == "HIGH":
+        elif prev_class in ("LOW", "NULL", "POCHVEN") and curr_class == "HIGH":
             chokepoints.append(build_system_info(universe, prev_idx))
 
     return chokepoints

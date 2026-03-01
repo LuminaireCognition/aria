@@ -309,7 +309,7 @@ class TestRouteWarnings:
             result = cmd_route(args)
 
         assert "warnings" in result
-        assert any("low/null-sec" in w for w in result["warnings"])
+        assert any("dangerous space" in w for w in result["warnings"])
 
     def test_pipe_system_warning(self, mock_universe: UniverseGraph):
         """Warning for pipe systems in low-sec."""
@@ -366,7 +366,7 @@ class TestRouteWarnings:
         # No route-based warnings (might have avoid warnings if any)
         if "warnings" in result:
             # Should not have security-related warnings
-            assert not any("low/null-sec" in w for w in result["warnings"])
+            assert not any("dangerous space" in w for w in result["warnings"])
             assert not any("Pipe system" in w for w in result["warnings"])
 
 

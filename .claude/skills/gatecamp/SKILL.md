@@ -80,6 +80,17 @@ uv run aria-esi redisq-watched --system <system_id> --minutes 60
 ```
 Flag matched entities with `⚠️ ON WATCHLIST` or `⚠️ WATCHLIST` indicators. Prominently warn if camp is run by watched entities.
 
+## Pochven Awareness
+
+Systems with `security_class: "POCHVEN"` are **Triglavian-controlled space**, not generic null-sec. When a queried system is in Pochven:
+
+- Label it as **POCHVEN** (not NULL-SEC) in the header: `GATECAMP INTEL: Niarja (-1.0 POCHVEN)`
+- Note that **access requires filaments or Triglavian standings** — standard stargate travel does not work
+- Pochven has unique NPC behavior and mechanics distinct from null-sec
+- If the system appears in a route, warn that the route transits Pochven and may be impassable without filaments
+
+The MCP tool returns `security_class: "POCHVEN"` and `region: "Pochven"` for these systems. Use either field to detect them.
+
 ## Behavior Notes
 
 - **Never give false assurance** - "No active camp" means no recent kills, not guaranteed safety

@@ -142,11 +142,18 @@ ALLIANCES:
 
 Requires `esi-wars.read_wars.v1`. Auto-syncs every 4 hours when poller active, or on demand via `/watchlist sync-wars`.
 
+**CRITICAL:** `sync-wars` requires live ESI access. If ESI is unavailable:
+- Do NOT report "Synced — 0 entities" — this is a false success
+- State: "War target sync requires ESI authentication. Current watchlist shows locally cached data only."
+- Offer to show existing (cached) watchlist entries instead
+
 ## Error Handling
 
 | Error | Response |
 |-------|----------|
 | Entity name not resolvable | Report that the name could not be resolved via ESI; ask pilot for numeric ID |
+| ESI unavailable for sync-wars | State sync requires ESI; show cached data with staleness warning |
+| ESI unavailable for name resolution | Ask pilot for numeric entity ID directly, or suggest looking it up in-game |
 | Watchlist not found | List existing watchlists and suggest correct name |
 | Duplicate entity in watchlist | Note the entity is already tracked |
 

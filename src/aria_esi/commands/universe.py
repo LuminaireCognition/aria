@@ -379,7 +379,7 @@ def cmd_system_info(args: argparse.Namespace) -> dict:
 
     neighbors = []
     for n_idx, n_sec in universe.neighbors_with_security(idx):
-        sec_class = "HIGH" if n_sec >= 0.45 else "LOW" if n_sec > 0 else "NULL"
+        sec_class = universe.security_class(n_idx)
         neighbors.append(
             {
                 "name": universe.idx_to_name[n_idx],
@@ -1008,13 +1008,13 @@ def cmd_gatecamp_risk(args: argparse.Namespace) -> dict:
                 curr_class = universe.security_class(curr_idx)
 
                 chokepoint_type = None
-                if prev_class == "HIGH" and curr_class in ("LOW", "NULL"):
+                if prev_class == "HIGH" and curr_class in ("LOW", "NULL", "POCHVEN"):
                     chokepoint_type = "lowsec_entry"
                     chokepoint_idx = curr_idx
-                elif prev_class in ("LOW", "NULL") and curr_class == "HIGH":
+                elif prev_class in ("LOW", "NULL", "POCHVEN") and curr_class == "HIGH":
                     chokepoint_type = "lowsec_exit"
                     chokepoint_idx = prev_idx
-                elif curr_class in ("LOW", "NULL"):
+                elif curr_class in ("LOW", "NULL", "POCHVEN"):
                     neighbors = list(universe.graph.neighbors(curr_idx))
                     if len(neighbors) <= 2:
                         # Pipe: bottleneck with few exits

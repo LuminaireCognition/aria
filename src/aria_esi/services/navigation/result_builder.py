@@ -111,11 +111,11 @@ def generate_warnings(
         src_class = universe.security_class(path[i])
         dst_class = universe.security_class(path[i + 1])
 
-        if src_class == "HIGH" and dst_class in ("LOW", "NULL"):
+        if src_class == "HIGH" and dst_class in ("LOW", "NULL", "POCHVEN"):
             lowsec_entries += 1
 
     if lowsec_entries > 0:
-        warnings.append(f"Route enters low/null-sec {lowsec_entries} time(s)")
+        warnings.append(f"Route enters dangerous space (low/null/Pochven) {lowsec_entries} time(s)")
 
     # Check for pipe systems (single entry/exit)
     for idx in path[1:-1]:  # Skip origin and destination
