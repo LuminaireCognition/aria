@@ -33,9 +33,13 @@ external_sources:
 
 # ARIA Mission Intelligence Module
 
-## Anti-Confabulation Gate (BLOCKING)
+## Anti-Confabulation Gate: Two-Phase Output (BLOCKING)
 
-**ALL DPS, EHP, CPU, powergrid, and resist values MUST come from `fitting(action='calculate_stats')` MCP tool output.** Do NOT estimate, recall, or fabricate any numerical stats from training data. If the fitting engine is unavailable, present the EFT block without stats and state: "Stats unavailable — verify in-game (Alt+F)."
+**Phase 1 — Build:** Generate the adapted EFT block based on pilot roster, faction resistance profile, and archetype. Do NOT write any numerical stats (DPS, EHP, CPU, powergrid, resists).
+
+**Phase 2 — Validate:** Call `fitting(action="calculate_stats", eft="...", use_pilot_skills=True)`. Present stats ONLY from the tool response, prefixed with "**Fitting engine:**". If the call fails, write: "Stats unavailable — verify in-game (Alt+F)."
+
+**NEVER write Phase 2 content without completing the tool call.**
 
 ## Ship Roster Check (BLOCKING)
 

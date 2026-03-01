@@ -12,7 +12,7 @@ triggers:
   - "abyssal fit"
   - "filament guide"
 requires_pilot: false
-data_sources:
+prerequisite_files:
   - reference/mechanics/abyssal_deadspace.json
 ---
 

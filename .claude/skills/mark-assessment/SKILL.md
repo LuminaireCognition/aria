@@ -43,6 +43,12 @@ All ship stats, hull values, and engagement math MUST come from MCP tool calls. 
 
 > **Failure handling:** If `sde()` or `market()` calls fail, surface the failure: "Market/SDE data unavailable for [ship]. Cannot provide accurate assessment without live data." Do NOT fill in values from memory.
 
+> **Two-Phase EHP Estimation:** If constructing a typical fit to estimate target EHP:
+> - **Phase 1:** Build the assumed EFT block. Do NOT write any stats.
+> - **Phase 2:** Call `fitting(action="calculate_stats", eft="...")`. Use EHP from the response only.
+> - If no fit is known, use `sde(action="item_info")` for base hull HP and state: "Base hull stats only — actual EHP depends on fit."
+> - **NEVER write EHP figures without a completed tool call.**
+
 ### Field to Source Mapping
 
 | Output Field | Source |

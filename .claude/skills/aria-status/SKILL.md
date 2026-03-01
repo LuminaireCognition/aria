@@ -30,6 +30,13 @@ Before generating the status report, sync standings data from ESI:
 
 This ensures standings shown in the status report reflect current ESI values.
 
+## Objective Cross-Check
+
+When presenting CURRENT OBJECTIVES from the pilot profile:
+- If an objective references a standing threshold (e.g., "reach 5.0 with Caldari Navy"), cross-check against the standings data loaded from the synced profile
+- If the threshold is already met, mark the objective as **COMPLETED** rather than presenting it as an active goal
+- If standings data is unavailable (sync failed), present objectives as-is without status
+
 ## CRITICAL: Volatility Awareness
 
 Status reports use **stable and semi-stable data only**:

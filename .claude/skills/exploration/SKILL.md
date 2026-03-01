@@ -88,6 +88,9 @@ LORE CONTEXT:
 ❌ **WRONG:** Accept "Ruined Serpentis Temple" in high-sec without questioning
 ✅ **RIGHT:** "Ruined" prefix = nullsec/WH sites. High-sec uses "Decayed" prefix. Read `exploration_sites.md`.
 
+❌ **WRONG:** Cite "Rule of 6" or other numbered heuristics not present in reference files
+✅ **RIGHT:** Only state mechanics that appear verbatim in `hacking_guide.md`. If a mechanic isn't documented there, do not present it as fact.
+
 ## Important: Site Names vs Items
 
 Exploration site names (e.g., "Serpentis Temple", "Ruined Sansha Monument", "Local Guristas Shattered Life-Support Unit") are **cosmic signature names**, NOT SDE items. Do NOT search SDE for site names — `sde(action="item_info", item="Serpentis Temple")` will fail or return wrong results.

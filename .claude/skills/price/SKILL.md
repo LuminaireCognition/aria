@@ -75,6 +75,17 @@ PLEX, Skill Extractors, Skill Injectors, and Multiple Pilot Training Certificate
 
 Some items (certain SKINs, apparel) are NES-only with no regional orders. Detection: `market(action="prices")` returns data but `market(action="orders")` returns no results. Inform the user and show `average_price` if available.
 
+## Known Always-Tradeable Items
+
+The following items are ALWAYS available on the regional market. If `market()` returns zero results for any of these, it is a data freshness or connectivity issue — NOT an indication that the item was removed or is untradeable:
+
+- PLEX
+- Skill Injector (Large Skill Injector)
+- Skill Extractor
+- Multiple Pilot Training Certificate
+
+**If zero results for a known-tradeable item:** State "No orders returned — this is likely a data freshness issue. The item is tradeable on the regional market." Do NOT speculate about removal, NES migration, or game changes.
+
 ## Experience-Based Adaptation
 
 For new players, explain spread concept and suggest regional lookup. For veterans, use compact single-line format.
@@ -103,3 +114,4 @@ After providing price data, suggest ONE related command when contextually releva
 - **DO NOT** provide trading advice (buy low, sell high strategies)
 - **DO NOT** speculate on price movements or market manipulation
 - **DO NOT** recall or estimate prices from training data -- always use tool calls
+- **DO NOT** claim that always-tradeable items (PLEX, Skill Injectors, etc.) have been removed from the market or moved to NES if tools return empty results

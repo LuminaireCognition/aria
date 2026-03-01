@@ -31,14 +31,13 @@ data_sources:
 
 # ARIA Fitting Module
 
-## Anti-Confabulation Gate (BLOCKING)
+## Anti-Confabulation Gate: Two-Phase Output (BLOCKING)
 
-**ALL DPS, EHP, CPU, powergrid, capacitor, and resist values MUST come from `fitting(action='calculate_stats')` MCP tool output.** Do NOT estimate, recall, or fabricate any numerical stats from training data. Training data contains plausible-sounding but wrong numbers (e.g., claiming 380 DPS for T1 drones when the real value is ~150).
+**Phase 1 — Build:** Generate the EFT block. Do NOT write any numerical stats (DPS, EHP, CPU, powergrid, capacitor, resists). The EFT block is a module list, not a performance sheet.
 
-**If the fitting engine is unavailable or the tool call fails:**
-- Present the EFT block **without any stats**
-- State: "Fit could not be validated — verify in-game using the Fitting Simulation tool (Alt+F)"
-- Do NOT fill in estimated numbers
+**Phase 2 — Validate:** Call `fitting(action="calculate_stats", eft="...")`. Present stats ONLY from the tool response, prefixed with "**Fitting engine:**". If the call fails, write: "Stats unavailable — verify in-game using the Fitting Simulation tool (Alt+F)."
+
+**NEVER write Phase 2 content without completing the tool call.** Training data contains plausible-sounding but wrong numbers (e.g., claiming 380 DPS for T1 drones when the real value is ~150).
 
 **Module size rules (NEVER violate):**
 
