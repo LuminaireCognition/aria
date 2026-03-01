@@ -26,7 +26,9 @@
       ],
       "external_sources": [],
       "esi_scopes": [],
-      "required_tools": []
+      "required_tools": [
+        "sde.item_info"
+      ]
     },
     {
       "name": "agents-research",
@@ -1073,7 +1075,9 @@
       "requires_pilot": false,
       "path": ".claude/skills/reactions/SKILL.md",
       "directory": "reactions",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "reference/industry/fuel_blocks.json"
+      ],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
@@ -1085,7 +1089,7 @@
     {
       "name": "route",
       "description": "Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/route",
