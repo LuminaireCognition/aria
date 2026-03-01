@@ -32,6 +32,27 @@ data_sources:
 
 If market data is unavailable: provide the ransom formula without ISK figures and suggest `/price <ship>`.
 
+> **HALLUCINATION GUARD:** The hull price MUST come from `market(action="prices")` in this session. Ship prices fluctuate — do NOT use memorized hull values. If the market call fails, present the ransom formula with placeholder variables and suggest `/price <ship>`. Never fill in ISK figures from training data.
+
+### Field → Source Mapping
+
+| Output Field | Required Source |
+|-------------|----------------|
+| Ship group/metadata | `sde(action="item_info")` response |
+| Hull price | `market(action="prices")` → `sell` price |
+| Implant price | `market(action="prices")` → `sell` price (if `--pod`) |
+| Fitted estimate | Computed: hull price × multiplier (multiplier from formula, hull price from tool) |
+| Insurance estimate | Computed: ~40% of hull base (hull price from tool) |
+| Ransom range | Computed from tool-sourced values above |
+
+### Anti-Patterns
+
+❌ **WRONG:** "A Vexor Navy Issue hull is worth about 80M ISK" with no tool call
+✅ **RIGHT:** Call `market(action="prices", items=["Vexor Navy Issue"])` first, then use the returned sell price
+
+❌ **WRONG:** Fill in the ransom calculation box with plausible ISK amounts from memory
+✅ **RIGHT:** If market call fails, show the formula with variables: "Hull: [unavailable] — run `/price Vexor Navy Issue`"
+
 ## Ransom Formula
 
 ```

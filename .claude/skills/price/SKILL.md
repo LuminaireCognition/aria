@@ -36,6 +36,27 @@ Defaults to Jita if no region specified.
 
 All prices come from tool calls. If a call fails, say so.
 
+> **HALLUCINATION GUARD:** Every price, volume, and spread figure MUST come from `market()` tool responses in this session. Market prices change constantly — do NOT quote prices from training data. If the tool call fails or returns no data, say "price unavailable" — never substitute a memorized price.
+
+### Field → Source Mapping
+
+| Output Field | Required Source |
+|-------------|----------------|
+| Sell price | `market(prices)` → `sell` or `market(orders)` → sell orders |
+| Buy price | `market(prices)` → `buy` or `market(orders)` → buy orders |
+| Volume | `market(orders)` response |
+| Spread | Computed from sell − buy (both from tool response) |
+| History data | `market(history)` response |
+| Item name/ID | `sde(search)` if item not found |
+
+### Anti-Patterns
+
+❌ **WRONG:** "Tritanium sells for 4.10 ISK in Jita" when no tool call was made this session
+✅ **RIGHT:** Call `market(action="prices", items=["Tritanium"])` first, then quote the returned price
+
+❌ **WRONG:** Show a price table with plausible-looking numbers without a preceding tool call
+✅ **RIGHT:** Every number in the price table traces to a `market()` response field
+
 ## Response Format
 
 ```markdown

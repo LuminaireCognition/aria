@@ -35,6 +35,31 @@ Ask: *Can `build_cost` alone fully answer this query?*
 
 "Is it profitable to build [T2 item]?" requires invention economics → out of scope.
 
+> **HALLUCINATION GUARD:** Every ISK figure, material quantity, and margin percentage MUST come from the `market(action="build_cost")` response in this session. Material costs change daily. Do NOT estimate build costs from training data. If the tool call fails, say "build cost unavailable" — never fabricate a BOM.
+
+### Field → Source Mapping
+
+| Output Field | Required Source |
+|-------------|----------------|
+| Material quantities (base) | `build_cost` → `materials[].base_quantity` |
+| Material quantities (ME) | `build_cost` → `materials[].me_quantity` |
+| Price per unit | `build_cost` → `materials[].unit_price_formatted` |
+| Material total cost | `build_cost` → `materials[].total_cost_formatted` |
+| Total material cost | `build_cost` → `total_material_cost_formatted` |
+| Product value | `build_cost` → `profitability.product_total_formatted` |
+| Gross profit | `build_cost` → `profitability.gross_profit_formatted` |
+| Margin | `build_cost` → `profitability.margin_pct` |
+| Blueprint name | `build_cost` → `blueprint.blueprint_name` |
+| Item complexity | `build_cost` → `complexity` |
+
+### Anti-Patterns
+
+❌ **WRONG:** "A Dominix costs about 250M to build at ME 10" when no `build_cost` call was made
+✅ **RIGHT:** Call `market(action="build_cost", item="Dominix", me_level=10)` first, then use `total_material_cost_formatted`
+
+❌ **WRONG:** Present a BOM table with rounded/estimated material costs
+✅ **RIGHT:** Every cell in the BOM table uses a `*_formatted` field from the tool response
+
 ### Out-of-Scope Template
 
 Emit verbatim, then stop:
