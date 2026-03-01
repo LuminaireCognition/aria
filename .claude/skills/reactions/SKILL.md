@@ -11,6 +11,8 @@ triggers:
   - "fuel block calculator"
   - "reaction time"
 requires_pilot: false
+prerequisite_files:
+  - reference/industry/fuel_blocks.json
 ---
 
 # Reactions Calculator
@@ -25,48 +27,42 @@ requires_pilot: false
 /reactions fuel-blocks <type> --refinery Tatara  # With refinery bonus
 ```
 
-## Fuel Block Reference (MANDATORY)
+## Data Gate
 
-All fuel block queries — including simple enumerations — must use this table. Never answer from memory.
+Read `reference/industry/fuel_blocks.json` before any output. If the file could not be read or is empty, state "no verified data available" — do not answer from training data.
 
-| Fuel Block | Faction | Isotope |
-|------------|---------|---------|
-| Nitrogen Fuel Block | Caldari | Nitrogen Isotopes |
-| Hydrogen Fuel Block | Minmatar | Hydrogen Isotopes |
-| Helium Fuel Block | Amarr | Helium Isotopes |
-| Oxygen Fuel Block | Gallente | Oxygen Isotopes |
+Every fuel block type, faction, and isotope in the response must come from `fuel_blocks.json`. Material quantities and prices for cost queries come from SDE and market tool calls.
 
-## Tool Calls
+## Source Rules
 
-| Step | Call | Purpose |
-|------|------|---------|
-| 1 | `sde(action="blueprint_info", item="<Name> Fuel Block")` | Materials, quantities |
-| 2 | `market(action="prices", items=[...all inputs + output...])` | All prices in one call |
+| Field | Source |
+|-------|--------|
+| Fuel block types, factions, isotopes | `fuel_blocks.json` |
+| Material quantities | `sde(blueprint_info)` — cross-check against `fuel_blocks.json`, trust SDE on disagreement |
+| Prices | `market(prices)` — single call for all inputs + output |
+| Reaction time, refinery bonuses | `fuel_blocks.json` → `reaction_time_modifiers`, `refinery_bonuses` |
+| Total cost / Revenue / Profit | Computed from above |
 
-Fetch ALL material prices in a single `market(prices)` call. Never split across multiple queries.
-
-## Reaction Time Formula
+## Reaction Time
 
 ```
-effective_time = base_time × (1 - skill × 0.04) × (1 - refinery_bonus)
+effective_time = cycle_time × (1 - skill × 0.04) × (1 - refinery_bonus)
 ```
 
-Refinery bonuses: Athanor 0%, Tatara 25%. Reactions V + Tatara: 60% of base time.
+Refinery bonuses: Athanor 0%, Tatara 25%. Reactions V + Tatara: 63% of base time.
 
 ## Response Format
 
 ```
 ## Fuel Block Production: [Name] Fuel Block
 
-**Faction:** [from reference table]
-**Isotope:** [from reference table]
-**Runs:** [N] (Output: [N × 40] blocks)
+**Faction:** [from fuel_blocks.json] | **Isotope:** [from fuel_blocks.json]
+**Runs:** [N] (Output: [N × output_quantity] blocks)
 
 ### Input Materials
 
 | Material | Per Run | Total | Price | Cost |
 |----------|---------|-------|-------|------|
-| [from blueprint_info] | ... | ... | ... | ... |
 
 **Total Input Cost:** [computed]
 **Cost Per Block:** [computed]
@@ -75,14 +71,15 @@ Refinery bonuses: Athanor 0%, Tatara 25%. Reactions V + Tatara: 60% of base time
 
 | Metric | Value |
 |--------|-------|
-| Total Cost | [computed] |
-| Revenue | [computed] |
-| **Gross Profit** | **[computed]** |
-| **Margin** | **[computed]** |
+| Total Cost | ... |
+| Revenue | ... |
+| **Gross Profit** | **...** |
+| **Margin** | **...** |
 ```
 
 ## Rules
 
-- **No ME on reactions** — input quantities are fixed (unlike manufacturing)
-- All ISK figures from tool calls in this session
+- No ME on reactions — input quantities are fixed (unlike manufacturing)
+- All ISK figures from tool calls in this session — never from training data
 - Reactions run in refineries only (Athanor or Tatara)
+- For fit queries → redirect to `/fitting`

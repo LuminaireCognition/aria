@@ -28,25 +28,19 @@ prerequisite_files:
 
 ## Data Gate
 
-Read `reference/mechanics/abyssal_deadspace.json` before any output. Every weather effect, tier stat, ship recommendation, NPC profile, and damage value in the response **must** trace to this file.
-
-If the queried item has no entry in the file, state that no verified data is available and suggest [abyss.eve-nt.uk](https://abyss.eve-nt.uk). Do not backfill from training data.
+Read `reference/mechanics/abyssal_deadspace.json` before any output. If the file could not be read, is empty, or lacks the queried item — state "no verified data available" and suggest [abyss.eve-nt.uk](https://abyss.eve-nt.uk). Do not provide partial answers from training data. A missing detail should be reported as missing, not filled in.
 
 ## Query Routing
 
-| Query Type | JSON Path | Present |
-|-----------|-----------|---------|
-| Weather | `weather_types[name]` | Effects, NPC damage profile, tank recommendation, best ships, avoid |
-| Tier | `tiers[N]` | Difficulty, time limit, ship class, loot range, requirements, progression |
-| Ship | `ship_recommendations[hull]` | Max tier, strengths, weaknesses, preferred/avoid weather |
-| NPC | `npc_factions[name]` + `special_npcs` | Damage dealt, resist profile, recommended damage, kill priority, special mechanics |
-| Fit | — | Redirect to `/fitting` (see below) |
+| Query Type | JSON Path | SDE Cross-Check |
+|-----------|-----------|-----------------|
+| Weather | `weather_types[name]` | — |
+| Tier | `tiers[N]` | — |
+| Ship | `ship_recommendations[hull]` | `sde(item_info, item=hull)` to confirm hull exists |
+| NPC | `npc_factions[name]` + `special_npcs` | — |
+| Fit | Redirect to `/fitting <ship> for <weather> abyssal` | — |
 
-## Fitting Queries
-
-All fitting requests redirect. This skill provides general guidance only: tank style, weather-specific resist priority, drone strategy — all from reference data. No module names, no EFT blocks.
-
-> For a validated fit: `/fitting <ship> for <weather> abyssal`
+For Ship queries, call `sde(action="item_info", item="<hull>")` to verify the ship exists. If SDE and reference file disagree on ship class, trust SDE and flag the discrepancy.
 
 ## Safety Warning
 
@@ -54,8 +48,9 @@ Always include: Abyssal Deadspace has a strict **20-minute time limit** — fail
 
 ## Rules
 
-- Every stat must cite the reference file — no training-data backfill
-- If the reference file lacks the queried data, say so; do not guess
+- Every stat must trace to the reference file — no training-data backfill
+- If the reference file lacks the queried data, stop and say what is missing
+- For Ship queries, cross-validate hull via `sde(item_info)` before presenting
 - Do not guarantee specific loot values (RNG varies widely)
 - Do not recommend T5/T6 to inexperienced pilots
 - Do not generate fits, module lists, or EFT blocks — defer to `/fitting`
