@@ -5,6 +5,10 @@ Exercise runner for ARIA skill exercises.
 Parses SKILL_EXERCISE_QUERIES.md, runs each query via `claude -p`,
 and captures stdout per output file.
 
+Key fix: passes --allowedTools so Claude can use the full skill chain
+(Skill tool → Read prerequisite files → MCP tools) instead of
+falling back to training data and hallucinating.
+
 Usage:
     uv run python dev/scripts/exercise-runner.py --filter NONE,LOW
     uv run python dev/scripts/exercise-runner.py --skills help,price --dry-run
@@ -29,6 +33,38 @@ QUERIES_PATH = PROJECT_ROOT / "dev" / "reviews" / "SKILL_EXERCISE_QUERIES.md"
 OUTPUT_BASE = PROJECT_ROOT / "dev" / "reviews" / "exercise-outputs"
 
 # ---------------------------------------------------------------------------
+# Tool allowlist for claude -p
+# ---------------------------------------------------------------------------
+# Without --allowedTools, claude -p has no user to approve tool use, so it
+# silently falls back to training data — the root cause of hallucinations.
+#
+# We allow read-only tools + Skill + MCP, but block Edit/Write/Agent to
+# prevent unintended side effects during exercise runs.
+
+ALLOWED_TOOLS = [
+    # Core read tools for skill loading chain
+    "Read",
+    "Glob",
+    "Grep",
+    # Skill invocation (critical — triggers SKILL.md + prerequisite loading)
+    "Skill",
+    # CLI fallback for skills that shell out to aria-esi
+    "Bash(uv run:*)",
+    # Web access for skills that fetch external data
+    "WebFetch",
+    "WebSearch",
+    # MCP tools — the full ARIA universe suite
+    "mcp__aria-universe__universe",
+    "mcp__aria-universe__market",
+    "mcp__aria-universe__sde",
+    "mcp__aria-universe__skills",
+    "mcp__aria-universe__fitting",
+    "mcp__aria-universe__killmails",
+    "mcp__aria-universe__pilot",
+    "mcp__aria-universe__status",
+]
+
+# ---------------------------------------------------------------------------
 # Query parser
 # ---------------------------------------------------------------------------
 
@@ -38,6 +74,11 @@ SKILL_RE = re.compile(r"^###\s+(\S+)")
 ESI_RE = re.compile(r"^\s*-\s*\*\*ESI:\*\*\s*(\w+)")
 # Matches: N. "query text"
 QUERY_RE = re.compile(r'^\s*(\d+)\.\s*"(.+)"$')
+# Matches <system-reminder>...</system-reminder> blocks leaked into stdout
+SYSTEM_REMINDER_RE = re.compile(
+    r"\s*<system-reminder>.*?</system-reminder>\s*",
+    re.DOTALL,
+)
 
 
 def parse_queries(md_path: Path) -> list[dict]:
@@ -142,6 +183,12 @@ def run_query(
     cmd = ["claude", "-p"]
     if model:
         cmd.extend(["--model", model])
+
+    # Allowed tools — the critical fix for hallucination prevention.
+    # Without this, claude -p can't use tools (no interactive approval)
+    # and falls back to training data.
+    cmd.extend(["--allowedTools", ",".join(ALLOWED_TOOLS)])
+
     cmd.extend([
         "--append-system-prompt",
         "The local git repository is fully up to date with the remote. "
@@ -170,12 +217,15 @@ def run_query(
         )
         duration = time.monotonic() - start
 
-        if result.returncode != 0 and not result.stdout.strip():
+        # Strip <system-reminder> tags that leak into stdout
+        stdout = SYSTEM_REMINDER_RE.sub("", result.stdout).strip()
+
+        if result.returncode != 0 and not stdout:
             body = f"# ERROR (exit {result.returncode})\n\n{result.stderr[:500]}"
-        elif not result.stdout.strip():
+        elif not stdout:
             body = "# EMPTY RESPONSE"
         else:
-            body = result.stdout
+            body = stdout
 
         output_path.write_text(header + body)
 
@@ -346,6 +396,7 @@ def main():
     output_dir = OUTPUT_BASE / run_id
     output_dir.mkdir(parents=True, exist_ok=True)
     print(f"Output directory: {output_dir}")
+    print(f"Allowed tools: {len(ALLOWED_TOOLS)} tools whitelisted")
 
     # Run queries
     results = []
