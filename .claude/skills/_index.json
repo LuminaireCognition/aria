@@ -1067,6 +1067,8 @@
       "triggers": [
         "/reactions",
         "fuel block cost",
+        "fuel block types",
+        "fuel blocks",
         "reaction profitability",
         "how much to make [fuel block]",
         "fuel block calculator",
@@ -1655,6 +1657,8 @@
     "what should i charge": "ransom-calc",
     "/reactions": "reactions",
     "fuel block cost": "reactions",
+    "fuel block types": "reactions",
+    "fuel blocks": "reactions",
     "reaction profitability": "reactions",
     "how much to make [fuel block]": "reactions",
     "fuel block calculator": "reactions",

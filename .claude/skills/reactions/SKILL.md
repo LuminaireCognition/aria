@@ -6,6 +6,8 @@ category: industry
 triggers:
   - "/reactions"
   - "fuel block cost"
+  - "fuel block types"
+  - "fuel blocks"
   - "reaction profitability"
   - "how much to make [fuel block]"
   - "fuel block calculator"
@@ -29,19 +31,37 @@ prerequisite_files:
 
 ## Data Gate
 
-Read `reference/industry/fuel_blocks.json` before any output. If the file could not be read or is empty, state "no verified data available" — do not answer from training data.
+Read `reference/industry/fuel_blocks.json` before any output — including simple enumerations like "list all fuel block types". If the file could not be read or is empty, state "no verified data available" — do not answer from training data.
 
-Every fuel block type, faction, and isotope in the response must come from `fuel_blocks.json`. Material quantities and prices for cost queries come from SDE and market tool calls.
+> **HALLUCINATION GUARD:** Every fuel block name, faction, isotope, type ID, and material quantity MUST come from `fuel_blocks.json` (loaded via `prerequisite_files`). Fuel block faction mappings are a **known confabulation risk** — training data maps them incorrectly. Do NOT recite fuel block attributes from memory. If the reference file wasn't loaded, STOP and load it before answering.
 
-## Source Rules
+### Field → Source Mapping
 
-| Field | Source |
-|-------|--------|
-| Fuel block types, factions, isotopes | `fuel_blocks.json` |
+| Output Field | Required Source |
+|-------------|----------------|
+| Fuel block names, type IDs | `fuel_blocks.json` → `fuel_blocks` keys and `type_id` |
+| Faction per fuel block | `fuel_blocks.json` → each block's `faction` field |
+| Isotope per fuel block | `fuel_blocks.json` → each block's `isotope` field |
 | Material quantities | `sde(blueprint_info)` — cross-check against `fuel_blocks.json`, trust SDE on disagreement |
 | Prices | `market(prices)` — single call for all inputs + output |
-| Reaction time, refinery bonuses | `fuel_blocks.json` → `reaction_time_modifiers`, `refinery_bonuses` |
+| Reaction time, refinery bonuses | `fuel_blocks.json` → `refinery_bonuses` |
 | Total cost / Revenue / Profit | Computed from above |
+
+### Authoritative Fuel Block Reference (from fuel_blocks.json)
+
+| Fuel Block | Faction | Isotope | Type ID |
+|---|---|---|---|
+| Nitrogen Fuel Block | **Caldari** | Nitrogen Isotopes | 4051 |
+| Hydrogen Fuel Block | **Minmatar** | Hydrogen Isotopes | 4246 |
+| Helium Fuel Block | **Amarr** | Helium Isotopes | 4247 |
+| Oxygen Fuel Block | **Gallente** | Oxygen Isotopes | 4312 |
+
+**Use this table for all fuel block identity queries.** For material quantities and prices, read the full JSON file + call market/SDE tools.
+
+### Anti-Patterns
+
+❌ **WRONG:** Answer "list all fuel block types" without consulting the reference table
+✅ **RIGHT:** Copy faction, isotope, and type_id fields verbatim from the table above — no exceptions, no substitution from memory
 
 ## Reaction Time
 
