@@ -142,9 +142,19 @@ def run_query(
     cmd = ["claude", "-p"]
     if model:
         cmd.extend(["--model", model])
+    cmd.extend([
+        "--append-system-prompt",
+        "The local git repository is fully up to date with the remote. "
+        "Do not run git fetch, git pull, git push, or any git commands "
+        "that contact a remote repository.",
+    ])
 
-    # Strip CLAUDECODE env var so subprocesses aren't blocked by nesting check
+    # Strip CLAUDECODE env var so subprocesses aren't blocked by nesting check.
+    # Set SSH BatchMode to prevent interactive passphrase prompts from
+    # Claude Code's own git startup operations (SSH writes to /dev/tty,
+    # bypassing capture_output).
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
+    env["GIT_SSH_COMMAND"] = "ssh -o BatchMode=yes"
 
     start = time.monotonic()
 
