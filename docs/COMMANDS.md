@@ -59,7 +59,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/mining` | View mining ledger with ore extraction history. Track what you've mined, where, and when over the past 30 days. | "my mining ledger" |
 | `/mining-advisory` | ARIA mining operations guidance for Eve Online. Use for ore recommendations, belt intel, Venture fitting, or mining optimization. | "mining advisory" |
 | `/pi` | Planetary Interaction guide for production chains, planet resources, and colony planning. | "PI production chain" |
-| `/reactions` | Moon material reactions and fuel block calculator. Calculate costs, profits, and production times for reactions. | "fuel block cost" |
+| `/reactions` | Moon material reactions and fuel block reference data. Authoritative source for fuel block types, factions, and recipes. Calculate costs, profits, and production times. | "fuel block cost" |
 
 ## Identity & Status
 

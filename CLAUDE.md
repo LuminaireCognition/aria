@@ -181,6 +181,8 @@ Mention relevant commands once, naturally woven into responses. Don't list multi
 
 ## Skill Loading
 
+**Skills gate authoritative data.** If a query falls within a skill's domain, invoke the skill — even for simple lookups. Skills with `prerequisite_files` exist because training data is unreliable for those topics. Direct MCP/SDE calls return raw data without the reference context that prevents confabulation. A "simple" question about fuel block factions or abyssal weather types is exactly when skills matter most.
+
 When a skill is invoked:
 
 1. **Load base skill** from `.claude/skills/{name}/SKILL.md`
