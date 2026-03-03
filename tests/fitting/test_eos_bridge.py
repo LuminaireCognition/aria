@@ -17,9 +17,16 @@ from unittest.mock import MagicMock, patch
 
 from aria_esi.fitting.eos_bridge import (
     ATTR_ARMOR_EM_RESIST,
+    ATTR_ARMOR_EXPLOSIVE_RESIST,
+    ATTR_ARMOR_KINETIC_RESIST,
+    ATTR_ARMOR_THERMAL_RESIST,
     ATTR_CAP_CAPACITY,
     ATTR_MASS,
     ATTR_MAX_VELOCITY,
+    ATTR_SHIELD_EM_RESIST,
+    ATTR_SHIELD_EXPLOSIVE_RESIST,
+    ATTR_SHIELD_KINETIC_RESIST,
+    ATTR_SHIELD_THERMAL_RESIST,
     EOSBridge,
     calculate_fit_stats,
     get_eos_bridge,
@@ -580,6 +587,22 @@ class TestAttributeConstants:
         assert ATTR_MAX_VELOCITY == 37
         assert ATTR_CAP_CAPACITY == 482
 
-    def test_resist_attribute_ids_defined(self):
-        """Test that resist attribute IDs are defined."""
-        assert ATTR_ARMOR_EM_RESIST == 267
+    def test_resist_attribute_ids_match_eos_const(self):
+        """Resist IDs must match EOS library's authoritative mapping.
+
+        EVE SDE order is EM, Explosive, Kinetic, Thermal for consecutive IDs.
+        Ref: _vendor/eos/const/eve.py AttrId
+        """
+        from aria_esi._vendor.eos.const.eve import AttrId
+
+        # Armor (267-270)
+        assert ATTR_ARMOR_EM_RESIST == AttrId.armor_em_dmg_resonance
+        assert ATTR_ARMOR_EXPLOSIVE_RESIST == AttrId.armor_expl_dmg_resonance
+        assert ATTR_ARMOR_KINETIC_RESIST == AttrId.armor_kin_dmg_resonance
+        assert ATTR_ARMOR_THERMAL_RESIST == AttrId.armor_therm_dmg_resonance
+
+        # Shield (271-274)
+        assert ATTR_SHIELD_EM_RESIST == AttrId.shield_em_dmg_resonance
+        assert ATTR_SHIELD_EXPLOSIVE_RESIST == AttrId.shield_expl_dmg_resonance
+        assert ATTR_SHIELD_KINETIC_RESIST == AttrId.shield_kin_dmg_resonance
+        assert ATTR_SHIELD_THERMAL_RESIST == AttrId.shield_therm_dmg_resonance

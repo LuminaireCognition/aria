@@ -508,19 +508,19 @@ def mock_eos_module():
         mock_ship.attrs = {
             # Armor resist attributes (267-270)
             267: 0.5,   # ATTR_ARMOR_EM_RESIST
-            268: 0.35,  # ATTR_ARMOR_THERMAL_RESIST
+            268: 0.35,  # ATTR_ARMOR_EXPLOSIVE_RESIST
             269: 0.25,  # ATTR_ARMOR_KINETIC_RESIST
-            270: 0.1,   # ATTR_ARMOR_EXPLOSIVE_RESIST
+            270: 0.1,   # ATTR_ARMOR_THERMAL_RESIST
             # Shield resist attributes (271-274)
             271: 0.0,   # ATTR_SHIELD_EM_RESIST
-            272: 0.2,   # ATTR_SHIELD_THERMAL_RESIST
+            272: 0.2,   # ATTR_SHIELD_EXPLOSIVE_RESIST
             273: 0.4,   # ATTR_SHIELD_KINETIC_RESIST
-            274: 0.5,   # ATTR_SHIELD_EXPLOSIVE_RESIST
+            274: 0.5,   # ATTR_SHIELD_THERMAL_RESIST
             # Hull resist attributes (974-977)
             974: 0.33,  # ATTR_HULL_EM_RESIST
-            975: 0.33,  # ATTR_HULL_THERMAL_RESIST
+            975: 0.33,  # ATTR_HULL_EXPLOSIVE_RESIST
             976: 0.33,  # ATTR_HULL_KINETIC_RESIST
-            977: 0.33,  # ATTR_HULL_EXPLOSIVE_RESIST
+            977: 0.33,  # ATTR_HULL_THERMAL_RESIST
             # Slot counts
             12: 5,  # lowSlots
             13: 4,  # medSlots
@@ -648,19 +648,19 @@ def mock_eos_module():
         ship.attrs = {
             # Armor resist attributes (267-270)
             267: 0.5,   # ATTR_ARMOR_EM_RESIST
-            268: 0.35,  # ATTR_ARMOR_THERMAL_RESIST
+            268: 0.35,  # ATTR_ARMOR_EXPLOSIVE_RESIST
             269: 0.25,  # ATTR_ARMOR_KINETIC_RESIST
-            270: 0.1,   # ATTR_ARMOR_EXPLOSIVE_RESIST
+            270: 0.1,   # ATTR_ARMOR_THERMAL_RESIST
             # Shield resist attributes (271-274)
             271: 0.0,   # ATTR_SHIELD_EM_RESIST
-            272: 0.2,   # ATTR_SHIELD_THERMAL_RESIST
+            272: 0.2,   # ATTR_SHIELD_EXPLOSIVE_RESIST
             273: 0.4,   # ATTR_SHIELD_KINETIC_RESIST
-            274: 0.5,   # ATTR_SHIELD_EXPLOSIVE_RESIST
+            274: 0.5,   # ATTR_SHIELD_THERMAL_RESIST
             # Hull resist attributes (974-977)
             974: 0.33,  # ATTR_HULL_EM_RESIST
-            975: 0.33,  # ATTR_HULL_THERMAL_RESIST
+            975: 0.33,  # ATTR_HULL_EXPLOSIVE_RESIST
             976: 0.33,  # ATTR_HULL_KINETIC_RESIST
-            977: 0.33,  # ATTR_HULL_EXPLOSIVE_RESIST
+            977: 0.33,  # ATTR_HULL_THERMAL_RESIST
             # Slot counts
             12: 5,  # lowSlots
             13: 4,  # medSlots
