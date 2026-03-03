@@ -97,6 +97,11 @@ A comprehensive catalog of natural language queries designed to exercise each AR
   1. "Fit my Vexor for L2 security missions against Serpentis"
   2. "Export my Drake ratting fit in EFT format"
 
+### fitting
+- **ESI:** LOW
+- **Queries:**
+  3. "Export my Drake ratting fit in EFT format"
+
 ### fit-check
 - **ESI:** MED
 - **Queries:**
@@ -337,6 +342,7 @@ A comprehensive catalog of natural language queries designed to exercise each AR
 | 10 | clones | tactical | MED | 2 |
 | 11 | escape-route | tactical | LOW | 2 |
 | 12 | fitting | tactical | NONE | 2 |
+| 12b | fitting | tactical | LOW | 1 |
 | 13 | fit-check | tactical | MED | 1 |
 | 14 | fit-budget | tactical | MED | 2 |
 | 15 | gatecamp | tactical | NONE | 2 |
@@ -374,6 +380,6 @@ A comprehensive catalog of natural language queries designed to exercise each AR
 | 47 | industry-jobs | industry | LOW | 2 |
 | 48 | reactions | industry | NONE | 2 |
 
-**Totals:** 48 skills, 88 queries
+**Totals:** 48 skills, 89 queries
 
-**ESI distribution:** NONE: 24, LOW: 14, MED: 8, HEAVY: 2
+**ESI distribution:** NONE: 24, LOW: 15, MED: 8, HEAVY: 2

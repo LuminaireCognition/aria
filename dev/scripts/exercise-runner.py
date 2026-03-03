@@ -13,6 +13,7 @@ Usage:
     uv run python dev/scripts/exercise-runner.py --filter NONE,LOW
     uv run python dev/scripts/exercise-runner.py --skills help,price --dry-run
     uv run python dev/scripts/exercise-runner.py --filter NONE --parallel 4 --timeout 180
+    uv run python dev/scripts/exercise-runner.py --explicit --skills fitting --filter NONE
 """
 
 from __future__ import annotations
@@ -160,14 +161,23 @@ def run_query(
     seq: int,
     timeout: int = 120,
     model: str | None = None,
+    explicit: bool = False,
 ) -> dict:
     """
     Run a single query via `claude -p` and capture output.
+
+    If explicit=True, the query is prefixed with /<skill-name> so the Skill
+    tool is invoked directly, bypassing natural language trigger matching.
 
     Returns a result dict with status, output_path, duration, etc.
     """
     filename = f"{seq:02d}-{query['skill']}-q{query['query_num']}.md"
     output_path = output_dir / filename
+
+    # In explicit mode, prefix query with /<skill> to force skill invocation
+    input_text = query["query_text"]
+    if explicit:
+        input_text = f"/{query['skill']} {input_text}"
 
     # Build header
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -175,6 +185,7 @@ def run_query(
         f"# Skill: {query['skill']}\n"
         f"# Query: \"{query['query_text'][:200]}\"\n"
         f"# ESI Level: {query['esi_level']}\n"
+        f"# Mode: {'explicit' if explicit else 'implicit'}\n"
         f"# Timestamp: {timestamp}\n"
         f"---\n\n"
     )
@@ -208,7 +219,7 @@ def run_query(
     try:
         result = subprocess.run(
             cmd,
-            input=query["query_text"],
+            input=input_text,
             capture_output=True,
             text=True,
             timeout=timeout,
@@ -218,7 +229,13 @@ def run_query(
         duration = time.monotonic() - start
 
         # Strip <system-reminder> tags that leak into stdout
-        stdout = SYSTEM_REMINDER_RE.sub("", result.stdout).strip()
+        raw_stdout = result.stdout
+        stdout = SYSTEM_REMINDER_RE.sub("", raw_stdout).strip()
+
+        # Debug: dump raw stdout when stripping removed significant content
+        if len(raw_stdout) - len(stdout) > 200:
+            raw_path = output_path.with_suffix(".raw")
+            raw_path.write_text(header + raw_stdout)
 
         if result.returncode != 0 and not stdout:
             body = f"# ERROR (exit {result.returncode})\n\n{result.stderr[:500]}"
@@ -344,6 +361,12 @@ def main():
         help="Number of parallel workers (default: 1)",
     )
     parser.add_argument(
+        "--explicit",
+        action="store_true",
+        help="Invoke skills explicitly via /<skill> instead of relying on "
+             "natural language trigger matching. Bypasses skill-not-firing issues.",
+    )
+    parser.add_argument(
         "--queries-file",
         type=Path,
         default=QUERIES_PATH,
@@ -368,6 +391,8 @@ def main():
     filtered = filter_queries(queries, esi_levels, skill_names)
 
     filter_desc_parts = []
+    if args.explicit:
+        filter_desc_parts.append("explicit")
     if esi_levels:
         filter_desc_parts.append(f"ESI:{','.join(esi_levels)}")
     if skill_names:
@@ -378,11 +403,13 @@ def main():
 
     if args.dry_run:
         print()
-        print("Dry run — queries that would execute:")
+        mode = "explicit (/<skill> prefix)" if args.explicit else "implicit (natural language)"
+        print(f"Dry run — queries that would execute ({mode}):")
         print()
         for i, q in enumerate(filtered, 1):
             query_short = q["query_text"][:80].replace("\n", "\\n")
-            print(f"  {i:02d}. [{q['skill']}] (ESI:{q['esi_level']}) \"{query_short}\"")
+            prefix = f"/{q['skill']} " if args.explicit else ""
+            print(f"  {i:02d}. [{q['skill']}] (ESI:{q['esi_level']}) \"{prefix}{query_short}\"")
         print()
         print(f"Total: {len(filtered)} queries")
         return
@@ -405,7 +432,7 @@ def main():
         for seq, query in enumerate(filtered, 1):
             query_short = query["query_text"][:60].replace("\n", "\\n")
             print(f"  [{seq:02d}/{len(filtered)}] {query['skill']} q{query['query_num']}: \"{query_short}\"")
-            result = run_query(query, output_dir, seq, args.timeout, args.model)
+            result = run_query(query, output_dir, seq, args.timeout, args.model, args.explicit)
             print(f"          → {result['status']} ({result['duration']}s, {result['lines']} lines)")
             results.append(result)
     else:
@@ -415,6 +442,7 @@ def main():
             for seq, query in enumerate(filtered, 1):
                 future = executor.submit(
                     run_query, query, output_dir, seq, args.timeout, args.model,
+                    args.explicit,
                 )
                 futures[future] = (seq, query)
 

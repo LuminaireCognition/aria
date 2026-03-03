@@ -62,6 +62,16 @@ Sections: CAPSULEER, HOME BASE, OPERATIONAL RANGE, SHIP ROSTER, STANDINGS SUMMAR
 
 If profile or operations data is missing, suggest `/setup` and present only available data.
 
+## Incomplete Profile Handling
+
+When reading `operations.md`, check each field for placeholder values (`[To be determined]`, `TBD`, `N/A`, or similar).
+
+- **Do not present placeholders as valid data.** A field reading `[To be determined]` is a data gap, not an answer.
+- **Show the gap explicitly.** Use the format: `Home system: not configured (region: Sinq Laison)` — include any surrounding context (region, constellation) that is available, but mark the missing piece clearly.
+- **Append a one-line prompt** when any gap is found: "Update `operations.md` to complete your home base configuration."
+
+This applies to all sections: home constellation, primary station, operational range, or any other field that may be left as a placeholder during initial setup.
+
 ## Behavior Notes
 - **Brevity:** Keep reports compact (<20 lines)
 - Omit empty sections

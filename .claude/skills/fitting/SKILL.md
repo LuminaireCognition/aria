@@ -1,7 +1,7 @@
 ---
 name: fitting
 description: ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.
-model: sonnet
+model: claude-opus-4-6
 category: tactical
 triggers:
   - "/fitting"
@@ -31,6 +31,18 @@ data_sources:
 
 # Fitting Module
 
+## Query Triage
+
+Classify the request before starting any build work:
+
+**Export / retrieval** ("export my Drake", "show my Vexor fit", "what's my X fitting"):
+1. Read pilot's `ships.md` for locally cached fits
+2. If a matching fit exists → skip to Phase 2 (validate) + Phase 5 (present as copy-paste EFT)
+3. If no match → explain there is no locally cached fit, mention `/fittings` for ESI-based retrieval of in-game saved fits, and offer to build a new fit instead
+
+**Build / recommend** ("fit my Drake for L3s", "what modules for a Vexor"):
+→ Proceed to Three-Phase Output Protocol below
+
 ## Three-Phase Output Protocol
 
 **Phase 1 — Build:** Generate the EFT block (module list only). No numerical stats.
@@ -51,12 +63,16 @@ PvE default: Afterburner (MWD causes signature bloom and cap drain).
 
 ## Prerequisites (Load Before Building)
 
-Before constructing any EFT string:
+Load all reference data in parallel before constructing any EFT string:
 
 1. Read `EFT-FORMAT.md` — slot order is Low → Mid → High → Rigs
-2. Read `reference/mechanics/drones.json` — when recommending drones
-3. Read `reference/fittings/MODULE_NAMES.md` — common naming issues
-4. Query `sde(action="item_info", item="<ship>")` — get slot counts
+2. Read pilot's `profile.md` — module tier, operational constraints
+3. Read pilot's `ships.md` — existing fits for reference
+4. Read `reference/mechanics/drones.json` — when recommending drones
+5. Read `reference/fittings/MODULE_NAMES.md` — common naming issues
+6. Query `sde(action="item_info", item="<ship>")` — get slot counts
+
+**Batching:** Items 1-5 are independent file reads with no dependencies on each other. Issue them in a single parallel tool call batch alongside item 6 (the SDE query) to minimize latency.
 
 Check `reference/archetypes/INDEX.md` for matching archetype templates. Use `module_tiers.yaml` for tier adjustments. Plan modules for ALL available slots — empty slots are a fitting error.
 
@@ -83,7 +99,7 @@ If `use_pilot_skills` fails, fall back to All V with a prominent warning that ac
 
 ### Step 4: Resist Sanity Check
 
-Compare EOS resists against base hull resists from SDE. For each hardener, verify its target resist actually increased. Known bug: `Thermal Armor Hardener I` (type 11277) boosts explosive instead of thermal — substitute Multispectrum Energized Membrane.
+Compare EOS resists against base hull resists from SDE. For each hardener, verify its target resist actually increased. If a resist seems unchanged, report the raw numbers — never claim a module is bugged.
 
 ## Tank Coherence
 

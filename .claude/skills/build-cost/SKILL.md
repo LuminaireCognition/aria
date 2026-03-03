@@ -77,6 +77,7 @@ cost for a single assembly step.
 - Invention calculator (datacores, decryptor choice, success rates)
 - Component build-vs-buy comparison (run `/build-cost` per component individually)
 - Job fee estimator (system cost index × item value)
+- **Fuzzwork Industry Planner** (fuzzwork.co.uk/industry) — full vertical integration analysis, invention chains, and job cost index lookup in one place
 
 Want me to run the manufacturing-only cost?
 ```

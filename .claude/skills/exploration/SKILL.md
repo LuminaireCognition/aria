@@ -99,7 +99,7 @@ After analysis, suggest ONE related command when relevant:
 
 - Every coherence value, node mechanic, and container type must come from the prerequisite files — quote exactly as written
 - Do not cite "Rule of 6" or other numbered heuristics absent from `hacking_guide.md`
-- "Ruined" prefix = nullsec/WH; "Decayed" = highsec — flag mismatches with the reported system security
+- Prefix/security mapping: Crumbling/Local = highsec; Decayed/Regional = lowsec; Ruined/Central = nullsec or WH C1-C3; Forgotten/Unsecured = WH C4+ Sleeper sites — flag mismatches between prefix and reported system security
 - Regular sites allow retry on hack failure; only Ghost Sites are one-attempt — verify against `exploration_sites.md`
 - The System Core is the hack objective, not a defensive tool
 - Note items useful for self-sufficient gameplay
