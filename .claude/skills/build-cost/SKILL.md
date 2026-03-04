@@ -28,12 +28,14 @@ requires_pilot: false
 
 **Do this first.** The `build_cost` tool returns manufacturing material cost for one assembly step. It knows nothing about invention, datacores, decryptors, success rates, or BPC acquisition.
 
-Ask: *Can `build_cost` alone fully answer this query?*
+Ask: *Can `build_cost` contribute meaningfully to this query?*
 
-- **Yes** (T1 item, or T2 material/BOM cost only) → call `build_cost`, use Response Template
-- **No** (T2 profitability, invention ROI, vertical integration, build chains) → Out-of-Scope Template, then stop
+- **Fully in-scope** (T1 item cost, ME comparison, T2 BOM, build vs buy single item) → call `build_cost`, use Response Template
+- **Partially in-scope** (vertical integration, build chains, component comparison) → call `build_cost` for the top-level item, render Response Template, then append Partial-Scope Caveat
+- **Fully out-of-scope** (invention ROI, datacores, BPC acquisition, success rate analysis) → Out-of-Scope Template, then stop
 
 "Is it profitable to build [T2 item]?" requires invention economics → out of scope.
+"Show me the full build chain for X" → partially in scope: run top-level BOM, append caveat.
 
 > **HALLUCINATION GUARD:** Every ISK figure, material quantity, and margin percentage MUST come from the `market(action="build_cost")` response in this session. Material costs change daily. Do NOT estimate build costs from training data. If the tool call fails, say "build cost unavailable" — never fabricate a BOM.
 
@@ -80,6 +82,19 @@ cost for a single assembly step.
 - **Fuzzwork Industry Planner** (fuzzwork.co.uk/industry) — full vertical integration analysis, invention chains, and job cost index lookup in one place
 
 Want me to run the manufacturing-only cost?
+```
+
+### Partial-Scope Caveat
+
+Append after the Response Template when the query asked for vertical integration or build chains:
+
+```
+---
+**Scope note:** The table above shows the top-level manufacturing cost for {item_name}.
+Full vertical integration (building sub-components rather than buying them) requires:
+- Per-component BOM: run `/build-cost {component}` individually for each intermediate material
+- Job fee comparison: system cost index × component value (check Fuzzwork Industry Planner)
+- **Fuzzwork Industry Planner** (fuzzwork.co.uk/industry) — full vertical chain, invention costs, and job index in one view
 ```
 
 ## Implementation
