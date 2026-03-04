@@ -34,7 +34,7 @@ data_sources:
 | 2 | `universe(action="systems", systems=["..."])` | System security status |
 | 3 | `market(action="prices", items=[...])` | Current ore/mineral prices (if ISK comparison needed) |
 
-Step 1 must complete before any output. If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry. If market prices are unavailable, recommend by mineral utility without ISK rankings. If system security lookup fails, ask the user to confirm.
+Step 1 must complete before any output. If a read fails, report the exact path that failed — do not substitute training data. If market prices are unavailable, recommend by mineral utility without ISK rankings. If system security lookup fails, ask the user to confirm.
 
 ### Field → Source Mapping
 

@@ -1,6 +1,6 @@
 # Skill Loading: Protocol-Level Path Resolution
 
-**Status:** Draft
+**Status:** Implemented
 **Date:** 2026-03-04
 **Owner:** Architecture
 **Scope:** `personas/_shared/skill-loading.md`, `CLAUDE.md`, `dev/docs/CONTRIBUTING_SKILLS.md`, affected `SKILL.md` files

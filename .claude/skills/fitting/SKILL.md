@@ -72,7 +72,7 @@ Load all reference data in parallel before constructing any EFT string:
 5. Read `reference/fittings/MODULE_NAMES.md` (project-root-relative path, not skill-directory path) — common naming issues
 6. Query `sde(action="item_info", item="<ship>")` — get slot counts
 
-**Batching:** Items 1-5 are independent file reads with no dependencies on each other. Issue them in a single parallel tool call batch alongside item 6 (the SDE query) to minimize latency. If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry.
+**Batching:** Items 1-5 are independent file reads with no dependencies on each other. Issue them in a single parallel tool call batch alongside item 6 (the SDE query) to minimize latency. If a read fails, report the exact path that failed — do not substitute training data.
 
 Check `reference/archetypes/INDEX.md` for matching archetype templates. Use `module_tiers.yaml` for tier adjustments. Plan modules for ALL available slots — empty slots are a fitting error.
 
