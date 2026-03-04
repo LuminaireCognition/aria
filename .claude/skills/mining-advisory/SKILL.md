@@ -30,11 +30,11 @@ data_sources:
 
 | Step | Call | Provides |
 |------|------|----------|
-| 1 | Read `reference/mechanics/ore_database.md` | Ore types, security bands, mineral yields |
+| 1 | Read `reference/mechanics/ore_database.md` (project-root-relative path, not skill-directory path) | Ore types, security bands, mineral yields |
 | 2 | `universe(action="systems", systems=["..."])` | System security status |
 | 3 | `market(action="prices", items=[...])` | Current ore/mineral prices (if ISK comparison needed) |
 
-Step 1 must complete before any output. If market prices are unavailable, recommend by mineral utility without ISK rankings. If system security lookup fails, ask the user to confirm.
+Step 1 must complete before any output. If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry. If market prices are unavailable, recommend by mineral utility without ISK rankings. If system security lookup fails, ask the user to confirm.
 
 ### Field → Source Mapping
 

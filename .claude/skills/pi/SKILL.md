@@ -98,7 +98,7 @@ All PI data comes from `reference/mechanics/planetary-interaction.json`:
 
 **CRITICAL:** Always read the reference file before answering PI questions. Do not rely on training data for specific schematics or resource locations.
 
-> **HALLUCINATION GUARD:** All production chains, input/output quantities, planet resources, and cycle times MUST come from `reference/mechanics/planetary-interaction.json` (loaded via `prerequisite_files`). All prices MUST come from `market(action="prices")` in this session. PI schematics and planet data are patch-dependent — do NOT recite them from training data. If the reference file wasn't loaded, STOP and load it before answering.
+> **HALLUCINATION GUARD:** All production chains, input/output quantities, planet resources, and cycle times MUST come from `reference/mechanics/planetary-interaction.json` (project-root-relative path, not skill-directory path). All prices MUST come from `market(action="prices")` in this session. PI schematics and planet data are patch-dependent — do NOT recite them from training data. If the reference file wasn't loaded, STOP and load it before answering. If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry.
 
 ### Field → Source Mapping
 
@@ -130,7 +130,7 @@ All PI data comes from `reference/mechanics/planetary-interaction.json`:
 
 When asked about producing an item:
 
-1. Read `reference/mechanics/planetary-interaction.json`
+1. Read `reference/mechanics/planetary-interaction.json` (project-root-relative path, not skill-directory path)
 2. Find the item in p2_schematics, p3_schematics, or p4_schematics
 3. Trace backwards to raw resources (P0)
 4. Present the full chain with inputs, planet types, and viable single-planet options
@@ -139,7 +139,7 @@ When asked about producing an item:
 
 When asked about planets for a resource:
 
-1. Read `reference/mechanics/planetary-interaction.json`
+1. Read `reference/mechanics/planetary-interaction.json` (project-root-relative path, not skill-directory path)
 2. Check `planet_resources` section
 3. List all planet types containing that resource, what P1 it produces, and downstream P2 products
 

@@ -80,6 +80,27 @@ Describe the expected response structure (tables, code blocks, etc.)
 - Fallback behavior
 ```
 
+### Prerequisite File Path Disambiguation
+
+When a skill reads files via `prerequisite_files` or a Tool Calls table, the model must resolve relative paths from the **project root**, not the skill's own directory. Without an explicit note, the model may attempt to resolve paths relative to `.claude/skills/{name}/` and fail silently.
+
+**Required pattern** — add the parenthetical on every file read instruction:
+
+```markdown
+| 1 | Read `reference/mechanics/my_data.md` (project-root-relative path, not skill-directory path) | ... |
+```
+
+**Failure instruction** — match the abyssal/exploration pattern:
+
+```markdown
+If a read fails, do not output a blanket failure — check that the path is resolved
+from the project root (not the skill directory) and retry.
+```
+
+**Reference implementation:** `abyssal` (line 31 of SKILL.md) and `exploration` (Tool Calls table).
+
+**Symptom of missing disambiguation:** The model warns "prerequisite files missing" and falls back to training data even though the files exist at the declared paths. This was the root cause of the `exploration` confabulation issue found in exercise run 20260303-232824.
+
 ### Guidelines
 
 - Keep skills under 200 lines — the LLM loads the full file into context
