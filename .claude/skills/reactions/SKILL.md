@@ -31,7 +31,7 @@ prerequisite_files:
 
 ## Data Gate
 
-All fuel block attributes MUST come from `fuel_blocks.json` (loaded via `prerequisite_files`). If the file wasn't loaded, read it before answering. Never answer fuel block queries from training data alone.
+All fuel block attributes MUST come from `reference/industry/fuel_blocks.json` (project-root-relative path, not skill-directory path). If the file wasn't loaded, read it before answering. If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry. Never answer fuel block queries from training data alone.
 
 > **Confabulation risk:** Training data maps fuel block factions incorrectly (Hydrogen→Caldari, Nitrogen→Gallente, Oxygen→Minmatar — all wrong). Always use the reference table below.
 

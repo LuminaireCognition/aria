@@ -32,12 +32,12 @@ data_sources:
 
 | Step | Call | Provides |
 |------|------|----------|
-| 1 | Read `reference/mechanics/exploration_sites.md` | Site classification, loot tables, container types, prefixes |
-| 2 | Read `reference/mechanics/hacking_guide.md` | Hacking mechanics, coherence values, strategies |
+| 1 | Read `reference/mechanics/exploration_sites.md` (project-root-relative path, not skill-directory path) | Site classification, loot tables, container types, prefixes |
+| 2 | Read `reference/mechanics/hacking_guide.md` (project-root-relative path, not skill-directory path) | Hacking mechanics, coherence values, strategies |
 | 3 | `market(action="prices", items=[...])` | Loot valuations (specific items only) |
 | 4 | `sde(action="item_info", item="...")` | Individual loot item details |
 
-Steps 1–2 must complete before any output. If a read fails, retry with the absolute path from the repository root.
+Steps 1–2 must complete before any output. If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry.
 
 ### Field → Source Mapping
 

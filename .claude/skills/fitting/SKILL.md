@@ -65,14 +65,14 @@ PvE default: Afterburner (MWD causes signature bloom and cap drain).
 
 Load all reference data in parallel before constructing any EFT string:
 
-1. Read `EFT-FORMAT.md` — slot order is Low → Mid → High → Rigs
+1. Read `.claude/skills/fitting/EFT-FORMAT.md` (project-root-relative path, not skill-directory path) — slot order is Low → Mid → High → Rigs
 2. Read pilot's `profile.md` — module tier, operational constraints
 3. Read pilot's `ships.md` — existing fits for reference
-4. Read `reference/mechanics/drones.json` — when recommending drones
-5. Read `reference/fittings/MODULE_NAMES.md` — common naming issues
+4. Read `reference/mechanics/drones.json` (project-root-relative path, not skill-directory path) — when recommending drones
+5. Read `reference/fittings/MODULE_NAMES.md` (project-root-relative path, not skill-directory path) — common naming issues
 6. Query `sde(action="item_info", item="<ship>")` — get slot counts
 
-**Batching:** Items 1-5 are independent file reads with no dependencies on each other. Issue them in a single parallel tool call batch alongside item 6 (the SDE query) to minimize latency.
+**Batching:** Items 1-5 are independent file reads with no dependencies on each other. Issue them in a single parallel tool call batch alongside item 6 (the SDE query) to minimize latency. If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry.
 
 Check `reference/archetypes/INDEX.md` for matching archetype templates. Use `module_tiers.yaml` for tier adjustments. Plan modules for ALL available slots — empty slots are a fitting error.
 
@@ -110,7 +110,7 @@ Never mix armor and shield active tank.
 
 ## Drone Selection
 
-Read `reference/mechanics/drones.json` before recommending drones. Match drone damage type to enemy weakness using `enemy_recommendations`. Verify bandwidth fits the ship.
+Read `reference/mechanics/drones.json` (project-root-relative path, not skill-directory path) before recommending drones. Match drone damage type to enemy weakness using `enemy_recommendations`. Verify bandwidth fits the ship.
 
 ## Gear Tier
 

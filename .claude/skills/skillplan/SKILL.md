@@ -30,6 +30,18 @@ external_sources: []
 
 **CRITICAL:** If MCP tools are unavailable, inform the user that skill planning requires the SDE MCP server.
 
+## Data Gate
+
+Read all prerequisite files before processing any query:
+
+| Step | File | Provides |
+|------|------|----------|
+| 1 | Read `reference/activities/skill_plans.yaml` (project-root-relative path, not skill-directory path) | Activity skill plan definitions |
+| 2 | Read `reference/skills/ship_efficacy_rules.yaml` (project-root-relative path, not skill-directory path) | Ship efficacy calculation rules |
+| 3 | Read `reference/skills/meta_module_alternatives.yaml` (project-root-relative path, not skill-directory path) | Meta module substitution data |
+
+If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry.
+
 > **HALLUCINATION GUARD:** Every training time, skill name, skill level, and efficacy estimate MUST come from MCP tool responses in this session. Training times are calculated server-side based on skill rank and attributes — do NOT estimate or fabricate training times from training data. If the tool did not return a training time for a specific skill, do not invent one.
 
 ### Field → Source Mapping
