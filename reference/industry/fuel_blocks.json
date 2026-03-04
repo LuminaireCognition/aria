@@ -17,6 +17,7 @@
       "blueprint_type_id": 4314,
       "faction": "Caldari",
       "isotope": "Nitrogen Isotopes",
+      "cycle_time_seconds": 3600,
       "inputs": {
         "Nitrogen Isotopes": 450,
         "Liquid Ozone": 350,
@@ -35,6 +36,7 @@
       "blueprint_type_id": 4316,
       "faction": "Minmatar",
       "isotope": "Hydrogen Isotopes",
+      "cycle_time_seconds": 3600,
       "inputs": {
         "Hydrogen Isotopes": 450,
         "Liquid Ozone": 350,
@@ -53,6 +55,7 @@
       "blueprint_type_id": 4315,
       "faction": "Amarr",
       "isotope": "Helium Isotopes",
+      "cycle_time_seconds": 3600,
       "inputs": {
         "Helium Isotopes": 450,
         "Liquid Ozone": 350,
@@ -71,6 +74,7 @@
       "blueprint_type_id": 4313,
       "faction": "Gallente",
       "isotope": "Oxygen Isotopes",
+      "cycle_time_seconds": 3600,
       "inputs": {
         "Oxygen Isotopes": 450,
         "Liquid Ozone": 350,

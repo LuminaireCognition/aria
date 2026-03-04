@@ -54,6 +54,7 @@ For enumeration queries ("list fuel block types" etc.), output this table direct
 | Material quantities | `fuel_blocks.json` inputs; cross-check with `sde(blueprint_info)` |
 | Prices | `market(prices)` — single call for all inputs + output |
 | Refinery bonuses | `fuel_blocks.json` → `refinery_bonuses` |
+| Cycle time | `fuel_blocks.json` → `cycle_time_seconds` (SDE returns null for reaction blueprints — do NOT query SDE for this value) |
 
 ## Production Time
 
@@ -61,7 +62,13 @@ For enumeration queries ("list fuel block types" etc.), output this table direct
 effective_time = cycle_time × (1 - skill_level × 0.04) × (1 - refinery_bonus)
 ```
 
+**Cycle time:** Use `cycle_time_seconds` from `fuel_blocks.json` (3600s / 1h per run). Do not query SDE for this value — `sde(blueprint_info)` returns null for fuel block blueprints because they use the reactions activity rather than standard manufacturing.
+
 Refinery bonuses: Athanor 0%, Tatara 25%. Reactions V + Tatara: 63% of base time.
+
+**Example — 100 runs, Reactions IV, Tatara:**
+`effective_time = 3600 × (1 − 4×0.04) × (1 − 0.25) = 3600 × 0.84 × 0.75 = 2268s per run`
+Total = 100 × 2268s = 226,800s ≈ 63.0h
 
 ## Response Format
 
