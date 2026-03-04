@@ -16,7 +16,11 @@ Read `.claude/skills/{name}/SKILL.md`
 
 ### 1.5. Pre-Read Prerequisite Files (MANDATORY GATE)
 
-If the skill's YAML frontmatter (or `_index.json` entry) lists a `prerequisite_files` array, **read ALL listed files NOW before producing any output.** This is a blocking gate — the skill MUST NOT generate a response until these files have been read into context.
+If the skill's YAML frontmatter (or `_index.json` entry) lists a `prerequisite_files` array, **read ALL listed files NOW before producing any output.**
+
+**Path resolution:** All paths in `prerequisite_files` are project-root-relative. When reading, prepend the working directory — never the skill's own directory (`.claude/skills/{name}/`). A path like `reference/mechanics/ore_database.md` resolves to `{project-root}/reference/mechanics/ore_database.md`, not `.claude/skills/mining-advisory/reference/mechanics/ore_database.md`.
+
+This is a blocking gate — the skill MUST NOT generate a response until these files have been read into context.
 
 **Why this exists:** Exercise reviews revealed that skills frequently skip reading their reference data files and instead use training data knowledge, which produces plausible-looking but wrong EVE mechanics (wrong ore security bands, wrong hacking mechanics, wrong site prefix meanings). Pre-reading prevents this by ensuring verified data is in context before the model generates output.
 

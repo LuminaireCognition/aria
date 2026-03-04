@@ -187,7 +187,7 @@ When a skill is invoked:
 
 1. **Load base skill** from `.claude/skills/{name}/SKILL.md`
 2. **Check for overlay** if `has_persona_overlay: true` in `_index.json`: check `{skill_overlay_path}/{name}.md`, fall back to `overlay_fallback_path` if set.
-3. **Pre-read prerequisite files (MANDATORY GATE)** — If the skill declares `prerequisite_files`, read ALL listed files before producing any output. This is a blocking requirement — skipping it causes hallucination from training data.
+3. **Pre-read prerequisite files (MANDATORY GATE)** — If the skill declares `prerequisite_files`, read ALL listed files before producing any output. This is a blocking requirement — skipping it causes hallucination from training data. All `prerequisite_files` paths are project-root-relative — never resolve against the skill's own directory (`.claude/skills/{name}/`).
 4. **Use `data_sources`** — Read contextual files when relevant (pilot profiles, etc.).
 
 **Pilot resolution:** `{active_pilot}` is resolved by the boot hook. If boot context is unavailable (e.g., after `/clear`), read `userdata/pilots/_registry.json` to get the pilot directory. Always use exact paths via Read — never Glob through `userdata/` (it is gitignored).

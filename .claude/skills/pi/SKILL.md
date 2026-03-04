@@ -98,7 +98,7 @@ All PI data comes from `reference/mechanics/planetary-interaction.json`:
 
 **CRITICAL:** Always read the reference file before answering PI questions. Do not rely on training data for specific schematics or resource locations.
 
-> **HALLUCINATION GUARD:** All production chains, input/output quantities, planet resources, and cycle times MUST come from `reference/mechanics/planetary-interaction.json` (project-root-relative path, not skill-directory path). All prices MUST come from `market(action="prices")` in this session. PI schematics and planet data are patch-dependent — do NOT recite them from training data. If the reference file wasn't loaded, STOP and load it before answering. If a read fails, do not output a blanket failure — check that the path is resolved from the project root (not the skill directory) and retry.
+> **HALLUCINATION GUARD:** All production chains, input/output quantities, planet resources, and cycle times MUST come from `reference/mechanics/planetary-interaction.json` (project-root-relative path, not skill-directory path). All prices MUST come from `market(action="prices")` in this session. PI schematics and planet data are patch-dependent — do NOT recite them from training data. If the reference file wasn't loaded, STOP and load it before answering. If a read fails, report the exact path that failed — do not substitute training data.
 
 ### Field → Source Mapping
 

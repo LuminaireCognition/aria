@@ -49,7 +49,9 @@ Documented in exercise run 20260303-232824 (`exploration` confabulation).
 
 ## Remaining Work
 
-### `mission-brief` — HIGH PRIORITY
+> **Protocol-level fix applied (2026-03-04):** Path resolution is now defined upstream in `personas/_shared/skill-loading.md` §1.5 and `CLAUDE.md` §Skill Loading step 3. Per-skill path patching is no longer required — the protocol rule covers all skills, current and future. Remaining items below are optional improvements only.
+
+### `mission-brief` — LOW PRIORITY
 
 `prerequisite_files` declares 4 files but the body has no consolidated Data Gate. References
 to these files are scattered across ~12 inline locations without parentheticals:
