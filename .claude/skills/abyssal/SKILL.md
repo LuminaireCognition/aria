@@ -28,7 +28,9 @@ prerequisite_files:
 
 ## Data Gate
 
-Read `reference/mechanics/abyssal_deadspace.json` before any output. This is a BLOCKING gate — if the file cannot be read, output "no verified data available" and link to [abyss.eve-nt.uk](https://abyss.eve-nt.uk). Do not answer from training data.
+Attempt to read `reference/mechanics/abyssal_deadspace.json` (project-root-relative path, not skill-directory path) before processing the query. All responses must trace to this file — no training-data backfill.
+
+If the file cannot be read: **do not output a blanket failure**. Proceed to the routing table below — it specifies per-query-type fallbacks (inline tables for weather/tier, explicit "no verified data" for ship/NPC queries that have no inline fallback).
 
 ### Weather Type Reference (distilled from abyssal_deadspace.json)
 
@@ -65,14 +67,15 @@ For any weather query, output this table first, then add ship-specific context:
 | Weather | `weather_types[name]` | Cite the inline table above |
 | Tier | `tiers[N]` | Cite the inline table above |
 | Ship | `ship_recommendations[hull]` + SDE cross-check | "Hull not in reference — check SDE only" |
+| Which weather for [ship] | `ship_recommendations[hull].preferred_weather` → then `weather_types[name]` | "No ship data in reference — see [abyss.eve-nt.uk](https://abyss.eve-nt.uk)" |
 | NPC | `npc_factions[name]`, `weather_npc_pools[weather]` | "No verified NPC data for this query — see abyss.eve-nt.uk" |
 | Fit | Redirect to `/fitting <ship> for <weather> abyssal` | n/a |
 
+**Compound queries** (e.g., "best weather for [ship] at tier [N]"): apply all matching rows. Tier context enriches the answer but does not change the routing path.
+
 For Ship queries, call `sde(action="item_info", item="<hull>")` to verify the ship exists. If SDE and reference file disagree on ship class, trust SDE and flag the discrepancy.
 
-**File-level failure** (unreadable or empty): output "no verified data available — reference file could not be loaded. See [abyss.eve-nt.uk](https://abyss.eve-nt.uk)."
-
-**Data-level failure** (file readable but path missing): output "no data in reference for [specific field] — see [abyss.eve-nt.uk](https://abyss.eve-nt.uk)." Do not say the file "could not be read."
+**Data-level failure** (file readable but JSON path missing): use the routing table's per-type fallback for that row. Do not say the file "could not be read" when the file was read but the field is absent.
 
 ## Safety Warning
 
