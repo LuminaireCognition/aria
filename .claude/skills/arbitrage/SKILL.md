@@ -47,6 +47,20 @@ requires_pilot: false
 
 **Expected response schema** (even when empty): `opportunities` (list), `scan_params` (dict with filters used), `market_summary` (dict with hub price freshness). When results exist, each opportunity includes: `type_name`, `buy_price`, `sell_price`, `margin_pct`, `volume`, `profit_per_unit`, `buy_region`, `sell_region`.
 
+### Empty Results: Scan Diagnostics Block
+
+When `opportunities` is empty after all recovery steps, **always render the Scan Diagnostics block** before offering fallback options. This lets the user (and reviewer) verify the scanner ran correctly rather than failed silently.
+
+```
+**Scan Diagnostics**
+- Filters tried: [list thresholds attempted, e.g. "min_profit 5% → 2% → 1%"; trade modes tried — from scan_params]
+- Data freshness: [hub price ages — from market_summary, e.g. "Jita: 4m ago, Amarr: 12m ago"]
+- Best near-miss: [highest-margin item found below threshold, with margin% and route — if available in response; otherwise "none returned"]
+- Items evaluated: [count if returned by tool; otherwise omit line]
+```
+
+Use `scan_params` and `market_summary` from the tool response to populate this block. Do not omit it — an empty Scan Diagnostics block (all "none") is still more informative than silence.
+
 ### Trade Modes & Fees
 
 Affects how net profit is calculated:

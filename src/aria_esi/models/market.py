@@ -501,6 +501,23 @@ Values contain region, station, and system IDs for ESI queries.
 """
 
 
+GLOBAL_PLEX_MARKET_REGION_ID: int = 19000001
+"""Region ID for the Global PLEX Market, launched 2025-07-07.
+
+PLEX (type_id 44992) no longer trades on regional markets. All PLEX orders are
+visible and purchasable universally via this single region. ESI endpoints work
+normally with this region_id; Fuzzwork does NOT cover it.
+
+Reference: https://developers.eveonline.com/blog/global-plex-market-and-sde-updates
+"""
+
+GLOBAL_MARKET_TYPE_IDS: frozenset[int] = frozenset({44992})
+"""Type IDs that trade exclusively on the Global PLEX Market (region 19000001).
+
+Currently PLEX only. Update this set if CCP adds more items to the global market.
+"""
+
+
 def resolve_trade_hub(name: str) -> TradeHubConfig | None:
     """
     Resolve trade hub name to configuration.

@@ -45,7 +45,7 @@ On first use, replace the placeholder template entry under the header.
 
 ### Required Fields
 
-**Missions:** Mission name, agent name (default from pilot profile faction), target faction, outcome, notable events (optional), standing change (optional)
+**Missions:** Mission name, target faction, outcome — required. Agent name (optional; default from pilot profile faction if known), notable events (optional), standing change (optional)
 
 **Exploration:** Site name, type (Relic/Data), system and security level, containers found/hacked, notable loot, observations (optional)
 
@@ -55,7 +55,7 @@ On first use, replace the placeholder template entry under the header.
 ```markdown
 ### YYYY-MM-DD
 **Mission:** [Mission Name]
-**Agent:** [Agent Name] ([Corporation])
+**Agent:** [Agent Name] ([Corporation])  ← optional; omit if not provided
 **Target:** [Faction]
 **Outcome:** Success
 **Notes:** [Notable events, close calls, loot drops]

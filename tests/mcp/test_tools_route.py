@@ -321,7 +321,7 @@ class TestGenerateWarnings:
         path = [0, 2, 4, 5]  # Jita -> Maurasi -> Sivala -> Ala
         warnings = _generate_warnings(mock_universe, path, "shortest")
 
-        assert any("low/null-sec" in w for w in warnings)
+        assert any("dangerous space" in w for w in warnings)
 
     def test_pipe_system_warning(self, mock_universe: UniverseGraph):
         """Warning for pipe systems in low-sec."""

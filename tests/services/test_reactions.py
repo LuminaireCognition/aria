@@ -209,6 +209,7 @@ class TestFuelBlockCost:
             "Liquid Ozone": 150.0,
             "Nitrogen Isotopes": 900.0,
             "Robotics": 80000.0,
+            "Strontium Clathrates": 600.0,
         }
 
     @pytest.mark.unit
@@ -291,6 +292,7 @@ class TestFuelBlockProfit:
             "Liquid Ozone": 150.0,
             "Nitrogen Isotopes": 900.0,
             "Robotics": 80000.0,
+            "Strontium Clathrates": 600.0,
         }
 
     @pytest.mark.unit

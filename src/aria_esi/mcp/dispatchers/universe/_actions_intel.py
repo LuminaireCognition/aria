@@ -293,14 +293,14 @@ async def _gatecamp_risk(
 
         chokepoint_type: ChokepointType | None = None
 
-        if prev_class == "HIGH" and curr_class in ("LOW", "NULL"):
+        if prev_class == "HIGH" and curr_class in ("LOW", "NULL", "POCHVEN"):
             chokepoint_type = "lowsec_entry"
             chokepoint_idx = curr_idx
-        elif prev_class in ("LOW", "NULL") and curr_class == "HIGH":
+        elif prev_class in ("LOW", "NULL", "POCHVEN") and curr_class == "HIGH":
             chokepoint_type = "lowsec_exit"
             chokepoint_idx = prev_idx
         else:
-            if curr_class in ("LOW", "NULL"):
+            if curr_class in ("LOW", "NULL", "POCHVEN"):
                 neighbors = list(universe.graph.neighbors(curr_idx))
                 if len(neighbors) <= 2:
                     chokepoint_type = "pipe"

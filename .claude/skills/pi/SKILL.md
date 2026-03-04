@@ -98,6 +98,32 @@ All PI data comes from `reference/mechanics/planetary-interaction.json`:
 
 **CRITICAL:** Always read the reference file before answering PI questions. Do not rely on training data for specific schematics or resource locations.
 
+> **HALLUCINATION GUARD:** All production chains, input/output quantities, planet resources, and cycle times MUST come from `reference/mechanics/planetary-interaction.json` (loaded via `prerequisite_files`). All prices MUST come from `market(action="prices")` in this session. PI schematics and planet data are patch-dependent — do NOT recite them from training data. If the reference file wasn't loaded, STOP and load it before answering.
+
+### Field → Source Mapping
+
+| Output Field | Required Source |
+|-------------|----------------|
+| Production chain (inputs → output) | Reference file → `p2_schematics` / `p3_schematics` / `p4_schematics` |
+| Input/output quantities | Reference file → schematic `input_quantity` / `output_quantity` |
+| Cycle time | Reference file → tier cycle times |
+| Planet resources | Reference file → `planet_resources` |
+| Single-planet P2 options | Reference file → `single_planet_p2` |
+| Export costs per unit | Reference file → `export_costs_per_unit` |
+| Market prices | `market(action="prices")` response |
+| Profit/margin/ISK per hour | Computed from reference quantities × tool-sourced prices |
+
+### Anti-Patterns
+
+❌ **WRONG:** "Robotics requires Mechanical Parts and Consumer Electronics" from memory — verify against reference file
+✅ **RIGHT:** Read `planetary-interaction.json`, find Robotics in `p2_schematics`, report the listed inputs
+
+❌ **WRONG:** "Coolant sells for about 9,000 ISK" without a market call
+✅ **RIGHT:** Call `market(action="prices", items=["Coolant", ...inputs])` and use returned prices
+
+❌ **WRONG:** List planet types for a resource from memory
+✅ **RIGHT:** Read `planet_resources` from the reference file for authoritative planet-resource mappings
+
 ## Response Patterns
 
 ### Production Chain Query

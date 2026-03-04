@@ -275,6 +275,30 @@
     }
   },
 
+  "weather_npc_pools": {
+    "electrical": {
+      "factions": ["triglavian", "drifter", "sleeper"],
+      "notes": "Triglavian rooms most common. Drifter rooms at high tiers. Room composition varies run-to-run."
+    },
+    "exotic": {
+      "factions": ["triglavian", "rogue_drones"],
+      "notes": "Exotic commonly spawns Triglavian or Rogue Drone rooms."
+    },
+    "firestorm": {
+      "factions": ["triglavian", "sleeper"],
+      "notes": "Firestorm rooms often Triglavian or Sleeper. Thermal damage dominant."
+    },
+    "gamma": {
+      "factions": ["drifter", "sleeper", "rogue_drones"],
+      "notes": "Gamma avoids Triglavian. Drifter doomsday is the key threat."
+    },
+    "dark": {
+      "factions": ["sleeper", "rogue_drones"],
+      "notes": "Dark weather favors Sleeper and Rogue Drone rooms. Speed tank viable."
+    },
+    "_caveat": "Faction pools are probabilistic. Exact room composition is RNG. Verify current meta at https://abyss.eve-nt.uk"
+  },
+
   "special_npcs": {
     "vila_swarmer": {
       "faction": "rogue_drones",

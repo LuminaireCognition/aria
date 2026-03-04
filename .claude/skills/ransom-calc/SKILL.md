@@ -1,7 +1,7 @@
 ---
 name: ransom-calc
 description: Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants.
-model: haiku
+model: sonnet
 category: financial
 triggers:
   - "/ransom-calc"
@@ -16,38 +16,42 @@ data_sources:
 
 # Ransom Calculator Module
 
-## Command Syntax
-
 ```
 /ransom-calc <ship_type>                    # Basic ship ransom
 /ransom-calc <ship_type> --pod              # Include pod ransom
 /ransom-calc <ship_type> --cargo <value>    # With known cargo value
 ```
 
-## Required Tool Calls (MANDATORY)
+## Tool Calls
 
-All ISK figures MUST come from live market data. Do NOT recall or estimate prices from training data.
-
-| Step | Call | Required For |
-|------|------|-------------|
+| Step | Call | Purpose |
+|------|------|---------|
 | 1 | `sde(action="item_info", item="<ship>")` | Ship group, metadata |
-| 2 | `market(action="prices", items=["<ship>"])` | Current hull price |
+| 2 | `market(action="prices", items=["<ship>"])` | Hull price |
 | 3 | `market(action="prices", items=["<implant_set>"])` | Implant prices (if `--pod`) |
 
-> **HALLUCINATION GUARD:** Every ISK figure in the ransom calculation — hull price, fitted value estimate, insurance payout, implant value — MUST come from MCP `market()` or `sde()` calls made in this session. Do NOT recall prices from training data. If market data is unavailable, state that prices cannot be verified and provide only the ransom formula without specific ISK figures.
+If market data is unavailable: provide the ransom formula without ISK figures and suggest `/price <ship>`.
 
-> **Failure handling:** If `market()` returns an error or no data, respond: "Cannot verify current prices for [item]. Ransom formula: 40-60% of (replacement cost - insurance). Use `/price <ship>` to get live figures first."
+> **HALLUCINATION GUARD:** The hull price MUST come from `market(action="prices")` in this session. Ship prices fluctuate — do NOT use memorized hull values. If the market call fails, present the ransom formula with placeholder variables and suggest `/price <ship>`. Never fill in ISK figures from training data.
 
-### Field to Source Mapping
+### Field → Source Mapping
 
-| Output Field | Source |
-|-------------|--------|
-| Hull price | `market(action="prices", items=["<ship>"])` |
-| Ship group | `sde(action="item_info", item="<ship>")` |
-| Fitted value estimate | Hull price + assumed module markup (state assumption) |
-| Insurance payout | ~40% of hull base price (state this is an estimate) |
-| Implant set value | `market(action="prices", items=["<implant>"])` |
-| Ransom amount | Calculated from the above via ransom formula |
+| Output Field | Required Source |
+|-------------|----------------|
+| Ship group/metadata | `sde(action="item_info")` response |
+| Hull price | `market(action="prices")` → `sell` price |
+| Implant price | `market(action="prices")` → `sell` price (if `--pod`) |
+| Fitted estimate | Computed: hull price × multiplier (multiplier from formula, hull price from tool) |
+| Insurance estimate | Computed: ~40% of hull base (hull price from tool) |
+| Ransom range | Computed from tool-sourced values above |
+
+### Anti-Patterns
+
+❌ **WRONG:** "A Vexor Navy Issue hull is worth about 80M ISK" with no tool call
+✅ **RIGHT:** Call `market(action="prices", items=["Vexor Navy Issue"])` first, then use the returned sell price
+
+❌ **WRONG:** Fill in the ransom calculation box with plausible ISK amounts from memory
+✅ **RIGHT:** If market call fails, show the formula with variables: "Hull: [unavailable] — run `/price Vexor Navy Issue`"
 
 ## Ransom Formula
 
@@ -55,9 +59,7 @@ All ISK figures MUST come from live market data. Do NOT recall or estimate price
 ransom < (replacement_cost - insurance_payout) + cargo_value
 ```
 
-This ensures paying is the rational choice. The sweet spot is **40-60% of estimated fitted value**.
-
-Always honor ransom agreements — reputation determines future payments.
+Sweet spot: **40-60% of estimated fitted value**. This ensures paying is the rational choice.
 
 ## Response Format
 
@@ -75,7 +77,6 @@ SHIP VALUATION:
 RANSOM CALCULATION:
   Replacement cost: {fitted_estimate}
   After insurance: {fitted_estimate - insurance}
-  Ransom range: {low_ransom} - {high_ransom} ISK
   Sweet spot: {recommended} ISK (40-60% of fitted value)
 
 POD CONSIDERATION:               [if --pod]
@@ -86,24 +87,15 @@ RECOMMENDED RANSOM:
   Ship only: {ship_ransom} ISK
   Ship + pod: {total_ransom} ISK (if applicable)
 ───────────────────────────────────────────────────────────────────
-{closing — see Behavior Notes}
-═══════════════════════════════════════════════════════════════════
 ```
 
 ## Pod Ransom
 
-### Detecting Implants
+Implant detection heuristics: character age (older = more likely), ship cost (expensive hull = expensive pod), corp type (PvP corps often fly cheap clones). Ask them: "What's in your head?"
 
-- **Character age:** Older = more likely implants
-- **Ship type:** Expensive ship = expensive pod likely
-- **Corp/Alliance:** PvP corps often fly cheap clones
-- **Ask them:** "What's in your head?"
-
-For pod ransoms, query implant set prices via `market(action="prices", items=["..."])`. Ransom at 40-50% of implant set value.
+Ransom at 40-50% of implant set value.
 
 ## Cargo Adjustments
-
-When cargo is known (scanned or declared):
 
 | Cargo Value | Adjustment |
 |-------------|------------|
@@ -114,32 +106,14 @@ When cargo is known (scanned or declared):
 
 ## Edge Cases
 
-- **Corp/Alliance marks:** May have backup coming or corp reimbursement — higher ransom tolerance
-- **New players:** Check character age; consider reduced ransom
-- **Repeat customers:** They know the drill — adjust accordingly
+- **Corp/Alliance marks:** Higher ransom tolerance (corp reimbursement, backup risk)
+- **New players:** Consider reduced ransom
+- **Repeat customers:** Adjust — they know the drill
 
-## Integration with Other Skills
+## Rules
 
-| Context | Suggest |
-|---------|---------|
-| Need ship value | "Use `/price` for current market data" |
-| Evaluating mark | "Try `/mark-assessment` for full profile" |
-| Need to escape after | "Run `/escape-route` to safe harbor" |
-
-## Behavior Notes
-
-- Ransom is legitimate EVE gameplay
-- **Honor all ransom agreements** — this is The Code
-- Present calculations objectively
-- Respect the pilot's negotiation style
-- Note when ransom isn't viable (flee risk, backup coming)
-- **Closing (rp_level: on or full only):** End with "The Code says: honor your terms, Captain." At rp_level: off, end with "Always honor ransom agreements — reputation determines future payments."
-
-## DO NOT
-
-- **DO NOT** encourage breaking ransom agreements
-- **DO NOT** suggest harassment or repeated targeting
-- **DO NOT** recommend scamming tactics
-- **DO NOT** provide player-specific intel
-- **DO NOT** moralize — just run the numbers
-- **DO NOT** present ISK values without sourcing from MCP market data
+- All ISK figures must come from tool calls made in this session
+- Ransom is legitimate EVE gameplay — present calculations objectively
+- Honor all ransom agreements — reputation determines future payments
+- Note when ransom isn't viable (flee risk, backup incoming)
+- **Closing (rp_level on/full):** "The Code says: honor your terms, Captain." **(rp_level off):** "Always honor ransom agreements — reputation determines future payments."

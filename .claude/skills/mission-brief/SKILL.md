@@ -33,6 +33,27 @@ external_sources:
 
 # ARIA Mission Intelligence Module
 
+## Anti-Confabulation Gate: Two-Phase Output (BLOCKING)
+
+**Phase 1 — Build:** Generate the adapted EFT block based on pilot roster, faction resistance profile, and archetype. Do NOT write any numerical stats (DPS, EHP, CPU, powergrid, resists).
+
+**Phase 2 — Validate:** Call `fitting(action="calculate_stats", eft="...", use_pilot_skills=True)`. Present stats ONLY from the tool response, prefixed with "**Fitting engine:**". If the call fails, write: "Stats unavailable — verify in-game (Alt+F)."
+
+**NEVER write Phase 2 content without completing the tool call.**
+
+## Ship Roster Check (BLOCKING)
+
+Before generating any fit, read `userdata/pilots/{active_pilot}/ships.md` and check if the pilot owns the recommended hull. If the hull is not in the roster:
+
+| Mission Level | Minimum Hull Class | Action if Pilot Lacks Hull |
+|---------------|-------------------|----------------------------|
+| L1 | Frigate/Destroyer | Use pilot's available hull; warn if none suitable |
+| L2 | Cruiser | Use pilot's available hull; warn if none suitable |
+| L3 | Battlecruiser or well-fitted cruiser | **Warn explicitly** if pilot only has frigates/destroyers |
+| L4 | Battleship or T2/faction cruiser | **Strongly warn** — L4s are not viable in T1 cruisers. State "You need a battleship or HAC for L4 missions" |
+
+**Never silently generate a fit for a hull the pilot doesn't own without flagging the mismatch.**
+
 ## Response Format
 
 Brief sections in order. Target 20-30 lines total.

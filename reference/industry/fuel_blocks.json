@@ -1,90 +1,93 @@
 {
   "_meta": {
-    "description": "EVE Online fuel block recipes and reaction data",
+    "description": "EVE Online fuel block manufacturing recipes and related data",
     "sources": [
-      "https://wiki.eveuniversity.org/Fuel_blocks",
-      "https://wiki.eveuniversity.org/Reactions"
+      "SDE blueprint_info (authoritative)",
+      "https://everef.net/types/4051",
+      "https://wiki.eveuniversity.org/Ice_harvesting",
+      "https://wiki.eveuniversity.org/Planetary_Commodities"
     ],
-    "last_verified": "2026-02-02",
-    "notes": "Fuel blocks are manufactured via reactions at refineries. Each empire has its own isotope type."
+    "last_verified": "2026-03-01",
+    "notes": "Fuel blocks are manufactured via standard industry blueprints at any structure with a manufacturing service. Each empire has its own isotope type."
   },
 
   "fuel_blocks": {
     "Nitrogen Fuel Block": {
       "type_id": 4051,
+      "blueprint_type_id": 4314,
       "faction": "Caldari",
       "isotope": "Nitrogen Isotopes",
+      "cycle_time_seconds": 3600,
       "inputs": {
-        "Coolant": 150,
-        "Enriched Uranium": 150,
-        "Mechanical Parts": 150,
-        "Oxygen": 450,
-        "Heavy Water": 170,
-        "Liquid Ozone": 350,
         "Nitrogen Isotopes": 450,
+        "Liquid Ozone": 350,
+        "Heavy Water": 170,
+        "Oxygen": 22,
+        "Strontium Clathrates": 20,
+        "Coolant": 9,
+        "Enriched Uranium": 4,
+        "Mechanical Parts": 4,
         "Robotics": 1
       },
-      "output_quantity": 40,
-      "cycle_time_seconds": 900
+      "output_quantity": 40
     },
     "Hydrogen Fuel Block": {
       "type_id": 4246,
+      "blueprint_type_id": 4316,
       "faction": "Minmatar",
       "isotope": "Hydrogen Isotopes",
+      "cycle_time_seconds": 3600,
       "inputs": {
-        "Coolant": 150,
-        "Enriched Uranium": 150,
-        "Mechanical Parts": 150,
-        "Oxygen": 450,
-        "Heavy Water": 170,
-        "Liquid Ozone": 350,
         "Hydrogen Isotopes": 450,
+        "Liquid Ozone": 350,
+        "Heavy Water": 170,
+        "Oxygen": 22,
+        "Strontium Clathrates": 20,
+        "Coolant": 9,
+        "Enriched Uranium": 4,
+        "Mechanical Parts": 4,
         "Robotics": 1
       },
-      "output_quantity": 40,
-      "cycle_time_seconds": 900
+      "output_quantity": 40
     },
     "Helium Fuel Block": {
       "type_id": 4247,
+      "blueprint_type_id": 4315,
       "faction": "Amarr",
       "isotope": "Helium Isotopes",
+      "cycle_time_seconds": 3600,
       "inputs": {
-        "Coolant": 150,
-        "Enriched Uranium": 150,
-        "Mechanical Parts": 150,
-        "Oxygen": 450,
-        "Heavy Water": 170,
-        "Liquid Ozone": 350,
         "Helium Isotopes": 450,
+        "Liquid Ozone": 350,
+        "Heavy Water": 170,
+        "Oxygen": 22,
+        "Strontium Clathrates": 20,
+        "Coolant": 9,
+        "Enriched Uranium": 4,
+        "Mechanical Parts": 4,
         "Robotics": 1
       },
-      "output_quantity": 40,
-      "cycle_time_seconds": 900
+      "output_quantity": 40
     },
     "Oxygen Fuel Block": {
       "type_id": 4312,
+      "blueprint_type_id": 4313,
       "faction": "Gallente",
       "isotope": "Oxygen Isotopes",
+      "cycle_time_seconds": 3600,
       "inputs": {
-        "Coolant": 150,
-        "Enriched Uranium": 150,
-        "Mechanical Parts": 150,
-        "Oxygen": 450,
-        "Heavy Water": 170,
-        "Liquid Ozone": 350,
         "Oxygen Isotopes": 450,
+        "Liquid Ozone": 350,
+        "Heavy Water": 170,
+        "Oxygen": 22,
+        "Strontium Clathrates": 20,
+        "Coolant": 9,
+        "Enriched Uranium": 4,
+        "Mechanical Parts": 4,
         "Robotics": 1
       },
-      "output_quantity": 40,
-      "cycle_time_seconds": 900
+      "output_quantity": 40
     }
-  },
-
-  "reaction_time_modifiers": {
-    "description": "Reactions skill reduces cycle time by 4% per level",
-    "per_level_reduction": 0.04,
-    "max_level": 5,
-    "formula": "cycle_time * (1 - reactions_skill_level * 0.04)"
   },
 
   "refinery_bonuses": {
@@ -103,9 +106,9 @@
 
   "pi_material_sources": {
     "Coolant": "P2 - Electrolytes + Water",
-    "Enriched Uranium": "P2 - Precious Metals + Toxic Metals",
+    "Enriched Uranium": "P2 - Toxic Metals + Precious Metals",
     "Mechanical Parts": "P2 - Reactive Metals + Precious Metals",
-    "Oxygen": "P1 - from Gas planets",
+    "Oxygen": "P1 - from Noble Gas (Gas, Ice, Storm planets)",
     "Robotics": "P3 - Mechanical Parts + Consumer Electronics"
   },
 
@@ -114,8 +117,8 @@
     "Liquid Ozone": "Ice mining - all ice types",
     "Nitrogen Isotopes": "Ice mining - White Glaze (Caldari space)",
     "Hydrogen Isotopes": "Ice mining - Glacial Mass (Minmatar space)",
-    "Helium Isotopes": "Ice mining - Blue Ice (Amarr space)",
-    "Oxygen Isotopes": "Ice mining - Clear Icicle (Gallente space)",
+    "Helium Isotopes": "Ice mining - Clear Icicle (Amarr space)",
+    "Oxygen Isotopes": "Ice mining - Blue Ice (Gallente space)",
     "Strontium Clathrates": "Ice mining - all ice types"
   },
 

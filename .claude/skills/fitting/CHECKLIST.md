@@ -2,13 +2,23 @@
 
 Operational checklist for building ship fittings. Complete each phase before proceeding to the next.
 
+## Phase 0: Query Triage
+
+Before any build work, classify the request:
+
+- [ ] **Export/retrieval request?** ("export my X", "show my X fit")
+  → Read `ships.md` for cached fits → if found, skip to Phase 2 validate + Phase 5 present
+  → If not found: explain no local cache, mention `/fittings` for ESI retrieval, offer to build new
+- [ ] **Build request?** → Continue to Phase 1
+
 ## Phase 1: Context Gathering
 
-Before building any fit:
+**Batch all reads in one parallel tool call** — items below have no dependencies on each other:
 
 - [ ] Read `EFT-FORMAT.md` (slot order: low → mid → high → rig)
 - [ ] Read pilot's `profile.md` (module tier, operational constraints)
 - [ ] Read pilot's `ships.md` (existing fits for reference)
+- [ ] Read `reference/fittings/MODULE_NAMES.md` (correct module names)
 - [ ] If mission fit: Read mission cache for enemy damage/weakness
 - [ ] If drones needed: Read `reference/mechanics/drones.json`
 - [ ] Query ship slot layout: `sde(action="item_info", item="[ship name]")`
@@ -42,7 +52,7 @@ Before presenting the fit:
 - [ ] **Check `slots` output**: Verify `used == total` for all slot types
 - [ ] If empty slots exist: Fill them OR document why (CPU/PG constrained)
 - [ ] **Check `metadata.warnings`**: Address any tank coherence warnings
-- [ ] **Resist sanity check**: For each hardener, verify its target resist actually increased from hull base (see Known EOS Bugs below). If a hardener's stated resist is unchanged, it has a data bug — substitute it.
+- [ ] **Resist sanity check**: For each hardener, verify its target resist actually increased from hull base (see Known EOS Bugs below).
 - [ ] Cross-check drone damage type against drones.json (not memory)
 - [ ] Verify DPS numbers match EOS output exactly
 - [ ] Confirm tank type matches mission damage profile
@@ -84,9 +94,8 @@ The fitting tool now generates warnings for:
 
 | Module | Type ID | Bug | Workaround |
 |--------|---------|-----|------------|
-| Thermal Armor Hardener I | 11277 | Boosts explosive resist instead of thermal | Use Multispectrum Energized Membrane I/Compact |
 
-When encountering unexpected resist values, check this table first. If you discover a new EOS data bug, document it here.
+If you discover an EOS data bug, document it here.
 
 ## Common Failure Modes
 

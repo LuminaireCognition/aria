@@ -6,7 +6,7 @@
     {
       "name": "abyssal",
       "description": "Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/abyssal",
@@ -18,15 +18,17 @@
         "filament guide"
       ],
       "requires_pilot": false,
-      "data_sources": [
-        "reference/mechanics/abyssal_deadspace.json"
-      ],
+      "data_sources": [],
       "path": ".claude/skills/abyssal/SKILL.md",
       "directory": "abyssal",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "reference/mechanics/abyssal_deadspace.json"
+      ],
       "external_sources": [],
       "esi_scopes": [],
-      "required_tools": []
+      "required_tools": [
+        "sde.item_info"
+      ]
     },
     {
       "name": "agents-research",
@@ -153,8 +155,8 @@
     },
     {
       "name": "build-cost",
-      "description": "Manufacturing cost calculator for T1 items. Calculates material costs, profit margins, and ME efficiency.",
-      "model": "haiku",
+      "description": "Manufacturing cost calculator. Calculates material costs, profit margins, and ME efficiency.",
+      "model": "sonnet",
       "category": "industry",
       "triggers": [
         "/build-cost",
@@ -317,7 +319,7 @@
     {
       "name": "exploration",
       "description": "ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "operations",
       "triggers": [
         "/exploration",
@@ -457,7 +459,7 @@
     {
       "name": "fitting",
       "description": "ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.",
-      "model": "haiku",
+      "model": "claude-opus-4-6",
       "category": "tactical",
       "triggers": [
         "/fitting",
@@ -778,7 +780,7 @@
     {
       "name": "mark-assessment",
       "description": "Target evaluation for Eve Online. Assess potential marks based on ship type, likely cargo, and engagement viability.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/mark-assessment",
@@ -831,7 +833,7 @@
     {
       "name": "mining-advisory",
       "description": "ARIA mining operations guidance for Eve Online. Use for ore recommendations, belt intel, Venture fitting, or mining optimization.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "operations",
       "triggers": [
         "/mining-advisory",
@@ -1009,7 +1011,7 @@
     {
       "name": "price",
       "description": "EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "financial",
       "triggers": [
         "/price",
@@ -1034,7 +1036,7 @@
     {
       "name": "ransom-calc",
       "description": "Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "financial",
       "triggers": [
         "/ransom-calc",
@@ -1059,12 +1061,14 @@
     },
     {
       "name": "reactions",
-      "description": "Moon material reactions and fuel block calculator. Calculate costs, profits, and production times for reactions.",
-      "model": "haiku",
+      "description": "Moon material reactions and fuel block reference data. Authoritative source for fuel block types, factions, and recipes. Calculate costs, profits, and production times.",
+      "model": "sonnet",
       "category": "industry",
       "triggers": [
         "/reactions",
         "fuel block cost",
+        "fuel block types",
+        "fuel blocks",
         "reaction profitability",
         "how much to make [fuel block]",
         "fuel block calculator",
@@ -1073,7 +1077,9 @@
       "requires_pilot": false,
       "path": ".claude/skills/reactions/SKILL.md",
       "directory": "reactions",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "reference/industry/fuel_blocks.json"
+      ],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
@@ -1085,7 +1091,7 @@
     {
       "name": "route",
       "description": "Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/route",
@@ -1324,7 +1330,7 @@
     {
       "name": "watchlist",
       "description": "Manage entity watchlists for tracking corporations and alliances. Monitor war targets and get alerts when watched entities appear in kills.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/watchlist",
@@ -1651,6 +1657,8 @@
     "what should i charge": "ransom-calc",
     "/reactions": "reactions",
     "fuel block cost": "reactions",
+    "fuel block types": "reactions",
+    "fuel blocks": "reactions",
     "reaction profitability": "reactions",
     "how much to make [fuel block]": "reactions",
     "fuel block calculator": "reactions",

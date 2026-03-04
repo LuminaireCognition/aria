@@ -30,6 +30,13 @@ Before generating the status report, sync standings data from ESI:
 
 This ensures standings shown in the status report reflect current ESI values.
 
+## Objective Cross-Check
+
+When presenting CURRENT OBJECTIVES from the pilot profile:
+- If an objective references a standing threshold (e.g., "reach 5.0 with Caldari Navy"), cross-check against the standings data loaded from the synced profile
+- If the threshold is already met, mark the objective as **COMPLETED** rather than presenting it as an active goal
+- If standings data is unavailable (sync failed), present objectives as-is without status
+
 ## CRITICAL: Volatility Awareness
 
 Status reports use **stable and semi-stable data only**:
@@ -54,6 +61,16 @@ Status reports use **stable and semi-stable data only**:
 Sections: CAPSULEER, HOME BASE, OPERATIONAL RANGE, SHIP ROSTER, STANDINGS SUMMARY, CURRENT OBJECTIVES, RECOMMENDATIONS. End with: "For live telemetry (location, ship, wallet), use /esi-query."
 
 If profile or operations data is missing, suggest `/setup` and present only available data.
+
+## Incomplete Profile Handling
+
+When reading `operations.md`, check each field for placeholder values (`[To be determined]`, `TBD`, `N/A`, or similar).
+
+- **Do not present placeholders as valid data.** A field reading `[To be determined]` is a data gap, not an answer.
+- **Show the gap explicitly.** Use the format: `Home system: not configured (region: Sinq Laison)` — include any surrounding context (region, constellation) that is available, but mark the missing piece clearly.
+- **Append a one-line prompt** when any gap is found: "Update `operations.md` to complete your home base configuration."
+
+This applies to all sections: home constellation, primary station, operational range, or any other field that may be left as a placeholder during initial setup.
 
 ## Behavior Notes
 - **Brevity:** Keep reports compact (<20 lines)

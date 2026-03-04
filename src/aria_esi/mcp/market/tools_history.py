@@ -140,6 +140,17 @@ async def _get_history_impl(
 
     type_id = type_info.type_id
     type_name = type_info.type_name
+
+    # Global market items (e.g. PLEX) trade on region 19000001, not regional markets
+    from aria_esi.models.market import GLOBAL_MARKET_TYPE_IDS, GLOBAL_PLEX_MARKET_REGION_ID
+
+    if type_id in GLOBAL_MARKET_TYPE_IDS:
+        hub = {
+            **hub,
+            "region_id": GLOBAL_PLEX_MARKET_REGION_ID,
+            "region_name": "Global PLEX Market",
+        }
+
     region_id = hub["region_id"]
 
     # Fetch history from ESI

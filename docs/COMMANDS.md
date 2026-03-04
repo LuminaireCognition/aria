@@ -50,7 +50,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | Command | Description | Example |
 |---------|-------------|---------|
 | `/agents-research` | Monitor research agent partnerships and accumulated research points. Track passive RP generation from R&D agents. | "my research agents" |
-| `/build-cost` | Manufacturing cost calculator for T1 items. Calculates material costs, profit margins, and ME efficiency. | "cost to build [item]" |
+| `/build-cost` | Manufacturing cost calculator. Calculates material costs, profit margins, and ME efficiency. | "cost to build [item]" |
 | `/exploration` | ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification. | "exploration analysis" |
 | `/fittings` | View saved ship fittings from ESI. List fittings, filter by hull, and export to EFT format. | "my saved fits" |
 | `/industry-jobs` | Monitor personal manufacturing, research, copying, and invention jobs. View active jobs, completion times, and recent history. | "my industry jobs" |
@@ -59,7 +59,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/mining` | View mining ledger with ore extraction history. Track what you've mined, where, and when over the past 30 days. | "my mining ledger" |
 | `/mining-advisory` | ARIA mining operations guidance for Eve Online. Use for ore recommendations, belt intel, Venture fitting, or mining optimization. | "mining advisory" |
 | `/pi` | Planetary Interaction guide for production chains, planet resources, and colony planning. | "PI production chain" |
-| `/reactions` | Moon material reactions and fuel block calculator. Calculate costs, profits, and production times for reactions. | "fuel block cost" |
+| `/reactions` | Moon material reactions and fuel block reference data. Authoritative source for fuel block types, factions, and recipes. Calculate costs, profits, and production times. | "fuel block cost" |
 
 ## Identity & Status
 

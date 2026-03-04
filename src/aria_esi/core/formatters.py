@@ -288,20 +288,23 @@ def format_security(sec_status: float) -> str:
     return f"{sec_status:.1f}"
 
 
-def get_security_class(sec_status: float) -> str:
+def get_security_class(sec_status: float, region_id: int | None = None) -> str:
     """
     Get security classification from status.
 
     Args:
         sec_status: Security status
+        region_id: Optional region ID to detect Pochven (10000070)
 
     Returns:
-        "high_sec", "low_sec", or "null_sec"
+        "high_sec", "low_sec", "null_sec", or "pochven"
     """
     if sec_status >= 0.45:  # 0.45 rounds to 0.5
         return "high_sec"
     elif sec_status >= 0.05:  # 0.05 rounds to 0.1
         return "low_sec"
+    elif region_id == 10000070:  # Pochven (Triglavian space)
+        return "pochven"
     else:
         return "null_sec"
 

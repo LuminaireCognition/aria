@@ -115,7 +115,7 @@ Converts T1 BPCs into T2 BPCs:
 
 **Base success rate:** ~25-40% depending on skills/decryptors
 
-T2 BPCs always start at ME -2 / TE -4 (penalty, not bonus).
+T2 BPCs from invention start at ME 0 / TE 0 (base, no penalty). Decryptors apply signed modifiers to these values (e.g., Attainment: ME -1, Accelerant: ME +2).
 
 ## Facility Bonuses
 
