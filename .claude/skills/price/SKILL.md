@@ -86,9 +86,18 @@ Show top 5 buy and sell orders by default. Always include volume and spread.
 
 **Item not found:** Use `sde(action="search", query="<term>")` for close matches.
 
-**No orders for PLEX, Large Skill Injector, Skill Extractor, or Multiple Pilot Training Certificate?**
+**No orders for PLEX?**
 
-These items always trade on the regional market. Empty results = data gap in the tool. Use this response verbatim:
+PLEX trades on the **Global PLEX Market** (region_id `19000001`), not on regional markets.
+This change took effect July 7, 2025. Use:
+  `market(action="orders", item="PLEX", region_id=19000001)`
+
+Do **not** show regional history data for PLEX — it is stale (last entry July 7, 2025, price ~6M ISK).
+The current price is available via the global market query above.
+
+**No orders for Large Skill Injector, Skill Extractor, or Multiple Pilot Training Certificate?**
+
+These items trade on regional markets. Empty results = data gap in the tool. Use this response verbatim:
 
 > No orders returned — this is a data freshness issue with the market data source. [Item] trades on the regional market in-game. Last known price: [from history if available, or "unavailable"].
 

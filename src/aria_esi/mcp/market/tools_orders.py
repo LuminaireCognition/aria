@@ -101,6 +101,20 @@ def register_order_tools(server: FastMCP) -> None:
 
         type_id = type_info.type_id
         type_name = type_info.type_name
+
+        # Global market items (e.g. PLEX) trade on region 19000001, not regional markets
+        if region_id is None:
+            from aria_esi.models.market import GLOBAL_MARKET_TYPE_IDS, GLOBAL_PLEX_MARKET_REGION_ID
+
+            if type_id in GLOBAL_MARKET_TYPE_IDS:
+                hub = RegionConfig(
+                    region_id=GLOBAL_PLEX_MARKET_REGION_ID,
+                    region_name="Global PLEX Market",
+                    station_id=None,
+                    station_name=None,
+                    system_id=None,
+                )
+
         resolved_region_id: int = hub["region_id"]
 
         # Fetch orders from ESI

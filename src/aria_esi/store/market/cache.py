@@ -228,25 +228,44 @@ class MarketCache:
 
         type_names = type_names or {}
 
-        # For trade hubs, use Fuzzwork (aggregated data)
-        # For other regions, use ESI directly
-        if self._is_trade_hub:
-            # Try Fuzzwork first
-            cached = await self._get_from_fuzzwork(type_ids, type_names)
+        from aria_esi.models.market import GLOBAL_MARKET_TYPE_IDS, GLOBAL_PLEX_MARKET_REGION_ID
 
-            # Check for missing items
-            found_ids = {item.type_id for item in cached}
-            missing_ids = [tid for tid in type_ids if tid not in found_ids]
+        global_ids = [tid for tid in type_ids if tid in GLOBAL_MARKET_TYPE_IDS]
+        regular_ids = [tid for tid in type_ids if tid not in GLOBAL_MARKET_TYPE_IDS]
 
-            if missing_ids:
-                # Fall back to async database for missing items
-                db_results = await self._get_from_database_async(missing_ids, type_names)
-                cached.extend(db_results)
+        results: list[ItemPrice] = []
 
-            return cached
-        else:
-            # Non-trade-hub region: use ESI directly
-            return await self._get_from_esi(type_ids, type_names)
+        # Global market items: bypass Fuzzwork, query ESI region 19000001 directly
+        if global_ids:
+            global_results = await self._get_from_esi_region(
+                global_ids, type_names, GLOBAL_PLEX_MARKET_REGION_ID
+            )
+            results.extend(global_results)
+
+        # Regular items: existing Fuzzwork / ESI path unchanged
+        if regular_ids:
+            # For trade hubs, use Fuzzwork (aggregated data)
+            # For other regions, use ESI directly
+            if self._is_trade_hub:
+                # Try Fuzzwork first
+                cached = await self._get_from_fuzzwork(regular_ids, type_names)
+
+                # Check for missing items
+                found_ids = {item.type_id for item in cached}
+                missing_ids = [tid for tid in regular_ids if tid not in found_ids]
+
+                if missing_ids:
+                    # Fall back to async database for missing items
+                    db_results = await self._get_from_database_async(missing_ids, type_names)
+                    cached.extend(db_results)
+
+                results.extend(cached)
+            else:
+                # Non-trade-hub region: use ESI directly
+                esi_results = await self._get_from_esi(regular_ids, type_names)
+                results.extend(esi_results)
+
+        return results
 
     async def get_price(
         self,
@@ -583,6 +602,84 @@ class MarketCache:
 
             except Exception as e:  # noqa: BLE001 -- per-item ESI fetch, skip and continue
                 logger.warning("Failed to fetch ESI prices for %d: %s", type_id, e)
+
+        return results
+
+    async def _get_from_esi_region(
+        self,
+        type_ids: Sequence[int],
+        type_names: dict[int, str],
+        region_id: int,
+    ) -> list[ItemPrice]:
+        """
+        Get prices from ESI for an explicit region_id.
+
+        Like _get_from_esi() but uses the provided region_id instead of self._region_id.
+        Used for global market items (e.g. PLEX on region 19000001).
+        """
+        try:
+            from aria_esi.store.esi_client import get_async_esi_client
+
+            client = await get_async_esi_client()
+        except Exception as e:  # noqa: BLE001 -- MCP handler
+            logger.warning("ESI client not available: %s", e)
+            return []
+
+        results: list[ItemPrice] = []
+
+        for type_id in type_ids:
+            name = type_names.get(type_id, f"Type {type_id}")
+
+            try:
+                buy_orders: list[dict] = []
+                sell_orders: list[dict] = []
+
+                try:
+                    data = await client.get(
+                        f"/markets/{region_id}/orders/",
+                        params={"type_id": str(type_id), "order_type": "buy"},
+                    )
+                    if isinstance(data, list):
+                        buy_orders = data
+                except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
+                    logger.debug("Failed to fetch buy orders for %d: %s", type_id, e)
+
+                try:
+                    data = await client.get(
+                        f"/markets/{region_id}/orders/",
+                        params={"type_id": str(type_id), "order_type": "sell"},
+                    )
+                    if isinstance(data, list):
+                        sell_orders = data
+                except (httpx.HTTPStatusError, httpx.RequestError, ValueError) as e:
+                    logger.debug("Failed to fetch sell orders for %d: %s", type_id, e)
+
+                buy_agg = self._aggregate_orders(buy_orders, is_buy=True)
+                sell_agg = self._aggregate_orders(sell_orders, is_buy=False)
+
+                spread = None
+                spread_percent = None
+                if sell_agg.min_price and buy_agg.max_price:
+                    spread = round(sell_agg.min_price - buy_agg.max_price, 2)
+                    if sell_agg.min_price > 0:
+                        spread_percent = round((spread / sell_agg.min_price) * 100, 2)
+
+                results.append(
+                    ItemPrice(
+                        type_id=type_id,
+                        type_name=name,
+                        buy=buy_agg,
+                        sell=sell_agg,
+                        spread=spread,
+                        spread_percent=spread_percent,
+                        freshness="fresh",
+                    )
+                )
+
+            except Exception as e:  # noqa: BLE001 -- per-item ESI fetch, skip and continue
+                logger.warning(
+                    "Failed to fetch ESI prices for %d from region %d: %s", type_id, region_id, e
+                )
 
         return results
 
