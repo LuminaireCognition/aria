@@ -29,7 +29,7 @@ INDEX_PATH = SKILLS_DIR / "_index.json"
 PERSONAS_DIR = PROJECT_ROOT / "personas"
 
 VALID_CATEGORIES = {"tactical", "operations", "financial", "identity", "system", "industry"}
-VALID_MODELS = {"haiku", "sonnet"}
+VALID_MODELS = {"haiku", "sonnet", "claude-opus-4-6"}
 VALID_DISPATCHERS = {"universe", "market", "sde", "skills", "fitting", "killmails", "pilot", "status"}
 
 # Known trigger collisions: triggers claimed by multiple SKILL.md files where
