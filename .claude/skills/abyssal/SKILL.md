@@ -36,9 +36,9 @@ If the file cannot be read: **do not output a blanket failure**. Proceed to the 
 
 For any weather query, output this table first, then add ship-specific context:
 
-| Weather | Colour | Your Damage Bonus | Your HP Penalty | NPC Damage Focus |
-|---------|--------|-------------------|-----------------|------------------|
-| Electrical | Blue | +50% EM | -50% cap recharge time | EM 50%, Thermal 30% |
+| Weather | Colour | Your Damage Bonus | Your Drawback | NPC Damage Focus |
+|---------|--------|-------------------|---------------|------------------|
+| Electrical | Blue | +50% EM | None (cap recharges 2x faster — a bonus) | EM 50%, Thermal 30% |
 | Exotic | Gold | +50% Kinetic | -50% scan resolution | Kinetic 50%, Thermal 20% |
 | Firestorm | Red | +50% Thermal | -50% armor HP | Thermal 60%, Kinetic 20% |
 | Gamma | Green | +50% Explosive | -50% shield HP | Explosive 60%, Kinetic 20% |
