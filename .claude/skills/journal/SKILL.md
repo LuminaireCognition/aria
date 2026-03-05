@@ -36,10 +36,10 @@ On first use, replace the placeholder template entry under the header.
 
 1. **Determine entry type** — If not specified, ask: "Mission or exploration entry?"
 2. **Parse inline arguments** — Check the user's message for required fields (see Inline Argument Parsing below).
-   - **All required fields present:** Skip to step 3 (preview). Do NOT ask for fields already provided.
-   - **Some fields missing:** Prompt ONLY for missing fields.
-   - **No fields provided:** Collect all required fields interactively.
-3. **Preview the entry** using the format templates below, then ask for confirmation
+   - **All required fields present:** Proceed directly to preview. Do NOT ask for fields already provided.
+   - **Some fields missing:** Prompt ONLY for missing fields, then preview.
+   - **No fields provided:** Collect all required fields interactively, then preview.
+3. **Preview the entry (MANDATORY)** — ALWAYS show the formatted entry using the templates below, then ask for confirmation. Never ask for approval without showing the preview first.
 4. **Write entry** using Edit tool to insert after the appropriate section header
 5. **Statistics prompt** (exploration only) — Offer: "Update site statistics?"
 
