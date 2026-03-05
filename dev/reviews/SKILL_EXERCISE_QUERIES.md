@@ -271,7 +271,7 @@ A comprehensive catalog of natural language queries designed to exercise each AR
 ### journal
 - **ESI:** NONE
 - **Queries:**
-  1. "Log mission Gone Berserk against Serpentis, success, standing +0.15"
+  1. "Log mission Gone Berserk against Equilibrium of Mankind, success, standing +0.15"
   2. "Log exploration site Crumbling Serpentis Crystal Quarry, relic, Masalle 0.6, 3 containers hacked"
 
 ### mail
