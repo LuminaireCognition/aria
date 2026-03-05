@@ -17,7 +17,7 @@
         "em_damage_modifier": 1.5,
         "capacitor_recharge_modifier": 0.5
       },
-      "effect_description": "+50% EM damage dealt, -50% capacitor recharge time (faster)",
+      "effect_description": "+50% EM damage dealt, cap recharges 2x faster (bonus, not penalty)",
       "npc_damage_profile": {
         "em": 50,
         "thermal": 30,
@@ -25,7 +25,7 @@
         "explosive": 10
       },
       "recommended_resist": "EM",
-      "notes": "Favorable for capacitor-hungry fits. NPCs deal heavy EM damage."
+      "notes": "Cap recharge bonus benefits cap-hungry fits. NPCs deal heavy EM damage. Neut pressure from Sleepers/towers is the real cap threat, not the weather itself."
     },
     "exotic": {
       "filament_color": "yellow/gold",
