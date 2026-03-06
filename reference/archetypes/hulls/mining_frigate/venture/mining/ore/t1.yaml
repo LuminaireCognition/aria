@@ -6,6 +6,8 @@ archetype:
   hull: Venture
   skill_tier: t1
   omega_required: false
+roles:
+  - mining-ore
 
 eft: |
   [Venture, Highsec Mining - Low Skills]

@@ -209,6 +209,7 @@ FITTING_ACTION_PARAMS: dict[str, set[str]] = {
     "calculate_stats": {"eft", "damage_profile", "use_pilot_skills"},
     "check_requirements": {"eft", "pilot_skills"},
     "extract_requirements": {"eft"},
+    "recommend": {"role", "hull", "budget_isk", "skill_tier", "limit"},
 }
 
 

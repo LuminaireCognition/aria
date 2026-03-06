@@ -15,6 +15,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/escape-route` | Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. | "escape route" |
 | `/fit-budget` | Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions. | "budget version of this fit" |
 | `/fit-check` | Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions. | "can I fly this fit" |
+| `/fit-recommend` | Recommend ship fittings from the archetype library based on role, hull, budget, and skill tier. | "recommend a fit" |
 | `/fitting` | ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. | "fit my [ship]" |
 | `/gatecamp` | Real-time gatecamp detection and intel. Check for active camps in systems or along routes. | "is there a camp in [system]" |
 | `/hunting-grounds` | Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition. | "hunting grounds" |
@@ -95,4 +96,4 @@ Multiple commands can chain naturally in conversation — ask a follow-up and AR
 
 ---
 
-*49 commands across 5 categories. For in-session help, type `/help`.*
+*50 commands across 5 categories. For in-session help, type `/help`.*

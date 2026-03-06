@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "generated_by": "manual (post-context-efficiency-migration)",
-  "skill_count": 49,
+  "skill_count": 50,
   "skills": [
     {
       "name": "abyssal",
@@ -457,6 +457,35 @@
       ]
     },
     {
+      "name": "fit-recommend",
+      "description": "Recommend ship fittings from the archetype library based on role, hull, budget, and skill tier.",
+      "model": "haiku",
+      "category": "tactical",
+      "triggers": [
+        "/fit-recommend",
+        "recommend a fit",
+        "fit me a [ship] for [activity]",
+        "what fit for [activity]",
+        "suggest a fit",
+        "fit recommendation"
+      ],
+      "requires_pilot": false,
+      "esi_scopes": [],
+      "data_sources": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/skills.json"
+      ],
+      "external_sources": [],
+      "path": ".claude/skills/fit-recommend/SKILL.md",
+      "directory": "fit-recommend",
+      "prerequisite_files": [
+        "reference/archetypes/INDEX.md"
+      ],
+      "required_tools": [
+        "fitting.recommend"
+      ]
+    },
+    {
       "name": "fitting",
       "description": "ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.",
       "model": "claude-opus-4-6",
@@ -878,17 +907,19 @@
       "requires_pilot": true,
       "prerequisite_files": [
         "reference/mechanics/npc_damage_types.md",
-        "reference/mechanics/drones.json"
-      ],
-      "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/ships.md",
-        "reference/pve-intel/cache/INDEX.md",
-        "reference/archetypes/INDEX.md",
+        "reference/mechanics/drones.json",
         "reference/mechanics/missiles.json",
         "reference/mechanics/projectile_turrets.json",
         "reference/mechanics/laser_turrets.json",
-        "reference/mechanics/hybrid_turrets.json"
+        "reference/mechanics/hybrid_turrets.json",
+        "reference/pve-intel/cache/INDEX.md",
+        "reference/archetypes/INDEX.md",
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/skills.json",
+        "userdata/pilots/{active_pilot}/ships.md"
+      ],
+      "data_sources": [
+        "reference/archetypes/{hull_path}"
       ],
       "external_sources": [
         "wiki.eveuniversity.org"
@@ -1176,7 +1207,8 @@
       "required_tools": [
         "sde.item_info",
         "skills.easy_80_plan",
-        "market.prices"
+        "market.prices",
+        "fitting.recommend"
       ]
     },
     {
@@ -1398,6 +1430,7 @@
       "escape-route",
       "fit-budget",
       "fit-check",
+      "fit-recommend",
       "fitting",
       "gatecamp",
       "hunting-grounds",
@@ -1520,6 +1553,12 @@
     "can i afford this fit": "fit-check",
     "what skills do i need for this fit": "fit-check",
     "validate fit": "fit-check",
+    "/fit-recommend": "fit-recommend",
+    "recommend a fit": "fit-recommend",
+    "fit me a [ship] for [activity]": "fit-recommend",
+    "what fit for [activity]": "fit-recommend",
+    "suggest a fit": "fit-recommend",
+    "fit recommendation": "fit-recommend",
     "/fitting": "fitting",
     "fit my [ship]": "fitting",
     "export fitting": "fitting",

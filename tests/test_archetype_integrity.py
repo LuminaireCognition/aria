@@ -11,6 +11,7 @@ broken YAML, or missing required fields in archetype definitions.
 from __future__ import annotations
 
 import re
+import warnings
 from pathlib import Path
 
 import pytest
@@ -27,6 +28,29 @@ SHARED_DIR = ARCHETYPES_DIR / "_shared"
 
 VALID_SKILL_TIERS = {"t1", "meta", "t2_budget", "t2_optimal"}
 
+# NOTE: keep in sync with VALID_ROLES in src/aria_esi/mcp/dispatchers/fitting.py
+VALID_ROLES: set[str] = {
+    "missions-l1",
+    "missions-l2",
+    "missions-l3",
+    "missions-l4",
+    "exploration-data",
+    "exploration-relic",
+    "exploration-combat",
+    "mining-ore",
+    "mining-gas",
+    "mining-ice",
+    "hauling-hisec",
+    "hauling-lowsec",
+    "pvp-solo",
+    "pvp-fleet-dps",
+    "pvp-fleet-logi",
+    "pvp-fleet-tackle",
+    "abyssal",
+    "ratting-anomaly",
+    "salvaging",
+}
+
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -35,22 +59,24 @@ VALID_SKILL_TIERS = {"t1", "meta", "t2_budget", "t2_optimal"}
 
 @pytest.fixture(scope="module")
 def index_entries() -> list[dict[str, str]]:
-    """Parse INDEX.md table into a list of {hull, activity, level, tier, path} dicts."""
+    """Parse INDEX.md table into a list of {hull, activity, level, tier, roles, path} dicts."""
     text = INDEX_PATH.read_text()
     rows = []
     for line in text.splitlines():
-        # Match table rows: | Hull | Activity | Level | Tier | `path` |
+        # Match 6-column table rows: | Hull | Activity | Level | Tier | Roles | `path` |
+        # Roles column may be empty (for archetypes not yet backfilled)
         m = re.match(
-            r"\|\s*(\w[\w\s]*?)\s*\|\s*(\w+)\s*\|\s*(\S+)\s*\|\s*(\w+)\s*\|\s*`([^`]+)`\s*\|",
+            r"\|\s*(\w[\w\s]*?)\s*\|\s*(\w+)\s*\|\s*(\S+)\s*\|\s*(\w+)\s*\|\s*([^|]*?)\s*\|\s*`([^`]+)`\s*\|",
             line,
         )
-        if m and m.group(1) not in ("Hull",):  # skip header
+        if m and m.group(1).strip() not in ("Hull",):  # skip header
             rows.append({
                 "hull": m.group(1).strip(),
                 "activity": m.group(2).strip(),
                 "level": m.group(3).strip(),
                 "tier": m.group(4).strip(),
-                "path": m.group(5).strip(),
+                "roles": m.group(5).strip(),
+                "path": m.group(6).strip(),
             })
     return rows
 
@@ -256,7 +282,78 @@ class TestArchetypeConsistency:
 
 
 # ===========================================================================
-# 4. Shared Configs
+# 4. Roles Validation
+# ===========================================================================
+
+
+class TestRolesValidation:
+    """Validate the roles field in archetype YAMLs and INDEX.md consistency."""
+
+    def test_roles_values_valid(self, archetype_yamls):
+        """All roles values must be from the canonical taxonomy."""
+        bad = []
+        for path, data in archetype_yamls.items():
+            roles = data.get("roles")
+            if roles is None:
+                continue  # no roles field — exempt (pre-existing archetype)
+            for role in roles:
+                if role not in VALID_ROLES:
+                    bad.append(
+                        f"Invalid role '{role}' in {path}, "
+                        f"must be one of: {sorted(VALID_ROLES)}"
+                    )
+        assert not bad, "\n".join(bad)
+
+    def test_roles_count(self, archetype_yamls):
+        """Archetypes with roles must have 1-3 values."""
+        bad = []
+        for path, data in archetype_yamls.items():
+            roles = data.get("roles")
+            if roles is None:
+                continue
+            n = len(roles)
+            if n < 1 or n > 3:
+                bad.append(f"roles must contain 1-3 values, got {n} in {path}")
+        assert not bad, "\n".join(bad)
+
+    def test_roles_yaml_index_consistency(self, index_entries, archetype_yamls):
+        """YAML roles values must match the comma-separated Roles column in INDEX.md."""
+        mismatches = []
+        for entry in index_entries:
+            data = archetype_yamls.get(entry["path"])
+            if not data:
+                continue
+            yaml_roles = data.get("roles")
+            if yaml_roles is None:
+                # No roles in YAML — exempt from consistency check
+                continue
+            # Parse INDEX roles column (comma-separated, no spaces)
+            index_roles_str = entry.get("roles", "")
+            if index_roles_str:
+                index_roles = sorted(index_roles_str.split(","))
+            else:
+                index_roles = []
+            yaml_roles_sorted = sorted(yaml_roles)
+            if yaml_roles_sorted != index_roles:
+                mismatches.append(
+                    f"{entry['path']}: YAML roles={yaml_roles_sorted}, "
+                    f"INDEX roles={index_roles}"
+                )
+        assert not mismatches, f"Roles mismatches:\n" + "\n".join(mismatches)
+
+    def test_roles_missing_warns(self, archetype_yamls):
+        """Archetypes without roles emit a warning (not a failure)."""
+        missing = [p for p, d in archetype_yamls.items() if d.get("roles") is None]
+        if missing:
+            warnings.warn(
+                f"{len(missing)} archetype(s) without roles field: "
+                f"{', '.join(missing[:5])}{'...' if len(missing) > 5 else ''}",
+                stacklevel=1,
+            )
+
+
+# ===========================================================================
+# 5. Shared Configs
 # ===========================================================================
 
 
@@ -289,7 +386,7 @@ class TestSharedConfigs:
 
 
 # ===========================================================================
-# 5. Meta (Variant Selector) Files
+# 6. Meta (Variant Selector) Files
 # ===========================================================================
 
 

@@ -7,6 +7,8 @@ archetype:
   hull: Drake
   skill_tier: t1
   omega_required: false
+roles:
+  - missions-l3
 
 eft: |
   [Drake, L3 Missions - Low Skills]

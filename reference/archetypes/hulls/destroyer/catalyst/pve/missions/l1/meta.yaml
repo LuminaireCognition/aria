@@ -8,6 +8,8 @@ archetype:
   hull: Catalyst
   skill_tier: meta
   omega_required: false
+roles:
+  - missions-l1
 
 attribution:
   author: iBeast

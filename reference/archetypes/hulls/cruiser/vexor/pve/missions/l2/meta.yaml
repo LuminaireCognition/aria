@@ -7,6 +7,8 @@ archetype:
   hull: Vexor
   skill_tier: meta
   omega_required: false
+roles:
+  - missions-l2
 
 eft: |
   [Vexor, L2 Missions - Medium Skills]
