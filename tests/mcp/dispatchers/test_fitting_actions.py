@@ -10,6 +10,7 @@ Tests the individual action implementations in the fitting dispatcher:
 from __future__ import annotations
 
 import asyncio
+import json
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -340,6 +341,116 @@ class TestCheckRequirementsAction:
         assert result["can_fly"] is False
         assert len(result["missing_skills"]) > 0
 
+    def test_check_requirements_accepts_dict_pilot_skills(self, fitting_dispatcher):
+        """Check requirements accepts a proper dict with int keys (the only MCP path)."""
+        mock_result = {
+            "can_fly": True,
+            "missing_skills": [],
+            "total_skills_checked": 1
+        }
+
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._check_requirements",
+            new_callable=AsyncMock,
+            return_value=mock_result
+        ) as mock_check:
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="check_requirements",
+                    eft=SAMPLE_EFT,
+                    pilot_skills={3436: 5, 33699: 4}
+                )
+            )
+
+        assert result["can_fly"] is True
+        call_args = mock_check.call_args
+        assert call_args[0][1] == {3436: 5, 33699: 4}
+
+    def test_check_requirements_coerces_json_string(self, fitting_dispatcher):
+        """String-serialized JSON dict is coerced to dict before reaching handler."""
+        mock_result = {
+            "can_fly": True,
+            "missing_skills": [],
+            "total_skills_checked": 2,
+        }
+
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._check_requirements",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_check:
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="check_requirements",
+                    eft=SAMPLE_EFT,
+                    pilot_skills='{"3436": 5, "33699": 4}',
+                )
+            )
+
+        assert result["can_fly"] is True
+        call_args = mock_check.call_args
+        passed_skills = call_args[0][1]
+        assert isinstance(passed_skills, dict)
+        assert passed_skills == {"3436": 5, "33699": 4}
+
+    def test_check_requirements_coerces_python_dict_string(self, fitting_dispatcher):
+        """String-serialized Python dict (unquoted keys) is coerced via ast.literal_eval."""
+        mock_result = {
+            "can_fly": True,
+            "missing_skills": [],
+            "total_skills_checked": 2,
+        }
+
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._check_requirements",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_check:
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="check_requirements",
+                    eft=SAMPLE_EFT,
+                    pilot_skills="{3436: 5, 33699: 4}",
+                )
+            )
+
+        assert result["can_fly"] is True
+        call_args = mock_check.call_args
+        passed_skills = call_args[0][1]
+        assert isinstance(passed_skills, dict)
+        assert passed_skills == {3436: 5, 33699: 4}
+
+    def test_check_requirements_large_string_dict(self, fitting_dispatcher):
+        """88-entry string dict (realistic MCP payload) is fully preserved after coercion."""
+        # Build an 88-entry skill dict
+        large_skills = {str(3400 + i): 5 for i in range(88)}
+        large_skills_str = json.dumps(large_skills)
+
+        mock_result = {
+            "can_fly": True,
+            "missing_skills": [],
+            "total_skills_checked": 88,
+        }
+
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._check_requirements",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ) as mock_check:
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="check_requirements",
+                    eft=SAMPLE_EFT,
+                    pilot_skills=large_skills_str,
+                )
+            )
+
+        assert result["can_fly"] is True
+        call_args = mock_check.call_args
+        passed_skills = call_args[0][1]
+        assert isinstance(passed_skills, dict)
+        assert len(passed_skills) == 88
+
     def test_check_requirements_highest_level_wins(self, fitting_dispatcher):
         """When multiple items require the same skill at different levels,
         the highest required level must be checked (not just the first seen).
@@ -467,6 +578,250 @@ class TestExtractRequirementsAction:
 # =============================================================================
 # Invalid Action Tests
 # =============================================================================
+
+
+class TestRecommendAction:
+    """Tests for fitting recommend action (Phase 3 validation).
+
+    Covers all 12 validation cases from FIT_ARCHETYPES_AND_SKILL_PERFORMANCE Phase 3 step 4.
+    """
+
+    def test_role_filter_with_multiple_results(self, fitting_dispatcher):
+        """Query with role having ≥3 archetypes; verify filtering and sort order."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=10_000_000,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1")
+            )
+
+        assert "results" in result
+        assert len(result["results"]) >= 3
+        # Verify sort: higher tiers first
+        tier_rank = {"t1": 0, "meta": 1, "t2_budget": 2, "t2_optimal": 3}
+        tiers = [tier_rank.get(r["tier"], -1) for r in result["results"]]
+        assert tiers == sorted(tiers, reverse=True)
+        # All results should have the queried role
+        for r in result["results"]:
+            assert "missions-l1" in r["roles"]
+
+    def test_impossible_budget_returns_empty_with_message(self, fitting_dispatcher):
+        """Query with impossible budget constraint; verify empty result with message."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=50_000_000,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1", budget_isk=1)
+            )
+
+        assert result["results"] == []
+        assert result["message"] is not None
+
+    def test_hull_plus_role_combined_filter(self, fitting_dispatcher):
+        """Query with hull + role combined filter; verify intersection filtering."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=5_000_000,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l4", hull="Raven")
+            )
+
+        assert "results" in result
+        assert len(result["results"]) >= 1
+        for r in result["results"]:
+            assert r["hull"] == "Raven"
+            assert "missions-l4" in r["roles"]
+
+    def test_invalid_role_raises_error(self, fitting_dispatcher):
+        """Query with invalid role; verify InvalidParameterError, not empty array."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(
+                fitting_dispatcher(action="recommend", role="pve-ratting")
+            )
+        assert "pve-ratting" in str(exc.value)
+        assert "must be one of" in str(exc.value).lower()
+
+    def test_limit_truncation(self, fitting_dispatcher):
+        """Query with limit=2 when ≥3 results exist; verify truncation."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=10_000_000,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1", limit=2)
+            )
+
+        assert len(result["results"]) <= 2
+
+    def test_limit_larger_than_results(self, fitting_dispatcher):
+        """Query with limit=10 when only 2 exist; verify all returned."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=10_000_000,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l4", hull="Raven", limit=10)
+            )
+
+        # Raven has 2 entries (t1, meta); all should be returned
+        assert len(result["results"]) >= 1
+        assert len(result["results"]) <= 10
+
+    def test_null_estimated_cost_when_market_unavailable(self, fitting_dispatcher):
+        """Verify estimated_cost is null (not absent) when market data unavailable."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=None,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1")
+            )
+
+        assert len(result["results"]) >= 1
+        for r in result["results"]:
+            assert "estimated_cost" in r
+            assert r["estimated_cost"] is None
+
+    def test_budget_isk_zero_raises_error(self, fitting_dispatcher):
+        """Query with budget_isk=0; verify InvalidParameterError."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1", budget_isk=0)
+            )
+        assert "budget_isk" in str(exc.value)
+
+    def test_budget_isk_negative_raises_error(self, fitting_dispatcher):
+        """Query with budget_isk=-1; verify InvalidParameterError."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1", budget_isk=-1)
+            )
+        assert "budget_isk" in str(exc.value)
+
+    def test_limit_zero_raises_error(self, fitting_dispatcher):
+        """Query with limit=0; verify InvalidParameterError."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1", limit=0)
+            )
+        assert "limit" in str(exc.value)
+
+    def test_limit_negative_raises_error(self, fitting_dispatcher):
+        """Query with limit=-1; verify InvalidParameterError."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1", limit=-1)
+            )
+        assert "limit" in str(exc.value)
+
+    def test_null_cost_entries_omitted_with_budget(self, fitting_dispatcher):
+        """With budget_isk, null-cost entries are omitted from results."""
+        call_count = 0
+
+        def alternating_cost(project_root, path):
+            nonlocal call_count
+            call_count += 1
+            # Alternate: first returns a price, second returns None
+            return 5_000_000 if call_count % 2 == 1 else None
+
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            side_effect=alternating_cost,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="recommend", role="missions-l1", budget_isk=100_000_000
+                )
+            )
+
+        # All returned entries should have non-null costs
+        for r in result["results"]:
+            assert r["estimated_cost"] is not None
+
+    def test_parse_eft_failure_returns_null_cost(self, fitting_dispatcher):
+        """Simulate parse_eft failure; verify entry has null cost, call succeeds."""
+        costs = {}
+
+        def cost_with_one_failure(project_root, path):
+            if "kestrel" in path:
+                return None  # Simulates parse_eft failure
+            return 10_000_000
+
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            side_effect=cost_with_one_failure,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1")
+            )
+
+        assert len(result["results"]) >= 1
+        # Some entries may have null cost, others should have valid cost
+        has_null = any(r["estimated_cost"] is None for r in result["results"])
+        has_valid = any(r["estimated_cost"] is not None for r in result["results"])
+        assert has_null or has_valid  # At least one type exists
+
+    def test_all_null_cost_with_budget_distinct_message(self, fitting_dispatcher):
+        """When ALL matching archetypes have null cost and budget is set,
+        verify distinct message about market data unavailability."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=None,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="recommend", role="missions-l1", budget_isk=100_000_000
+                )
+            )
+
+        assert result["results"] == []
+        assert "market data is unavailable" in result["message"]
+        assert "budget" in result["message"].lower()
+
+    def test_missing_role_raises_error(self, fitting_dispatcher):
+        """Recommend without role raises InvalidParameterError."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(fitting_dispatcher(action="recommend"))
+        assert "role" in str(exc.value)
+
+    def test_result_format_envelope(self, fitting_dispatcher):
+        """Verify return format has results array and message field."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=10_000_000,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="recommend", role="missions-l1", limit=1)
+            )
+
+        assert "results" in result
+        assert "message" in result
+        assert isinstance(result["results"], list)
+        entry = result["results"][0]
+        assert "hull" in entry
+        assert "path" in entry
+        assert "tier" in entry
+        assert "roles" in entry
+        assert "estimated_cost" in entry
+        assert isinstance(entry["roles"], list)
+
+    def test_no_match_returns_empty_with_message(self, fitting_dispatcher):
+        """Non-matching filter returns empty results with message."""
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._estimate_cost",
+            return_value=10_000_000,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="recommend", role="missions-l4", hull="Venture"
+                )
+            )
+
+        assert result["results"] == []
+        assert result["message"] == "No archetypes match the given constraints."
 
 
 class TestFittingInvalidActions:

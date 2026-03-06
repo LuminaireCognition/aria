@@ -384,6 +384,46 @@ class TestSharedConfigs:
         data = shared_configs.get("faction_tuning.yaml", {})
         assert data, "faction_tuning.yaml is empty or missing"
 
+    def test_faction_tuning_all_tank_profiles_defined(self, shared_configs, archetype_yamls):
+        """Every tank_profile referenced by an archetype exists in faction_tuning.yaml."""
+        tuning = shared_configs.get("faction_tuning.yaml", {})
+        # Exclude non-tank-profile keys (drone_types, drone_tech_suffix)
+        tuning_profiles = {
+            k for k in tuning if isinstance(tuning[k], dict) and not k.startswith("drone")
+        }
+        missing = []
+        for path, data in archetype_yamls.items():
+            dt = data.get("damage_tuning", {})
+            tp = dt.get("tank_profile") if isinstance(dt, dict) else None
+            if tp and tp not in tuning_profiles:
+                missing.append(f"{path}: tank_profile={tp!r}")
+        assert not missing, (
+            f"tank_profile(s) not in faction_tuning.yaml: {missing}"
+        )
+
+    def test_faction_tuning_consistent_factions(self, shared_configs):
+        """All tank profiles in faction_tuning.yaml define the same set of factions."""
+        tuning = shared_configs.get("faction_tuning.yaml", {})
+        profiles = {
+            k: set(v.keys()) for k, v in tuning.items()
+            if isinstance(v, dict) and not k.startswith("drone")
+        }
+        if not profiles:
+            pytest.skip("No tank profiles found")
+        reference_name, reference_factions = next(iter(profiles.items()))
+        mismatches = []
+        for name, factions in profiles.items():
+            if factions != reference_factions:
+                extra = factions - reference_factions
+                missing = reference_factions - factions
+                mismatches.append(
+                    f"{name} vs {reference_name}: "
+                    f"extra={extra or '{}'}, missing={missing or '{}'}"
+                )
+        assert not mismatches, (
+            f"Faction sets differ across tank profiles:\n" + "\n".join(mismatches)
+        )
+
 
 # ===========================================================================
 # 6. Meta (Variant Selector) Files

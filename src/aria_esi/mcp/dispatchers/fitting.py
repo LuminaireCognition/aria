@@ -7,6 +7,8 @@ Provides ship fitting calculation interface:
 
 from __future__ import annotations
 
+import ast
+import json
 import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
@@ -90,7 +92,7 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
         damage_profile: dict | None = None,
         use_pilot_skills: bool = False,
         # check_requirements params
-        pilot_skills: dict | None = None,
+        pilot_skills: dict | str | None = None,
         # recommend params
         role: str | None = None,
         hull: str | None = None,
@@ -122,8 +124,8 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
 
             Check requirements params (action="check_requirements"):
                 eft: Ship fitting in EFT format
-                pilot_skills: Dict mapping skill_id (int) to level (int)
-                             e.g., {3436: 5, 33699: 4} for Drones V, Medium Drone Op IV
+                pilot_skills: Dict mapping skill_id (str) to level (int)
+                             e.g., {"3436": 5, "33699": 4} for Drones V, Medium Drone Op IV
 
             Extract requirements params (action="extract_requirements"):
                 eft: Ship fitting in EFT format
@@ -163,7 +165,7 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
 
         Examples:
             fitting(action="calculate_stats", eft="[Vexor, Test]\\nDrone Damage Amplifier II...")
-            fitting(action="check_requirements", eft="[Vexor, ...]", pilot_skills={3436: 5})
+            fitting(action="check_requirements", eft="[Vexor, ...]", pilot_skills={"3436": 5})
             fitting(action="extract_requirements", eft="[Vexor, ...]")
             fitting(action="recommend", role="missions-l2", budget_isk=20000000)
         """
@@ -246,6 +248,8 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
                         result["metadata"]["warnings"] = []
                     result["metadata"]["warnings"].append(policy_fallback_warning)
             case "check_requirements":
+                if isinstance(pilot_skills, str):
+                    pilot_skills = _coerce_pilot_skills(pilot_skills)
                 result = await _check_requirements(eft, pilot_skills)
             case "extract_requirements":
                 result = await _extract_requirements(eft)
@@ -405,6 +409,31 @@ async def _calculate_stats(
         }
 
 
+def _coerce_pilot_skills(raw: str) -> dict:
+    """Parse string-serialized pilot_skills dict.
+
+    MCP transport sometimes serializes large dicts as strings.
+    JSON first (canonical), ast.literal_eval fallback (Python syntax).
+    """
+    try:
+        parsed = json.loads(raw)
+        if isinstance(parsed, dict):
+            return parsed
+    except (json.JSONDecodeError, ValueError):
+        pass
+    try:
+        parsed = ast.literal_eval(raw)
+        if isinstance(parsed, dict):
+            return parsed
+    except (ValueError, SyntaxError):
+        pass
+    raise InvalidParameterError(
+        "pilot_skills",
+        raw[:100],
+        "Could not parse string as dict. Expected JSON or Python dict literal.",
+    )
+
+
 async def _check_requirements(
     eft: str | None,
     pilot_skills: dict | None,
@@ -416,6 +445,9 @@ async def _check_requirements(
         raise InvalidParameterError(
             "pilot_skills", pilot_skills, "Required for action='check_requirements'"
         )
+
+    # String coercion handled upstream in dispatcher routing.
+    # Only dict reaches here; str is parsed before _check_requirements is called.
 
     try:
         from aria_esi.fitting import (
