@@ -97,10 +97,6 @@ If `use_pilot_skills` fails, fall back to All V with a prominent warning that ac
 - `metadata.warnings` → investigate and resolve before presenting
 - Empty slots → add modules to fill all available slots
 
-### Step 4: Resist Sanity Check
-
-Compare EOS resists against base hull resists from SDE. For each hardener, verify its target resist actually increased. If a resist seems unchanged, report the raw numbers — never claim a module is bugged.
-
 ## Tank Coherence
 
 Never mix armor and shield active tank.

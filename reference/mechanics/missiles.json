@@ -176,6 +176,30 @@
       "primary": "Scourge",
       "secondary": "Mjolnir",
       "t2_suffix": ""
+    },
+    "amarr_empire": {
+      "weakness": "em",
+      "primary": "Mjolnir",
+      "secondary": "Inferno",
+      "t2_suffix": ""
+    },
+    "caldari_state": {
+      "weakness": "kinetic",
+      "primary": "Scourge",
+      "secondary": "Inferno",
+      "t2_suffix": ""
+    },
+    "gallente_federation": {
+      "weakness": "kinetic",
+      "primary": "Scourge",
+      "secondary": "Inferno",
+      "t2_suffix": ""
+    },
+    "minmatar_republic": {
+      "weakness": "explosive",
+      "primary": "Nova",
+      "secondary": "Scourge",
+      "t2_suffix": ""
     }
   },
   "ammo_naming": {

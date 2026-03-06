@@ -52,7 +52,6 @@ Before presenting the fit:
 - [ ] **Check `slots` output**: Verify `used == total` for all slot types
 - [ ] If empty slots exist: Fill them OR document why (CPU/PG constrained)
 - [ ] **Check `metadata.warnings`**: Address any tank coherence warnings
-- [ ] **Resist sanity check**: For each hardener, verify its target resist actually increased from hull base (see Known EOS Bugs below).
 - [ ] Cross-check drone damage type against drones.json (not memory)
 - [ ] Verify DPS numbers match EOS output exactly
 - [ ] Confirm tank type matches mission damage profile
@@ -89,13 +88,6 @@ The fitting tool now generates warnings for:
 - Armor rigs + shield modules → "Shield hardeners are ineffective once shields depleted"
 - Shield rigs + armor modules → "Consider committing to one tank type"
 - Both armor and shield active modules → "This splits tank effectiveness"
-
-## Known EOS Bugs
-
-| Module | Type ID | Bug | Workaround |
-|--------|---------|-----|------------|
-
-If you discover an EOS data bug, document it here.
 
 ## Common Failure Modes
 
