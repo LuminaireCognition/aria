@@ -10,6 +10,7 @@ archetype:
   omega_required: false
 roles:
   - missions-l1
+source: eveuni
 
 attribution:
   author: iBeast

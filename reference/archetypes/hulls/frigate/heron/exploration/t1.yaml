@@ -10,6 +10,7 @@ archetype:
 roles:
   - exploration-data
   - exploration-relic
+source: eveuni
 
 eft: |
   [Heron, Exploration - Low Skills]

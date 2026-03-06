@@ -9,6 +9,7 @@ archetype:
   omega_required: false
 roles:
   - missions-l2
+source: eveuni
 
 eft: |
   [Vexor, L2 Missions - Medium Skills]

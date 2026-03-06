@@ -1,0 +1,69 @@
+# Venture Ore Mining - Medium Skill Variant
+#
+# Upgraded Venture with Miner II and better tank.
+# Improved mining yield for experienced Alpha pilots.
+
+archetype:
+  hull: Venture
+  skill_tier: meta
+  omega_required: false
+roles:
+  - mining-ore
+source: eveuni
+
+eft: |
+  [Venture, Highsec Mining - Medium Skills]
+
+  Mining Laser Upgrade I
+
+  5MN Y-T8 Compact Microwarpdrive
+  Medium Azeotropic Restrained Shield Extender
+  Survey Scanner I
+
+  Miner II
+  Miner II
+  [Empty High slot]
+
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+  Hobgoblin I x2
+
+skill_requirements:
+  required:
+    Mining Frigate: 3
+    Mining: 4
+    Shield Operation: 3
+  recommended:
+    Mining: 5
+    Mining Upgrades: 4
+    Astrogeology: 3
+    Hull Upgrades: 3
+
+stats:
+  mining_yield: 280
+  ore_hold: 5000
+  ehp: 4100
+  align_time: 5.5
+  speed_mwd: 3000
+  validated_date: "2026-03-05"
+
+notes:
+  purpose: "Upgraded mining frigate for highsec ore mining"
+  engagement: "Warp to belt, survey scan, mine best asteroids"
+  warnings:
+    - "Miner II gives significantly more yield than Miner I"
+    - "Compact MWD uses less cap than T1"
+    - "Stay aligned to station while mining"
+
+upgrade_path:
+  next_tier: t2_budget
+  key_upgrades:
+    - module: "Mining Laser Upgrade I"
+      upgrade_to: "Mining Laser Upgrade II"
+      skill_required: "Mining Upgrades 4"
+    - ship: "Procurer (Mining Barge)"
+      notes: "Tanky barge with strip miners"
+    - ship: "Retriever (Mining Barge)"
+      notes: "Yield barge with large ore hold"

@@ -9,6 +9,7 @@ archetype:
 roles:
   - exploration-data
   - exploration-relic
+source: eveuni
 
 eft: |
   [Imicus, Exploration - Low Skills]

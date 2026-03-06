@@ -1,0 +1,72 @@
+# Retriever Ore Mining - Low Skill Variant
+#
+# Yield-focused mining barge for ore mining.
+# Largest ore hold of the three barges.
+# Best choice for long AFK mining sessions in safe space.
+
+archetype:
+  hull: Retriever
+  skill_tier: t1
+  omega_required: true
+roles:
+  - mining-ore
+source: eveuni
+
+eft: |
+  [Retriever, Ore Mining - Low Skills]
+
+  Mining Laser Upgrade I
+  Mining Laser Upgrade I
+
+  Survey Scanner I
+  Medium Shield Extender I
+  Multispectrum Shield Hardener I
+
+  Strip Miner I
+  Strip Miner I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Hobgoblin I x5
+
+skill_requirements:
+  required:
+    Mining Barge: 1
+    Mining: 4
+    Astrogeology: 3
+    Shield Operation: 3
+  recommended:
+    Mining Barge: 3
+    Mining: 5
+    Mining Upgrades: 4
+    Drone Sharpshooting: 3
+
+stats:
+  mining_yield: 700
+  ore_hold: 27500
+  ehp: 10000
+  align_time: 12.0
+  validated_date: "2026-03-05"
+
+notes:
+  purpose: "High-yield mining barge with large ore hold"
+  engagement: "Warp to belt, activate strip miners, fill ore hold"
+  warnings:
+    - "Much less tanky than Procurer - only mine in safe space"
+    - "Large ore hold means fewer station trips"
+    - "Deploy drones against belt rats"
+    - "Stay aligned to station when mining in busy systems"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Strip Miner I"
+      upgrade_to: "Strip Miner II"
+      skill_required: "Mining 5"
+    - module: "Mining Laser Upgrade I"
+      upgrade_to: "Mining Laser Upgrade II"
+      skill_required: "Mining Upgrades 4"
+    - ship: "Mackinaw (Exhumer)"
+      notes: "T2 variant with enormous ore hold and better yield"

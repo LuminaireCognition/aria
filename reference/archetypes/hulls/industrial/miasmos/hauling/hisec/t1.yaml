@@ -1,0 +1,65 @@
+# Miasmos Highsec Ore Hauling - Low Skill Variant
+#
+# Specialized ore hauler for highsec mining operations.
+# Fast align for safe hauling runs.
+# Dedicated ore hold (not general cargo).
+
+archetype:
+  hull: Miasmos
+  skill_tier: t1
+  omega_required: false
+roles:
+  - hauling-hisec
+source: eveuni
+
+eft: |
+  [Miasmos, Highsec Ore Hauling]
+
+  Inertial Stabilizers I
+  Inertial Stabilizers I
+  Nanofiber Internal Structure I
+  Damage Control I
+
+  10MN Afterburner I
+  Medium Shield Extender I
+  Multispectrum Shield Hardener I
+
+  [Empty High slot]
+  [Empty High slot]
+
+  Medium Low Friction Nozzle Joints I
+  Medium Low Friction Nozzle Joints I
+  Medium Low Friction Nozzle Joints I
+
+skill_requirements:
+  required:
+    Gallente Industrial: 1
+  recommended:
+    Gallente Industrial: 3
+    Evasive Maneuvering: 3
+    Shield Operation: 3
+
+stats:
+  ehp: 8000
+  align_time: 7.0
+  cargo: 600
+  ore_hold: 42000
+  validated_date: "2026-03-05"
+
+notes:
+  purpose: "Dedicated ore hauler for mining fleet support"
+  engagement: "Shuttle ore between belt and station"
+  warnings:
+    - "Ore hold is separate from cargo - only carries ores and ice"
+    - "Low EHP - avoid autopilot, always warp gate-to-gate"
+    - "Inertial stabilizers reduce align time but lower structure HP"
+    - "Keep aligned to station while collecting jetcans"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Inertial Stabilizers I"
+      upgrade_to: "Inertial Stabilizers II"
+      skill_required: "Spaceship Command 3"
+    - ship: "Kryos"
+      notes: "Alternative for mineral hauling with mineral hold"

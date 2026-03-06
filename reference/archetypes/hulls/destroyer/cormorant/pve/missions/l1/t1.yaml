@@ -1,0 +1,94 @@
+# Cormorant L1 Missions - Low Skill Variant
+#
+# Railgun Cormorant for L1 security missions.
+# Long-range sniper with shield buffer tank.
+# High alpha strike from 7 railguns.
+
+archetype:
+  hull: Cormorant
+  skill_tier: t1
+  omega_required: false
+roles:
+  - missions-l1
+source: eveuni
+
+eft: |
+  [Cormorant, L1 Missions - Low Skills]
+
+  Magnetic Field Stabilizer I
+  Magnetic Field Stabilizer I
+
+  1MN Afterburner I
+  Medium Shield Extender I
+  Multispectrum Shield Hardener I
+
+  125mm Railgun I
+  125mm Railgun I
+  125mm Railgun I
+  125mm Railgun I
+  125mm Railgun I
+  125mm Railgun I
+  125mm Railgun I
+
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+  Antimatter Charge S x2000
+  Iron Charge S x2000
+
+skill_requirements:
+  required:
+    Caldari Destroyer: 3
+    Small Hybrid Turret: 3
+    Gunnery: 2
+  recommended:
+    Sharpshooter: 3
+    Motion Prediction: 3
+    Rapid Firing: 3
+
+stats:
+  dps: 130
+  ehp: 5500
+  align_time: 5.5
+  speed_ab: 600
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: kinetic_thermal
+  tank_profile: shield_buffer
+
+  overrides:
+    serpentis:
+      ammo: "Antimatter Charge S"
+      notes: "Serpentis weak to Thermal - antimatter deals Kin/Therm"
+    angel_cartel:
+      ammo: "Antimatter Charge S"
+      notes: "Angels weak to Explosive but hybrids can't deal Explosive"
+    blood_raiders:
+      ammo: "Antimatter Charge S"
+      notes: "Blood Raiders weak to EM but hybrids can't deal EM"
+    guristas:
+      ammo: "Antimatter Charge S"
+      notes: "Guristas weak to Kinetic - antimatter deals Kinetic"
+
+notes:
+  purpose: "Long-range sniper for L1 missions - high volley damage"
+  engagement: "Engage at 30-50km with Iron, switch to Antimatter under 10km"
+  warnings:
+    - "Paper-thin tank - keep range"
+    - "Swap to Iron Charge S for 40km+ sniping"
+    - "Antimatter for maximum DPS at close range"
+    - "Seven turrets mean high alpha but also high cap use"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "125mm Railgun I"
+      upgrade_to: "125mm Prototype Gauss Gun"
+      skill_required: "Small Hybrid Turret 3"
+    - module: "Magnetic Field Stabilizer I"
+      upgrade_to: "Magnetic Field Stabilizer II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Caracal"
+      notes: "Cruiser upgrade for L2 missions with missiles"

@@ -1,10 +1,11 @@
-# Raven L4 Missions - Low Skill Variant
+# Praxis L4 Missions - Low Skill Variant
 #
-# Entry-level fit for pilots new to L4 missions.
-# Cruise missiles with active shield tank.
+# Special edition battleship requiring no hull skills.
+# Heavy missiles + drones with shield tank.
+# Accessible L4 entry point for lower-skilled pilots.
 
 archetype:
-  hull: Raven
+  hull: Praxis
   skill_tier: t1
   omega_required: false
 roles:
@@ -12,13 +13,14 @@ roles:
 source: eveuni
 
 eft: |
-  [Raven, L4 Missions - Low Skills]
+  [Praxis, L4 Missions - Low Skills]
 
   Ballistic Control System I
   Ballistic Control System I
-  Ballistic Control System I
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Damage Control I
   Nanofiber Internal Structure I
-  [Empty Low slot]
 
   X-Large Shield Booster I
   Multispectrum Shield Hardener I
@@ -34,66 +36,82 @@ eft: |
   Cruise Missile Launcher I
   Cruise Missile Launcher I
   Cruise Missile Launcher I
-  [Empty High slot]
+  Drone Link Augmentor I
 
   Large Capacitor Control Circuit I
   Large Capacitor Control Circuit I
-  Large Capacitor Control Circuit I
+  Large Core Defense Field Extender I
 
+  Hammerhead I x5
   Hobgoblin I x5
 
   Scourge Cruise Missile x2000
 
 skill_requirements:
   required:
-    Caldari Battleship: 3
     Cruise Missiles: 3
     Missile Launcher Operation: 4
+    Drones: 4
+    Medium Drone Operation: 3
     Shield Operation: 4
     Shield Management: 4
-    Shield Upgrades: 3
   recommended:
     Warhead Upgrades: 4
     Rapid Launch: 3
-    Guided Missile Precision: 3
+    Drone Interfacing: 3
     Capacitor Management: 4
 
 stats:
-  dps: null  # missile DPS from cargo ammo not calculated by EOS
-  ehp: 45594
+  dps: null
+  ehp: 55000
   align_time: 15.0
-  speed_ab: 391
-  validated_date: "2026-02-27"
+  speed_ab: 350
+  validated_date: "2026-03-05"
 
 damage_tuning:
-  default_damage: kinetic  # Scourge missiles - Caldari bonus
+  default_damage: kinetic
   tank_profile: shield_active
 
   overrides:
     serpentis:
       ammo: "Inferno Cruise Missile"
+      drones:
+        primary: "Hammerhead I"
+        anti_frigate: "Hobgoblin I"
       notes: "Serpentis weak to Thermal"
     angel_cartel:
       ammo: "Nova Cruise Missile"
+      drones:
+        primary: "Valkyrie I"
+        anti_frigate: "Warrior I"
       notes: "Angels weak to Explosive"
     blood_raiders:
       ammo: "Mjolnir Cruise Missile"
+      drones:
+        primary: "Infiltrator I"
+        anti_frigate: "Acolyte I"
       notes: "Blood Raiders weak to EM - watch for neuts"
     guristas:
       ammo: "Scourge Cruise Missile"
-      notes: "Guristas weak to Kinetic - default ammo optimal"
+      drones:
+        primary: "Vespa I"
+        anti_frigate: "Hornet I"
+      notes: "Guristas weak to Kinetic - default ammo"
     sansha:
       ammo: "Mjolnir Cruise Missile"
+      drones:
+        primary: "Infiltrator I"
+        anti_frigate: "Acolyte I"
       notes: "Sansha weak to EM"
 
 notes:
-  purpose: "Entry-level L4 mission runner - iconic Caldari battleship"
-  engagement: "Warp in at 70km, engage at 80-100km range"
+  purpose: "Accessible L4 mission runner requiring no hull skills"
+  engagement: "Warp in at 70km, engage at range with missiles and drones"
   warnings:
-    - "Pulse shield booster - don't run constantly"
-    - "Missiles apply poorly to frigates - use drones"
-    - "Cap battery helps vs neuts"
-    - "EM hole with 2x Multispectrum only - add EM hardener when CPU allows"
+    - "No hull skill required - can fly immediately"
+    - "Slower and less tanky than dedicated BS hulls"
+    - "Pulse shield booster - manage cap carefully"
+    - "Missiles apply poorly to frigates - use drones for tackle"
 
 upgrade_path:
   next_tier: meta
@@ -101,11 +119,8 @@ upgrade_path:
     - module: "Cruise Missile Launcher I"
       upgrade_to: "Cruise Missile Launcher II"
       skill_required: "Cruise Missiles 5"
-    - module: "Multispectrum Shield Hardener I"
-      upgrade_to: "Multispectrum Shield Hardener II"
-      skill_required: "Tactical Shield Manipulation 4"
     - module: "X-Large Shield Booster I"
       upgrade_to: "X-Large Shield Booster II"
       skill_required: "Shield Operation 5"
-    - ship: "Golem (Marauder)"
-      notes: "2x DPS with Bastion, requires 2B+ ISK"
+    - ship: "Raven"
+      notes: "Dedicated Caldari BS with missile bonuses"

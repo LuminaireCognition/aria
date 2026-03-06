@@ -1,0 +1,68 @@
+# Retriever Ore Mining - Medium Skill Variant
+#
+# Upgraded yield Retriever with better mining performance.
+# Improved shield and mining modules.
+
+archetype:
+  hull: Retriever
+  skill_tier: meta
+  omega_required: true
+roles:
+  - mining-ore
+source: eveuni
+
+eft: |
+  [Retriever, Ore Mining - Medium Skills]
+
+  Mining Laser Upgrade II
+  Mining Laser Upgrade II
+
+  Survey Scanner I
+  Medium Azeotropic Restrained Shield Extender
+  Compact Multispectrum Shield Hardener
+
+  Strip Miner I
+  Strip Miner I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium EM Shield Reinforcer I
+
+  Hobgoblin I x5
+
+skill_requirements:
+  required:
+    Mining Barge: 3
+    Mining: 4
+    Astrogeology: 4
+    Mining Upgrades: 4
+    Shield Operation: 3
+  recommended:
+    Mining Barge: 4
+    Mining: 5
+    Shield Management: 4
+    Drone Sharpshooting: 4
+
+stats:
+  mining_yield: 820
+  ore_hold: 27500
+  ehp: 12000
+  align_time: 11.5
+  validated_date: "2026-03-05"
+
+notes:
+  purpose: "High-yield mining barge with improved modules"
+  engagement: "Warp to belt, activate strip miners, fill ore hold"
+  warnings:
+    - "Double MLU II for maximum yield"
+    - "Still fragile - only mine in safe space"
+    - "EM reinforcer helps patch shield EM hole"
+
+upgrade_path:
+  next_tier: t2_budget
+  key_upgrades:
+    - module: "Strip Miner I"
+      upgrade_to: "Strip Miner II"
+      skill_required: "Mining 5"
+    - ship: "Mackinaw (Exhumer)"
+      notes: "T2 variant with enormous ore hold and better yield"

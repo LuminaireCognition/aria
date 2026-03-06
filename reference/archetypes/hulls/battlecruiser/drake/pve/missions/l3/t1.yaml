@@ -9,6 +9,7 @@ archetype:
   omega_required: false
 roles:
   - missions-l3
+source: eveuni
 
 eft: |
   [Drake, L3 Missions - Low Skills]
