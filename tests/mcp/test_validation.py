@@ -101,6 +101,7 @@ class TestParameterSchemas:
             "calculate_stats",
             "check_requirements",
             "extract_requirements",
+            "recommend",
         }
         assert set(FITTING_ACTION_PARAMS.keys()) == expected_actions
 
