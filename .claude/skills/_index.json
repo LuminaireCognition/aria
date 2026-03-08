@@ -48,7 +48,9 @@
       ],
       "path": ".claude/skills/agents-research/SKILL.md",
       "directory": "agents-research",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
@@ -146,7 +148,9 @@
       ],
       "path": ".claude/skills/assets/SKILL.md",
       "directory": "assets",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
@@ -198,7 +202,9 @@
       ],
       "path": ".claude/skills/clones/SKILL.md",
       "directory": "clones",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []
@@ -221,7 +227,9 @@
       ],
       "path": ".claude/skills/contracts/SKILL.md",
       "directory": "contracts",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []
@@ -248,7 +256,9 @@
       ],
       "path": ".claude/skills/corp/SKILL.md",
       "directory": "corp",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []
@@ -275,7 +285,9 @@
       ],
       "path": ".claude/skills/escape-route/SKILL.md",
       "directory": "escape-route",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "external_sources": [],
       "required_tools": [
         "universe.route"
@@ -312,7 +324,9 @@
       ],
       "path": ".claude/skills/esi-query/SKILL.md",
       "directory": "esi-query",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "external_sources": [],
       "required_tools": []
     },
@@ -417,7 +431,9 @@
       "external_sources": [],
       "path": ".claude/skills/fit-budget/SKILL.md",
       "directory": "fit-budget",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "required_tools": [
         "fitting.calculate_stats",
         "sde.meta_variants",
@@ -449,7 +465,9 @@
       "external_sources": [],
       "path": ".claude/skills/fit-check/SKILL.md",
       "directory": "fit-check",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "required_tools": [
         "fitting.calculate_stats",
         "fitting.extract_requirements",
@@ -545,7 +563,9 @@
       ],
       "path": ".claude/skills/fittings/SKILL.md",
       "directory": "fittings",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []
@@ -647,7 +667,9 @@
       ],
       "path": ".claude/skills/industry-jobs/SKILL.md",
       "directory": "industry-jobs",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []
@@ -679,7 +701,9 @@
       "external_sources": [],
       "path": ".claude/skills/isk-compare/SKILL.md",
       "directory": "isk-compare",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "required_tools": []
     },
     {
@@ -753,7 +777,9 @@
       ],
       "path": ".claude/skills/killmails/SKILL.md",
       "directory": "killmails",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []
@@ -776,7 +802,9 @@
       ],
       "path": ".claude/skills/lp-store/SKILL.md",
       "directory": "lp-store",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
@@ -801,7 +829,9 @@
       ],
       "path": ".claude/skills/mail/SKILL.md",
       "directory": "mail",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
@@ -854,7 +884,9 @@
       ],
       "path": ".claude/skills/mining/SKILL.md",
       "directory": "mining",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
@@ -950,7 +982,9 @@
       ],
       "path": ".claude/skills/orders/SKILL.md",
       "directory": "orders",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []
@@ -1035,7 +1069,9 @@
       ],
       "path": ".claude/skills/pilot/SKILL.md",
       "directory": "pilot",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "external_sources": [],
       "required_tools": [
         "sde.resolve_names"
@@ -1172,7 +1208,9 @@
       ],
       "path": ".claude/skills/sec-status/SKILL.md",
       "directory": "sec-status",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "external_sources": [],
       "required_tools": [
         "market.prices"
@@ -1205,7 +1243,9 @@
       "external_sources": [],
       "path": ".claude/skills/ship-next/SKILL.md",
       "directory": "ship-next",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "required_tools": [
         "sde.item_info",
         "skills.easy_80_plan",
@@ -1237,7 +1277,8 @@
       "prerequisite_files": [
         "reference/activities/skill_plans.yaml",
         "reference/skills/ship_efficacy_rules.yaml",
-        "reference/skills/meta_module_alternatives.yaml"
+        "reference/skills/meta_module_alternatives.yaml",
+        ".claude/skills/_shared/esi-error-handling.md"
       ],
       "external_sources": [],
       "path": ".claude/skills/skillplan/SKILL.md",
@@ -1266,7 +1307,9 @@
       ],
       "path": ".claude/skills/skillqueue/SKILL.md",
       "directory": "skillqueue",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []
@@ -1303,7 +1346,9 @@
       "external_sources": [],
       "path": ".claude/skills/standings/SKILL.md",
       "directory": "standings",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "required_tools": [
         "sde.agent_search"
       ]
@@ -1356,7 +1401,9 @@
       ],
       "path": ".claude/skills/wallet-journal/SKILL.md",
       "directory": "wallet-journal",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "required_tools": []

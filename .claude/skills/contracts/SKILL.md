@@ -22,6 +22,13 @@ Contract actions (accept, create, cancel) require in-game action. ARIA monitors 
 
 **You MUST call the MCP tool or CLI command below before presenting any contract data.** Do not summarize, guess, or present contracts without executing the command first.
 
+## Execution Rules
+
+- **Always call the MCP tool.** Never infer contract status from context or prior
+  queries. Contracts change in real-time — stale inference produces false negatives.
+- If the MCP tool returns `scope_not_authorized`, report the specific missing scope
+  and setup command. Do not suggest ESI is entirely unconfigured.
+
 ## Contract Types
 
 Item exchange, courier, auction, loan. The output includes type and status fields for each contract.
@@ -87,10 +94,24 @@ For no contracts: "No active contracts found."
 
 For courier contracts, assess route security via `universe(action="route")` and calculate ISK/jump ratio. Warn about gank risk on trade routes for freighter-sized volumes.
 
-## Error Handling
+## Error Handling (Mandatory)
 
-- **ESI not configured:** "Contract monitoring requires ESI authentication. Run `uv run python .claude/scripts/aria-oauth-setup.py` to enable."
-- **Missing scope:** "ESI is configured but contracts scope is missing. Re-run OAuth setup and select `esi-contracts.read_character_contracts.v1`."
+When the MCP tool returns an error response:
+
+1. **Check `error` field value:**
+   - If `"scope_not_authorized"` → Tell the user: "ESI is connected but the
+     contracts scope (`esi-contracts.read_character_contracts.v1`) isn't authorized.
+     Re-run OAuth setup to add it: `uv run aria-esi setup`"
+   - If credentials RuntimeError / `"no_credentials"` → Tell the user: "ESI
+     authentication isn't configured yet. Run `uv run aria-esi setup` to connect
+     your character."
+
+2. **Never say "ESI authentication isn't configured" when the error is
+   `scope_not_authorized`.** Other ESI features work — the user just needs
+   to add one scope.
+
+3. **If the tool errors, report the error.** Do not fall back to "no contracts
+   found" — that fabricates a successful result from a failed call.
 
 ## Contextual Suggestions
 

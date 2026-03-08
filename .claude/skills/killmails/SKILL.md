@@ -129,6 +129,14 @@ No recent kills or losses. The pilot either hasn't lost ships recently, hasn't s
 
 Killmail access requires ESI authorization with `esi-killmails.read_killmails.v1`. Direct pilot to: `uv run aria-esi setup`
 
+### Incomplete Data (Missing ESI Details)
+
+If kill records show `has_esi_details: false` or `system_id: null`:
+- **Present what IS available:** timestamps, ISK values, zkb metadata (NPC/solo flags), ship type IDs
+- **Acknowledge gaps:** "System and attacker details unavailable — ESI enrichment pending"
+- **Do NOT redirect entirely to zKillboard** — use the available data first
+- **Suggest:** "For full details on a specific kill, use `/killmail <zkill_url>`" (the analyze action fetches ESI directly)
+
 ## DO NOT
 
 - **DO NOT** recall or fabricate killmail data from training data -- always use tool calls
