@@ -50,6 +50,9 @@ class TestParameterSchemas:
             "arbitrage_scan",
             "arbitrage_detail",
             "build_cost",
+            "build_chain",
+            "invention_cost",
+            "list_decryptors",
             "route_value",
             "watchlist_create",
             "watchlist_add_item",
@@ -101,6 +104,8 @@ class TestParameterSchemas:
             "calculate_stats",
             "check_requirements",
             "extract_requirements",
+            "recommend",
+            "hull_stats",
         }
         assert set(FITTING_ACTION_PARAMS.keys()) == expected_actions
 

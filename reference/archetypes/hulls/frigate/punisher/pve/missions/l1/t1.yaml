@@ -1,0 +1,94 @@
+# Punisher L1 Missions - Low Skill Variant
+#
+# Laser Punisher for L1 security missions.
+# Strong armor tank with pulse laser DPS.
+# Cap-hungry but very tanky for a frigate.
+
+archetype:
+  hull: Punisher
+  skill_tier: t1
+  omega_required: false
+roles:
+  - missions-l1
+source: eveuni
+
+eft: |
+  [Punisher, L1 Missions - Low Skills]
+
+  Small Armor Repairer I
+  Multispectrum Energized Membrane I
+  Heat Sink I
+  Damage Control I
+
+  1MN Afterburner I
+  Cap Recharger I
+  Cap Recharger I
+
+  Small Focused Pulse Laser I
+  Small Focused Pulse Laser I
+  Small Focused Pulse Laser I
+  Small Focused Pulse Laser I
+
+  Small Energy Collision Accelerator I
+  Small Auxiliary Nano Pump I
+  Small Capacitor Control Circuit I
+
+  Multifrequency S x4
+  Radio S x4
+
+skill_requirements:
+  required:
+    Amarr Frigate: 2
+    Small Energy Turret: 3
+    Repair Systems: 2
+    Hull Upgrades: 2
+  recommended:
+    Capacitor Management: 3
+    Controlled Bursts: 3
+    Motion Prediction: 3
+
+stats:
+  dps: 90
+  ehp: 4500
+  align_time: 4.5
+  speed_ab: 650
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: em_thermal
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      ammo: "Multifrequency S"
+      notes: "Serpentis weak to Thermal - multifrequency optimal"
+    angel_cartel:
+      ammo: "Multifrequency S"
+      notes: "Angels weak to Explosive but lasers can't deal Explosive - use highest DPS ammo"
+    blood_raiders:
+      ammo: "Multifrequency S"
+      notes: "Blood Raiders weak to EM - multifrequency deals EM/Thermal"
+    guristas:
+      ammo: "Multifrequency S"
+      notes: "Guristas weak to Kinetic but lasers can't deal Kinetic - use highest DPS ammo"
+
+notes:
+  purpose: "Tanky L1 mission runner - outlast enemies with strong armor"
+  engagement: "Orbit at 5-10km with AB, pulse lasers at short range"
+  warnings:
+    - "Cap-hungry - pulse AB and repairer as needed"
+    - "Lasers deal EM/Thermal only - can't match all faction weaknesses"
+    - "Very tanky but lower DPS than missile or drone alternatives"
+    - "Swap to Radio S for 20km+ range if needed"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Small Focused Pulse Laser I"
+      upgrade_to: "Small Focused Anode Pulse Particle Stream I"
+      skill_required: "Small Energy Turret 3"
+    - module: "Small Armor Repairer I"
+      upgrade_to: "Small Armor Repairer II"
+      skill_required: "Repair Systems 5"
+    - ship: "Harbinger"
+      notes: "Battlecruiser upgrade for L3 missions with heavy pulse lasers"

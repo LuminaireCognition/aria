@@ -132,6 +132,17 @@ MARKET_ACTION_PARAMS: dict[str, set[str]] = {
     },
     "arbitrage_detail": {"type_name", "buy_region", "sell_region"},
     "build_cost": {"item", "me_level", "runs", "facility", "region"},
+    "build_chain": {"item", "me_level", "runs", "region"},
+    "invention_cost": {
+        "item",
+        "encryption_skill",
+        "science_skill_1",
+        "science_skill_2",
+        "decryptor",
+        "base_runs",
+        "region",
+    },
+    "list_decryptors": set(),
     "route_value": {"items", "route", "price_type"},
     "watchlist_create": {"name", "items", "owner_character_id"},
     "watchlist_add_item": {"watchlist_name", "item_name", "owner_character_id"},
@@ -209,6 +220,8 @@ FITTING_ACTION_PARAMS: dict[str, set[str]] = {
     "calculate_stats": {"eft", "damage_profile", "use_pilot_skills"},
     "check_requirements": {"eft", "pilot_skills"},
     "extract_requirements": {"eft"},
+    "recommend": {"role", "hull", "budget_isk", "skill_tier", "limit"},
+    "hull_stats": {"ship"},
 }
 
 

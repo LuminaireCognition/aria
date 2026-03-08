@@ -1,0 +1,107 @@
+# Harbinger L3 Missions - Medium Skill Variant
+#
+# Upgraded laser Harbinger for L3 missions.
+# Better heat sinks and improved armor tank.
+
+archetype:
+  hull: Harbinger
+  skill_tier: meta
+  omega_required: false
+roles:
+  - missions-l3
+source: eveuni
+
+eft: |
+  [Harbinger, L3 Missions - Medium Skills]
+
+  Heat Sink I
+  Heat Sink I
+  Medium Armor Repairer I
+  Multispectrum Energized Membrane I
+  Multispectrum Energized Membrane I
+  Reactive Armor Hardener
+  Damage Control I
+
+  50MN Y-T8 Compact Microwarpdrive
+  Large Compact Pb-Acid Cap Battery
+  Cap Recharger I
+  Tracking Computer I
+
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+  Focused Medium Pulse Laser I
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Capacitor Control Circuit I
+
+  Hammerhead I x5
+
+  Multifrequency M x6
+  Radio M x6
+  Optimal Range Script x1
+  Tracking Speed Script x1
+
+skill_requirements:
+  required:
+    Amarr Battlecruiser: 4
+    Medium Energy Turret: 4
+    Gunnery: 4
+    Repair Systems: 4
+    Hull Upgrades: 4
+  recommended:
+    Controlled Bursts: 4
+    Motion Prediction: 4
+    Capacitor Management: 4
+    Medium Drone Operation: 3
+
+stats:
+  dps: 500
+  ehp: 35000
+  align_time: 9.5
+  speed_mwd: 1100
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: em_thermal
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      ammo: "Multifrequency M"
+      notes: "Serpentis weak to Thermal - lasers deal EM/Therm"
+    angel_cartel:
+      ammo: "Multifrequency M"
+      drones:
+        primary: "Valkyrie I"
+      notes: "Angels weak to Explosive - drones compensate"
+    blood_raiders:
+      ammo: "Multifrequency M"
+      notes: "Blood Raiders weak to EM - excellent laser matchup"
+    guristas:
+      ammo: "Multifrequency M"
+      drones:
+        primary: "Vespa I"
+      notes: "Guristas weak to Kinetic - drones help"
+
+notes:
+  purpose: "Upgraded Amarr laser BC for L3 missions"
+  engagement: "Orbit at 15-25km, Focused Pulse for better tracking"
+  warnings:
+    - "Focused Pulse Lasers track better than Heavy Pulse at close range"
+    - "Still cap-hungry - manage capacitor carefully"
+
+upgrade_path:
+  next_tier: t2_budget
+  key_upgrades:
+    - module: "Focused Medium Pulse Laser I"
+      upgrade_to: "Focused Medium Pulse Laser II"
+      skill_required: "Medium Energy Turret 5"
+    - module: "Heat Sink I"
+      upgrade_to: "Heat Sink II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Apocalypse"
+      notes: "Battleship upgrade for L4 missions"

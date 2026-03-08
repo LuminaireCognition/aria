@@ -75,6 +75,7 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
         min_value: int | None = None,
         limit: int = 50,
         cursor: str | None = None,
+        character_id: int | None = None,
         # stats params
         group_by: str | None = None,  # "system", "hour", "corporation"
         # analyze params
@@ -98,11 +99,13 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
                 min_value: Minimum ISK value filter
                 limit: Max results (default 50, max 100)
                 cursor: Pagination cursor from previous response
+                character_id: Filter to kills involving this character (as victim)
 
             Stats params (action="stats"):
                 systems: List of systems to include
                 hours: Time window in hours
                 group_by: Grouping mode - "system", "hour", or "corporation"
+                character_id: Filter to kills involving this character (as victim)
 
             Analyze params (action="analyze"):
                 killmail_input: zKillboard URL, short URL, or raw kill ID
@@ -163,6 +166,7 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
                     min_value=min_value,
                     limit=limit,
                     cursor=cursor,
+                    character_id=character_id,
                 )
             elif action == "stats":
                 return await _handle_stats(
@@ -170,6 +174,7 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
                     systems=systems,
                     hours=hours,
                     group_by=group_by,
+                    character_id=character_id,
                 )
             else:
                 return {"error": f"Unknown action: {action}"}
@@ -188,6 +193,7 @@ async def _handle_query(
     min_value: int | None,
     limit: int,
     cursor: str | None,
+    character_id: int | None = None,
 ) -> dict:
     """Handle query/recent action."""
     # Resolve system names to IDs
@@ -221,6 +227,7 @@ async def _handle_query(
         min_value=min_value,
         limit=limit + 1,  # Fetch one extra to detect more results
         cursor=cursor_tuple,
+        character_id=character_id,
     )
 
     # Check for more results
@@ -234,20 +241,43 @@ async def _handle_query(
         last = kills[-1]
         next_cursor = _encode_cursor(last.kill_time, last.kill_id)
 
-    # Format results
-    formatted_kills = [
-        {
+    # Batch-fetch ESI details for enrichment (graceful degradation)
+    esi_details: dict = {}
+    try:
+        kill_ids = [k.kill_id for k in kills]
+        if kill_ids:
+            esi_details = await store.get_esi_details_batch(kill_ids)
+    except Exception:  # noqa: BLE001 – graceful degradation, any failure is non-fatal
+        logger.debug("ESI details batch fetch failed, using denormalized data")
+
+    # Format results with ESI enrichment
+    formatted_kills = []
+    for k in kills:
+        esi = esi_details.get(k.kill_id)
+        entry: dict[str, Any] = {
             "kill_id": k.kill_id,
             "kill_time": datetime.fromtimestamp(k.kill_time, tz=UTC).isoformat(),
             "system_id": k.solar_system_id,
             "value": k.zkb_total_value,
-            "victim_ship_type_id": k.victim_ship_type_id,
-            "victim_corporation_id": k.victim_corporation_id,
+            "victim_ship_type_id": (
+                esi.victim_ship_type_id
+                if esi and esi.victim_ship_type_id
+                else k.victim_ship_type_id
+            ),
+            "victim_corporation_id": (
+                esi.victim_corporation_id
+                if esi and esi.victim_corporation_id
+                else k.victim_corporation_id
+            ),
             "is_npc": k.zkb_is_npc,
             "is_solo": k.zkb_is_solo,
+            "has_esi_details": esi is not None,
         }
-        for k in kills
-    ]
+        if esi:
+            entry["victim_character_id"] = esi.victim_character_id
+            entry["victim_damage_taken"] = esi.victim_damage_taken
+            entry["attacker_count"] = esi.attacker_count
+        formatted_kills.append(entry)
 
     return wrap_output(
         {
@@ -271,6 +301,7 @@ async def _handle_stats(
     systems: list[str] | None,
     hours: int,
     group_by: str | None,
+    character_id: int | None = None,
 ) -> dict:
     """Handle stats action."""
     # Resolve system names to IDs
@@ -287,6 +318,7 @@ async def _handle_stats(
         systems=system_ids,
         since=since,
         limit=10000,  # Higher limit for stats
+        character_id=character_id,
     )
 
     # Calculate aggregates

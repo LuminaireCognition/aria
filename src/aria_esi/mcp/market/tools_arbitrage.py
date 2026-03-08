@@ -93,7 +93,10 @@ async def _arbitrage_scan_impl(
     engine = await get_arbitrage_engine(allow_stale=allow_stale)
 
     # Check if refresh is needed
-    if force_refresh or refresh_service.get_stale_regions():
+    # When allow_stale=False (default), we must ensure data is fresh.
+    # ensure_fresh_data() checks internally whether data is actually stale,
+    # so this won't force unnecessary refreshes.
+    if force_refresh or not allow_stale or refresh_service.get_stale_regions():
         try:
             refresh_result = await refresh_service.ensure_fresh_data(force_refresh=force_refresh)
             refresh_performed = refresh_result.was_stale or force_refresh
@@ -129,6 +132,28 @@ async def _arbitrage_scan_impl(
         # Add route info if possible
         if result.opportunities:
             result = await _add_route_info(result, include_lowsec)
+
+        # Near-misses: if no results and min_profit_pct > 0, re-scan with relaxed threshold
+        if not result.opportunities and min_profit_pct > 0:
+            near_miss_result = await engine.get_scan_result(
+                min_profit_pct=0,
+                min_volume=min_volume,
+                max_results=3,
+                buy_regions=buy_region_ids,
+                sell_regions=sell_region_ids,
+                refresh_performed=refresh_performed,
+                sort_by=sort_by,
+                trade_mode=trade_mode,
+                broker_fee_pct=broker_fee_pct,
+                sales_tax_pct=sales_tax_pct,
+                include_history=include_history,
+                cargo_capacity_m3=cargo_capacity_m3,
+                scopes=scopes if include_custom_scopes else None,
+                scope_owner_id=scope_owner_id,
+                include_custom_scopes=include_custom_scopes,
+            )
+            if near_miss_result.opportunities:
+                result = result.model_copy(update={"near_misses": near_miss_result.opportunities})
 
         # Add any warnings
         if warnings:

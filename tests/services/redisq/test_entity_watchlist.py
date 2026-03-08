@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 
 from aria_esi.services.redisq.entity_watchlist import (
+    BLOCKED_ENTITY_IDS,
     EntityWatchlistManager,
 )
 
@@ -163,13 +164,13 @@ class TestEntityManagement:
 
         entity = manager.add_entity(
             watchlist_id=watchlist.watchlist_id,
-            entity_id=98000001,
+            entity_id=98100001,
             entity_type="corporation",
             entity_name="Test Corp",
             added_reason="Known hostile",
         )
 
-        assert entity.entity_id == 98000001
+        assert entity.entity_id == 98100001
         assert entity.entity_type == "corporation"
         assert entity.entity_name == "Test Corp"
         assert entity.added_reason == "Known hostile"
@@ -189,7 +190,7 @@ class TestEntityManagement:
     def test_get_entities(self, manager: EntityWatchlistManager):
         """Test getting all entities in a watchlist."""
         watchlist = manager.create_watchlist(name="Test", watchlist_type="manual")
-        manager.add_entity(watchlist.watchlist_id, 98000001, "corporation")
+        manager.add_entity(watchlist.watchlist_id, 98100001, "corporation")
         manager.add_entity(watchlist.watchlist_id, 99000001, "alliance")
 
         entities = manager.get_entities(watchlist.watchlist_id)
@@ -199,11 +200,11 @@ class TestEntityManagement:
     def test_remove_entity(self, manager: EntityWatchlistManager):
         """Test removing an entity from a watchlist."""
         watchlist = manager.create_watchlist(name="Test", watchlist_type="manual")
-        manager.add_entity(watchlist.watchlist_id, 98000001, "corporation")
+        manager.add_entity(watchlist.watchlist_id, 98100001, "corporation")
 
         removed = manager.remove_entity(
             watchlist.watchlist_id,
-            98000001,
+            98100001,
             "corporation",
         )
 
@@ -214,8 +215,8 @@ class TestEntityManagement:
     def test_get_entity_count(self, manager: EntityWatchlistManager):
         """Test getting entity count for a watchlist."""
         watchlist = manager.create_watchlist(name="Test", watchlist_type="manual")
-        manager.add_entity(watchlist.watchlist_id, 98000001, "corporation")
-        manager.add_entity(watchlist.watchlist_id, 98000002, "corporation")
+        manager.add_entity(watchlist.watchlist_id, 98100001, "corporation")
+        manager.add_entity(watchlist.watchlist_id, 98100002, "corporation")
 
         count = manager.get_entity_count(watchlist.watchlist_id)
 
@@ -229,24 +230,24 @@ class TestEntityLookup:
         """Test getting all watched entity IDs."""
         wl1 = manager.create_watchlist(name="List1", watchlist_type="manual")
         wl2 = manager.create_watchlist(name="List2", watchlist_type="manual")
-        manager.add_entity(wl1.watchlist_id, 98000001, "corporation")
+        manager.add_entity(wl1.watchlist_id, 98100001, "corporation")
         manager.add_entity(wl1.watchlist_id, 99000001, "alliance")
-        manager.add_entity(wl2.watchlist_id, 98000002, "corporation")
+        manager.add_entity(wl2.watchlist_id, 98100002, "corporation")
 
         corp_ids, alliance_ids = manager.get_all_watched_entity_ids()
 
-        assert 98000001 in corp_ids
-        assert 98000002 in corp_ids
+        assert 98100001 in corp_ids
+        assert 98100002 in corp_ids
         assert 99000001 in alliance_ids
 
     def test_is_entity_watched(self, manager: EntityWatchlistManager):
         """Test checking if an entity is watched."""
         watchlist = manager.create_watchlist(name="Test", watchlist_type="manual")
-        manager.add_entity(watchlist.watchlist_id, 98000001, "corporation")
+        manager.add_entity(watchlist.watchlist_id, 98100001, "corporation")
 
-        assert manager.is_entity_watched(98000001, "corporation") is True
-        assert manager.is_entity_watched(98000002, "corporation") is False
-        assert manager.is_entity_watched(98000001, "alliance") is False
+        assert manager.is_entity_watched(98100001, "corporation") is True
+        assert manager.is_entity_watched(98100002, "corporation") is False
+        assert manager.is_entity_watched(98100001, "alliance") is False
 
 
 class TestCascadeDelete:
@@ -255,11 +256,51 @@ class TestCascadeDelete:
     def test_delete_watchlist_cascades_entities(self, manager: EntityWatchlistManager):
         """Test that deleting a watchlist removes its entities."""
         watchlist = manager.create_watchlist(name="Test", watchlist_type="manual")
-        manager.add_entity(watchlist.watchlist_id, 98000001, "corporation")
-        manager.add_entity(watchlist.watchlist_id, 98000002, "corporation")
+        manager.add_entity(watchlist.watchlist_id, 98100001, "corporation")
+        manager.add_entity(watchlist.watchlist_id, 98100002, "corporation")
 
         manager.delete_watchlist(watchlist.watchlist_id)
 
         # Entities should no longer be watched
-        assert manager.is_entity_watched(98000001, "corporation") is False
-        assert manager.is_entity_watched(98000002, "corporation") is False
+        assert manager.is_entity_watched(98100001, "corporation") is False
+        assert manager.is_entity_watched(98100002, "corporation") is False
+
+
+class TestEntityValidation:
+    """Tests for entity validation on add."""
+
+    def test_blocked_entity_rejected(self, manager: EntityWatchlistManager):
+        """Test that blocked entity IDs are rejected."""
+        watchlist = manager.create_watchlist(name="Test", watchlist_type="manual")
+
+        for blocked_id in BLOCKED_ENTITY_IDS:
+            with pytest.raises(ValueError, match="blocked"):
+                manager.add_entity(watchlist.watchlist_id, blocked_id, "corporation")
+
+    def test_invalid_entity_type_rejected(self, manager: EntityWatchlistManager):
+        """Test that invalid entity types are rejected."""
+        watchlist = manager.create_watchlist(name="Test", watchlist_type="manual")
+
+        with pytest.raises(ValueError, match="Invalid entity_type"):
+            manager.add_entity(watchlist.watchlist_id, 98100001, "character")
+
+    def test_valid_entity_accepted(self, manager: EntityWatchlistManager):
+        """Test that valid entities pass validation."""
+        watchlist = manager.create_watchlist(name="Test", watchlist_type="manual")
+
+        entity = manager.add_entity(watchlist.watchlist_id, 98100001, "corporation")
+        assert entity.entity_id == 98100001
+
+    def test_validate_entity_static_method(self):
+        """Test validate_entity as a standalone check."""
+        # Valid — should not raise
+        EntityWatchlistManager.validate_entity(98100001, "corporation")
+        EntityWatchlistManager.validate_entity(99000001, "alliance")
+
+        # Blocked ID
+        with pytest.raises(ValueError, match="Doomheim"):
+            EntityWatchlistManager.validate_entity(98000001, "corporation")
+
+        # Invalid type
+        with pytest.raises(ValueError, match="Invalid entity_type"):
+            EntityWatchlistManager.validate_entity(98100001, "pilot")

@@ -1,7 +1,7 @@
 ---
 name: hunting-grounds
 description: Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/hunting-grounds"
@@ -64,6 +64,13 @@ Build the output table using ONLY data from Phase 1a/1b responses. For each syst
 | Jumps (1h) | `activity[].ship_jumps` (only if Phase 1a was called) |
 | Distance | `hotspots[].jumps_from_origin` |
 
+**Mandatory table template** — use this exact column order, never reorder columns:
+
+```
+| System | Sec | Region | Kills (1h) | Activity | Distance |
+|--------|-----|--------|----------:|----------|----------|
+```
+
 **If a field has no source (no tool call returned it), leave it blank or omit the column.** Never fill gaps with estimates.
 
 ### Output Constraints
@@ -71,6 +78,7 @@ Build the output table using ONLY data from Phase 1a/1b responses. For each syst
 - Systems outside the `max_jumps` search radius MUST NOT appear in results.
 - If `hotspots` returned 3 systems, present 3 — not 5.
 - If the subject system (Phase 1a) is also in the hotspots list, merge the rows — don't duplicate.
+- Narrative sections (analysis, recommendations, viability breakdowns) MUST NOT introduce systems absent from the tool response. If a system was not returned by `hotspots` or `activity`, it does not exist for this analysis.
 
 **MCP failure:** If `activity` or `hotspots` calls fail entirely, report that hunting ground analysis requires live activity data and cannot proceed without it.
 
@@ -138,3 +146,6 @@ For each system: system name, security, region, viability rating, live intel (fr
 
 ❌ **WRONG:** Present 8 systems with 10+ lines each (92-line response)
 ✅ **RIGHT:** Top 5 systems, concise per-system analysis. Extras in a summary table.
+
+❌ **WRONG:** Tool returns 5 systems → add a "Viability by Distance" section with Ahbazon and Uedama (not in tool output)
+✅ **RIGHT:** Analysis and narrative sections reference ONLY systems present in the tool-sourced table

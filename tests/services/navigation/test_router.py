@@ -64,18 +64,30 @@ class TestNavigationService:
 
         assert path == [0]
 
-    def test_calculate_route_safe_avoids_lowsec(self, standard_universe):
-        """Safe mode prefers high-sec over low-sec."""
+    def test_calculate_route_safe_blocks_lowsec(self, standard_universe):
+        """Safe mode returns empty path when no highsec-only route exists."""
         from aria_esi.services.navigation.router import NavigationService
 
         service = NavigationService(standard_universe)
 
-        # Jita to Ala: must go through Sivala (low-sec), but safe mode penalizes it
+        # Jita to Ala: must go through Sivala (low-sec) and Ala (null-sec)
+        # Safe mode hard-blocks non-highsec, so no route exists
         path = service.calculate_route(0, 5, mode="safe")
+
+        assert path == []
+
+    def test_calculate_route_safe_highsec_only(self, standard_universe):
+        """Safe mode succeeds for fully highsec routes."""
+        from aria_esi.services.navigation.router import NavigationService
+
+        service = NavigationService(standard_universe)
+
+        # Jita (0.95) to Urlen (0.85): fully highsec route exists
+        path = service.calculate_route(0, 3, mode="safe")
 
         assert len(path) > 0
         assert path[0] == 0  # Starts at Jita
-        assert path[-1] == 5  # Ends at Ala
+        assert path[-1] == 3  # Ends at Urlen
 
     def test_calculate_route_unsafe_prefers_dangerous(self, standard_universe):
         """Unsafe mode prefers dangerous space."""

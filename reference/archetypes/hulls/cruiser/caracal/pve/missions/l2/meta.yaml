@@ -7,6 +7,9 @@ archetype:
   hull: Caracal
   skill_tier: meta
   omega_required: false
+roles:
+  - missions-l2
+source: eveuni
 
 eft: |
   [Caracal, L2 Missions - Medium Skills]

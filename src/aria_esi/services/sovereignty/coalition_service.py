@@ -7,6 +7,8 @@ Coalitions are player-defined groupings not tracked by ESI.
 
 from __future__ import annotations
 
+from datetime import UTC
+
 from ...core.logging import get_logger
 from .database import CoalitionRecord, SovereigntyDatabase, get_sovereignty_database
 
@@ -26,6 +28,7 @@ class CoalitionRegistry:
     def __init__(self):
         """Initialize the registry."""
         self._loaded = False
+        self._auto_loaded = False
 
     def _ensure_loaded(self) -> None:
         """Ensure coalition data is loaded."""
@@ -88,6 +91,7 @@ class CoalitionRegistry:
                 if alliance_ids:
                     db.save_coalition_members(coalition_id, alliance_ids)
 
+            self._auto_loaded = True
             logger.info(
                 "Auto-loaded %d coalitions from %s (unvalidated)",
                 coalitions_loaded,
@@ -296,7 +300,41 @@ def analyze_territory(
         for region, systems in sorted(region_systems.items(), key=lambda x: -len(x[1]))
     ]
 
-    return {
+    # Check for staleness warnings
+    warnings: list[str] = []
+
+    registry = get_coalition_registry()
+    if registry._auto_loaded:
+        warnings.append(
+            "Coalition data loaded from YAML without ESI validation. "
+            "Run 'uv run aria-esi sov-load-coalitions' for validated data."
+        )
+
+    # Check coalitions.yaml age
+    try:
+        from pathlib import Path
+
+        import yaml
+
+        yaml_path = Path(__file__).parent.parent / "data" / "sovereignty" / "coalitions.yaml"
+        if yaml_path.exists():
+            with open(yaml_path) as f:
+                yaml_data = yaml.safe_load(f)
+            last_updated = yaml_data.get("last_updated")
+            if last_updated:
+                from datetime import datetime
+
+                updated_dt = datetime.strptime(last_updated, "%Y-%m-%d").replace(tzinfo=UTC)
+                age_days = (datetime.now(tz=UTC) - updated_dt).days
+                if age_days > 7:
+                    warnings.append(
+                        f"Coalition data is {age_days} days old (last updated: {last_updated}). "
+                        "Coalition membership may have changed."
+                    )
+    except Exception:  # noqa: BLE001 -- best-effort staleness check
+        pass
+
+    result = {
         "entity_name": entity_name,
         "entity_type": entity_type,
         "alliance_count": len(alliance_ids) if entity_type == "coalition" else 1,
@@ -305,6 +343,11 @@ def analyze_territory(
         "region_count": len(regions),
         "regions": regions[:10],  # Top 10 regions
     }
+
+    if warnings:
+        result["warnings"] = warnings
+
+    return result
 
 
 def get_systems_by_coalition(coalition_id: str) -> list[int]:

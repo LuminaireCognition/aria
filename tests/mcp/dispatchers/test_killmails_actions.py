@@ -58,6 +58,7 @@ def mock_killmail_store():
 
     # Default query returns empty
     store.query_kills = AsyncMock(return_value=[])
+    store.get_esi_details_batch = AsyncMock(return_value={})
     store.initialize = AsyncMock()
     store.close = AsyncMock()
 
@@ -448,3 +449,146 @@ class TestKillmailsErrorHandling:
             )
 
         assert result["query"]["limit"] == 100
+
+
+# =============================================================================
+# Character ID Filtering Tests
+# =============================================================================
+
+
+class TestCharacterIdFiltering:
+    """Tests for character_id filtering passthrough."""
+
+    def test_query_with_character_id(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """Verify character_id is passed through to store.query_kills."""
+        mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails[:1])
+
+        with patch(
+            "aria_esi.mcp.dispatchers.killmails._get_store",
+            return_value=mock_killmail_store,
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query", character_id=12345)
+            )
+
+        assert "kills" in result
+        # Verify character_id was passed to the store
+        call_kwargs = mock_killmail_store.query_kills.call_args
+        assert call_kwargs.kwargs.get("character_id") == 12345
+
+    def test_stats_with_character_id(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """Verify character_id is passed through to stats query."""
+        mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails)
+
+        with patch(
+            "aria_esi.mcp.dispatchers.killmails._get_store",
+            return_value=mock_killmail_store,
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="stats", character_id=67890)
+            )
+
+        assert "total_kills" in result
+        call_kwargs = mock_killmail_store.query_kills.call_args
+        assert call_kwargs.kwargs.get("character_id") == 67890
+
+
+# =============================================================================
+# ESI Enrichment Tests
+# =============================================================================
+
+
+class TestESIEnrichment:
+    """Tests for ESI details enrichment in query results."""
+
+    def _make_esi_detail(self, kill_id):
+        """Create a mock ESI detail object."""
+        from aria_esi.services.killmail_store.protocol import ESIKillmail
+
+        return ESIKillmail(
+            kill_id=kill_id,
+            fetched_at=1700000000,
+            fetch_status="success",
+            fetch_attempts=1,
+            victim_character_id=99000001,
+            victim_ship_type_id=587,
+            victim_corporation_id=1000125,
+            victim_alliance_id=None,
+            victim_damage_taken=12450,
+            attacker_count=5,
+            final_blow_character_id=99000002,
+            final_blow_ship_type_id=16242,
+            final_blow_corporation_id=98000001,
+            attackers_json=None,
+            items_json=None,
+            position_json=None,
+        )
+
+    def test_query_enriches_with_esi_details(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """ESI fields are preferred when available."""
+        km = sample_killmails[:1]
+        mock_killmail_store.query_kills = AsyncMock(return_value=km)
+        esi_detail = self._make_esi_detail(km[0].kill_id)
+        mock_killmail_store.get_esi_details_batch = AsyncMock(
+            return_value={km[0].kill_id: esi_detail}
+        )
+
+        with patch(
+            "aria_esi.mcp.dispatchers.killmails._get_store",
+            return_value=mock_killmail_store,
+        ):
+            result = asyncio.run(killmails_dispatcher(action="query"))
+
+        kill = result["kills"][0]
+        assert kill["has_esi_details"] is True
+        assert kill["victim_character_id"] == 99000001
+        assert kill["victim_damage_taken"] == 12450
+        assert kill["attacker_count"] == 5
+
+    def test_query_without_esi_details_uses_denormalized(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """Fallback to denormalized fields when ESI details unavailable."""
+        km = sample_killmails[:1]
+        mock_killmail_store.query_kills = AsyncMock(return_value=km)
+        mock_killmail_store.get_esi_details_batch = AsyncMock(return_value={})
+
+        with patch(
+            "aria_esi.mcp.dispatchers.killmails._get_store",
+            return_value=mock_killmail_store,
+        ):
+            result = asyncio.run(killmails_dispatcher(action="query"))
+
+        kill = result["kills"][0]
+        assert kill["has_esi_details"] is False
+        assert kill["victim_ship_type_id"] == km[0].victim_ship_type_id
+        assert kill["victim_corporation_id"] == km[0].victim_corporation_id
+        assert "victim_character_id" not in kill
+        assert "victim_damage_taken" not in kill
+
+    def test_query_esi_batch_failure_degrades_gracefully(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """Exception in ESI batch fetch doesn't break query."""
+        mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails[:1])
+        mock_killmail_store.get_esi_details_batch = AsyncMock(
+            side_effect=Exception("DB error")
+        )
+
+        with patch(
+            "aria_esi.mcp.dispatchers.killmails._get_store",
+            return_value=mock_killmail_store,
+        ):
+            result = asyncio.run(killmails_dispatcher(action="query"))
+
+        assert "kills" in result
+        assert result["count"] == 1
+        # Should fall back gracefully — no ESI fields
+        kill = result["kills"][0]
+        assert kill["has_esi_details"] is False

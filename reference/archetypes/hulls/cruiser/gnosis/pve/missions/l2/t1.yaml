@@ -1,0 +1,116 @@
+# Gnosis L2 Missions - Low Skill Variant
+#
+# Versatile Gnosis for L2 security missions.
+# No hull skill requirements - perfect for new pilots.
+# Heavy missile + drone damage with shield tank.
+
+archetype:
+  hull: Gnosis
+  skill_tier: t1
+  omega_required: false
+roles:
+  - missions-l2
+source: eveuni
+
+eft: |
+  [Gnosis, L2 Missions - Low Skills]
+
+  Drone Damage Amplifier I
+  Ballistic Control System I
+  Ballistic Control System I
+  Nanofiber Internal Structure I
+  Damage Control I
+
+  50MN Y-T8 Compact Microwarpdrive
+  Large Shield Extender I
+  Multispectrum Shield Hardener I
+  Multispectrum Shield Hardener I
+  Cap Recharger I
+  Cap Recharger I
+
+  Heavy Missile Launcher I
+  Heavy Missile Launcher I
+  Heavy Missile Launcher I
+  Heavy Missile Launcher I
+  Heavy Missile Launcher I
+  Drone Link Augmentor I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Hammerhead I x5
+  Hobgoblin I x5
+
+  Scourge Heavy Missile x2000
+
+skill_requirements:
+  required:
+    Heavy Missiles: 2
+    Missile Launcher Operation: 3
+    Drones: 4
+    Medium Drone Operation: 2
+    Shield Operation: 3
+  recommended:
+    Heavy Missile Specialization: 1
+    Warhead Upgrades: 3
+    Shield Management: 3
+    Drone Interfacing: 3
+
+stats:
+  dps: null
+  ehp: 25000
+  align_time: 8.5
+  speed_mwd: 1200
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_buffer
+
+  overrides:
+    serpentis:
+      ammo: "Inferno Heavy Missile"
+      drones:
+        primary: "Hammerhead I"
+        anti_frigate: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Nova Heavy Missile"
+      drones:
+        primary: "Valkyrie I"
+        anti_frigate: "Warrior I"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "Mjolnir Heavy Missile"
+      drones:
+        primary: "Infiltrator I"
+        anti_frigate: "Acolyte I"
+      notes: "Blood Raiders weak to EM - watch for neuts"
+    guristas:
+      ammo: "Scourge Heavy Missile"
+      drones:
+        primary: "Vespa I"
+        anti_frigate: "Hornet I"
+      notes: "Guristas weak to Kinetic - default ammo"
+
+notes:
+  purpose: "Versatile L2 mission runner for pilots with low hull skills"
+  engagement: "Orbit at 40-50km, missiles + medium drones for DPS"
+  warnings:
+    - "No hull skill requirement - can fly immediately"
+    - "MWD for fast travel between rooms, turn off in combat"
+    - "Recall drones before warping"
+    - "Large shield extender provides solid buffer"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Heavy Missile Launcher I"
+      upgrade_to: "Arbalest Compact Heavy Assault Missile Launcher"
+      skill_required: "Heavy Assault Missiles 1"
+    - module: "Hammerhead I"
+      upgrade_to: "Hammerhead II"
+      skill_required: "Medium Drone Operation 5"
+    - ship: "Drake"
+      notes: "Battlecruiser upgrade for L3 missions with heavy missiles"

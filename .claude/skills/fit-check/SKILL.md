@@ -1,7 +1,7 @@
 ---
 name: fit-check
 description: Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/fit-check"

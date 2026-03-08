@@ -1,7 +1,7 @@
 ---
 name: ship-next
 description: Ship progression advisor for new and intermediate pilots. Recommends your next ship based on current skills, wallet, and preferred activities.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/ship-next"
@@ -118,13 +118,30 @@ Categorize recommendations:
 | **Train < 1 month** | Moderate training, good milestone |
 | **Aspirational** | Long-term goal, major investment |
 
-### Step 5: Add Context for Each Ship
+### Step 5: Attach Archetype Fit (if available)
+
+For each recommended hull, attempt to attach a starter fit from the archetype library:
+
+1. Map the activity to a canonical role:
+
+   | ship-next activity | Resolution rule |
+   |--------------------|-----------------|
+   | `missions` | Filter INDEX by hull; select the highest mission level present (e.g., `missions-l3` over `missions-l1`) |
+   | `exploration` | Use `exploration-data` (safest default); if hull has only `exploration-combat`, use that |
+   | `mining` | Use `mining-ore` (most common); if hull has only `mining-gas` or `mining-ice`, use that |
+
+2. Call `fitting(action="recommend", role=<resolved_role>, hull=<recommended_hull>, limit=1)`
+3. If results are non-empty, read the archetype YAML from the returned `path` and append an "Example Fit" section with the EFT block and estimated cost
+4. If no archetype exists for the hull, present the hull recommendation alone (current behavior)
+
+### Step 6: Add Context for Each Ship
 
 For each recommendation, provide:
 - **Why this ship**: What makes it good for the activity (verified from SDE)
 - **Key skills**: Most important skills to train
-- **Fit budget**: Typical hull + fit cost (check `reference/archetypes/INDEX.md` for reference fit and use archetype `skill_requirements.required` for readiness calculation)
+- **Fit budget**: Typical hull + fit cost (from archetype `estimated_cost` if available, otherwise check `reference/archetypes/INDEX.md` for reference fit and use archetype `skill_requirements.required` for readiness calculation)
 - **Upgrade path**: What comes after this ship
+- **Example Fit**: EFT block from archetype (if available from Step 5)
 
 ## Response Format
 

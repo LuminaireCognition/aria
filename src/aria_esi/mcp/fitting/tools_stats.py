@@ -21,6 +21,75 @@ def register_stats_tools(server: FastMCP) -> None:
     """Register fit stats calculation tools with MCP server."""
 
     @server.tool()
+    async def hull_stats(
+        ship: str,
+    ) -> dict:
+        """
+        Get base hull statistics for a ship type (no modules fitted).
+
+        Returns base HP, resists, cargo capacity, drone bandwidth/bay,
+        and signature radius from dogma attributes. Useful for quick
+        hull assessments without requiring a full EFT fit.
+
+        Args:
+            ship: Ship type name (e.g., "Retriever", "Vexor", "Catalyst")
+
+        Returns:
+            Dictionary with base hull statistics:
+            - hp: shield/armor/hull/total HP
+            - resists: shield/armor/hull resist profiles
+            - cargo_capacity, drone_bandwidth, drone_bay, signature_radius
+        """
+        from aria_esi.fitting import (
+            EOSBridgeError,
+            EOSDataError,
+            get_eos_data_manager,
+        )
+        from aria_esi.fitting import (
+            calculate_hull_stats as calc_hull_stats,
+        )
+
+        # Validate EOS data is available
+        try:
+            data_manager = get_eos_data_manager()
+            data_manager.ensure_valid()
+        except EOSDataError as e:
+            return {
+                "error": "eos_data_missing",
+                "message": str(e),
+                "hint": "Run 'uv run aria-esi eos-seed' to download EOS data",
+            }
+
+        # Resolve ship type name to type_id
+        from aria_esi.store.market.database import get_market_database
+
+        db = get_market_database()
+        type_info = db.resolve_type_name(ship)
+        if type_info is None:
+            suggestions = db.find_type_suggestions(ship)
+            return {
+                "error": "type_resolution_error",
+                "message": f"Unknown ship type: {ship}",
+                "suggestions": suggestions,
+                "hint": "Check the ship name spelling",
+            }
+
+        try:
+            result = calc_hull_stats(type_info.type_id, type_info.type_name)
+            return result.to_dict()
+        except EOSBridgeError as e:
+            return {
+                "error": "eos_calculation_error",
+                "message": str(e),
+            }
+        except Exception as e:
+            logger.exception("Unexpected error calculating hull stats")
+            return {
+                "error": "calculation_error",
+                "message": str(e),
+            }
+
+    @server.tool()
     async def calculate_fit_stats(
         eft: str,
         damage_profile: dict | None = None,

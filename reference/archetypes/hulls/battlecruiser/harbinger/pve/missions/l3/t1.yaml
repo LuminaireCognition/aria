@@ -1,0 +1,113 @@
+# Harbinger L3 Missions - Low Skill Variant
+#
+# Laser battlecruiser for L3 security missions.
+# Heavy pulse lasers with active armor tank.
+# Strong EM/Thermal damage output.
+
+archetype:
+  hull: Harbinger
+  skill_tier: t1
+  omega_required: false
+roles:
+  - missions-l3
+source: eveuni
+
+eft: |
+  [Harbinger, L3 Missions - Low Skills]
+
+  Heat Sink I
+  Heat Sink I
+  Medium Armor Repairer I
+  Multispectrum Energized Membrane I
+  Multispectrum Energized Membrane I
+  Reactive Armor Hardener
+  Damage Control I
+
+  50MN Y-T8 Compact Microwarpdrive
+  Large Compact Pb-Acid Cap Battery
+  Cap Recharger I
+  Tracking Computer I
+
+  Heavy Pulse Laser I
+  Heavy Pulse Laser I
+  Heavy Pulse Laser I
+  Heavy Pulse Laser I
+  Heavy Pulse Laser I
+  Heavy Pulse Laser I
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Capacitor Control Circuit I
+
+  Hammerhead I x5
+
+  Multifrequency M x6
+  Radio M x6
+  Optimal Range Script x1
+  Tracking Speed Script x1
+
+skill_requirements:
+  required:
+    Amarr Battlecruiser: 3
+    Medium Energy Turret: 3
+    Gunnery: 4
+    Repair Systems: 3
+    Hull Upgrades: 4
+  recommended:
+    Controlled Bursts: 4
+    Motion Prediction: 3
+    Capacitor Management: 4
+    Medium Drone Operation: 3
+
+stats:
+  dps: 450
+  ehp: 30000
+  align_time: 10.0
+  speed_mwd: 1100
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: em_thermal
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      ammo: "Multifrequency M"
+      notes: "Serpentis weak to Thermal - multifrequency deals EM/Therm"
+    angel_cartel:
+      ammo: "Multifrequency M"
+      drones:
+        primary: "Valkyrie I"
+      notes: "Angels weak to Explosive - drones compensate for laser damage type"
+    blood_raiders:
+      ammo: "Multifrequency M"
+      notes: "Blood Raiders weak to EM - excellent matchup for lasers"
+    guristas:
+      ammo: "Multifrequency M"
+      drones:
+        primary: "Vespa I"
+      notes: "Guristas weak to Kinetic - drones help with kinetic gap"
+
+notes:
+  purpose: "Amarr laser battlecruiser for L3 missions"
+  engagement: "Orbit at 15-25km with MWD off, pulse lasers at optimal"
+  warnings:
+    - "Very cap-hungry - manage capacitor carefully"
+    - "Tracking computer helps apply damage to smaller targets"
+    - "Swap to Radio M for long-range engagements"
+    - "Reactive hardener adapts to incoming damage"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Heavy Pulse Laser I"
+      upgrade_to: "Heavy Pulse Laser II"
+      skill_required: "Medium Energy Turret 5"
+    - module: "Heat Sink I"
+      upgrade_to: "Heat Sink II"
+      skill_required: "Weapon Upgrades 4"
+    - module: "Medium Armor Repairer I"
+      upgrade_to: "Medium Armor Repairer II"
+      skill_required: "Repair Systems 5"
+    - ship: "Apocalypse"
+      notes: "Battleship upgrade for L4 missions"

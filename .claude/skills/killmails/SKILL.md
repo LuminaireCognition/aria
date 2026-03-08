@@ -28,6 +28,7 @@ esi_scopes:
 |------------|---------------------|
 | Recent kills/losses | `killmails(action="recent", limit=N)` |
 | Query by system/time | `killmails(action="query", systems=["..."], hours=N)` |
+| Query by character | `killmails(action="query", character_id=12345)` |
 | Kill statistics | `killmails(action="stats", systems=["..."], group_by="system"\|"hour"\|"corporation")` |
 | Analyze specific kill | `killmails(action="analyze", killmail_input="<zkill_url_or_id>")` |
 | **CLI fallback** | `uv run aria-esi killmails` / `uv run aria-esi analyze-killmail <url>` |

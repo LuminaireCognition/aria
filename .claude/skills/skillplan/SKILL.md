@@ -1,7 +1,7 @@
 ---
 name: skillplan
 description: Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and "Easy 80%" recommendations.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/skillplan"

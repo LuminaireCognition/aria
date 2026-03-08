@@ -666,6 +666,7 @@ class TestSystemActivity:
             system_id=30002813,
             security=0.3,
             security_class="LOW",
+            region="The Citadel",
             ship_kills=15,
             pod_kills=8,
             npc_kills=50,
@@ -682,6 +683,7 @@ class TestSystemActivity:
             system_id=30000142,
             security=0.95,
             security_class="HIGH",
+            region="The Forge",
         )
         assert activity.ship_kills == 0
         assert activity.pod_kills == 0
@@ -705,6 +707,7 @@ class TestActivityResult:
             system_id=30000142,
             security=0.95,
             security_class="HIGH",
+            region="The Forge",
         )
         result = ActivityResult(
             systems=[system],
@@ -1112,6 +1115,7 @@ class TestTypeAliases:
                 system_id=1,
                 security=0.5,
                 security_class="HIGH",
+                region="Test Region",
                 activity_level=level,
             )
             assert activity.activity_level == level

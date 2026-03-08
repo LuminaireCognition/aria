@@ -6,6 +6,10 @@ archetype:
   hull: Imicus
   skill_tier: t1
   omega_required: false
+roles:
+  - exploration-data
+  - exploration-relic
+source: eveuni
 
 eft: |
   [Imicus, Exploration - Low Skills]

@@ -17,29 +17,45 @@ requires_pilot: true
 prerequisite_files:
   - reference/mechanics/npc_damage_types.md
   - reference/mechanics/drones.json
-  - userdata/pilots/{active_pilot}/profile.md
-  - userdata/pilots/{active_pilot}/skills.json
-data_sources:
-  - userdata/pilots/{active_pilot}/ships.md
-  - reference/pve-intel/cache/INDEX.md
-  - reference/archetypes/INDEX.md
   - reference/mechanics/missiles.json
   - reference/mechanics/projectile_turrets.json
   - reference/mechanics/laser_turrets.json
   - reference/mechanics/hybrid_turrets.json
+  - reference/pve-intel/INDEX.md
+  - reference/archetypes/INDEX.md
+  - userdata/pilots/{active_pilot}/profile.md
+  - userdata/pilots/{active_pilot}/skills.json
+  - userdata/pilots/{active_pilot}/ships.md
+data_sources:
+  - reference/archetypes/{hull_path}     # loaded once hull is identified
 external_sources:
   - wiki.eveuniversity.org
 ---
 
 # ARIA Mission Intelligence Module
 
-## Anti-Confabulation Gate: Two-Phase Output (BLOCKING)
+## Streaming Protocol: Intel First, Fitting Second
+
+Present mission intel immediately — do NOT wait for fitting validation.
+
+### Present immediately (no tool dependency):
+- **Quick Reference** table (Tank, Deal, EWAR, Objective) — from prerequisite files
+- **Spawns** — wave structure with distances and triggers
+- **Blitz** — numbered steps if available
+- **Tactical Notes** — EWAR warnings, special mechanics
+
+### Append when ready (after tool call):
+- **Mission Fit** — EFT block + validated stats
+
+This separation means the user gets actionable intel while EOS fitting runs (~85s).
+
+## Anti-Confabulation Gate (BLOCKING for fitting stats only)
 
 **Phase 1 — Build:** Generate the adapted EFT block based on pilot roster, faction resistance profile, and archetype. Do NOT write any numerical stats (DPS, EHP, CPU, powergrid, resists).
 
 **Phase 2 — Validate:** Call `fitting(action="calculate_stats", eft="...", use_pilot_skills=True)`. Present stats ONLY from the tool response, prefixed with "**Fitting engine:**". If the call fails, write: "Stats unavailable — verify in-game (Alt+F)."
 
-**NEVER write Phase 2 content without completing the tool call.**
+**NEVER write Phase 2 content without completing the tool call.** However, intel sections (Quick Reference, Spawns, Blitz, Tactical Notes) have no tool dependency and MUST be presented before the fitting phase.
 
 ## Ship Roster Check (BLOCKING)
 
@@ -80,7 +96,7 @@ Brief sections in order. Target 20-30 lines total.
 Many EVE missions exist in multiple variants (different factions, different levels). **Never assume** the faction or level.
 
 1. Parse mission name and level from capsuleer input
-2. Check `reference/pve-intel/cache/INDEX.md` for exact match
+2. Attempt to read `reference/pve-intel/cache/INDEX.md` (may not exist — this is normal). If readable, check for exact match
 3. If no cache hit, search wiki via Special:Search (see below)
 4. Filter results to mission pages only (ignore player guides, ship articles, lore)
 5. If **0 variants** found → report "no mission intel found" and ask for clarification
@@ -115,93 +131,58 @@ Strip articles (a, an, the). Preserve original capitalization. Never add "missio
 | "Gone Berserk level 3" | `Gone Berserk` |
 | "Enemies Abound (2 of 5)" | `Enemies Abound` |
 
-### Cache-First Retrieval
+### Streamlined Retrieval (Deferred Caching)
 
-All intel presented to the capsuleer MUST come from local cache files. Never present raw WebFetch data.
+Cache and wiki data are used inline — **no cache writes occur during queries**. Cache population is a separate concern handled outside the query path.
 
-1. Extract keywords from mission name (strip articles, never add "mission"/"Level X"/"EVE")
-2. Check `reference/pve-intel/cache/INDEX.md` for match — if found, skip to step 6
-3. Search wiki via `Special:Search?search=KEYWORDS&fulltext=1`
-4. Filter and disambiguate
-5. **Populate cache** (REQUIRED before presenting):
-   a. Fetch mission page from wiki.eveuniversity.org
-   b. Extract intel using WebFetch prompt
-   c. Write cache file to `reference/pve-intel/cache/{name}_{suffix}.md`
-   d. Update `reference/pve-intel/cache/INDEX.md` under faction
-   e. Confirm cache file exists before proceeding
-6. Read from cache file → format and present to capsuleer
+1. Read `reference/pve-intel/cache/INDEX.md` as a separate non-blocking read (this file is auto-generated and may not exist — treat failure as cache miss). Issue this read in its own tool call, NOT batched with other reads.
+   - If hit → read the cache file. If the cache file referenced by INDEX is missing or unreadable, treat as a cache miss and fall through to step 2
+2. If miss → WebFetch `Special:Search?search=KEYWORDS&fulltext=1` (keywords per extraction rules above)
+3. Parse search results for the mission page URL matching the mission name and level
+4. WebFetch the identified mission page URL — extract intel inline. Do NOT write a cache file.
+5. If WebFetch fails with a non-404 error (timeout, 5xx, malformed response) → **abort intel retrieval**:
+   - Present available intel from prerequisite data (`npc_damage_types.md` for faction damage profiles)
+   - Flag the missing intel to the user with the failure reason
+   - Do NOT retry within the same query — retries waste a full round (~25s)
+   - Continue to the fitting phase
+6. If the wiki page returns HTTP 200 but contains no parseable mission intel (disambiguation page, stub, redirect, or multi-part series index) → treat as unparseable:
+   - Present available intel from prerequisite data (`npc_damage_types.md`)
+   - Flag to the user: "Wiki page found but does not contain single-mission intel — using generic faction data"
+   - Continue to the fitting phase
 
-**Direct URL shortcut:** When name and level are known, try `wiki.eveuniversity.org/{Mission_Name}_(Level_{N})` first (replace spaces with underscores, title-case). Fall back to Special:Search on 404.
+**NEVER write to `reference/pve-intel/cache/` during a mission-brief query.**
 
-### Special:Search Method
+### Special:Search Fallback
 
 URL pattern: `https://wiki.eveuniversity.org/Special:Search?search=KEYWORDS&fulltext=1`
 
-| Mission Input | Search URL |
-|---------------|-----------|
-| "The Blockade L4" | `Special:Search?search=Blockade&fulltext=1` |
-| "Gone Berserk level 3" | `Special:Search?search=Gone+Berserk&fulltext=1` |
-
 Parse search results with WebFetch:
 1. Identify title matches containing the mission name
-2. Collect ALL faction/level variants (e.g., "The Blockade (Serpentis) (Level 4)", "The Blockade (Angel Cartel) (Level 4)")
+2. Collect ALL faction/level variants
 3. Extract faction and level from each variant URL/title
 
 ### WebFetch Prompts
 
-**Variant collection** (on search results page):
-> "List all search results that are EVE mission pages for '{mission_name}'. For each, extract: mission name, faction, level, and URL. Ignore player guides, ship pages, and lore articles. Return as a structured list."
-
 **Mission page extraction** (on individual mission page):
 > "Extract mission intel: 1) Damage to tank (types and priority), 2) Damage to deal (enemy weakness), 3) EWAR types present, 4) Spawn/wave structure with triggers and distances, 5) Blitz strategy if available, 6) Objective. Return structured data only."
+
+**Variant collection** (on search results page):
+> "List all search results that are EVE mission pages for '{mission_name}'. For each, extract: mission name, faction, level, and URL. Ignore player guides, ship pages, and lore articles. Return as a structured list."
 
 ### Error Handling
 
 | Situation | Action |
 |-----------|--------|
 | 0 variants from search | Report "no mission intel found for '{name}'" → ask capsuleer to clarify name/spelling |
-| Wiki unavailable (WebFetch error) | Provide generic faction guidance from `npc_damage_types.md` with **clear warning** it is generic |
+| Wiki unavailable (non-404 WebFetch error) | Present generic faction guidance from `npc_damage_types.md` with **clear warning** it is generic; continue to fitting phase |
+| Unparseable wiki page (200 but no mission intel) | Present generic faction guidance from `npc_damage_types.md`; flag "wiki page found but not parseable"; continue to fitting phase |
 | 2+ variants found | Use `AskUserQuestion` with damage profile descriptions per variant |
-| Cache write fails | Report error to capsuleer — **never present raw WebFetch output** as a brief |
-
-### Cache File Format
-
-**Naming convention:**
-
-| Variant Type | Suffix | Example |
-|-------------|--------|---------|
-| Faction-specific | `_{faction}_l{N}` | `the_blockade_serpentis_l4.md` |
-| No faction | `_l{N}` | `the_damsel_in_distress_l2.md` |
-| DED complex | `_ded{N}` | `serpentis_phi_outpost_ded5.md` |
-
-**File skeleton** (match existing cache files):
-```markdown
-# {Mission Name} (Level {N}) - {Faction}
-Source: {wiki_url}
-
-## Quick Reference
-| Field | Value |
-|-------|-------|
-| Tank | {damage_types} |
-| Deal | {weakness} |
-| EWAR | {ewar_types} |
-| Objective | {objective} |
-
-## Blitz
-1. {step}
-
-## Spawns
-### Wave 1 (on warp-in)
-{ships with distances}
-```
-
-After writing, update `reference/pve-intel/cache/INDEX.md` under the appropriate faction heading.
 
 ## Fit Adaptation
 
 ### Adaptation Rules
 
-- Start from pilot's existing fit for that hull (from ships.md). If no fit exists for this hull: check `reference/archetypes/INDEX.md` for a matching hull + activity archetype. If found, read the archetype YAML, use its `eft` block as baseline, apply `damage_tuning.overrides.{faction}` for hardener/drone/ammo swaps, and check `skill_requirements.required` against pilot tier. If no archetype match: build a basic fit matching the hull's role and pilot's module tier. Mark suggested fits as "(suggested fit — not from pilot's hangar)" in the brief.
+- Start from pilot's existing fit for that hull (from ships.md). If no fit exists for this hull: check `reference/archetypes/INDEX.md` for a matching hull + activity archetype. If found, read the archetype YAML, use its `eft` block as baseline, apply `damage_tuning.overrides.{faction}` for hardener/drone/ammo swaps, and check `skill_requirements.required` against pilot tier. After applying damage_tuning overrides, check the archetype YAML's `damage_tuning` section for CPU/PG warnings (in YAML comments or `notes.warnings`). If a warning provides a proactive fix (e.g., "swap module X → Y when CPU exceeds"), apply that fix to the adapted EFT BEFORE calling calculate_stats. If no archetype match: build a basic fit matching the hull's role and pilot's module tier. Mark suggested fits as "(suggested fit — not from pilot's hangar)" in the brief.
 - Swap hardeners to match enemy damage profile (from `reference/mechanics/npc_damage_types.md`)
 - Swap drones to deal enemy's weakness — read `reference/mechanics/drones.json → enemy_recommendations.{faction}`
 - Swap ammo/charges/crystals — read the weapon JSON (see Weapon JSON Lookup below) → `enemy_recommendations.{faction}`
@@ -212,7 +193,7 @@ After writing, update `reference/pve-intel/cache/INDEX.md` under the appropriate
 
 ### Weapon JSON Lookup
 
-Determine weapon system from the pilot's fit, then read the matching file:
+Determine weapon system from the pilot's fit, then use the matching reference (already loaded as prerequisite):
 
 | Weapon System | Reference File |
 |---------------|----------------|
@@ -223,18 +204,37 @@ Determine weapon system from the pilot's fit, then read the matching file:
 
 ### Validation Gate
 
-Complete ALL steps before presenting ANY fit:
+Complete ALL steps before presenting ANY fit. Track whether the fit was sourced from an archetype YAML (archetype-sourced) or generated ad-hoc (no archetype match in INDEX).
 
-1. Read `reference/mechanics/drones.json → enemy_recommendations.{faction}` → select drones matching faction weakness. Cross-check against Deal recommendation.
-2. Read the weapon JSON (see Weapon JSON Lookup) → `enemy_recommendations.{faction}` → select ammo matching faction weakness. Include primary + secondary ammo types with quantities in EFT output.
+**Fit source tracking:** Set `archetype_sourced = true` if and only if an archetype YAML file was successfully read and used as the basis for the fit in the Fit Adaptation phase. If INDEX had no match, or INDEX matched but the YAML read failed, set `archetype_sourced = false`.
+
+1. Read `reference/mechanics/drones.json → enemy_recommendations.{faction}` (already in context from prerequisites) → select drones matching faction weakness. Cross-check against Deal recommendation.
+2. Read the weapon JSON (already in context from prerequisites — see Weapon JSON Lookup) → `enemy_recommendations.{faction}` → select ammo matching faction weakness. Include primary + secondary ammo types with quantities in EFT output.
 3. Verify swapped module names via `sde(action="item_info")` or `reference/fittings/MODULE_NAMES.md` — EVE module naming is inconsistent.
-4. Validate the complete adapted fit via `fitting(action="calculate_stats", eft="...", use_pilot_skills=True)`. This calculates stats at the pilot's actual skill levels (falls back to All V if skills cache is unavailable). Check `metadata.skill_mode` to confirm which mode was used (`"pilot_skills"` or `"all_v"`). Check BOTH `validation_errors` AND `warnings` in response metadata:
-   - **Ignorable:** `"Empty X slots: N of M unused"` — normal for partially-filled fits
-   - **Actionable:** `item_class` / `allowed_classes` errors — modules in wrong slots. Fix EFT section order (must be lows → mids → highs)
-   - **Actionable:** CPU/PG overload, unknown module types — downgrade or correct modules
-4b. **Resource check:** If `metadata.skill_mode` = `"pilot_skills"`, CPU/PG values reflect the pilot's real skills — report them directly. If CPU or PG is overloaded (`overloaded: true`), the fit cannot be used as-is: identify the tightest module (propulsion mods and active tank are typically the largest consumers) and suggest downgrading to a compact/meta variant, or training the relevant fitting skill (CPU Management for CPU, Power Grid Management for PG). If `skill_mode` = `"all_v"` (skills cache miss), fall back to heuristic: warn if CPU/PG > 90% AND pilot < 60 days old.
-5. If any actionable warning or error exists, fix the fit and re-validate. **Never present an unvalidated fit.**
-6. **Skill gate (deterministic):** Read the pilot's skills from `userdata/pilots/{active_pilot}/skills.json` (loaded as prerequisite). Parse the `skills` object — keys are skill IDs (strings in JSON, convert to int), values are trained levels (int). Call `fitting(action="check_requirements", eft="...", pilot_skills={skill_id_int: level_int, ...})` — this returns `can_fly` (bool) and `missing_skills` (list with `skill_name`, `required` level, `current` level per entry). If `can_fly` is false, list the exact missing skills in the brief with required vs. current levels so the pilot knows exactly what to train. If `skills.json` is missing or unreadable (prerequisite load failed), fall back to `fitting(action="extract_requirements", eft="...")` and flag skills above level III for pilots < 60 days old (per profile.md `Capsuleer Since`).
+4. **Parallel validation:** Call BOTH fitting tools in a single parallel tool call batch:
+   - `fitting(action="calculate_stats", eft="...", use_pilot_skills=True)` — stats at pilot's actual skill levels (falls back to All V if skills cache is unavailable)
+   - `fitting(action="check_requirements", eft="...", pilot_skills={"skill_id": level, ...})` — skill requirements check using pilot's `skills.json` (loaded as prerequisite). JSON keys MUST be strings (e.g., `{"3300": 4, "3301": 5}`); values are trained levels as integers.
+
+   These two calls have no data dependency — both need only the EFT string and pilot skills. Issue them as parallel tool calls in a single round.
+
+   **Recovery:** If `check_requirements` returns a validation or parsing error, retry once with all `pilot_skills` keys explicitly coerced to strings.
+
+   **`calculate_stats` response checks:**
+   - Check `metadata.skill_mode` to confirm which mode was used (`"pilot_skills"` or `"all_v"`)
+   - Check BOTH `validation_errors` AND `warnings` in response metadata:
+     - **Ignorable:** `"Empty X slots: N of M unused"` — normal for partially-filled fits
+     - **Actionable:** `item_class` / `allowed_classes` errors — modules in wrong slots. Fix EFT section order (must be lows → mids → highs)
+     - **Actionable:** CPU/PG overload, unknown module types — downgrade or correct modules
+   - **Resource check:** If `metadata.skill_mode` = `"pilot_skills"`, CPU/PG values reflect the pilot's real skills — report them directly. If CPU or PG is overloaded (`overloaded: true`), the fit cannot be used as-is: identify the tightest module and suggest downgrading to a compact/meta variant, or training the relevant fitting skill (CPU Management for CPU, Power Grid Management for PG). If `skill_mode` = `"all_v"` (skills cache miss), fall back to heuristic: warn if CPU/PG > 90% AND pilot < 60 days old.
+
+   **`check_requirements` response checks:**
+   - Returns `can_fly` (bool) and `missing_skills` (list with `skill_name`, `required` level, `current` level per entry)
+   - If `can_fly` is false, list the exact missing skills in the brief with required vs. current levels
+   - If `skills.json` is missing or unreadable (prerequisite load failed), fall back to `fitting(action="extract_requirements", eft="...")` and flag skills above level III for pilots < 60 days old (per profile.md `Capsuleer Since`)
+
+5. **Conditional re-validation (fit source dependent):**
+   - **If `archetype_sourced = true`:** Skip the re-validation loop. Archetype fits are pre-validated; any issues from `calculate_stats` surface as warnings in the brief rather than triggering iteration. Present the fit directly.
+   - **If `archetype_sourced = false` (ad-hoc fit):** If any actionable warning or error exists from step 4, fix the fit and re-validate. **Never present an unvalidated ad-hoc fit.** This loop may add 1-2 rounds but is the safety net for ad-hoc fits that are prone to module name hallucination and slot errors.
 
 ### Gear Tier Validation
 

@@ -1,0 +1,126 @@
+# Praxis L4 Missions - Low Skill Variant
+#
+# Special edition battleship requiring no hull skills.
+# Heavy missiles + drones with shield tank.
+# Accessible L4 entry point for lower-skilled pilots.
+
+archetype:
+  hull: Praxis
+  skill_tier: t1
+  omega_required: false
+roles:
+  - missions-l4
+source: eveuni
+
+eft: |
+  [Praxis, L4 Missions - Low Skills]
+
+  Ballistic Control System I
+  Ballistic Control System I
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Damage Control I
+  Nanofiber Internal Structure I
+
+  X-Large Shield Booster I
+  Multispectrum Shield Hardener I
+  Multispectrum Shield Hardener I
+  Large Compact Pb-Acid Cap Battery
+  100MN Y-S8 Compact Afterburner
+  Cap Recharger I
+  Cap Recharger I
+
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Cruise Missile Launcher I
+  Drone Link Augmentor I
+
+  Large Capacitor Control Circuit I
+  Large Capacitor Control Circuit I
+  Large Core Defense Field Extender I
+
+  Hammerhead I x5
+  Hobgoblin I x5
+
+  Scourge Cruise Missile x2000
+
+skill_requirements:
+  required:
+    Cruise Missiles: 3
+    Missile Launcher Operation: 4
+    Drones: 4
+    Medium Drone Operation: 3
+    Shield Operation: 4
+    Shield Management: 4
+  recommended:
+    Warhead Upgrades: 4
+    Rapid Launch: 3
+    Drone Interfacing: 3
+    Capacitor Management: 4
+
+stats:
+  dps: null
+  ehp: 55000
+  align_time: 15.0
+  speed_ab: 350
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_active
+
+  overrides:
+    serpentis:
+      ammo: "Inferno Cruise Missile"
+      drones:
+        primary: "Hammerhead I"
+        anti_frigate: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Nova Cruise Missile"
+      drones:
+        primary: "Valkyrie I"
+        anti_frigate: "Warrior I"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "Mjolnir Cruise Missile"
+      drones:
+        primary: "Infiltrator I"
+        anti_frigate: "Acolyte I"
+      notes: "Blood Raiders weak to EM - watch for neuts"
+    guristas:
+      ammo: "Scourge Cruise Missile"
+      drones:
+        primary: "Vespa I"
+        anti_frigate: "Hornet I"
+      notes: "Guristas weak to Kinetic - default ammo"
+    sansha:
+      ammo: "Mjolnir Cruise Missile"
+      drones:
+        primary: "Infiltrator I"
+        anti_frigate: "Acolyte I"
+      notes: "Sansha weak to EM"
+
+notes:
+  purpose: "Accessible L4 mission runner requiring no hull skills"
+  engagement: "Warp in at 70km, engage at range with missiles and drones"
+  warnings:
+    - "No hull skill required - can fly immediately"
+    - "Slower and less tanky than dedicated BS hulls"
+    - "Pulse shield booster - manage cap carefully"
+    - "Missiles apply poorly to frigates - use drones for tackle"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Cruise Missile Launcher I"
+      upgrade_to: "Cruise Missile Launcher II"
+      skill_required: "Cruise Missiles 5"
+    - module: "X-Large Shield Booster I"
+      upgrade_to: "X-Large Shield Booster II"
+      skill_required: "Shield Operation 5"
+    - ship: "Raven"
+      notes: "Dedicated Caldari BS with missile bonuses"

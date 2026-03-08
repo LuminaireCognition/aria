@@ -7,6 +7,9 @@ archetype:
   hull: Myrmidon
   skill_tier: t1
   omega_required: false
+roles:
+  - missions-l3
+source: eveuni
 
 eft: |
   [Myrmidon, L3 Missions - Low Skills]

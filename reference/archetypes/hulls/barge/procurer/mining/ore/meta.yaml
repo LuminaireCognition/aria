@@ -1,0 +1,68 @@
+# Procurer Ore Mining - Medium Skill Variant
+#
+# Upgraded tank Procurer with better mining yield.
+# Improved shield modules and drone defense.
+
+archetype:
+  hull: Procurer
+  skill_tier: meta
+  omega_required: true
+roles:
+  - mining-ore
+source: eveuni
+
+eft: |
+  [Procurer, Ore Mining - Medium Skills]
+
+  Mining Laser Upgrade II
+  Damage Control I
+
+  Survey Scanner I
+  Medium Azeotropic Restrained Shield Extender
+  Compact Multispectrum Shield Hardener
+
+  Strip Miner I
+  Strip Miner I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium EM Shield Reinforcer I
+
+  Hobgoblin I x5
+
+skill_requirements:
+  required:
+    Mining Barge: 3
+    Mining: 4
+    Astrogeology: 4
+    Mining Upgrades: 4
+    Shield Operation: 3
+  recommended:
+    Mining Barge: 4
+    Mining: 5
+    Shield Management: 4
+    Drone Sharpshooting: 4
+
+stats:
+  mining_yield: 700
+  ore_hold: 12000
+  ehp: 40000
+  align_time: 11.5
+  validated_date: "2026-03-05"
+
+notes:
+  purpose: "Upgraded tanky mining barge with better yield"
+  engagement: "Deploy drones, activate strip miners, mine safely"
+  warnings:
+    - "MLU II gives more yield than MLU I"
+    - "EM reinforcer plugs the shield EM hole"
+    - "Still the tankiest barge option"
+
+upgrade_path:
+  next_tier: t2_budget
+  key_upgrades:
+    - module: "Strip Miner I"
+      upgrade_to: "Strip Miner II"
+      skill_required: "Mining 5"
+    - ship: "Skiff (Exhumer)"
+      notes: "T2 variant with stronger tank and better yield"

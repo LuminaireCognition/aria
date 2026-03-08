@@ -291,6 +291,60 @@ class SlotUsage:
 
 
 # =============================================================================
+# Hull Stats Result (bare hull, no modules)
+# =============================================================================
+
+
+@dataclass(frozen=True)
+class HullStatsResult:
+    """
+    Base hull statistics from dogma attributes (no modules fitted).
+
+    Used for quick hull lookups (e.g., mark-assessment EHP estimates)
+    without requiring a full EFT fit.
+    """
+
+    type_id: int
+    type_name: str
+    shield_hp: float
+    armor_hp: float
+    hull_hp: float
+    shield_resists: ResistProfile
+    armor_resists: ResistProfile
+    hull_resists: ResistProfile
+    cargo_capacity: float
+    drone_bandwidth: float
+    drone_bay: float
+    signature_radius: float
+
+    @property
+    def total_hp(self) -> float:
+        return self.shield_hp + self.armor_hp + self.hull_hp
+
+    def to_dict(self) -> dict:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "type_id": self.type_id,
+            "type_name": self.type_name,
+            "hp": {
+                "shield": round(self.shield_hp, 0),
+                "armor": round(self.armor_hp, 0),
+                "hull": round(self.hull_hp, 0),
+                "total": round(self.total_hp, 0),
+            },
+            "resists": {
+                "shield": self.shield_resists.to_dict(),
+                "armor": self.armor_resists.to_dict(),
+                "hull": self.hull_resists.to_dict(),
+            },
+            "cargo_capacity": round(self.cargo_capacity, 0),
+            "drone_bandwidth": round(self.drone_bandwidth, 0),
+            "drone_bay": round(self.drone_bay, 0),
+            "signature_radius": round(self.signature_radius, 1),
+        }
+
+
+# =============================================================================
 # Parsed Fit Models (from EFT parser)
 # =============================================================================
 

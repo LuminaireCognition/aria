@@ -681,7 +681,19 @@ def mock_eos_module():
     mock_eos.ModuleLow = MagicMock()
     mock_eos.ModuleMid = MagicMock()
     mock_eos.ModuleHigh = MagicMock()
-    mock_eos.Drone = MagicMock()
+
+    # Drone factory: creates drones with mutable state and bandwidth attrs
+    # Default: 5 Mbit/s bandwidth per drone (light drones)
+    def create_mock_drone(type_id, state=None):
+        drone = MagicMock()
+        drone.type_id = type_id
+        drone.state = state
+        # Light drones: 5 Mbit, Medium drones: 10 Mbit
+        bw = 10 if type_id == 2185 else 5  # Hammerhead II = medium
+        drone.attrs = {1272: bw}
+        return drone
+
+    mock_eos.Drone = MagicMock(side_effect=create_mock_drone)
     mock_eos.Rig = MagicMock()
     mock_eos.Subsystem = MagicMock()
     mock_eos.Charge = MagicMock()

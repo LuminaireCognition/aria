@@ -9,6 +9,7 @@ to avoid brittle mocking of internal functions.
 from __future__ import annotations
 
 import asyncio
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -395,6 +396,82 @@ class TestBuildCostAction:
 # =============================================================================
 # Invalid Action Tests
 # =============================================================================
+
+
+# =============================================================================
+# Invention Cost Action Tests
+# =============================================================================
+
+
+class TestInventionCostAction:
+    """Tests for market invention_cost action."""
+
+    def test_invention_cost_requires_item(self, market_dispatcher):
+        """Invention cost requires item parameter."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(market_dispatcher(action="invention_cost"))
+
+        assert "item" in str(exc.value).lower()
+
+
+# =============================================================================
+# List Decryptors Action Tests
+# =============================================================================
+
+
+class TestListDecryptorsAction:
+    """Tests for market list_decryptors action."""
+
+    def test_list_decryptors_returns_results(self, market_dispatcher):
+        """List decryptors returns decryptor data."""
+        from unittest.mock import patch
+
+        mock_decryptors = [
+            {"name": "Accelerant Decryptor", "success_modifier": 1.2, "me_modifier": 2, "te_modifier": 10, "runs_modifier": 1},
+            {"name": "Attainment Decryptor", "success_modifier": 1.8, "me_modifier": -1, "te_modifier": 4, "runs_modifier": 4},
+        ]
+
+        with patch(
+            "aria_esi.mcp.dispatchers.market._list_decryptors",
+            new_callable=AsyncMock,
+            return_value={"decryptors": mock_decryptors, "count": 2},
+        ):
+            result = asyncio.run(market_dispatcher(action="list_decryptors"))
+
+        assert "decryptors" in result
+        assert result["count"] == 2
+
+
+# =============================================================================
+# Build Chain Action Tests
+# =============================================================================
+
+
+class TestBuildChainAction:
+    """Tests for market build_chain action."""
+
+    def test_build_chain_requires_item(self, market_dispatcher):
+        """Build chain requires item parameter."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(market_dispatcher(action="build_chain"))
+
+        assert "item" in str(exc.value).lower()
+
+
+# =============================================================================
+# Build Cost Action Tests
+# =============================================================================
+
+
+class TestBuildCostAction:
+    """Tests for market build_cost action."""
+
+    def test_build_cost_requires_item(self, market_dispatcher):
+        """Build cost requires item parameter."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(market_dispatcher(action="build_cost"))
+
+        assert "item" in str(exc.value).lower()
 
 
 class TestMarketInvalidActions:

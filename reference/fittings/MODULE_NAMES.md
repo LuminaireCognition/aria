@@ -103,18 +103,6 @@ Drones follow faction + size + tier pattern.
 
 **Note:** Covert Ops Cloaking Device II requires a covert ops capable ship (Covert Ops frigates, Stealth Bombers, etc.).
 
-## Known EOS Attribute Bugs
-
-Some modules have incorrect attribute mappings in the EOS fitting engine, causing them to boost the wrong stat.
-
-| Module | Type ID | Expected Effect | Actual EOS Effect | Workaround |
-|--------|---------|----------------|-------------------|------------|
-| Thermal Armor Hardener I | 11277 | Boost thermal armor resist | Boosts **explosive** armor resist | Use Multispectrum Energized Membrane I or Compact variant |
-
-**Detection:** After EOS validation, compare each hardener's target resist against hull base values. If the target resist is unchanged but a different resist increased, the module has a data mapping bug.
-
-**Do not rationalize mismatched resists.** If the numbers don't match expectations, investigate — don't invent explanations like "static calculations don't reflect active cycling."
-
 ## Validation Workflow
 
 1. **Draft fit** with module names from memory

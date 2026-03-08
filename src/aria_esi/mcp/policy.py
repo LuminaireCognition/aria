@@ -132,6 +132,12 @@ DEFAULT_ACTION_SENSITIVITY: dict[str, dict[str, SensitivityLevel]] = {
         "mail_read": SensitivityLevel.RESTRICTED,
         # Mining ledger is AUTHENTICATED - works with default policy
         "mining_ledger": SensitivityLevel.AUTHENTICATED,
+        # Contracts, fittings, LP - AUTHENTICATED
+        "contracts": SensitivityLevel.AUTHENTICATED,
+        "fittings_list": SensitivityLevel.AUTHENTICATED,
+        "fittings_detail": SensitivityLevel.AUTHENTICATED,
+        "lp_balance": SensitivityLevel.AUTHENTICATED,
+        "lp_offers": SensitivityLevel.PUBLIC,  # LP offers is a public endpoint
     },
 }
 

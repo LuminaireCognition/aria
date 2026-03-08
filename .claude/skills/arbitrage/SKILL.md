@@ -1,7 +1,7 @@
 ---
 name: arbitrage
 description: Cross-region arbitrage opportunity scanner. Find profitable trade routes between trade hubs with hauling score analysis.
-model: haiku
+model: sonnet
 category: financial
 triggers:
   - "/arbitrage"
@@ -71,6 +71,21 @@ Affects how net profit is calculated:
 ## MCP Tools
 
 Use `market(action="arbitrage_scan")` and `market(action="arbitrage_detail")` — see MCP tool schema for parameters.
+
+### Natural Language Parameter Extraction
+
+When the user describes parameters in natural language, extract and map to MCP tool arguments:
+
+| User phrase | MCP parameter | Value |
+|-------------|--------------|-------|
+| "60000 m3 cargo" / "my Bustard" | `cargo_capacity` | Extract m3 number; for ship names use known cargo capacity |
+| "sorted by hauling score" | `sort_by` | `hauling_score` |
+| "with volume history" | `include_history` | `true` |
+| "minimum 10% profit" / "above 15%" | `min_profit_pct` | Extract number |
+| "station trading" | `trade_mode` | `station_trading` |
+| "include my scopes" | `include_custom_scopes` | `true` |
+
+**MANDATORY:** If the user specifies parameters, pass them to `market(action="arbitrage_scan", ...)`. Do not silently use defaults when the user provided explicit values.
 
 ## Response Format
 

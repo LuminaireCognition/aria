@@ -20,26 +20,35 @@ esi_scopes:
 
 Saved fittings data is stable — only changes when you save/delete fits in-game.
 
+> **HALLUCINATION GUARD:** Every fitting name, ship hull, module list, and fitting ID in the response MUST come from a `pilot(action="fittings_list", ...)` or `pilot(action="fittings_detail", ...)` MCP call, or a CLI call made in this session. If neither was called or returned an error, present only the error state. NEVER fill in fittings from training data.
+
+**You MUST call the MCP tool or CLI command below before presenting any fitting data.** Do not summarize, guess, or present fittings without executing the command first.
+
 ## Implementation
 
-```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi fittings [options]
-PYTHONPATH=.claude/scripts uv run python -m aria_esi fittings-detail <fitting_id> [options]
+### MCP (preferred)
+
+```
+pilot(action="fittings_list")
+pilot(action="fittings_list", ship_filter="Vexor")
+pilot(action="fittings_detail", fitting_id=12345)
+pilot(action="fittings_detail", fitting_id=12345, eft=True)
 ```
 
-### Commands
+**Parameters:**
 
-| Command | Description |
-|---------|-------------|
-| `fittings` | List all saved fittings |
-| `fittings-detail <id>` | Show fitting details with EFT export |
+| Action | Parameter | Description | Default |
+|--------|-----------|-------------|---------|
+| `fittings_list` | `ship_filter` | Filter by ship hull name (partial match) | None |
+| `fittings_detail` | `fitting_id` | Fitting ID to show (required) | - |
+| `fittings_detail` | `eft` | Return EFT format only | False |
 
-### Options
+### CLI (fallback)
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--ship <hull>` | Filter by ship hull name | - |
-| `--eft` | Output in EFT format (fittings-detail only) | - |
+```bash
+PYTHONPATH=.claude/scripts uv run python -m aria_esi fittings [--ship <hull>]
+PYTHONPATH=.claude/scripts uv run python -m aria_esi fittings-detail <fitting_id> [--eft]
+```
 
 ## Response Format
 

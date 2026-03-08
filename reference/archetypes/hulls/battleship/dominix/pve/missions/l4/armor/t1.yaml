@@ -6,6 +6,9 @@ archetype:
   hull: Dominix
   skill_tier: t1
   omega_required: false
+roles:
+  - missions-l4
+source: eveuni
 
 eft: |
   [Dominix, L4 Missions - Low Skills]

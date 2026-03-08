@@ -1,0 +1,100 @@
+# Drake L3 Missions - Medium Skill Variant
+#
+# Upgraded heavy missile Drake for L3 missions.
+# Meta launchers and stronger shield tank.
+
+archetype:
+  hull: Drake
+  skill_tier: meta
+  omega_required: false
+roles:
+  - missions-l3
+source: eveuni
+
+eft: |
+  [Drake, L3 Missions - Medium Skills]
+
+  Ballistic Control System I
+  Ballistic Control System I
+  Ballistic Control System I
+  Damage Control I
+
+  50MN Y-T8 Compact Microwarpdrive
+  Large Shield Extender I
+  Large Shield Extender I
+  Multispectrum Shield Hardener I
+  Multispectrum Shield Hardener I
+  Cap Recharger I
+
+  Arbalest Compact Heavy Assault Missile Launcher
+  Arbalest Compact Heavy Assault Missile Launcher
+  Arbalest Compact Heavy Assault Missile Launcher
+  Arbalest Compact Heavy Assault Missile Launcher
+  Arbalest Compact Heavy Assault Missile Launcher
+  Arbalest Compact Heavy Assault Missile Launcher
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Hammerhead I x5
+
+  Scourge Heavy Assault Missile x3000
+
+skill_requirements:
+  required:
+    Caldari Battlecruiser: 4
+    Heavy Assault Missiles: 3
+    Missile Launcher Operation: 4
+    Shield Operation: 4
+    Shield Management: 4
+  recommended:
+    Warhead Upgrades: 4
+    Rapid Launch: 4
+    Missile Bombardment: 4
+    Guided Missile Precision: 3
+
+stats:
+  dps: null
+  ehp: 55000
+  align_time: 10.0
+  speed_mwd: 1050
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_buffer
+
+  overrides:
+    serpentis:
+      ammo: "Inferno Heavy Assault Missile"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Nova Heavy Assault Missile"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "Mjolnir Heavy Assault Missile"
+      notes: "Blood Raiders weak to EM - watch for neuts"
+    guristas:
+      ammo: "Scourge Heavy Assault Missile"
+      notes: "Guristas weak to Kinetic - default ammo"
+
+notes:
+  purpose: "Upgraded Drake with HAMs for higher close-range DPS"
+  engagement: "Close to 20-30km for HAM application, tank and spank"
+  warnings:
+    - "HAMs have shorter range than heavy missiles but higher DPS"
+    - "Very tanky - can face-tank most L3 missions"
+    - "MWD for inter-room travel only"
+
+upgrade_path:
+  next_tier: t2_budget
+  key_upgrades:
+    - module: "Arbalest Compact Heavy Assault Missile Launcher"
+      upgrade_to: "Heavy Assault Missile Launcher II"
+      skill_required: "Heavy Assault Missiles 5"
+    - module: "Multispectrum Shield Hardener I"
+      upgrade_to: "Multispectrum Shield Hardener II"
+      skill_required: "Tactical Shield Manipulation 4"
+    - ship: "Raven"
+      notes: "Battleship upgrade for L4 missions"

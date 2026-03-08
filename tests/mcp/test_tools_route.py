@@ -193,22 +193,22 @@ class TestComputeSafeWeights:
         # Edge 0-1 is Jita-Perimeter (both high-sec)
         assert weights[0] == 1.0
 
-    def test_lowsec_entry_high_weight(self, mock_universe: UniverseGraph):
-        """Entering low-sec has high weight."""
+    def test_lowsec_entry_blocked(self, mock_universe: UniverseGraph):
+        """Entering low-sec is hard-blocked (infinite weight)."""
         weights = _compute_safe_weights(mock_universe)
         # Edge 2-4 is Maurasi-Sivala (high to low)
         # Find the edge index
         g = mock_universe.graph
         edge_idx = g.get_eid(2, 4)
-        assert weights[edge_idx] == 50.0
+        assert weights[edge_idx] == float("inf")
 
-    def test_nullsec_highest_weight(self, mock_universe: UniverseGraph):
-        """Null-sec has highest weight."""
+    def test_nullsec_blocked(self, mock_universe: UniverseGraph):
+        """Null-sec is hard-blocked (infinite weight)."""
         weights = _compute_safe_weights(mock_universe)
         # Edge 4-5 is Sivala-Ala (low to null)
         g = mock_universe.graph
         edge_idx = g.get_eid(4, 5)
-        assert weights[edge_idx] == 100.0
+        assert weights[edge_idx] == float("inf")
 
 
 class TestComputeUnsafeWeights:

@@ -7,6 +7,9 @@ archetype:
   hull: Raven
   skill_tier: t1
   omega_required: false
+roles:
+  - missions-l4
+source: eveuni
 
 eft: |
   [Raven, L4 Missions - Low Skills]

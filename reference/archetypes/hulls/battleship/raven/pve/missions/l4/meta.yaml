@@ -1,0 +1,106 @@
+# Raven L4 Missions - Medium Skill Variant
+#
+# Upgraded cruise missile Raven for L4 missions.
+# Better launchers and improved shield tank.
+
+archetype:
+  hull: Raven
+  skill_tier: meta
+  omega_required: false
+roles:
+  - missions-l4
+source: eveuni
+
+eft: |
+  [Raven, L4 Missions - Medium Skills]
+
+  Ballistic Control System I
+  Ballistic Control System I
+  Ballistic Control System I
+  Nanofiber Internal Structure I
+  Damage Control I
+
+  X-Large Shield Booster I
+  Multispectrum Shield Hardener I
+  Multispectrum Shield Hardener I
+  Large Compact Pb-Acid Cap Battery
+  100MN Y-S8 Compact Afterburner
+  Cap Recharger I
+  Cap Recharger I
+
+  'Arbalest' Cruise Launcher I
+  'Arbalest' Cruise Launcher I
+  'Arbalest' Cruise Launcher I
+  'Arbalest' Cruise Launcher I
+  'Arbalest' Cruise Launcher I
+  'Arbalest' Cruise Launcher I
+  [Empty High slot]
+
+  Large Capacitor Control Circuit I
+  Large Capacitor Control Circuit I
+  Large Core Defense Field Extender I
+
+  Hobgoblin I x5
+
+  Scourge Cruise Missile x3000
+
+skill_requirements:
+  required:
+    Caldari Battleship: 4
+    Cruise Missiles: 4
+    Missile Launcher Operation: 4
+    Shield Operation: 4
+    Shield Management: 4
+  recommended:
+    Warhead Upgrades: 4
+    Rapid Launch: 4
+    Guided Missile Precision: 4
+    Capacitor Management: 4
+
+stats:
+  dps: null
+  ehp: 50000
+  align_time: 14.5
+  speed_ab: 400
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_active
+
+  overrides:
+    serpentis:
+      ammo: "Inferno Cruise Missile"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Nova Cruise Missile"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "Mjolnir Cruise Missile"
+      notes: "Blood Raiders weak to EM - watch for neuts"
+    guristas:
+      ammo: "Scourge Cruise Missile"
+      notes: "Guristas weak to Kinetic - default ammo"
+    sansha:
+      ammo: "Mjolnir Cruise Missile"
+      notes: "Sansha weak to EM"
+
+notes:
+  purpose: "Upgraded L4 Raven with meta launchers for better rate of fire"
+  engagement: "Warp in at 70km, engage at 80-100km range"
+  warnings:
+    - "Meta cruise launchers fire faster than T1"
+    - "Pulse shield booster - don't run constantly"
+    - "Cap battery helps vs neuts"
+
+upgrade_path:
+  next_tier: t2_budget
+  key_upgrades:
+    - module: "'Arbalest' Cruise Launcher I"
+      upgrade_to: "Cruise Missile Launcher II"
+      skill_required: "Cruise Missiles 5"
+    - module: "Multispectrum Shield Hardener I"
+      upgrade_to: "Multispectrum Shield Hardener II"
+      skill_required: "Tactical Shield Manipulation 4"
+    - ship: "Golem (Marauder)"
+      notes: "2x DPS with Bastion, requires 2B+ ISK"

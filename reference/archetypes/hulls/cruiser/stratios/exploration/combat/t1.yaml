@@ -1,0 +1,114 @@
+# Stratios Exploration Combat - Low Skill Variant
+#
+# Armor-tanked Stratios for combat exploration (DED sites).
+# Covert ops cloak + probe launcher + drone DPS.
+# Expensive faction hull - protect your investment.
+
+archetype:
+  hull: Stratios
+  skill_tier: t1
+  omega_required: true
+roles:
+  - exploration-combat
+source: eveuni
+
+eft: |
+  [Stratios, Combat Exploration - Low Skills]
+
+  Drone Damage Amplifier I
+  Drone Damage Amplifier I
+  Medium Armor Repairer I
+  Multispectrum Energized Membrane I
+  Reactive Armor Hardener
+
+  50MN Y-T8 Compact Microwarpdrive
+  Large Compact Pb-Acid Cap Battery
+  Data Analyzer I
+  Relic Analyzer I
+  Cap Recharger I
+
+  Covert Ops Cloaking Device II
+  Core Probe Launcher I
+  Drone Link Augmentor I
+
+  Medium Auxiliary Nano Pump I
+  Medium Auxiliary Nano Pump I
+  Medium Nanobot Accelerator I
+
+  Hammerhead I x5
+  Hobgoblin I x5
+  Salvage Drone I x5
+
+  Core Scanner Probe I x16
+
+skill_requirements:
+  required:
+    Amarr Cruiser: 3
+    Gallente Cruiser: 3
+    Drones: 5
+    Medium Drone Operation: 3
+    Cloaking: 4
+    Astrometrics: 3
+    Hacking: 2
+    Archaeology: 2
+  recommended:
+    Drone Interfacing: 4
+    Heavy Drone Operation: 3
+    Repair Systems: 4
+    Capacitor Management: 4
+
+stats:
+  dps: 320
+  ehp: 20000
+  align_time: 7.5
+  speed_mwd: 1400
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      drones:
+        primary: "Hammerhead I"
+        anti_frigate: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal - Hammerheads deal Thermal"
+    angel_cartel:
+      drones:
+        primary: "Valkyrie I"
+        anti_frigate: "Warrior I"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      drones:
+        primary: "Infiltrator I"
+        anti_frigate: "Acolyte I"
+      notes: "Blood Raiders weak to EM - watch for neuts"
+    guristas:
+      drones:
+        primary: "Vespa I"
+        anti_frigate: "Hornet I"
+      notes: "Guristas weak to Kinetic"
+
+notes:
+  purpose: "Combat exploration for DED sites and unrated complexes"
+  engagement: "Cloak warp to site, orbit at 30-40km, deploy drones"
+  warnings:
+    - "Expensive hull (~200M) - do not fly what you can't afford to lose"
+    - "Covert ops cloak allows safe travel through low/null"
+    - "Carry mobile depot for refit in space"
+    - "Switch analyzers based on site type"
+    - "Salvage drones for bonus loot from wrecks"
+
+upgrade_path:
+  next_tier: t2_budget
+  key_upgrades:
+    - module: "Hammerhead I"
+      upgrade_to: "Hammerhead II"
+      skill_required: "Medium Drone Operation 5"
+    - module: "Medium Armor Repairer I"
+      upgrade_to: "Medium Armor Repairer II"
+      skill_required: "Repair Systems 5"
+    - module: "Data Analyzer I"
+      upgrade_to: "Data Analyzer II"
+      skill_required: "Hacking 5"

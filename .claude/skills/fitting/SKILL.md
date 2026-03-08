@@ -97,10 +97,6 @@ If `use_pilot_skills` fails, fall back to All V with a prominent warning that ac
 - `metadata.warnings` → investigate and resolve before presenting
 - Empty slots → add modules to fill all available slots
 
-### Step 4: Resist Sanity Check
-
-Compare EOS resists against base hull resists from SDE. For each hardener, verify its target resist actually increased. If a resist seems unchanged, report the raw numbers — never claim a module is bugged.
-
 ## Tank Coherence
 
 Never mix armor and shield active tank.
@@ -116,9 +112,14 @@ Read `reference/mechanics/drones.json` (project-root-relative path, not skill-di
 
 Check pilot's `ships.md` and `profile.md` for module tier indicators. Default to **T1/Meta** when uncertain. Named meta modules are superior to T1 base — never suggest T1 base as an upgrade from named meta.
 
-## EFT Ammo Note
+## Charge Coherence
 
-Ammo/charge lines may be misparsed as drones. Signs: `drones.launched > 5`, drone bay overflow, unexpectedly low DPS. Workaround: place ammo after an extra blank line (cargo section).
+- **No turrets in fit** → do not recommend turret ammo (hybrid charges, projectile ammo, frequency crystals)
+- **No launchers in fit** → do not recommend missiles or torpedoes
+- Only recommend charges/ammo for weapon systems actually present in the EFT block
+- Cap boosters, scan scripts, and other non-weapon charges are fine if their parent module is fitted
+
+**EFT parsing note:** Ammo/charge lines may be misparsed as drones. Signs: `drones.launched > 5`, drone bay overflow, unexpectedly low DPS. Workaround: place ammo after an extra blank line (cargo section).
 
 ## Rules
 

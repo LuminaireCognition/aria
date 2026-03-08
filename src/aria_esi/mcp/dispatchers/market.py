@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Literal
 
 import httpx
 
-from ..context import log_context, wrap_output, wrap_output_multi
+from ..context import log_context, wrap_output, wrap_output_multi, wrap_scalar_output
 from ..context_policy import MARKET
 from ..errors import InvalidParameterError
 from ..policy import check_capability
@@ -45,6 +45,9 @@ MarketAction = Literal[
     "arbitrage_scan",
     "arbitrage_detail",
     "build_cost",
+    "build_chain",
+    "invention_cost",
+    "list_decryptors",
     "route_value",
     "watchlist_create",
     "watchlist_add_item",
@@ -68,6 +71,9 @@ VALID_ACTIONS: set[str] = {
     "arbitrage_scan",
     "arbitrage_detail",
     "build_cost",
+    "build_chain",
+    "invention_cost",
+    "list_decryptors",
     "route_value",
     "watchlist_create",
     "watchlist_add_item",
@@ -133,10 +139,16 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
         include_custom_scopes: bool = False,
         scopes: list[str] | None = None,
         scope_owner_id: int | None = None,
-        # build_cost params
+        # build_cost / build_chain params
         me_level: int = 0,
         runs: int = 1,
         facility: str | None = None,
+        # invention params
+        encryption_skill: int = 4,
+        science_skill_1: int = 4,
+        science_skill_2: int = 4,
+        decryptor: str | None = None,
+        base_runs: int | None = None,
         # arbitrage_detail params
         buy_region: str | None = None,
         sell_region: str | None = None,
@@ -172,6 +184,9 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
         - arbitrage_scan: Scan for arbitrage opportunities
         - arbitrage_detail: Detailed arbitrage analysis
         - build_cost: Calculate manufacturing cost from blueprint
+        - build_chain: Resolve recursive manufacturing chain (build vs buy)
+        - invention_cost: Calculate T2 invention success rate and costs
+        - list_decryptors: List available decryptors and their effects
         - route_value: Calculate cargo value and risk
         - watchlist_create/add_item/list/get/delete: Manage watchlists
         - scope_create/list/delete/refresh: Manage market scopes
@@ -328,6 +343,11 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                 "me_level": me_level,
                 "runs": runs,
                 "facility": facility,
+                "encryption_skill": encryption_skill,
+                "science_skill_1": science_skill_1,
+                "science_skill_2": science_skill_2,
+                "decryptor": decryptor,
+                "base_runs": base_runs,
             },
         )
 
@@ -380,6 +400,20 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                 result = await _arbitrage_detail(type_name, buy_region, sell_region)
             case "build_cost":
                 result = await _build_cost(item, me_level, runs, facility, region)
+            case "build_chain":
+                result = await _build_chain(item, me_level, runs, region)
+            case "invention_cost":
+                result = await _invention_cost(
+                    item,
+                    encryption_skill,
+                    science_skill_1,
+                    science_skill_2,
+                    decryptor,
+                    base_runs,
+                    region,
+                )
+            case "list_decryptors":
+                result = await _list_decryptors()
             case "route_value":
                 result = await _route_value(items, route, price_type)
             case "watchlist_create":
@@ -1623,3 +1657,263 @@ async def _build_cost(
         is_complete=materials_missing == 0,
         warnings=warnings,
     ).model_dump()
+
+
+# =============================================================================
+# Invention Cost Action
+# =============================================================================
+
+
+async def _invention_cost(
+    item: str | None,
+    encryption_skill: int,
+    science_skill_1: int,
+    science_skill_2: int,
+    decryptor: str | None,
+    base_runs: int | None,
+    region: str,
+) -> dict:
+    """Calculate invention economics for a T2 item."""
+    if not item:
+        raise InvalidParameterError("item", item, "Required for action='invention_cost'")
+
+    from aria_esi.services.industry_costs import (
+        calculate_invention_cost,
+        calculate_invention_success_rate,
+        calculate_t2_bpc_stats,
+        estimate_t2_production_cost,
+        get_decryptor_info,
+    )
+
+    # Calculate success rate
+    success_result = calculate_invention_success_rate(
+        base_rate=0.26,
+        encryption_skill=encryption_skill,
+        science_skill_1=science_skill_1,
+        science_skill_2=science_skill_2,
+        decryptor=decryptor,
+    )
+
+    # Calculate T2 BPC stats
+    effective_base_runs = base_runs if base_runs is not None else 10
+    bpc_stats = calculate_t2_bpc_stats(
+        base_runs=effective_base_runs,
+        decryptor=decryptor,
+    )
+
+    # Resolve decryptor cost if used
+    decryptor_cost = 0.0
+    decryptor_info = get_decryptor_info(decryptor)
+
+    # Try to resolve datacore costs from market
+    datacore_costs: dict[str, float] = {}
+    datacore_quantities: dict[str, int] = {}
+
+    try:
+        import json
+        from pathlib import Path
+
+        ref_path = (
+            Path(__file__).resolve().parents[3]
+            / "reference"
+            / "industry"
+            / "invention_materials.json"
+        )
+        if ref_path.exists():
+            with open(ref_path) as f:
+                inv_materials = json.load(f)
+
+            # Find datacores for this item
+            item_lower = item.lower()
+            item_datacores = None
+            for entry in inv_materials.get("items", []):
+                if entry.get("name", "").lower() == item_lower:
+                    item_datacores = entry.get("datacores", [])
+                    break
+
+            if item_datacores:
+                for dc in item_datacores:
+                    dc_name = dc["name"]
+                    datacore_quantities[dc_name] = dc.get("quantity", 2)
+
+                # Price datacores and decryptor from market
+                from aria_esi.models.market import resolve_region
+                from aria_esi.store.market.cache import MarketCache
+                from aria_esi.store.market.database import get_market_database
+
+                db = get_market_database()
+                hub = resolve_region(region) or resolve_region("jita")
+                assert hub is not None
+
+                names_to_price = list(datacore_quantities.keys())
+                if decryptor_info:
+                    names_to_price.append(decryptor_info["name"])
+
+                type_ids = []
+                type_names = {}
+                for name in names_to_price:
+                    type_info = db.resolve_type_name(name)
+                    if type_info:
+                        type_ids.append(type_info.type_id)
+                        type_names[type_info.type_id] = type_info.type_name
+
+                if type_ids:
+                    is_trade_hub = hub.get("station_id") is not None
+                    if is_trade_hub:
+                        cache = MarketCache(region=region, station_only=True)
+                    else:
+                        cache = MarketCache(
+                            region_id=hub["region_id"],
+                            region_name=hub["region_name"],
+                            station_only=False,
+                        )
+                    prices = await cache.get_prices(type_ids, type_names)
+
+                    price_lookup = {}
+                    for p in prices:
+                        if p.sell and p.sell.min_price:
+                            price_lookup[p.type_name.lower()] = p.sell.min_price
+
+                    for dc_name in datacore_quantities:
+                        datacore_costs[dc_name] = price_lookup.get(dc_name.lower(), 0.0)
+
+                    if decryptor_info:
+                        decryptor_cost = price_lookup.get(decryptor_info["name"].lower(), 0.0)
+    except (KeyError, ValueError, TypeError, OSError):
+        pass  # Pricing is best-effort
+
+    # Calculate invention cost
+    inv_cost = calculate_invention_cost(
+        datacore_costs=datacore_costs,
+        datacore_quantities=datacore_quantities,
+        decryptor=decryptor,
+        decryptor_cost=decryptor_cost,
+        success_rate=success_result["final_rate"],
+    )
+
+    # Estimate T2 production cost (amortized)
+    t2_estimate = estimate_t2_production_cost(
+        invention_cost=inv_cost["expected_cost"],
+        t2_material_cost=0.0,  # Would need full BOM resolution
+        t2_job_cost=0.0,  # Would need system cost index
+        t2_bpc_runs=bpc_stats["runs"],
+    )
+
+    return wrap_scalar_output(
+        {
+            "item": item,
+            "success_rate": success_result,
+            "bpc_stats": bpc_stats,
+            "invention_cost": inv_cost,
+            "t2_production_estimate": t2_estimate,
+        },
+        count=1,
+        source="industry_costs",
+    )
+
+
+async def _list_decryptors() -> dict:
+    """List all available decryptors and their effects."""
+    from aria_esi.services.industry_costs import list_decryptors
+
+    decryptors = list_decryptors()
+    return wrap_scalar_output(
+        {"decryptors": decryptors, "count": len(decryptors)},
+        count=len(decryptors),
+        source="industry_costs",
+    )
+
+
+# =============================================================================
+# Build Chain Action
+# =============================================================================
+
+
+async def _build_chain(
+    item: str | None,
+    me_level: int,
+    runs: int,
+    region: str,
+) -> dict:
+    """Resolve full manufacturing chain for an item."""
+    if not item:
+        raise InvalidParameterError("item", item, "Required for action='build_chain'")
+
+    import asyncio
+
+    from aria_esi.services.industry_chains import ChainResolver, format_chain_summary
+    from aria_esi.store.market.database import get_market_database
+
+    db = get_market_database()
+
+    def sde_lookup(item_name: str) -> dict:
+        """Sync SDE lookup for ChainResolver."""
+        from aria_esi.mcp.sde.tools_blueprint import (
+            _get_blueprint_materials,
+            _lookup_blueprint_by_name,
+            _lookup_blueprint_by_product,
+        )
+
+        conn = db._get_connection()
+        query_lower = item_name.strip().lower()
+
+        bp_data = _lookup_blueprint_by_product(conn, query_lower)
+        if not bp_data:
+            bp_data = _lookup_blueprint_by_name(conn, query_lower)
+        if not bp_data:
+            raise ValueError(f"No blueprint found for {item_name}")
+
+        materials = _get_blueprint_materials(conn, bp_data["blueprint_type_id"])
+        return {
+            "product": bp_data["product_name"],
+            "product_type_id": bp_data.get("product_type_id", 0),
+            "materials": [
+                {
+                    "type_name": m.type_name,
+                    "type_id": m.type_id,
+                    "quantity": m.quantity,
+                }
+                for m in materials
+            ],
+        }
+
+    def market_lookup(item_names: list[str]) -> dict:
+        """Sync market lookup for ChainResolver."""
+        items = []
+        for name in item_names:
+            type_info = db.resolve_type_name(name)
+            if type_info:
+                agg = db.get_aggregates_batch([type_info.type_id], region_id=10000002)
+                agg_data = agg.get(type_info.type_id)
+                items.append(
+                    {
+                        "type_name": name,
+                        "sell_min": agg_data.sell_min if agg_data else None,
+                        "sell_percentile": agg_data.sell_percentile if agg_data else None,
+                    }
+                )
+            else:
+                items.append(
+                    {
+                        "type_name": name,
+                        "sell_min": None,
+                        "sell_percentile": None,
+                    }
+                )
+        return {"items": items}
+
+    me_level = max(0, min(10, me_level))
+    runs = max(1, runs)
+
+    resolver = ChainResolver(sde_lookup, market_lookup, me_level, runs)
+
+    loop = asyncio.get_running_loop()
+    result = await loop.run_in_executor(None, resolver.resolve, item)
+
+    summary = format_chain_summary(result)
+
+    return wrap_scalar_output(
+        {"chain": result.to_dict(), "summary": summary},
+        count=1,
+        source="industry_chains",
+    )

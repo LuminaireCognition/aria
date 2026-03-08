@@ -1,0 +1,72 @@
+# Procurer Ore Mining - Low Skill Variant
+#
+# Tank-focused mining barge for ore mining.
+# Strongest tank of the three barges.
+# Best choice when mining in contested or dangerous space.
+
+archetype:
+  hull: Procurer
+  skill_tier: t1
+  omega_required: true
+roles:
+  - mining-ore
+source: eveuni
+
+eft: |
+  [Procurer, Ore Mining - Low Skills]
+
+  Mining Laser Upgrade I
+  Damage Control I
+
+  Survey Scanner I
+  Medium Shield Extender I
+  Multispectrum Shield Hardener I
+
+  Strip Miner I
+  Strip Miner I
+
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+  Medium Core Defense Field Extender I
+
+  Hobgoblin I x5
+
+skill_requirements:
+  required:
+    Mining Barge: 1
+    Mining: 4
+    Astrogeology: 3
+    Shield Operation: 3
+  recommended:
+    Mining Barge: 3
+    Mining: 5
+    Mining Upgrades: 4
+    Drone Sharpshooting: 3
+
+stats:
+  mining_yield: 600
+  ore_hold: 12000
+  ehp: 30000
+  align_time: 12.0
+  validated_date: "2026-03-05"
+
+notes:
+  purpose: "Tanky mining barge - survives ganks better than Retriever"
+  engagement: "Warp to belt, activate strip miners, deploy drones for defense"
+  warnings:
+    - "Strip miners cycle every 120s - longer than regular miners"
+    - "Keep drones deployed against rats"
+    - "Best barge choice for solo mining in busy systems"
+    - "Watch local for gankers - tank buys time to warp out"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Strip Miner I"
+      upgrade_to: "Strip Miner II"
+      skill_required: "Mining 5"
+    - module: "Mining Laser Upgrade I"
+      upgrade_to: "Mining Laser Upgrade II"
+      skill_required: "Mining Upgrades 4"
+    - ship: "Skiff (Exhumer)"
+      notes: "T2 variant with even stronger tank and better yield"

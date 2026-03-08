@@ -1,7 +1,7 @@
 ---
 name: first-run-setup
 description: Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue.
-model: haiku
+model: sonnet
 category: system
 triggers:
   - "/setup"
@@ -45,6 +45,15 @@ limited. Run 'uv sync' to install all dependencies.
 ```
 
 Continue setup anyway - it's not blocking.
+
+## Initial Output Requirement
+
+This skill MUST always produce output on first invocation. Even if ESI is unavailable, boot context is missing, or the environment is constrained, output at minimum:
+
+1. A welcome/greeting message
+2. The first setup question (ESI connection or character name)
+
+An empty response is never acceptable for the onboarding skill.
 
 ## Conversation Flow
 

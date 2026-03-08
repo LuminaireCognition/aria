@@ -1,7 +1,7 @@
 ---
 name: orient
 description: Local area intel for orientation in unknown space. Use after wormhole jumps, filaments, or when dropped into unfamiliar territory.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/orient"

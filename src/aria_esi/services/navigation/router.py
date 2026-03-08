@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from .weights import (
+    HIGHSEC_THRESHOLD,
     apply_territory_preference,
     compute_avoid_weights,
     compute_safe_weights,
@@ -93,7 +94,12 @@ class NavigationService:
             if preferred_systems:
                 weights = apply_territory_preference(weights, self.universe, preferred_systems)
             paths = g.get_shortest_paths(origin_idx, dest_idx, weights=weights)
-            return paths[0] if paths and paths[0] else []
+            path = paths[0] if paths and paths[0] else []
+            # Post-path validation: igraph treats inf as traversable when
+            # it's the only option, so reject paths with non-highsec systems
+            if path and any(self.universe.security[idx] < HIGHSEC_THRESHOLD for idx in path):
+                return []
+            return path
 
         elif mode == "unsafe":
             weights = compute_unsafe_weights(self.universe, avoid_systems)

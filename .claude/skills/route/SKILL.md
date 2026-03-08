@@ -11,6 +11,8 @@ triggers:
   - "navigate to [system]"
   - "safest route to [system]"
   - "plot course to [system]"
+  - "route avoiding [system]"
+  - "route but not through [system]"
 requires_pilot: false
 ---
 
@@ -19,7 +21,7 @@ requires_pilot: false
 ## Command Syntax
 
 ```
-/route <origin> <destination> [--safe|--shortest|--risky]
+/route <origin> <destination> [--safe|--shortest|--risky] [--avoid <sys1,sys2,...>]
 /route <destination>                    # Uses current location as origin
 ```
 
@@ -37,6 +39,19 @@ requires_pilot: false
 | `--safe` | `secure` | Prefer high-sec routes, avoid low/null even if longer |
 | `--shortest` | `shortest` | Shortest path regardless of security (default) |
 | `--risky` | `insecure` | Prefer low-sec/null routes (faster through dangerous space) |
+| `--avoid` | `avoid_systems` | Exclude specific systems from route (e.g., `--avoid Uedama,Niarja`) |
+
+### Avoiding Systems
+
+To exclude specific systems from a route (e.g., known gank pipes):
+
+```
+/route Dodixie Jita --avoid Uedama
+```
+
+Maps to: `universe(action="route", origin="Dodixie", destination="Jita", avoid_systems=["Uedama"])`
+
+Multiple systems: `/route Dodixie Jita --avoid Uedama,Niarja`
 
 ## Activity Data Integration
 
@@ -154,6 +169,7 @@ uv run aria-esi route Dodixie Jita
 uv run aria-esi route Dodixie Jita --safe
 uv run aria-esi route Dodixie Jita --shortest
 uv run aria-esi route Amarr Jita --risky
+uv run aria-esi route Dodixie Jita --avoid Uedama
 ```
 
 ## Behavior Notes

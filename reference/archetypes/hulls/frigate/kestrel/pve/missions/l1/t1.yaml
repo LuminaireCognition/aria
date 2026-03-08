@@ -1,0 +1,89 @@
+# Kestrel L1 Missions - Low Skill Variant
+#
+# Light missile Kestrel for L1 security missions.
+# Four launchers with shield buffer tank.
+# Strong kinetic damage with selectable missile types.
+
+archetype:
+  hull: Kestrel
+  skill_tier: t1
+  omega_required: false
+roles:
+  - missions-l1
+source: eveuni
+
+eft: |
+  [Kestrel, L1 Missions - Low Skills]
+
+  Ballistic Control System I
+
+  1MN Afterburner I
+  Medium Shield Extender I
+  Medium Shield Extender I
+  Multispectrum Shield Hardener I
+
+  Light Missile Launcher I
+  Light Missile Launcher I
+  Light Missile Launcher I
+  Light Missile Launcher I
+
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+  Small Core Defense Field Extender I
+
+  Scourge Light Missile x1000
+
+skill_requirements:
+  required:
+    Caldari Frigate: 2
+    Light Missiles: 2
+    Missile Launcher Operation: 2
+  recommended:
+    Missile Bombardment: 3
+    Warhead Upgrades: 3
+    Shield Operation: 3
+
+stats:
+  dps: null
+  ehp: 4800
+  align_time: 4.5
+  speed_ab: 680
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: kinetic
+  tank_profile: shield_buffer
+
+  overrides:
+    serpentis:
+      ammo: "Inferno Light Missile"
+      notes: "Serpentis weak to Thermal"
+    angel_cartel:
+      ammo: "Nova Light Missile"
+      notes: "Angels weak to Explosive"
+    blood_raiders:
+      ammo: "Mjolnir Light Missile"
+      notes: "Blood Raiders weak to EM"
+    guristas:
+      ammo: "Scourge Light Missile"
+      notes: "Guristas weak to Kinetic - default ammo"
+
+notes:
+  purpose: "Entry-level L1 mission runner with selectable damage types"
+  engagement: "Orbit at 20-30km, apply missiles at optimal range"
+  warnings:
+    - "Missiles have flight time - lead targets"
+    - "Swap ammo to match faction weakness"
+    - "Keep AB running to mitigate incoming damage"
+
+upgrade_path:
+  next_tier: meta
+  key_upgrades:
+    - module: "Light Missile Launcher I"
+      upgrade_to: "Arbalest Compact Light Missile Launcher"
+      skill_required: "Light Missiles 3"
+    - module: "Multispectrum Shield Hardener I"
+      upgrade_to: "Compact Multispectrum Shield Hardener"
+      skill_required: "Tactical Shield Manipulation 3"
+    - ship: "Caracal"
+      notes: "Cruiser upgrade for L2 missions with rapid lights or heavy missiles"

@@ -308,31 +308,42 @@ class SQLiteKillmailStore:
         min_value: int | None = None,
         limit: int = 100,
         cursor: tuple[int, int] | None = None,
+        character_id: int | None = None,
     ) -> list[KillmailRecord]:
         """Query killmails with optional filters."""
         conditions: list[str] = []
         params: list[int | float] = []
 
+        # When filtering by character_id, JOIN esi_details to match victim
+        if character_id is not None:
+            table_prefix = "k."
+            from_clause = "killmails k INNER JOIN esi_details e ON k.kill_id = e.kill_id"
+            conditions.append("e.victim_character_id = ?")
+            params.append(character_id)
+        else:
+            table_prefix = ""
+            from_clause = "killmails"
+
         if systems:
             placeholders = ",".join("?" * len(systems))
-            conditions.append(f"solar_system_id IN ({placeholders})")
+            conditions.append(f"{table_prefix}solar_system_id IN ({placeholders})")
             params.extend(systems)
 
         if since:
-            conditions.append("kill_time >= ?")
+            conditions.append(f"{table_prefix}kill_time >= ?")
             params.append(int(since.timestamp()))
 
         if until:
-            conditions.append("kill_time <= ?")
+            conditions.append(f"{table_prefix}kill_time <= ?")
             params.append(int(until.timestamp()))
 
         if min_value is not None:
-            conditions.append("zkb_total_value >= ?")
+            conditions.append(f"{table_prefix}zkb_total_value >= ?")
             params.append(min_value)
 
         if cursor:
             cursor_time, cursor_id = cursor
-            conditions.append("(kill_time, kill_id) < (?, ?)")
+            conditions.append(f"({table_prefix}kill_time, {table_prefix}kill_id) < (?, ?)")
             params.append(cursor_time)
             params.append(cursor_id)
 
@@ -340,12 +351,17 @@ class SQLiteKillmailStore:
         params.append(limit)
 
         query = f"""
-            SELECT kill_id, kill_time, solar_system_id, zkb_hash,
-                   zkb_total_value, zkb_points, zkb_is_npc, zkb_is_solo, zkb_is_awox,
-                   ingested_at, victim_ship_type_id, victim_corporation_id, victim_alliance_id
-            FROM killmails
+            SELECT {table_prefix}kill_id, {table_prefix}kill_time,
+                   {table_prefix}solar_system_id, {table_prefix}zkb_hash,
+                   {table_prefix}zkb_total_value, {table_prefix}zkb_points,
+                   {table_prefix}zkb_is_npc, {table_prefix}zkb_is_solo,
+                   {table_prefix}zkb_is_awox, {table_prefix}ingested_at,
+                   {table_prefix}victim_ship_type_id,
+                   {table_prefix}victim_corporation_id,
+                   {table_prefix}victim_alliance_id
+            FROM {from_clause}
             WHERE {where_clause}
-            ORDER BY kill_time DESC, kill_id DESC
+            ORDER BY {table_prefix}kill_time DESC, {table_prefix}kill_id DESC
             LIMIT ?
         """
 
@@ -353,6 +369,51 @@ class SQLiteKillmailStore:
         rows = await cursor_result.fetchall()
 
         return [self._row_to_killmail(row) for row in rows]
+
+    async def get_esi_details_batch(self, kill_ids: list[int]) -> dict[int, ESIKillmail]:
+        """Batch-fetch ESI details for multiple killmails."""
+        if not kill_ids:
+            return {}
+
+        placeholders = ",".join("?" * len(kill_ids))
+        cursor = await self.db.execute(
+            f"""
+            SELECT kill_id, fetched_at, fetch_status, fetch_attempts,
+                   victim_character_id, victim_ship_type_id, victim_corporation_id,
+                   victim_alliance_id, victim_damage_taken,
+                   attacker_count, final_blow_character_id, final_blow_ship_type_id,
+                   final_blow_corporation_id,
+                   attackers_json, items_json, position_json
+            FROM esi_details
+            WHERE kill_id IN ({placeholders}) AND fetch_status = 'success'
+            """,
+            kill_ids,
+        )
+        rows = await cursor.fetchall()
+
+        result: dict[int, ESIKillmail] = {}
+        for row in rows:
+            detail = ESIKillmail(
+                kill_id=row["kill_id"],
+                fetched_at=row["fetched_at"],
+                fetch_status=row["fetch_status"],
+                fetch_attempts=row["fetch_attempts"],
+                victim_character_id=row["victim_character_id"],
+                victim_ship_type_id=row["victim_ship_type_id"],
+                victim_corporation_id=row["victim_corporation_id"],
+                victim_alliance_id=row["victim_alliance_id"],
+                victim_damage_taken=row["victim_damage_taken"],
+                attacker_count=row["attacker_count"],
+                final_blow_character_id=row["final_blow_character_id"],
+                final_blow_ship_type_id=row["final_blow_ship_type_id"],
+                final_blow_corporation_id=row["final_blow_corporation_id"],
+                attackers_json=row["attackers_json"],
+                items_json=row["items_json"],
+                position_json=row["position_json"],
+            )
+            result[detail.kill_id] = detail
+
+        return result
 
     async def get_kill(self, kill_id: int) -> KillmailRecord | None:
         """Get a single killmail by ID."""

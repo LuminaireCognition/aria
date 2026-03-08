@@ -92,11 +92,7 @@ def _safe_directed_weight(src_sec: float, dst_sec: float) -> float:
     """Compute safe-mode weight for a directed traversal from src to dst."""
     if dst_sec >= HIGHSEC_THRESHOLD:
         return WEIGHT_NORMAL
-    elif dst_sec > LOWSEC_THRESHOLD:
-        if src_sec >= HIGHSEC_THRESHOLD:
-            return WEIGHT_LOWSEC_ENTRY
-        return WEIGHT_LOWSEC_STAY
-    return WEIGHT_NULLSEC
+    return WEIGHT_AVOID
 
 
 def compute_safe_weights(
@@ -108,9 +104,7 @@ def compute_safe_weights(
 
     Weight scheme (per directed traversal):
     - High-sec -> high-sec: WEIGHT_NORMAL (1)
-    - High-sec -> low-sec: WEIGHT_LOWSEC_ENTRY (50) - strong avoidance
-    - Low-sec -> low-sec: WEIGHT_LOWSEC_STAY (10) - moderate penalty
-    - Any -> null-sec: WEIGHT_NULLSEC (100) - very strong penalty
+    - Any -> non-highsec: WEIGHT_AVOID (infinity) - hard block
     - Any -> avoided system: WEIGHT_AVOID (infinity)
 
     Note: The graph is undirected, so edge.source/edge.target are arbitrary.

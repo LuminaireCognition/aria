@@ -1,0 +1,93 @@
+# Tristan L1 Missions - Medium Skill Variant
+#
+# Upgraded drone Tristan for L1 missions.
+# Better armor tank and drone performance.
+
+archetype:
+  hull: Tristan
+  skill_tier: meta
+  omega_required: false
+roles:
+  - missions-l1
+source: eveuni
+
+eft: |
+  [Tristan, L1 Missions - Medium Skills]
+
+  Drone Damage Amplifier I
+  Small Armor Repairer I
+  Damage Control I
+
+  1MN Monopropellant Enduring Afterburner
+  Cap Recharger I
+  Drone Navigation Computer I
+
+  [Empty High slot]
+  [Empty High slot]
+  [Empty High slot]
+
+  Small Auxiliary Nano Pump I
+  Small Auxiliary Nano Pump I
+  Small Nanobot Accelerator I
+
+  Hobgoblin I x5
+  Warrior I x3
+
+skill_requirements:
+  required:
+    Gallente Frigate: 3
+    Drones: 5
+    Light Drone Operation: 3
+  recommended:
+    Drone Sharpshooting: 4
+    Drone Durability: 3
+    Drone Navigation: 3
+    Repair Systems: 4
+
+stats:
+  dps: 85
+  ehp: 3600
+  align_time: 4.5
+  speed_ab: 660
+  validated_date: "2026-03-05"
+
+damage_tuning:
+  default_damage: thermal
+  tank_profile: armor_active
+
+  overrides:
+    serpentis:
+      drones:
+        light: "Hobgoblin I"
+      notes: "Serpentis weak to Thermal - Hobgoblins deal Thermal"
+    angel_cartel:
+      drones:
+        light: "Warrior I"
+      notes: "Angels weak to Explosive - Warriors deal Explosive"
+    blood_raiders:
+      drones:
+        light: "Acolyte I"
+      notes: "Blood Raiders weak to EM - Acolytes deal EM"
+    guristas:
+      drones:
+        light: "Hornet I"
+      notes: "Guristas weak to Kinetic - Hornets deal Kinetic"
+
+notes:
+  purpose: "Upgraded drone L1 runner with better survival"
+  engagement: "Orbit at 15-20km, swap drones to match faction"
+  warnings:
+    - "Carry spare drones for losses"
+    - "Enduring AB uses less cap than T1"
+
+upgrade_path:
+  next_tier: t2_budget
+  key_upgrades:
+    - module: "Hobgoblin I"
+      upgrade_to: "Hobgoblin II"
+      skill_required: "Light Drone Operation 5"
+    - module: "Drone Damage Amplifier I"
+      upgrade_to: "Drone Damage Amplifier II"
+      skill_required: "Weapon Upgrades 4"
+    - ship: "Vexor"
+      notes: "Cruiser upgrade for L2 missions with medium drones"

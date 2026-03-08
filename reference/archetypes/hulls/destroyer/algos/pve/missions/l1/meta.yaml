@@ -1,13 +1,16 @@
 # Algos L1 Missions - Shield Drone
 #
 # Shield-tanked drone Algos for L1 missions.
-# Drone DPS primary, meta autocannons for supplemental damage.
+# Drone DPS primary, meta hybrid railguns for supplemental damage.
 # Probe launcher in utility high for exploration between missions.
 
 archetype:
   hull: Algos
   skill_tier: meta
   omega_required: false
+roles:
+  - missions-l1
+source: eveuni
 
 attribution:
   author: iBeast (adapted)
@@ -24,11 +27,11 @@ eft: |
   Medium Azeotropic Restrained Shield Extender
   Compact Multispectrum Shield Hardener
 
-  150mm Light Prototype Automatic Cannon
-  150mm Light Prototype Automatic Cannon
-  150mm Light Prototype Automatic Cannon
-  150mm Light Prototype Automatic Cannon
-  150mm Light Prototype Automatic Cannon
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
+  125mm Compressed Coil Gun I
   Core Probe Launcher I
 
   Small EM Shield Reinforcer I
@@ -37,7 +40,7 @@ eft: |
 
   Hobgoblin I x5
 
-  Phased Plasma S x2800
+  Antimatter Charge S x2000
   Core Scanner Probe I x16
 
 skill_requirements:
@@ -49,12 +52,12 @@ skill_requirements:
   recommended:
     Drone Sharpshooting: 3
     Drone Durability: 3
-    Small Projectile Turret: 3
+    Small Hybrid Turret: 3
     Astrometrics: 3
 
 stats:
-  dps: 146  # drone-only (turret DPS from cargo ammo not calculated by EOS)
-  ehp: 9084
+  dps: 146  # pending recalculation with hybrid turrets
+  ehp: 9084  # pending recalculation with hybrid turrets
   align_time: 5.0
   speed_ab: 698
   validated_date: "2026-02-27"
@@ -91,20 +94,20 @@ damage_tuning:
 
 notes:
   purpose: "L1 mission runner with probe launcher for opportunistic exploration"
-  engagement: "Orbit at 10-15km with AB, let drones do primary DPS, autocannons for supplemental"
+  engagement: "Orbit at 10-15km with AB, let drones do primary DPS, railguns for supplemental"
   warnings:
     - "Nanofiber improves align time for warping between rooms"
     - "Probe launcher sacrifices 1 turret slot for scanning utility"
     - "EM shield reinforcer plugs the shield EM hole"
-    - "Autocannons use no cap - good synergy with shield tank"
+    - "Hybrid turrets benefit from Algos +50% turret damage bonus"
     - "Swap drone damage type to match faction weakness"
 
 upgrade_path:
   next_tier: t2
   key_upgrades:
-    - module: "150mm Light Prototype Automatic Cannon"
-      upgrade_to: "150mm AutoCannon II"
-      skill_required: "Small Projectile Turret 5"
+    - module: "125mm Compressed Coil Gun I"
+      upgrade_to: "125mm Railgun II"
+      skill_required: "Small Hybrid Turret 5"
     - module: "Compact Multispectrum Shield Hardener"
       upgrade_to: "Multispectrum Shield Hardener II"
       skill_required: "Tactical Shield Manipulation 4"

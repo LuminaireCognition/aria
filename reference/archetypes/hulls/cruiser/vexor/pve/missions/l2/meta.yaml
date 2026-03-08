@@ -7,6 +7,9 @@ archetype:
   hull: Vexor
   skill_tier: meta
   omega_required: false
+roles:
+  - missions-l2
+source: eveuni
 
 eft: |
   [Vexor, L2 Missions - Medium Skills]
@@ -59,6 +62,9 @@ damage_tuning:
   tank_profile: armor_active
 
   # Faction-specific module overrides
+  # NOTE: Swapping Multispectrum + Reactive to two specific hardeners may
+  # increase CPU usage. If the fit exceeds CPU, downgrade a mid-slot module
+  # (e.g. Drone Navigation Computer I → Cap Recharger I).
   overrides:
     serpentis:
       # Serpentis deal Kin/Therm, weak to Thermal
