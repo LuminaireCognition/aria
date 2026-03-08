@@ -238,6 +238,7 @@ class KillmailStore(Protocol):
         min_value: int | None = None,
         limit: int = 100,
         cursor: tuple[int, int] | None = None,
+        character_id: int | None = None,
     ) -> list[KillmailRecord]:
         """
         Query killmails with optional filters.
@@ -249,9 +250,24 @@ class KillmailStore(Protocol):
             min_value: Minimum zkb_total_value
             limit: Maximum results to return
             cursor: Pagination cursor (kill_time, kill_id)
+            character_id: Filter to kills involving this character (as victim)
 
         Returns:
             Killmails ordered by kill_time DESC, kill_id DESC
+        """
+        ...
+
+    @abstractmethod
+    async def get_esi_details_batch(self, kill_ids: list[int]) -> dict[int, ESIKillmail]:
+        """
+        Batch-fetch ESI details for multiple killmails.
+
+        Args:
+            kill_ids: List of kill IDs to fetch details for.
+
+        Returns:
+            Dict mapping kill_id to ESIKillmail for kills with successful ESI fetches.
+            Kills without ESI details or with unfetchable status are omitted.
         """
         ...
 
