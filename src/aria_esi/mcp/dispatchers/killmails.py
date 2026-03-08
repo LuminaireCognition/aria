@@ -257,7 +257,7 @@ async def _handle_query(
         entry: dict[str, Any] = {
             "kill_id": k.kill_id,
             "kill_time": datetime.fromtimestamp(k.kill_time, tz=UTC).isoformat(),
-            "system_id": k.solar_system_id,
+            "system_id": k.solar_system_id if k.solar_system_id != 0 else None,
             "value": k.zkb_total_value,
             "victim_ship_type_id": (
                 esi.victim_ship_type_id
@@ -329,7 +329,7 @@ async def _handle_stats(
     groups = {}
     if group_by == "system":
         for k in kills:
-            sid = k.solar_system_id
+            sid = k.solar_system_id or None  # 0 sentinel → None for "unknown"
             if sid not in groups:
                 groups[sid] = {"count": 0, "value": 0}
             groups[sid]["count"] += 1

@@ -366,7 +366,12 @@ async def _nearest(
     universe = get_universe()
 
     effective_limit = min(limit, UNIVERSE.NEAREST_MAX_LIMIT) if limit else 5
-    effective_max_jumps = min(max_jumps or 30, UNIVERSE.NEAREST_MAX_JUMPS)
+    # Lower default for NPC null searches — rare features found within ~12 jumps
+    # from typical lowsec starting points. Full 30 causes 95s+ BFS traversals.
+    default_jumps = 30
+    if not max_jumps and security_max is not None and security_max < 0.0:
+        default_jumps = 15
+    effective_max_jumps = min(max_jumps or default_jumps, UNIVERSE.NEAREST_MAX_JUMPS)
 
     if effective_limit < 1:
         raise InvalidParameterError(
