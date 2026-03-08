@@ -162,6 +162,9 @@ MCP tools are preferred when available. If `universe` appears in your tool list,
 | `/killmail` | `killmails(action="analyze", killmail_input=...)` | `aria-esi analyze-killmail` |
 | `/mail` | `pilot(action="mail_list", ...)` | `aria-esi mail` |
 | `/mining` | `pilot(action="mining_ledger", ...)` | `aria-esi mining` |
+| `/contracts` | `pilot(action="contracts", ...)` | `aria-esi contracts` |
+| `/fittings` | `pilot(action="fittings_list", ...)` | `aria-esi fittings` |
+| `/lp-store` | `pilot(action="lp_balance")` / `pilot(action="lp_offers", ...)` | `aria-esi lp` / `aria-esi lp-offers` |
 
 ### External Data Queries
 
