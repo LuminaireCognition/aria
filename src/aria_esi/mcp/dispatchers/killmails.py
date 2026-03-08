@@ -247,7 +247,7 @@ async def _handle_query(
         kill_ids = [k.kill_id for k in kills]
         if kill_ids:
             esi_details = await store.get_esi_details_batch(kill_ids)
-    except (OSError, ValueError, KeyError):
+    except Exception:  # noqa: BLE001 – graceful degradation, any failure is non-fatal
         logger.debug("ESI details batch fetch failed, using denormalized data")
 
     # Format results with ESI enrichment
