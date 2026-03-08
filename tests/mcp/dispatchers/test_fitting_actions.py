@@ -920,3 +920,45 @@ Mining Laser I, Scordite
             )
 
         assert isinstance(result, dict)
+
+
+# =============================================================================
+# Hull Stats Action Tests
+# =============================================================================
+
+
+class TestHullStatsAction:
+    """Tests for fitting hull_stats action."""
+
+    def test_hull_stats_requires_ship(self, fitting_dispatcher):
+        """Hull stats action requires ship parameter."""
+        with pytest.raises(InvalidParameterError) as exc:
+            asyncio.run(fitting_dispatcher(action="hull_stats"))
+
+        assert "ship" in str(exc.value).lower()
+
+    def test_hull_stats_returns_structure(self, fitting_dispatcher):
+        """Hull stats returns expected structure (hp, resists, cargo)."""
+        mock_result = {
+            "ship": "Retriever",
+            "hp": {"shield": 2000, "armor": 1500, "hull": 1200, "total": 4700},
+            "resists": {
+                "shield": {"em": 0.0, "thermal": 20.0, "kinetic": 40.0, "explosive": 50.0},
+                "armor": {"em": 50.0, "thermal": 35.0, "kinetic": 25.0, "explosive": 10.0},
+            },
+            "cargo_capacity": 27500,
+            "drone_bandwidth": 25,
+            "drone_bay": 25,
+            "signature_radius": 200,
+        }
+
+        with patch(
+            "aria_esi.mcp.dispatchers.fitting._hull_stats",
+            new_callable=AsyncMock,
+            return_value=mock_result,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(action="hull_stats", ship="Retriever")
+            )
+
+        assert "hp" in result or "ship" in result

@@ -28,7 +28,11 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 FittingAction = Literal[
-    "calculate_stats", "check_requirements", "extract_requirements", "recommend"
+    "calculate_stats",
+    "check_requirements",
+    "extract_requirements",
+    "recommend",
+    "hull_stats",
 ]
 
 VALID_ACTIONS: set[str] = {
@@ -36,6 +40,7 @@ VALID_ACTIONS: set[str] = {
     "check_requirements",
     "extract_requirements",
     "recommend",
+    "hull_stats",
 }
 
 # NOTE: keep in sync with VALID_ROLES in tests/test_archetype_integrity.py
@@ -93,6 +98,8 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
         use_pilot_skills: bool = False,
         # check_requirements params
         pilot_skills: dict | str | None = None,
+        # hull_stats params
+        ship: str | None = None,
         # recommend params
         role: str | None = None,
         hull: str | None = None,
@@ -122,6 +129,9 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
                 use_pilot_skills: Use pilot's cached skills (default False).
                                  Set True to use pilot-specific stats.
 
+            Hull stats params (action="hull_stats"):
+                ship: Ship type name (e.g., "Retriever", "Vexor", "Catalyst")
+
             Check requirements params (action="check_requirements"):
                 eft: Ship fitting in EFT format
                 pilot_skills: Dict mapping skill_id (str) to level (int)
@@ -148,6 +158,11 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
             - drones: Bandwidth, bay, launched counts
             - slots: High/mid/low/rig slot usage
             - metadata: Skill mode, validation errors, warnings
+
+            For hull_stats:
+            - hp: shield/armor/hull/total HP
+            - resists: shield/armor/hull resist profiles
+            - cargo_capacity, drone_bandwidth, drone_bay, signature_radius
 
             For check_requirements:
             - can_fly: bool - True if pilot meets all requirements
@@ -228,6 +243,7 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
                 "damage_profile": damage_profile,
                 "use_pilot_skills": use_pilot_skills,
                 "pilot_skills": pilot_skills,
+                "ship": ship,
                 "role": role,
                 "hull": hull,
                 "budget_isk": budget_isk,
@@ -255,6 +271,8 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
                 result = await _extract_requirements(eft)
             case "recommend":
                 result = await _recommend(role, hull, budget_isk, skill_tier, limit)
+            case "hull_stats":
+                result = await _hull_stats(ship)
             case _:
                 raise InvalidParameterError("action", action, f"Unknown action: {action}")
 
@@ -849,3 +867,65 @@ def _resolve_skill_name(skill_id: int) -> str:
         logger.debug("Could not resolve skill name for %d: %s", skill_id, e)
 
     return f"Unknown Skill ({skill_id})"
+
+
+async def _hull_stats(ship: str | None) -> dict:
+    """Get base hull statistics for a ship type (no modules fitted)."""
+    if not ship:
+        raise InvalidParameterError("ship", ship, "Required for action='hull_stats'")
+
+    try:
+        from aria_esi.fitting import (
+            EOSBridgeError,
+            EOSDataError,
+            get_eos_data_manager,
+        )
+        from aria_esi.fitting import (
+            calculate_hull_stats as calc_hull_stats,
+        )
+    except ImportError as e:
+        return {
+            "error": "fitting_not_available",
+            "message": f"Fitting module dependencies not installed: {e}",
+            "hint": "Install with: uv pip install 'aria[fitting]'",
+        }
+
+    # Validate EOS data is available
+    try:
+        data_manager = get_eos_data_manager()
+        data_manager.ensure_valid()
+    except EOSDataError as e:
+        return {
+            "error": "eos_data_missing",
+            "message": str(e),
+            "hint": "Run 'uv run aria-esi eos-seed' to download EOS data",
+        }
+
+    # Resolve ship type name to type_id
+    from aria_esi.store.market.database import get_market_database
+
+    db = get_market_database()
+    type_info = db.resolve_type_name(ship)
+    if type_info is None:
+        suggestions = db.find_type_suggestions(ship)
+        return {
+            "error": "type_resolution_error",
+            "message": f"Unknown ship type: {ship}",
+            "suggestions": suggestions,
+            "hint": "Check the ship name spelling",
+        }
+
+    try:
+        result = calc_hull_stats(type_info.type_id, type_info.type_name)
+        return wrap_scalar_output(result.to_dict(), count=1, source="eos")
+    except EOSBridgeError as e:
+        return {
+            "error": "eos_calculation_error",
+            "message": str(e),
+        }
+    except Exception as e:
+        logger.exception("Unexpected error calculating hull stats")
+        return {
+            "error": "calculation_error",
+            "message": str(e),
+        }

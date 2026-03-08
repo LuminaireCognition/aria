@@ -16,6 +16,7 @@ from aria_esi.fitting.eos_bridge import (
     EOSFitError,
     EOSNotInitializedError,
     calculate_fit_stats,
+    calculate_hull_stats,
     get_eos_bridge,
 )
 from aria_esi.fitting.eos_data import (
@@ -53,6 +54,7 @@ __all__ = [
     "EOSNotInitializedError",
     "get_eos_bridge",
     "calculate_fit_stats",
+    "calculate_hull_stats",
     # EFT parser
     "EFTParser",
     "EFTParseError",

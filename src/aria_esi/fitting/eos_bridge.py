@@ -12,7 +12,7 @@ overhead when the fitting module is not needed.
 from __future__ import annotations
 
 import threading
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from aria_esi.core.exceptions import AriaError
 from aria_esi.core.logging import get_logger
@@ -23,6 +23,7 @@ from aria_esi.models.fitting import (
     DPSBreakdown,
     DroneStats,
     FitStatsResult,
+    HullStatsResult,
     LayerStats,
     MobilityStats,
     ParsedFit,
@@ -74,6 +75,17 @@ ATTR_MAX_VELOCITY = 37
 ATTR_WARP_SPEED_MULTIPLIER = 600
 ATTR_CAP_CAPACITY = 482
 ATTR_CAP_RECHARGE_TIME = 55
+ATTR_DRONE_BANDWIDTH_USED = 1272
+
+# HP attributes
+ATTR_SHIELD_HP = 263
+ATTR_ARMOR_HP = 265
+ATTR_HULL_HP = 9
+
+# Drone/cargo attributes
+ATTR_DRONE_BANDWIDTH_OUTPUT = 1271
+ATTR_DRONE_BAY_CAPACITY = 283
+ATTR_SIGNATURE_RADIUS = 552
 
 # Resist attributes (armor)
 # EVE SDE order: EM(267), Explosive(268), Kinetic(269), Thermal(270)
@@ -212,6 +224,59 @@ def _check_tank_coherence(parsed_fit: ParsedFit) -> list[str]:
         )
 
     return warnings
+
+
+# =============================================================================
+# Drone Bandwidth Enforcement
+# =============================================================================
+
+
+def _enforce_drone_bandwidth(fit: Any, drone_objects: list, warnings: list[str]) -> None:
+    """
+    Activate drones within max-active and bandwidth limits.
+
+    Iterates drones in insertion order (EFT listing = pilot intent).
+    Activates each drone if both the max_active_drones limit and
+    available bandwidth allow it. Remaining drones stay offline (in bay).
+
+    Args:
+        fit: EOS Fit object with drones already added as offline
+        drone_objects: List of Drone objects in insertion order
+        warnings: Warning list to append overflow messages to
+    """
+    from aria_esi._vendor.eos import State
+
+    if not drone_objects:
+        return
+
+    max_active = int(fit.stats.launched_drones.total)
+    bandwidth_output = float(fit.stats.drone_bandwidth.output)
+
+    activated = 0
+    bandwidth_used = 0.0
+    overflow_count = 0
+
+    for drone in drone_objects:
+        if activated >= max_active:
+            overflow_count += 1
+            continue
+
+        # Get drone's bandwidth requirement from its attrs
+        drone_bw = float(drone.attrs.get(ATTR_DRONE_BANDWIDTH_USED, 0))
+        if bandwidth_used + drone_bw > bandwidth_output:
+            overflow_count += 1
+            continue
+
+        drone.state = State.active
+        activated += 1
+        bandwidth_used += drone_bw
+
+    if overflow_count > 0:
+        warnings.append(
+            f"Drone bay overflow: {overflow_count} drone(s) exceed launch limits "
+            f"({activated} active of {len(drone_objects)} total, "
+            f"{bandwidth_used:.0f}/{bandwidth_output:.0f} Mbit bandwidth)"
+        )
 
 
 # =============================================================================
@@ -427,20 +492,23 @@ class EOSBridge:
             for subsystem in parsed_fit.subsystems:
                 fit.subsystems.add(Subsystem(subsystem.type_id))
 
-            # Add drones
-            for drone in parsed_fit.drones:
-                for _ in range(drone.quantity):
-                    # Active drones contribute to DPS
-                    fit.drones.add(Drone(drone.type_id, state=State.active))
+            # Add drones - two-pass: add all as offline (bay), then activate within limits
+            all_drones = []
+            for drone_entry in parsed_fit.drones:
+                for _ in range(drone_entry.quantity):
+                    d = Drone(drone_entry.type_id, state=State.offline)
+                    fit.drones.add(d)
+                    all_drones.append(d)
 
             # Validate fit (skip skill requirements for flexibility)
             validation_errors = []
             warnings = []
+
+            # Activate drones within bandwidth and max-active limits
+            _enforce_drone_bandwidth(fit, all_drones, warnings)
+
             try:
-                skip_checks = (
-                    Restriction.skill_requirement,
-                    Restriction.launched_drone,
-                )
+                skip_checks = (Restriction.skill_requirement,)
                 fit.validate(skip_checks=skip_checks)
             except Exception as e:  # noqa: BLE001 -- broad handler
                 warnings.append(f"Fit validation warning: {e}")
@@ -603,6 +671,73 @@ class EOSBridge:
         except Exception as e:
             raise EOSFitError(f"Failed to calculate fit stats: {e}") from e
 
+    def calculate_hull_stats(self, type_id: int, type_name: str) -> HullStatsResult:
+        """
+        Calculate base hull statistics (no modules/rigs fitted).
+
+        Creates a bare fit with only the ship hull and extracts base HP,
+        resists, cargo, drone bay, and signature radius from dogma attributes.
+
+        Args:
+            type_id: Ship type ID
+            type_name: Ship type name (for display)
+
+        Returns:
+            HullStatsResult with base hull statistics
+
+        Raises:
+            EOSFitError: If calculation fails
+        """
+        if not self._initialized:
+            self.initialize()
+
+        try:
+            from aria_esi._vendor.eos import Fit, Ship
+
+            fit = Fit()
+            fit.ship = Ship(type_id)
+
+            attrs = fit.ship.attrs
+
+            def get_resist_pct(attr_id: int) -> float:
+                value = attrs.get(attr_id, 1.0)
+                return (1 - value) * 100 if value is not None else 0.0
+
+            return HullStatsResult(
+                type_id=type_id,
+                type_name=type_name,
+                shield_hp=float(attrs.get(ATTR_SHIELD_HP, 0) or 0),
+                armor_hp=float(attrs.get(ATTR_ARMOR_HP, 0) or 0),
+                hull_hp=float(attrs.get(ATTR_HULL_HP, 0) or 0),
+                shield_resists=ResistProfile(
+                    em=get_resist_pct(ATTR_SHIELD_EM_RESIST),
+                    thermal=get_resist_pct(ATTR_SHIELD_THERMAL_RESIST),
+                    kinetic=get_resist_pct(ATTR_SHIELD_KINETIC_RESIST),
+                    explosive=get_resist_pct(ATTR_SHIELD_EXPLOSIVE_RESIST),
+                ),
+                armor_resists=ResistProfile(
+                    em=get_resist_pct(ATTR_ARMOR_EM_RESIST),
+                    thermal=get_resist_pct(ATTR_ARMOR_THERMAL_RESIST),
+                    kinetic=get_resist_pct(ATTR_ARMOR_KINETIC_RESIST),
+                    explosive=get_resist_pct(ATTR_ARMOR_EXPLOSIVE_RESIST),
+                ),
+                hull_resists=ResistProfile(
+                    em=get_resist_pct(ATTR_HULL_EM_RESIST),
+                    thermal=get_resist_pct(ATTR_HULL_THERMAL_RESIST),
+                    kinetic=get_resist_pct(ATTR_HULL_KINETIC_RESIST),
+                    explosive=get_resist_pct(ATTR_HULL_EXPLOSIVE_RESIST),
+                ),
+                cargo_capacity=float(attrs.get(ATTR_CAPACITY, 0) or 0),
+                drone_bandwidth=float(attrs.get(ATTR_DRONE_BANDWIDTH_OUTPUT, 0) or 0),
+                drone_bay=float(attrs.get(ATTR_DRONE_BAY_CAPACITY, 0) or 0),
+                signature_radius=float(attrs.get(ATTR_SIGNATURE_RADIUS, 0) or 0),
+            )
+
+        except ImportError as e:
+            raise EOSBridgeError("EOS library not available") from e
+        except Exception as e:
+            raise EOSFitError(f"Failed to calculate hull stats: {e}") from e
+
 
 # =============================================================================
 # Module-level Functions
@@ -634,3 +769,20 @@ def calculate_fit_stats(
     """
     bridge = get_eos_bridge()
     return bridge.calculate_stats(parsed_fit, damage_profile, skill_levels)
+
+
+def calculate_hull_stats(type_id: int, type_name: str) -> HullStatsResult:
+    """
+    Calculate base hull statistics (no modules/rigs).
+
+    Convenience function that uses the singleton bridge.
+
+    Args:
+        type_id: Ship type ID
+        type_name: Ship type name (for display)
+
+    Returns:
+        HullStatsResult with base hull statistics
+    """
+    bridge = get_eos_bridge()
+    return bridge.calculate_hull_stats(type_id, type_name)

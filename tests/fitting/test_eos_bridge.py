@@ -21,6 +21,7 @@ from aria_esi.fitting.eos_bridge import (
     ATTR_ARMOR_KINETIC_RESIST,
     ATTR_ARMOR_THERMAL_RESIST,
     ATTR_CAP_CAPACITY,
+    ATTR_DRONE_BANDWIDTH_USED,
     ATTR_MASS,
     ATTR_MAX_VELOCITY,
     ATTR_SHIELD_EM_RESIST,
@@ -28,6 +29,7 @@ from aria_esi.fitting.eos_bridge import (
     ATTR_SHIELD_KINETIC_RESIST,
     ATTR_SHIELD_THERMAL_RESIST,
     EOSBridge,
+    _enforce_drone_bandwidth,
     calculate_fit_stats,
     get_eos_bridge,
 )
@@ -330,10 +332,10 @@ class TestFitConstruction:
                         4405, state=mock_eos_module.State.offline
                     )
 
-    def test_drones_added_as_active(
+    def test_drones_added_initially_offline(
         self, vexor_parsed_fit, mock_eos_module, mock_eos_data_path
     ):
-        """Test that drones are added in active state."""
+        """Test that drones are initially added in offline state (bay), then activated by bandwidth enforcement."""
         EOSBridge.reset_instance()
 
         with patch.dict("sys.modules", {"aria_esi._vendor.eos": mock_eos_module}):
@@ -356,6 +358,9 @@ class TestFitConstruction:
 
                     # Vexor has 10 drones total (5 Hammerhead + 5 Hobgoblin)
                     assert mock_eos_module.Drone.call_count == 10
+                    # All drones initially added as offline
+                    for call in mock_eos_module.Drone.call_args_list:
+                        assert call.kwargs["state"] == mock_eos_module.State.offline
 
     def test_non_offline_modules_use_active_state(
         self, vexor_parsed_fit, mock_eos_module, mock_eos_data_path
@@ -606,3 +611,92 @@ class TestAttributeConstants:
         assert ATTR_SHIELD_EXPLOSIVE_RESIST == AttrId.shield_expl_dmg_resonance
         assert ATTR_SHIELD_KINETIC_RESIST == AttrId.shield_kin_dmg_resonance
         assert ATTR_SHIELD_THERMAL_RESIST == AttrId.shield_therm_dmg_resonance
+
+    def test_drone_bandwidth_attribute_id(self):
+        """Test that drone bandwidth used attribute ID is correct."""
+        assert ATTR_DRONE_BANDWIDTH_USED == 1272
+
+
+# =============================================================================
+# Drone Bandwidth Enforcement Tests
+# =============================================================================
+
+
+class TestDroneBandwidthEnforcement:
+    """Tests for _enforce_drone_bandwidth helper."""
+
+    def _make_drone(self, bandwidth: int = 5) -> MagicMock:
+        """Create a simple drone mock with mutable state and attrs."""
+        # Use a simple namespace rather than MagicMock to allow plain attr assignment
+        class MockDrone:
+            def __init__(self, bw):
+                self.attrs = {1272: bw}
+                self.state = "offline"
+        return MockDrone(bandwidth)
+
+    def _patch_eos_state(self):
+        """Patch EOS State for the local import in _enforce_drone_bandwidth."""
+        mock_state = MagicMock()
+        mock_state.active = "active"
+        mock_eos = MagicMock()
+        mock_eos.State = mock_state
+        return patch.dict("sys.modules", {"aria_esi._vendor.eos": mock_eos})
+
+    def test_all_drones_within_limits(self):
+        """All drones fit within bandwidth and max_active -> all active, no warning."""
+        fit = MagicMock()
+        fit.stats.launched_drones.total = 5
+        fit.stats.drone_bandwidth.output = 50.0
+
+        # 3 light drones (5 Mbit each) = 15 Mbit, well within 50 Mbit
+        drones = [self._make_drone(5) for _ in range(3)]
+
+        warnings = []
+        with self._patch_eos_state():
+            _enforce_drone_bandwidth(fit, drones, warnings)
+
+        assert all(d.state == "active" for d in drones)
+        assert len(warnings) == 0
+
+    def test_drones_exceed_max_active(self):
+        """More drones than max_active -> first flight active, rest offline, warning."""
+        fit = MagicMock()
+        fit.stats.launched_drones.total = 5
+        fit.stats.drone_bandwidth.output = 125.0  # Plenty of bandwidth
+
+        # 10 light drones (5 Mbit each), but only 5 can fly
+        drones = [self._make_drone(5) for _ in range(10)]
+
+        warnings = []
+        with self._patch_eos_state():
+            _enforce_drone_bandwidth(fit, drones, warnings)
+
+        active_count = sum(1 for d in drones if d.state == "active")
+        assert active_count == 5
+        assert len(warnings) == 1
+        assert "5 drone(s) exceed launch limits" in warnings[0]
+
+    def test_drones_exceed_bandwidth(self):
+        """Drones exceed bandwidth -> bandwidth-fitting drones active, rest offline."""
+        fit = MagicMock()
+        fit.stats.launched_drones.total = 5
+        fit.stats.drone_bandwidth.output = 25.0  # Only 25 Mbit
+
+        # 5 medium drones (10 Mbit each) = 50 Mbit, but only 25 Mbit available
+        drones = [self._make_drone(10) for _ in range(5)]
+
+        warnings = []
+        with self._patch_eos_state():
+            _enforce_drone_bandwidth(fit, drones, warnings)
+
+        active_count = sum(1 for d in drones if d.state == "active")
+        assert active_count == 2  # 2 × 10 = 20 Mbit fits, 3rd would be 30 > 25
+        assert len(warnings) == 1
+        assert "3 drone(s) exceed launch limits" in warnings[0]
+
+    def test_empty_drone_list(self):
+        """No drones -> no-op, no warnings."""
+        fit = MagicMock()
+        warnings = []
+        _enforce_drone_bandwidth(fit, [], warnings)
+        assert len(warnings) == 0
