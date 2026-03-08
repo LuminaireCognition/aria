@@ -112,9 +112,14 @@ Read `reference/mechanics/drones.json` (project-root-relative path, not skill-di
 
 Check pilot's `ships.md` and `profile.md` for module tier indicators. Default to **T1/Meta** when uncertain. Named meta modules are superior to T1 base — never suggest T1 base as an upgrade from named meta.
 
-## EFT Ammo Note
+## Charge Coherence
 
-Ammo/charge lines may be misparsed as drones. Signs: `drones.launched > 5`, drone bay overflow, unexpectedly low DPS. Workaround: place ammo after an extra blank line (cargo section).
+- **No turrets in fit** → do not recommend turret ammo (hybrid charges, projectile ammo, frequency crystals)
+- **No launchers in fit** → do not recommend missiles or torpedoes
+- Only recommend charges/ammo for weapon systems actually present in the EFT block
+- Cap boosters, scan scripts, and other non-weapon charges are fine if their parent module is fitted
+
+**EFT parsing note:** Ammo/charge lines may be misparsed as drones. Signs: `drones.launched > 5`, drone bay overflow, unexpectedly low DPS. Workaround: place ammo after an extra blank line (cargo section).
 
 ## Rules
 

@@ -18,29 +18,40 @@ esi_scopes:
 
 Contract actions (accept, create, cancel) require in-game action. ARIA monitors only.
 
+> **HALLUCINATION GUARD:** Every contract, type, status, price, and counterparty in the response MUST come from a `pilot(action="contracts", ...)` MCP call or CLI call made in this session. If neither was called or returned an error, present only the error state. NEVER fill in contracts from training data.
+
+**You MUST call the MCP tool or CLI command below before presenting any contract data.** Do not summarize, guess, or present contracts without executing the command first.
+
 ## Contract Types
 
-Item exchange, courier, auction, loan. The CLI output includes type and status fields for each contract.
+Item exchange, courier, auction, loan. The output includes type and status fields for each contract.
 
 ## Implementation
+
+### MCP (preferred)
+
+```
+pilot(action="contracts")
+pilot(action="contracts", status_filter="active")
+pilot(action="contracts", type_filter="courier")
+pilot(action="contracts", issued=True, received=False)
+pilot(action="contracts", status_filter="completed", limit=10)
+```
+
+**Parameters:**
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `status_filter` | `"active"`, `"completed"`, or omit for all | None |
+| `type_filter` | `"item_exchange"`, `"courier"`, `"auction"` | None |
+| `issued` | Include contracts you issued | True |
+| `received` | Include contracts assigned to you | True |
+| `limit` | Maximum contracts to display | 50 |
+
+### CLI (fallback)
 
 ```bash
 PYTHONPATH=.claude/scripts uv run python -m aria_esi contracts [options]
 ```
-
-### Commands
-
-| Command | Description |
-|---------|-------------|
-| `contracts` | List all personal contracts |
-| `contracts --issued` | Show only contracts you created |
-| `contracts --received` | Show only contracts assigned to you |
-| `contracts --type courier` | Filter by contract type |
-| `contracts --active` | Show only outstanding/in_progress |
-| `contracts --completed` | Show completed contracts |
-| `contract <id>` | Detailed view of specific contract |
-
-### Options
 
 | Option | Description |
 |--------|-------------|

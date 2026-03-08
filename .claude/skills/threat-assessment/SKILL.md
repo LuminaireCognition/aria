@@ -1,7 +1,7 @@
 ---
 name: threat-assessment
 description: ARIA security and threat analysis for Eve Online. Use for system safety evaluation, activity risk assessment, or travel route analysis.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/threat-assessment"
@@ -98,12 +98,35 @@ FW data comes from `local_area` response (`fw_systems` field) or `universe(actio
 | `contested` | Active plexing, small gang PvP, militia fleets roaming |
 | `vulnerable` | System near flip, heavy militia activity, large fleet engagements likely |
 
-## Threat Level Definitions
+## Dual Threat Dimensions
 
-**MINIMAL:** Standard high-sec operations, normal NPC threats only
-**ELEVATED:** Low-sec adjacent, 0.5 systems, or valuable cargo
-**HIGH:** Low-sec operations, known hostile activity, PvP likely
-**CRITICAL:** Null-sec, wormholes, or confirmed hostile presence
+Report threat using TWO independent dimensions:
+
+### Structural Threat (from security status — static)
+
+| Level | Criteria |
+|-------|----------|
+| MINIMAL | High-sec (>=0.5), no special factors |
+| ELEVATED | 0.5 systems, low-sec adjacent, valuable cargo |
+| HIGH | Low-sec operations |
+| CRITICAL | Null-sec, wormholes |
+
+### Live Threat (from activity data — dynamic)
+
+| Level | Criteria |
+|-------|----------|
+| QUIET | 0 PvP kills/hr, low traffic |
+| ACTIVE | 1-5 kills/hr |
+| DANGEROUS | 5-20 kills/hr, gate camps possible |
+| HOSTILE | 20+ kills/hr, active combat zone |
+
+### Combined Format
+
+```
+THREAT LEVEL: STRUCTURAL: CRITICAL (null-sec) | LIVE: QUIET (0 kills/hr)
+```
+
+A null-sec system with zero kills is structurally dangerous but currently quiet. A 0.5 high-sec system with 15 kills/hr is structurally moderate but currently dangerous. Both dimensions matter.
 
 ## Anti-Patterns
 
@@ -113,8 +136,8 @@ FW data comes from `local_area` response (`fw_systems` field) or `universe(actio
 ❌ **WRONG:** Claim "5 MCP calls made" but only document 2 in the response
 ✅ **RIGHT:** Document every tool call. If only 2 calls were made, say 2.
 
-❌ **WRONG:** Use threat level "LOW" in the assessment
-✅ **RIGHT:** Use only defined threat levels: MINIMAL, ELEVATED, HIGH, CRITICAL
+❌ **WRONG:** Use a single threat level "CRITICAL" for a quiet null-sec system
+✅ **RIGHT:** Report both dimensions: `STRUCTURAL: CRITICAL (null-sec) | LIVE: QUIET (0 kills/hr)`
 
 ❌ **WRONG:** Present sovereignty data ("Goonswarm / Imperium") without querying `universe(action="systems")`
 ✅ **RIGHT:** Sovereignty data must come from the `sovereignty` field in a systems or local_area response

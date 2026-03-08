@@ -58,7 +58,7 @@
     {
       "name": "arbitrage",
       "description": "Cross-region arbitrage opportunity scanner. Find profitable trade routes between trade hubs with hauling score analysis.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "financial",
       "triggers": [
         "/arbitrage",
@@ -256,7 +256,7 @@
     {
       "name": "escape-route",
       "description": "Escape route planning for Eve Online. Find fastest routes to safe harbor from current position.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/escape-route",
@@ -372,7 +372,7 @@
     {
       "name": "first-run-setup",
       "description": "Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "system",
       "triggers": [
         "/setup",
@@ -394,7 +394,7 @@
     {
       "name": "fit-budget",
       "description": "Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/fit-budget",
@@ -427,7 +427,7 @@
     {
       "name": "fit-check",
       "description": "Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/fit-check",
@@ -459,7 +459,7 @@
     {
       "name": "fit-recommend",
       "description": "Recommend ship fittings from the archetype library based on role, hull, budget, and skill tier.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/fit-recommend",
@@ -553,7 +553,7 @@
     {
       "name": "gatecamp",
       "description": "Real-time gatecamp detection and intel. Check for active camps in systems or along routes.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/gatecamp",
@@ -566,7 +566,9 @@
       "has_persona_overlay": true,
       "path": ".claude/skills/gatecamp/SKILL.md",
       "directory": "gatecamp",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "reference/mechanics/chokepoints.json"
+      ],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
@@ -602,7 +604,7 @@
     {
       "name": "hunting-grounds",
       "description": "Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/hunting-grounds",
@@ -653,7 +655,7 @@
     {
       "name": "isk-compare",
       "description": "Compare ISK/hour across activities you can do with your current skills and ships. Find the most efficient way to earn ISK at your level.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "financial",
       "triggers": [
         "/isk-compare",
@@ -956,7 +958,7 @@
     {
       "name": "orient",
       "description": "Local area intel for orientation in unknown space. Use after wormhole jumps, filaments, or when dropped into unfamiliar territory.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/orient",
@@ -1179,7 +1181,7 @@
     {
       "name": "ship-next",
       "description": "Ship progression advisor for new and intermediate pilots. Recommends your next ship based on current skills, wallet, and preferred activities.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/ship-next",
@@ -1214,7 +1216,7 @@
     {
       "name": "skillplan",
       "description": "Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and \"Easy 80%\" recommendations.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/skillplan",
@@ -1309,7 +1311,7 @@
     {
       "name": "threat-assessment",
       "description": "ARIA security and threat analysis for Eve Online. Use for system safety evaluation, activity risk assessment, or travel route analysis.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/threat-assessment",

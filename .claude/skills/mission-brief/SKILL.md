@@ -34,13 +34,28 @@ external_sources:
 
 # ARIA Mission Intelligence Module
 
-## Anti-Confabulation Gate: Two-Phase Output (BLOCKING)
+## Streaming Protocol: Intel First, Fitting Second
+
+Present mission intel immediately — do NOT wait for fitting validation.
+
+### Present immediately (no tool dependency):
+- **Quick Reference** table (Tank, Deal, EWAR, Objective) — from prerequisite files
+- **Spawns** — wave structure with distances and triggers
+- **Blitz** — numbered steps if available
+- **Tactical Notes** — EWAR warnings, special mechanics
+
+### Append when ready (after tool call):
+- **Mission Fit** — EFT block + validated stats
+
+This separation means the user gets actionable intel while EOS fitting runs (~85s).
+
+## Anti-Confabulation Gate (BLOCKING for fitting stats only)
 
 **Phase 1 — Build:** Generate the adapted EFT block based on pilot roster, faction resistance profile, and archetype. Do NOT write any numerical stats (DPS, EHP, CPU, powergrid, resists).
 
 **Phase 2 — Validate:** Call `fitting(action="calculate_stats", eft="...", use_pilot_skills=True)`. Present stats ONLY from the tool response, prefixed with "**Fitting engine:**". If the call fails, write: "Stats unavailable — verify in-game (Alt+F)."
 
-**NEVER write Phase 2 content without completing the tool call.**
+**NEVER write Phase 2 content without completing the tool call.** However, intel sections (Quick Reference, Spawns, Blitz, Tactical Notes) have no tool dependency and MUST be presented before the fitting phase.
 
 ## Ship Roster Check (BLOCKING)
 

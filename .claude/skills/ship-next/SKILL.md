@@ -1,7 +1,7 @@
 ---
 name: ship-next
 description: Ship progression advisor for new and intermediate pilots. Recommends your next ship based on current skills, wallet, and preferred activities.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/ship-next"

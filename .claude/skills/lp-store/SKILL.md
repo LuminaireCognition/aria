@@ -16,48 +16,53 @@ esi_scopes:
 
 # Loyalty Points Module
 
+## Required Tool Calls (MANDATORY)
+
+| Query Type | MCP Call (preferred) | CLI Fallback |
+|------------|---------------------|--------------|
+| LP balance | `pilot(action="lp_balance")` | `uv run python -m aria_esi lp` |
+| LP store browse | `pilot(action="lp_offers", corporation_name="<corp>")` | `uv run python -m aria_esi lp-offers "<corp>"` |
+| LP analysis | `pilot(action="lp_offers", corporation_name="<corp>")` | `uv run python -m aria_esi lp-analyze "<corp>"` |
+
+**Corporation matching:** The corporation name MUST match the user's request exactly.
+
+> **HALLUCINATION GUARD:** Every LP balance, store offer, item name, and cost in the response MUST come from a `pilot(action="lp_balance")` or `pilot(action="lp_offers", ...)` MCP call, or a CLI call made in this session. If neither was called or returned an error, present only the error state. NEVER fill in offers from training data — corporation LP stores change and training data may show items from the wrong corporation.
+
 ## Commands
 
-### LP Balance Check
+### MCP (preferred)
+
+```
+pilot(action="lp_balance")
+pilot(action="lp_offers", corporation_name="Federation Navy")
+pilot(action="lp_offers", corporation_name="Federation Navy", search="implant")
+pilot(action="lp_offers", corporation_name="Federation Navy", max_lp=5000)
+pilot(action="lp_offers", corporation_name="Federation Navy", affordable=True)
+```
+
+**Parameters:**
+
+| Action | Parameter | Description | Default |
+|--------|-----------|-------------|---------|
+| `lp_balance` | *(none)* | Lists LP per corporation | - |
+| `lp_offers` | `corporation_name` | Corp name, ID, or shortcut (required) | - |
+| `lp_offers` | `search` | Filter offers by item name | None |
+| `lp_offers` | `max_lp` | Maximum LP cost to show | None |
+| `lp_offers` | `affordable` | Only show offers you can afford | False |
+
+### CLI (fallback)
 
 ```bash
 PYTHONPATH=.claude/scripts uv run python -m aria_esi lp
-```
-
-### Browse LP Store
-
-```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-offers "<corp>"
-PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-offers "<corp>" --search <term>
-PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-offers "<corp>" --max-lp <N>
-PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-offers "<corp>" --affordable
-```
-
-### Analyze for Self-Sufficiency
-
-```bash
+PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-offers "<corp>" [--search <term>] [--max-lp <N>] [--affordable]
 PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-analyze "<corp>"
 ```
-
-Identifies offers requiring only LP + ISK (no market items needed).
 
 ## Data Locality
 
 LP balance data is fetched live from ESI on every query — no local cache. LP store offers use the public ESI endpoint (no auth required).
 
 Common corporation shortcuts (e.g., "fed navy", "soe", "cal navy") are supported by the CLI.
-
-## Required Tool Calls (MANDATORY)
-
-| Query Type | Required Call |
-|------------|-------------|
-| LP balance | `PYTHONPATH=.claude/scripts uv run python -m aria_esi lp` |
-| LP store browse | `PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-offers "<corp>"` |
-| LP analysis | `PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-analyze "<corp>"` |
-
-**Corporation matching:** The corporation name MUST match the user's request exactly.
-
-> **HALLUCINATION GUARD:** Every LP balance, store offer, item name, and cost in the response MUST come from a CLI call made in this session. If the CLI was not called or returned an error, present only the error state. NEVER fill in offers from training data — corporation LP stores change and training data may show items from the wrong corporation.
 
 ## Response Format
 

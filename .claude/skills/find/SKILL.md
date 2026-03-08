@@ -118,6 +118,18 @@ On item or system not found, suggest corrections based on fuzzy match suggestion
 
 For pilots with `market_trading: false`, prefer NPC sources over distant trade hubs.
 
+## Security Classification
+
+When displaying system security in results:
+
+| Displayed Sec | Classification | Formatting |
+|---------------|---------------|------------|
+| >= 0.5        | Highsec       | No warning indicator |
+| 0.1 - 0.4    | Lowsec        | Flag with warning |
+| <= 0.0        | Nullsec       | Flag with warning |
+
+**Do not flag highsec systems (>= 0.5) as dangerous.** Systems like Uedama (0.51) are highsec despite ganking activity — flag only if the pilot specifically asks about gank risk.
+
 ## Contextual Suggestions
 
 After providing results, suggest related commands when appropriate:

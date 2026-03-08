@@ -168,6 +168,7 @@ With `--insights`, run `uv run aria-esi assets --insights` and present results. 
 - **DO NOT** present valuation as exact (market prices fluctuate)
 - **DO NOT** attempt to resolve all structure names (too slow)
 - **DO NOT** include wallet balance in asset total (different data)
+- **DO NOT** use emojis in output
 
 ## Notes
 

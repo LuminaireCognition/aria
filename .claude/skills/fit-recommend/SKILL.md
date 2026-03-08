@@ -1,7 +1,7 @@
 ---
 name: fit-recommend
 description: Recommend ship fittings from the archetype library based on role, hull, budget, and skill tier.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/fit-recommend"

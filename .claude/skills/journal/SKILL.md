@@ -34,6 +34,7 @@ On first use, replace the placeholder template entry under the header.
 
 ## Response Flow
 
+0. **Resolve pilot** — The active pilot directory is resolved from boot context. If boot context is unavailable (e.g., after `/clear`), read `userdata/pilots/_registry.json` to find the active pilot directory. **Never ask the user for their pilot name.**
 1. **Determine entry type** — If not specified, ask: "Mission or exploration entry?"
 2. **Parse inline arguments** — Check the user's message for required fields (see Inline Argument Parsing below).
    - **All required fields present:** Proceed directly to preview. Do NOT ask for fields already provided.

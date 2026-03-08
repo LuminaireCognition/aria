@@ -1,0 +1,104 @@
+{
+  "_description": "Known chokepoint systems with historical gatecamp data. Supplements algorithmic pipe/hub detection with community knowledge of persistently dangerous systems.",
+  "_source": "Community knowledge, validated against DOTLAN and historical killboard data",
+  "_updated": "2026-03-06",
+  "systems": [
+    {
+      "name": "Uedama",
+      "system_id": 30002768,
+      "region": "The Citadel",
+      "security": 0.5,
+      "reason": "Mandatory crossing between Gallente and Caldari highsec. Primary highsec ganking system.",
+      "camp_frequency": "constant",
+      "typical_threats": ["suicide gankers", "Tornado/Catalyst fleets", "cargo scanners"],
+      "safe_alternatives": [
+        "Route via Sivala (longer but avoids Uedama)",
+        "Use webbing alt for faster warp-to-warp",
+        "Travel in off-peak hours (DT +2h)"
+      ]
+    },
+    {
+      "name": "Ahbazon",
+      "system_id": 30003504,
+      "region": "Genesis",
+      "security": 0.4,
+      "reason": "Sole lowsec gate between Domain and Genesis highsec pipe. Unavoidable for Amarr-Gallente travel.",
+      "camp_frequency": "frequent",
+      "typical_threats": ["gatecamps", "smartbombing battleships", "fast tackle"],
+      "safe_alternatives": [
+        "Route through highsec via Amarr-Jita corridor (much longer)",
+        "Scout with alt before jumping",
+        "Use cloak+MWD trick on gate"
+      ]
+    },
+    {
+      "name": "Rancer",
+      "system_id": 30002813,
+      "region": "Sinq Laison",
+      "security": 0.4,
+      "reason": "Lowsec pipe system between Sinq Laison and Metropolis. Notorious for persistent gatecamps.",
+      "camp_frequency": "frequent",
+      "typical_threats": ["gatecamps", "smartbombing battleships", "warp disruption bubbles (nearby nullsec)"],
+      "safe_alternatives": [
+        "Route via highsec Metropolis connector",
+        "Avoid Crielere-Rancer-Miroitem pipe entirely",
+        "Use wormhole connections as alternative"
+      ]
+    },
+    {
+      "name": "Tama",
+      "system_id": 30002813,
+      "region": "The Citadel",
+      "security": 0.3,
+      "reason": "FW lowsec pipe between Caldari and Gallente space. Heavy FW and pirate traffic.",
+      "camp_frequency": "frequent",
+      "typical_threats": ["FW pilots", "pirate gatecamps", "fast tackle frigates"],
+      "safe_alternatives": [
+        "Route through highsec (Jita-Dodixie via Uedama)",
+        "Use Nourvukaiken gate with scout",
+        "Filament to nearby system"
+      ]
+    },
+    {
+      "name": "Amamake",
+      "system_id": 30002537,
+      "region": "Heimatar",
+      "security": 0.4,
+      "reason": "FW lowsec hub near Minmatar-Amarr warzone. Historic pirate staging system.",
+      "camp_frequency": "frequent",
+      "typical_threats": ["pirate gatecamps", "FW pilots", "small gang PvP"],
+      "safe_alternatives": [
+        "Route through highsec Heimatar",
+        "Scout ahead or travel in fleet",
+        "Use insta-dock/insta-undock bookmarks"
+      ]
+    },
+    {
+      "name": "Niarja",
+      "system_id": 30003504,
+      "region": "Pochven",
+      "security": -1.0,
+      "reason": "Former highsec shortcut between Amarr and Jita. Now Pochven — inaccessible via normal stargates.",
+      "camp_frequency": "n/a (Pochven)",
+      "typical_threats": ["Triglavian NPCs", "Pochven residents"],
+      "safe_alternatives": [
+        "Niarja is inaccessible without Triglavian standings or filaments",
+        "Use the Amarr-Jita route via Madirmilire/Sivala instead",
+        "Route adds ~15 jumps compared to pre-invasion shortcut"
+      ]
+    },
+    {
+      "name": "Hek",
+      "system_id": 30002053,
+      "region": "Metropolis",
+      "security": 0.5,
+      "reason": "Minmatar trade hub on lowsec border. Gate to Eszur is a known camp spot.",
+      "camp_frequency": "occasional",
+      "typical_threats": ["lowsec gate camps", "suicide gankers near station"],
+      "safe_alternatives": [
+        "Dock/undock with insta-bookmarks",
+        "Avoid Eszur gate unless prepared for lowsec"
+      ]
+    }
+  ]
+}

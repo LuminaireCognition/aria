@@ -1,7 +1,7 @@
 ---
 name: gatecamp
 description: Real-time gatecamp detection and intel. Check for active camps in systems or along routes.
-model: haiku
+model: sonnet
 category: tactical
 triggers:
   - "/gatecamp"
@@ -91,10 +91,38 @@ Systems with `security_class: "POCHVEN"` are **Triglavian-controlled space**, no
 
 The MCP tool returns `security_class: "POCHVEN"` and `region: "Pochven"` for these systems. Use either field to detect them.
 
+## Security Mechanics
+
+Warp disruption bubbles (anchored, interdiction probe, and heavy interdictor) **only function in nullsec and wormhole space**. They do not work in lowsec or highsec.
+
+- **Nullsec/WH:** Mention bubble risk in camp assessments
+- **Lowsec:** Camps use gate guns + tackle (scrams/points/webs). Never reference bubbles.
+- **Highsec:** Camps use suicide ganking (CONCORD response). Never reference bubbles or tackle.
+
+If the queried system has security > 0.0, do not mention bubbles in the assessment.
+
+## Known Chokepoints
+
+**Prerequisite file:** `reference/mechanics/chokepoints.json` — loaded before generating output.
+
+When a queried system or route system matches a known chokepoint:
+- Flag it with `⚠️ KNOWN CHOKEPOINT` even if current activity is zero
+- Include the `reason` and `camp_frequency` from the reference data
+- Suggest `safe_alternatives` from the reference data
+- Never report "no chokepoints identified" if the route transits a known chokepoint system
+
+This supplements the algorithmic pipe/hub detection with historical community knowledge for systems that may appear quiet but are persistently dangerous.
+
 ## Behavior Notes
 
 - **Never give false assurance** - "No active camp" means no recent kills, not guaranteed safety
-- **Include alternatives** - Always suggest route alternatives when camps are detected
+- **Include alternatives** - When camps are detected, compute alternative routes via tool calls.
+  **NEVER suggest routes from training data.** EVE geography in training data is unreliable.
+  1. Use `universe(action="route", origin="...", destination="...", mode="safe", avoid_systems=["<camped_system>"])` to compute alternatives
+  2. Reference `safe_alternatives` from chokepoints.json for known chokepoints
+  3. If no tool-computed alternative is available, state that explicitly
+  **NEVER assert which routes a chokepoint does or does not lie on** without a `route` tool call to verify. EVE route topology changed with Pochven and changes across patches. Claims like "Uedama is not on the Jita-Amarr route" require verification via `universe(action="route", ...)`. When listing chokepoints for context, state their general danger (from `chokepoints.json`) without claiming route membership.
 - **Time sensitivity** - Camp status can change in minutes; include timestamp
 - **Graceful degradation** - If real-time unavailable, fall back to hourly data with clear warning
 - **Scout recommendation** - For high-value cargo, always recommend scouting regardless of data
+- **Known chokepoints** - Always cross-reference against prerequisite chokepoints.json, even when live data shows zero activity

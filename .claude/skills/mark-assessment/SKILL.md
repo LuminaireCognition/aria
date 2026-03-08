@@ -32,14 +32,14 @@ Every assessment starts with these calls. Do not write any stats until all calls
 
 | Step | Call | Provides |
 |------|------|----------|
-| 1 | `sde(action="item_info", item="<target_ship>")` | Ship group, cargo capacity, base HP/resists |
+| 1 | `fitting(action="hull_stats", ship="<target_ship>")` | Base HP, resists, cargo capacity, drone bay, signature radius |
 | 2 | `market(action="prices", items=["<target_ship>"])` | Hull value |
 | 3 | `market(action="prices", items=["Catalyst", ...])` | Gank ship cost (highsec only) |
 | 4 | `fitting(action="calculate_stats", eft="...")` | EHP, align time — **only if user supplies a fit** |
 
-Step 4 is conditional. If no fit is provided, use SDE base HP/resist attributes and note: "Base hull stats only — actual EHP depends on fit."
+Step 1 uses the fitting engine's dogma data to get accurate base hull stats (HP, resists, cargo, drones). Step 4 is conditional — if no fit is provided, use Step 1 base HP/resist values and note: "Base hull stats only — actual EHP depends on fit."
 
-If SDE does not return numeric attributes (HP, cargo capacity, align time), state "unavailable from SDE" for each missing field. Do NOT substitute training-data estimates (e.g., "typically 5-10K EHP" or "expect 10-15K m³"). Suggest `/fitting` with an observed fit or killmail for precise stats.
+If Step 1 fails, fall back to `sde(action="item_info")` and state "unavailable" for any missing numeric attributes. Do NOT substitute training-data estimates (e.g., "typically 5-10K EHP" or "expect 10-15K m³"). Suggest `/fitting` with an observed fit or killmail for precise stats.
 
 If a market call fails, present the formula with placeholder variables and suggest `/price <ship>`.
 
@@ -49,12 +49,11 @@ If a market call fails, present the formula with placeholder variables and sugge
 
 | Output Field | Required Source |
 |-------------|----------------|
-| Ship group, cargo capacity | `sde(action="item_info")` response |
-| Base HP / resists | `sde(action="item_info")` response |
+| Ship group | `sde(action="item_info")` response |
+| Base HP / resists / cargo / drones | `fitting(action="hull_stats")` response |
 | Hull value | `market(action="prices")` → `sell` price |
 | EHP (when fit supplied) | `fitting(action="calculate_stats")` with user-provided EFT |
-| EHP (no fit, SDE has HP) | SDE base stats with "actual EHP depends on fit" caveat |
-| EHP (no fit, SDE lacks HP) | State "unavailable" — suggest `/fitting` with observed fit |
+| EHP (no fit) | `hull_stats` base HP with "actual EHP depends on fit" caveat |
 | Gank ship cost | `market(action="prices")` → `sell` price |
 | Expected loot | Computed: fitted value × 0.5 (fitted value from tool-sourced hull price × multiplier) |
 | Profit margin | Computed from tool-sourced values above |
