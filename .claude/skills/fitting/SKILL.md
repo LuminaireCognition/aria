@@ -38,7 +38,9 @@ Classify the request before starting any build work:
 **Export / retrieval** ("export my Drake", "show my Vexor fit", "what's my X fitting"):
 1. Read pilot's `ships.md` for locally cached fits
 2. If a matching fit exists → skip to Phase 2 (validate) + Phase 5 (present as copy-paste EFT)
-3. If no match → explain there is no locally cached fit, mention `/fittings` for ESI-based retrieval of in-game saved fits, and offer to build a new fit instead
+3. If not found locally, attempt `pilot(action="fittings_list", ship_filter="<hull>")`
+4. If both fail, report both failures in one response — do not send the user to `/fittings`
+   only for it to also fail. Offer to build a new fit instead.
 
 **Build / recommend** ("fit my Drake for L3s", "what modules for a Vexor"):
 → Proceed to Three-Phase Output Protocol below

@@ -19,6 +19,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import shutil
@@ -130,6 +131,67 @@ def parse_queries(md_path: Path) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# JSON output parser
+# ---------------------------------------------------------------------------
+
+
+def _parse_json_output(raw: str) -> tuple[str, list[dict]]:
+    """
+    Parse claude -p --output-format json output.
+
+    Returns (text_content, tool_calls) where tool_calls is a list of
+    tool use/result pairs extracted from the conversation.
+    """
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        # Not JSON — fall back to treating as plain text
+        return raw, []
+
+    # The JSON output is a single result object with a "result" field
+    # containing the final text, and optionally "messages" with tool calls
+    text_parts = []
+    tool_calls = []
+
+    # Handle top-level result field
+    if isinstance(data, dict):
+        result_text = data.get("result", "")
+        if result_text:
+            text_parts.append(result_text)
+
+        # Extract tool calls from messages if present
+        for msg in data.get("messages", []):
+            if not isinstance(msg, dict):
+                continue
+            role = msg.get("role", "")
+
+            # assistant messages may contain tool_use blocks
+            if role == "assistant":
+                for block in msg.get("content", []):
+                    if isinstance(block, dict) and block.get("type") == "tool_use":
+                        tool_calls.append({
+                            "tool": block.get("name", ""),
+                            "input": block.get("input", {}),
+                            "id": block.get("id", ""),
+                        })
+
+            # tool results
+            if role == "tool":
+                for block in msg.get("content", []):
+                    if isinstance(block, dict) and block.get("type") == "tool_result":
+                        tool_id = block.get("tool_use_id", "")
+                        # Match to the corresponding call
+                        for tc in tool_calls:
+                            if tc.get("id") == tool_id and "result" not in tc:
+                                # Truncate large results
+                                result_content = str(block.get("content", ""))[:2000]
+                                tc["result"] = result_content
+                                break
+
+    return "\n".join(text_parts) if text_parts else raw, tool_calls
+
+
+# ---------------------------------------------------------------------------
 # Query filter
 # ---------------------------------------------------------------------------
 
@@ -190,8 +252,8 @@ def run_query(
         f"---\n\n"
     )
 
-    # Build command
-    cmd = ["claude", "-p"]
+    # Build command — use --output-format json to capture tool calls
+    cmd = ["claude", "-p", "--output-format", "json"]
     if model:
         cmd.extend(["--model", model])
 
@@ -228,12 +290,21 @@ def run_query(
         )
         duration = time.monotonic() - start
 
-        # Strip <system-reminder> tags that leak into stdout
+        # Parse JSON output to extract text and tool calls
         raw_stdout = result.stdout
-        stdout = SYSTEM_REMINDER_RE.sub("", raw_stdout).strip()
+        stdout, tool_calls = _parse_json_output(raw_stdout)
+
+        # Strip <system-reminder> tags that leak into stdout
+        stdout = SYSTEM_REMINDER_RE.sub("", stdout).strip()
+
+        # Save tool call log if any were captured
+        if tool_calls:
+            tool_log_path = output_path.with_suffix(".tools.json")
+            tool_log_path.write_text(json.dumps(tool_calls, indent=2) + "\n")
 
         # Debug: dump raw stdout when stripping removed significant content
-        if len(raw_stdout) - len(stdout) > 200:
+        raw_clean = SYSTEM_REMINDER_RE.sub("", raw_stdout).strip()
+        if len(raw_stdout) - len(raw_clean) > 200:
             raw_path = output_path.with_suffix(".raw")
             raw_path.write_text(header + raw_stdout)
 

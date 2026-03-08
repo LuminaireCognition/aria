@@ -113,6 +113,12 @@ When the MCP tool returns an error response:
 3. **If the tool errors, report the error.** Do not fall back to "no contracts
    found" — that fabricates a successful result from a failed call.
 
+   This applies equally to filtered queries. If the user asks about courier
+   contracts specifically, you must still call the MCP tool — do not reason
+   that "the general query failed, so a filtered query would also fail,
+   so there must be no courier contracts." That logic fabricates data.
+   Report the same error regardless of filter parameters.
+
 ## Contextual Suggestions
 
 After displaying contracts, suggest ONE related action when relevant:

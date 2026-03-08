@@ -28,6 +28,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 INDEX_PATH = PROJECT_ROOT / ".claude" / "skills" / "_index.json"
 SKILLS_DIR = PROJECT_ROOT / ".claude" / "skills"
 REFERENCE_PATH = PROJECT_ROOT / "dev" / "data" / "system_security_reference.json"
+POLICY_PATH = PROJECT_ROOT / "reference" / "mcp-policy.json"
+POLICY_PY_PATH = PROJECT_ROOT / "src" / "aria_esi" / "mcp" / "policy.py"
 
 # ---------------------------------------------------------------------------
 # Colour helpers
@@ -423,6 +425,107 @@ def aggregate_verdict(
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# Policy pre-flight check (R10)
+# ---------------------------------------------------------------------------
+
+# Maps dispatcher.action to sensitivity level, extracted from policy.py
+# This is a static snapshot — keep in sync with DEFAULT_ACTION_SENSITIVITY
+KNOWN_SENSITIVITIES: dict[str, str] = {
+    "pilot.mail_list": "restricted",
+    "pilot.mail_read": "restricted",
+    "pilot.mining_ledger": "authenticated",
+    "pilot.contracts": "authenticated",
+    "pilot.fittings_list": "authenticated",
+    "pilot.fittings_detail": "authenticated",
+    "pilot.lp_balance": "authenticated",
+    "pilot.lp_offers": "public",
+    "fitting.calculate_stats": "public",  # escalates to authenticated with use_pilot_skills
+    "killmails.query": "aggregate",
+    "killmails.stats": "aggregate",
+    "killmails.recent": "aggregate",
+    "killmails.analyze": "public",
+}
+
+
+def _load_policy_config() -> dict | None:
+    """Load mcp-policy.json if available."""
+    if not POLICY_PATH.exists():
+        return None
+    return json.loads(POLICY_PATH.read_text())
+
+
+def _resolve_required_actions(skill: dict) -> list[str]:
+    """Extract dispatcher.action references from a skill's required_tools."""
+    return skill.get("required_tools", [])
+
+
+def check_policy_preflight(index_data: dict) -> list[dict]:
+    """
+    Pre-flight check: identify skills that will be policy-denied.
+
+    Returns a list of dicts with skill name, action, sensitivity, and status.
+    """
+    policy = _load_policy_config()
+    if not policy:
+        return [{"skill": "*", "action": "*", "status": "SKIP",
+                 "reason": "mcp-policy.json not found"}]
+
+    config = policy.get("policy", {})
+    allowed_levels = set(config.get("allowed_levels", []))
+    allowed_actions = set(config.get("allowed_actions", []))
+
+    results = []
+    for skill in index_data.get("skills", []):
+        actions = _resolve_required_actions(skill)
+        if not actions:
+            continue
+
+        for action in actions:
+            sensitivity = KNOWN_SENSITIVITIES.get(action)
+            if sensitivity is None:
+                # Unknown action — probably allowed (public/aggregate/market)
+                continue
+
+            if action in allowed_actions:
+                status = "ALLOWED (explicit)"
+            elif sensitivity in allowed_levels:
+                status = "ALLOWED (level)"
+            else:
+                status = "DENIED"
+
+            if status == "DENIED":
+                results.append({
+                    "skill": skill["name"],
+                    "action": action,
+                    "sensitivity": sensitivity,
+                    "status": status,
+                })
+
+    return results
+
+
+def print_policy_preflight(results: list[dict]) -> None:
+    """Print policy pre-flight results."""
+    if not results:
+        print(f"  {colored('All skills have policy coverage', 'PASS')}")
+        return
+
+    if len(results) == 1 and results[0].get("status") == "SKIP":
+        print(f"  {colored('SKIP', 'SKIP')}: {results[0]['reason']}")
+        return
+
+    print(f"  {colored(f'{len(results)} action(s) will be DENIED by policy:', 'FAIL')}")
+    print()
+    print("  | Skill | Action | Sensitivity | Status |")
+    print("  |-------|--------|-------------|--------|")
+    for r in results:
+        print(f"  | {r['skill']} | {r['action']} | {r['sensitivity']} | "
+              f"{colored(r['status'], 'FAIL')} |")
+    print()
+    print(f"  Fix: add denied actions to `allowed_actions` in reference/mcp-policy.json")
+
+
 def generate_reference():
     """Generate system_security_reference.json from universe MCP data."""
     # Import here to avoid hard dependency
@@ -667,8 +770,25 @@ def main():
         action="store_true",
         help="Generate system_security_reference.json and exit",
     )
+    parser.add_argument(
+        "--policy-check",
+        action="store_true",
+        help="Run policy pre-flight check: identify skills that will be denied by mcp-policy.json",
+    )
 
     args = parser.parse_args()
+
+    if args.policy_check:
+        index_data = load_index()
+        print()
+        print(colored("  Policy Pre-Flight Check", "BOLD"))
+        print()
+        results = check_policy_preflight(index_data)
+        print_policy_preflight(results)
+        denied = [r for r in results if r.get("status") == "DENIED"]
+        if denied:
+            sys.exit(1)
+        return
 
     if args.generate_reference:
         generate_reference()
