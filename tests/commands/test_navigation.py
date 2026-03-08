@@ -331,11 +331,11 @@ class TestRouteWarnings:
         assert len(pipe_warnings) == 1
         assert "Sivala" in pipe_warnings[0]
 
-    def test_no_highsec_route_warning(self, mock_universe: UniverseGraph):
-        """Warning when safe mode still routes through low-sec."""
+    def test_no_highsec_route_returns_no_route(self, mock_universe: UniverseGraph):
+        """Safe mode returns no_route when destination requires low/null-sec transit."""
         from aria_esi.commands.navigation import cmd_route
 
-        # Route to Ala must go through low-sec even in safe mode
+        # Route to Ala must go through low-sec; safe mode hard-blocks non-highsec
         args = argparse.Namespace(
             origin="Jita",
             destination="Ala",
@@ -346,8 +346,7 @@ class TestRouteWarnings:
         with patch("aria_esi.universe.load_universe_graph", return_value=mock_universe):
             result = cmd_route(args)
 
-        assert "warnings" in result
-        assert any("No fully high-sec route" in w for w in result["warnings"])
+        assert result["error"] == "no_route"
 
     def test_no_warnings_highsec_only(self, mock_universe: UniverseGraph):
         """No warnings for high-sec only routes."""

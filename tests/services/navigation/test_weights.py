@@ -142,9 +142,9 @@ class TestComputeSafeWeights:
             if endpoints == {jita_idx, perimeter_idx}:
                 assert weights[i] == WEIGHT_NORMAL
 
-    def test_highsec_lowsec_border_penalized(self, standard_universe):
-        """Edge between high-sec and low-sec has entry penalty (symmetric)."""
-        from aria_esi.services.navigation.weights import WEIGHT_LOWSEC_ENTRY, compute_safe_weights
+    def test_highsec_lowsec_border_blocked(self, standard_universe):
+        """Edge between high-sec and low-sec is hard-blocked in safe mode."""
+        from aria_esi.services.navigation.weights import WEIGHT_AVOID, compute_safe_weights
 
         weights = compute_safe_weights(standard_universe)
 
@@ -156,11 +156,11 @@ class TestComputeSafeWeights:
         for i, edge in enumerate(g.es):
             endpoints = {edge.source, edge.target}
             if endpoints == {maurasi_idx, sivala_idx}:
-                assert weights[i] == WEIGHT_LOWSEC_ENTRY
+                assert weights[i] == WEIGHT_AVOID
 
-    def test_lowsec_nullsec_border_heavily_penalized(self, standard_universe):
-        """Edge between low-sec and null-sec has heavy penalty (symmetric)."""
-        from aria_esi.services.navigation.weights import WEIGHT_NULLSEC, compute_safe_weights
+    def test_lowsec_nullsec_border_blocked(self, standard_universe):
+        """Edge between low-sec and null-sec is hard-blocked in safe mode."""
+        from aria_esi.services.navigation.weights import WEIGHT_AVOID, compute_safe_weights
 
         weights = compute_safe_weights(standard_universe)
 
@@ -172,7 +172,7 @@ class TestComputeSafeWeights:
         for i, edge in enumerate(g.es):
             endpoints = {edge.source, edge.target}
             if endpoints == {sivala_idx, ala_idx}:
-                assert weights[i] == WEIGHT_NULLSEC
+                assert weights[i] == WEIGHT_AVOID
 
     def test_safe_weights_with_avoidance(self, standard_universe):
         """Safe weights respects avoidance on either endpoint."""
@@ -280,7 +280,7 @@ class TestUndirectedSymmetry:
     def test_safe_border_weight_deterministic(self):
         """Border edge weight is the same regardless of igraph edge direction."""
         from aria_esi.services.navigation.weights import (
-            WEIGHT_LOWSEC_ENTRY,
+            WEIGHT_AVOID,
             compute_safe_weights,
         )
 
@@ -299,8 +299,8 @@ class TestUndirectedSymmetry:
         w_fwd = compute_safe_weights(u_fwd)
         w_rev = compute_safe_weights(u_rev)
 
-        assert w_fwd[0] == WEIGHT_LOWSEC_ENTRY
-        assert w_rev[0] == WEIGHT_LOWSEC_ENTRY
+        assert w_fwd[0] == WEIGHT_AVOID
+        assert w_rev[0] == WEIGHT_AVOID
         assert w_fwd[0] == w_rev[0]
 
     def test_avoid_blocks_regardless_of_direction(self):
