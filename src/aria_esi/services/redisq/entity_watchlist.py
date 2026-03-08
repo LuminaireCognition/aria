@@ -21,6 +21,15 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
+# Well-known entity IDs that should never be added to watchlists.
+# These are system/placeholder entities that would generate false matches.
+BLOCKED_ENTITY_IDS: dict[int, str] = {
+    98000001: "Doomheim (deceased characters)",
+    98000002: "C C P (CCP dev corp)",
+}
+
+VALID_ENTITY_TYPES = {"corporation", "alliance"}
+
 
 # =============================================================================
 # Data Classes
@@ -322,6 +331,28 @@ class EntityWatchlistManager:
     # Entity Management
     # =========================================================================
 
+    @staticmethod
+    def validate_entity(entity_id: int, entity_type: str) -> None:
+        """Validate entity before adding to a watchlist.
+
+        Args:
+            entity_id: Corporation or alliance ID
+            entity_type: 'corporation' or 'alliance'
+
+        Raises:
+            ValueError: If entity is blocked or type is invalid
+        """
+        if entity_type not in VALID_ENTITY_TYPES:
+            raise ValueError(
+                f"Invalid entity_type '{entity_type}'. Must be one of: {', '.join(sorted(VALID_ENTITY_TYPES))}"
+            )
+        if entity_id in BLOCKED_ENTITY_IDS:
+            reason = BLOCKED_ENTITY_IDS[entity_id]
+            raise ValueError(
+                f"Entity {entity_id} is blocked: {reason}. "
+                "This is likely an ESI resolution error — verify the entity name."
+            )
+
     def add_entity(
         self,
         watchlist_id: int,
@@ -344,8 +375,10 @@ class EntityWatchlistManager:
             Created WatchedEntity
 
         Raises:
+            ValueError: If entity is blocked or type is invalid
             sqlite3.IntegrityError: If entity already in watchlist
         """
+        self.validate_entity(entity_id, entity_type)
         conn = self._get_connection()
         now = int(time.time())
 
