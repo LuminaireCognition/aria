@@ -754,6 +754,10 @@ class ArbitrageScanResult(MarketModel):
     """
 
     opportunities: list[ArbitrageOpportunity] = Field(default_factory=list)
+    near_misses: list[ArbitrageOpportunity] = Field(
+        default_factory=list,
+        description="Low-profit opportunities shown when main results are empty",
+    )
     total_found: int = Field(
         default=0, ge=0, description="Total opportunities found before filtering"
     )

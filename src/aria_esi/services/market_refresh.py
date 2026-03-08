@@ -374,8 +374,11 @@ class MarketRefreshService:
 
         type_ids = [row["type_id"] for row in rows]
         if not type_ids:
-            logger.warning("No types in database to refresh")
-            return 0
+            logger.info("Empty market database — bootstrapping from Fuzzwork CSV")
+            type_ids = await self._bootstrap_from_csv()
+            if not type_ids:
+                logger.warning("Bootstrap failed — no types available")
+                return 0
 
         # Fetch from Fuzzwork (with timeout), fall back to ESI if unavailable
         aggregates = None
@@ -471,6 +474,56 @@ class MarketRefreshService:
             await conn.commit()
 
         return len(batch)
+
+    async def _bootstrap_from_csv(self) -> list[int]:
+        """
+        Bootstrap empty market database from Fuzzwork bulk CSV.
+
+        Downloads the bulk CSV, imports it into the sync database,
+        then re-queries type IDs from the async connection.
+
+        Returns:
+            List of type IDs now available in the database
+        """
+        if not self._database:
+            return []
+
+        try:
+            from aria_esi.store.market.clients import FuzzworkClient
+            from aria_esi.store.market.database import MarketDatabase
+
+            # Download CSV (async wrapper around sync httpx)
+            client = FuzzworkClient()
+            csv_data = await client.download_bulk_csv()
+
+            # Import via sync database (import_fuzzwork_csv is sync-only)
+            loop = asyncio.get_running_loop()
+            sync_db = MarketDatabase()
+            types_imported, aggregates_imported = await loop.run_in_executor(
+                None, sync_db.import_fuzzwork_csv, csv_data
+            )
+            logger.info(
+                "Bootstrap complete: %d types, %d aggregates imported",
+                types_imported,
+                aggregates_imported,
+            )
+
+            # Re-query type IDs from the async connection
+            conn = await self._database._get_connection()
+            async with conn.execute(
+                """
+                SELECT DISTINCT type_id FROM aggregates
+                UNION
+                SELECT type_id FROM types WHERE market_group_id IS NOT NULL
+                LIMIT 1000
+                """
+            ) as cursor:
+                rows = await cursor.fetchall()
+
+            return [row["type_id"] for row in rows]
+        except Exception:
+            logger.exception("Bootstrap from Fuzzwork CSV failed")
+            return []
 
     async def _fetch_from_esi_fallback(
         self,
