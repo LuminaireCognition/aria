@@ -77,6 +77,7 @@ async def _activity(systems: list[str] | None, include_realtime: bool = False) -
             system_id=system_id,
             security=float(universe.security[idx]),
             security_class=universe.security_class(idx),
+            region=universe.get_region_name(idx),
             ship_kills=activity.ship_kills,
             pod_kills=activity.pod_kills,
             npc_kills=activity.npc_kills,

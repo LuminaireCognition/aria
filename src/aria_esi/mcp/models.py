@@ -279,6 +279,7 @@ class SystemActivity(MCPModel):
     system_id: int
     security: float = Field(ge=-1.0, le=1.0)
     security_class: Literal["HIGH", "LOW", "NULL", "POCHVEN"]
+    region: str
     ship_kills: int = Field(default=0, ge=0)
     pod_kills: int = Field(default=0, ge=0)
     npc_kills: int = Field(default=0, ge=0)

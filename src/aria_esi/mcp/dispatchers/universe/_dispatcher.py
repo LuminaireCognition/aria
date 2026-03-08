@@ -209,7 +209,7 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
             Gatecamp risk params (action="gatecamp_risk"):
                 route: Explicit route, OR
                 origin/destination: Calculate route
-                mode: Routing mode (default "safe")
+                mode: Routing mode (default "shortest")
 
             FW frontlines params (action="fw_frontlines"):
                 faction: Filter to specific faction

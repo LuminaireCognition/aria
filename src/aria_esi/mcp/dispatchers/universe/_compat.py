@@ -624,6 +624,7 @@ def register_activity_tools(server: FastMCP, universe: UniverseGraph) -> None:
                     system_id=system_id,
                     security=float(universe_graph.security[idx]),
                     security_class=universe_graph.security_class(idx),
+                    region=universe_graph.get_region_name(idx),
                     ship_kills=activity.ship_kills,
                     pod_kills=activity.pod_kills,
                     npc_kills=activity.npc_kills,
@@ -751,7 +752,7 @@ def register_activity_tools(server: FastMCP, universe: UniverseGraph) -> None:
         route: list[str] | None = None,
         origin: str | None = None,
         destination: str | None = None,
-        mode: str = "safe",
+        mode: str = "shortest",
     ) -> dict:
         """Analyze gatecamp risk along a route."""
         universe_graph = get_universe()

@@ -620,6 +620,17 @@ class TestActivityAction:
 
         assert "cache_age_seconds" in result
 
+    def test_activity_includes_region(self, universe_dispatcher):
+        """Activity result includes region for each system."""
+        result = asyncio.run(
+            universe_dispatcher(action="activity", systems=["Jita"])
+        )
+
+        assert len(result["systems"]) >= 1
+        system = result["systems"][0]
+        assert "region" in system
+        assert system["region"] == "The Forge"
+
 
 # =============================================================================
 # Hotspots Action Tests
