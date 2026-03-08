@@ -185,18 +185,29 @@ class TestQueryAction:
         assert "next_cursor" in result
         assert result["next_cursor"] is not None
 
-    def test_query_store_not_initialized(self, killmails_dispatcher):
-        """Query when store is not initialized."""
-        with patch(
-            "aria_esi.mcp.dispatchers.killmails._get_store",
-            return_value=None
+    def test_query_store_not_initialized_attempts_fallback(self, killmails_dispatcher):
+        """Query when store is not initialized attempts ESI fallback."""
+        mock_auth_ctx = MagicMock()
+        mock_auth_ctx.character_id = 12345
+        mock_auth_ctx.creds.has_scope.return_value = False  # No scope → error
+
+        with (
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._get_store",
+                return_value=None,
+            ),
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth_ctx,
+            ),
         ):
             result = asyncio.run(
                 killmails_dispatcher(action="query")
             )
 
+        # Should get an auth error (fallback attempted but scope missing)
         assert "error" in result
-        assert "not initialized" in result["error"].lower()
 
 
 # =============================================================================
@@ -592,3 +603,244 @@ class TestESIEnrichment:
         # Should fall back gracefully — no ESI fields
         kill = result["kills"][0]
         assert kill["has_esi_details"] is False
+
+
+# =============================================================================
+# ESI Fallback Tests
+# =============================================================================
+
+
+def _make_mock_auth_ctx(has_scope: bool = True, char_id: int = 12345):
+    """Create a mock authenticated ESI context."""
+    ctx = MagicMock()
+    ctx.character_id = char_id
+    ctx.creds.has_scope.return_value = has_scope
+
+    # Mock the client's get_safe to return killmail refs
+    ctx.client = AsyncMock()
+    return ctx
+
+
+def _make_esi_killmail_response(kill_id: int, kill_hash: str = "abc123"):
+    """Create a mock ESI killmail response (full killmail data)."""
+    # Use current time so time-window filters don't exclude it
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return {
+        "killmail_id": kill_id,
+        "killmail_time": now,
+        "solar_system_id": 30000142,
+        "victim": {
+            "ship_type_id": 587,
+            "character_id": 99000001,
+            "corporation_id": 1000125,
+            "damage_taken": 12450,
+        },
+        "attackers": [
+            {
+                "character_id": 99000002,
+                "ship_type_id": 16242,
+                "corporation_id": 98000001,
+                "final_blow": True,
+                "damage_done": 6200,
+            },
+        ],
+    }
+
+
+class TestESIFallback:
+    """Tests for ESI fallback when store is unavailable."""
+
+    def test_query_falls_back_when_store_unavailable(self, killmails_dispatcher):
+        """When store is None, query falls back to ESI."""
+        mock_auth = _make_mock_auth_ctx()
+        refs = [
+            {"killmail_id": 1001, "killmail_hash": "hash1"},
+            {"killmail_id": 1002, "killmail_hash": "hash2"},
+        ]
+        mock_auth.client.get_safe = AsyncMock(return_value=refs)
+
+        mock_pub_client = AsyncMock()
+        mock_pub_client.get_safe = AsyncMock(
+            side_effect=[
+                _make_esi_killmail_response(1001),
+                _make_esi_killmail_response(1002),
+            ]
+        )
+
+        with (
+            patch("aria_esi.mcp.dispatchers.killmails._get_store", return_value=None),
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+            patch(
+                "aria_esi.store.esi_client.get_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_pub_client,
+            ),
+        ):
+            result = asyncio.run(killmails_dispatcher(action="query", hours=24))
+
+        assert "kills" in result
+        assert result["count"] == 2
+        assert result["source"] == "esi_fallback"
+
+    def test_fallback_includes_source_field(self, killmails_dispatcher):
+        """Verify source=esi_fallback is present in fallback response."""
+        mock_auth = _make_mock_auth_ctx()
+        mock_auth.client.get_safe = AsyncMock(return_value=[])
+
+        with (
+            patch("aria_esi.mcp.dispatchers.killmails._get_store", return_value=None),
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+        ):
+            result = asyncio.run(killmails_dispatcher(action="recent"))
+
+        assert result["source"] == "esi_fallback"
+
+    def test_fallback_scope_missing_returns_error(self, killmails_dispatcher):
+        """Fallback with missing scope returns error."""
+        mock_auth = _make_mock_auth_ctx(has_scope=False)
+
+        with (
+            patch("aria_esi.mcp.dispatchers.killmails._get_store", return_value=None),
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+        ):
+            result = asyncio.run(killmails_dispatcher(action="query"))
+
+        assert "error" in result
+        assert "scope_not_authorized" in result["error"]
+
+    def test_stats_no_fallback_returns_error(self, killmails_dispatcher):
+        """Stats still returns error when store is unavailable (no fallback)."""
+        with patch("aria_esi.mcp.dispatchers.killmails._get_store", return_value=None):
+            result = asyncio.run(killmails_dispatcher(action="stats"))
+
+        assert "error" in result
+        assert "not initialized" in result["error"].lower()
+
+
+# =============================================================================
+# ESI History Tests
+# =============================================================================
+
+
+class TestESIHistory:
+    """Tests for esi_history action."""
+
+    @pytest.fixture(autouse=True)
+    def allow_authenticated(self):
+        """Allow authenticated actions for esi_history tests."""
+        with patch("aria_esi.mcp.dispatchers.killmails.check_capability"):
+            yield
+
+    def test_esi_history_basic(self, killmails_dispatcher):
+        """Basic esi_history returns enriched kills."""
+        mock_auth = _make_mock_auth_ctx()
+        refs = [{"killmail_id": 2001, "killmail_hash": "hashA"}]
+        mock_auth.client.get_safe = AsyncMock(return_value=refs)
+
+        mock_pub_client = AsyncMock()
+        mock_pub_client.get_safe = AsyncMock(
+            return_value=_make_esi_killmail_response(2001)
+        )
+
+        with (
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+            patch(
+                "aria_esi.store.esi_client.get_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_pub_client,
+            ),
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="esi_history", hours=168)
+            )
+
+        assert "kills" in result
+        assert result["source"] == "esi_direct"
+        assert result["count"] == 1
+        # ESI data has no ISK value
+        assert result["kills"][0]["value"] is None
+        assert result["kills"][0]["has_esi_details"] is True
+
+    def test_esi_history_hours_not_clamped(self, killmails_dispatcher):
+        """esi_history does not clamp hours to 168."""
+        mock_auth = _make_mock_auth_ctx()
+        mock_auth.client.get_safe = AsyncMock(return_value=[])
+
+        with patch(
+            "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+            new_callable=AsyncMock,
+            return_value=mock_auth,
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="esi_history", hours=2160)
+            )
+
+        assert result["query"]["hours"] == 2160
+
+    def test_esi_history_pagination_cursor(self, killmails_dispatcher):
+        """esi_history supports pagination via cursor."""
+        from aria_esi.mcp.dispatchers.killmails import _encode_cursor
+
+        mock_auth = _make_mock_auth_ctx()
+        refs = [{"killmail_id": 3001, "killmail_hash": "hashB"}]
+        mock_auth.client.get_safe = AsyncMock(return_value=refs)
+
+        mock_pub_client = AsyncMock()
+        mock_pub_client.get_safe = AsyncMock(
+            return_value=_make_esi_killmail_response(3001)
+        )
+
+        cursor = _encode_cursor(0, 4000)  # before_kill_id=4000
+
+        with (
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+            patch(
+                "aria_esi.store.esi_client.get_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_pub_client,
+            ),
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="esi_history", cursor=cursor, hours=168)
+            )
+
+        # Verify before_kill_id was passed to ESI
+        auth_call = mock_auth.client.get_safe.call_args
+        assert auth_call.kwargs.get("params", {}).get("before_kill_id") == 4000 or \
+            (auth_call.args[1] if len(auth_call.args) > 1 else auth_call.kwargs.get("params", {})).get("before_kill_id") == 4000
+
+    def test_esi_history_scope_missing(self, killmails_dispatcher):
+        """esi_history with missing scope returns error."""
+        mock_auth = _make_mock_auth_ctx(has_scope=False)
+
+        with patch(
+            "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+            new_callable=AsyncMock,
+            return_value=mock_auth,
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="esi_history", hours=168)
+            )
+
+        assert "error" in result
+        assert "scope_not_authorized" in result["error"]

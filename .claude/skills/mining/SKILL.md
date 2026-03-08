@@ -32,7 +32,9 @@ CLI fallback: `uv run aria-esi mining`, `uv run aria-esi mining-summary`
 ## Response Format
 
 Present mining data in a structured display including:
-- **Header:** Query timestamp and period covered
+- **Header:** Query timestamp and period covered. When active days differ from
+  requested days, show both: "5 active days (2026-03-02 to 2026-03-07) out of
+  last 7 requested"
 - **Entries:** Date, ore type, quantity, and system with security level
 - **Totals:** Aggregate quantities by ore type
 - **Retention note:** Mention 30-day data limit

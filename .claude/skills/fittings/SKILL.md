@@ -70,6 +70,9 @@ When the MCP tool returns an error response:
    - If `"scope_not_authorized"` → Tell the user: "ESI is connected but the
      fittings scope (`esi-fittings.read_fittings.v1`) isn't authorized. Re-run
      OAuth setup to add it." Include the command from the response.
+   - If `"capability_denied"` or error mentions policy restriction → Tell the user:
+     "Fittings access is restricted by the current MCP policy. To enable it,
+     add `pilot.fittings_list` to `allowed_actions` in `reference/mcp-policy.json`."
    - If credentials RuntimeError → Tell the user: "ESI isn't configured yet."
      Offer `/fitting` as alternative.
 

@@ -2,14 +2,16 @@
 Killmails Dispatcher for MCP Server.
 
 Provides query and statistics access to the killmail store:
-- query: Query killmails with filters
+- query: Query killmails with filters (auto-falls back to ESI when store unavailable)
 - stats: Get killmail statistics
-- recent: Get most recent killmails
+- recent: Get most recent killmails (auto-falls back to ESI when store unavailable)
 - analyze: Analyze individual killmail from zKillboard URL or kill ID
+- esi_history: Fetch killmail history directly from authenticated ESI (no time cap)
 """
 
 from __future__ import annotations
 
+import asyncio
 import base64
 import json
 import logging
@@ -26,9 +28,9 @@ if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
 
 
-KillmailsAction = Literal["query", "stats", "recent", "analyze"]
+KillmailsAction = Literal["query", "stats", "recent", "analyze", "esi_history"]
 
-VALID_ACTIONS: set[str] = {"query", "stats", "recent", "analyze"}
+VALID_ACTIONS: set[str] = {"query", "stats", "recent", "analyze", "esi_history"}
 
 
 def _encode_cursor(kill_time: int, kill_id: int) -> str:
@@ -85,10 +87,11 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
         Unified killmail query interface.
 
         Actions:
-        - query: Query killmails with filters
-        - stats: Get killmail statistics
-        - recent: Get most recent killmails (shorthand for query with defaults)
+        - query: Query killmails with filters (auto-falls back to ESI if store unavailable)
+        - stats: Get killmail statistics (requires store)
+        - recent: Get most recent killmails (auto-falls back to ESI if store unavailable)
         - analyze: Analyze individual killmail from zKillboard URL or kill ID
+        - esi_history: Fetch killmail history from authenticated ESI (no 7-day cap)
 
         Args:
             action: The operation to perform (see Actions above)
@@ -111,12 +114,18 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
                 killmail_input: zKillboard URL, short URL, or raw kill ID
                     Examples: "https://zkillboard.com/kill/12345678/", "12345678"
 
+            ESI history params (action="esi_history"):
+                hours: Time window in hours (no cap, default 168)
+                limit: Max results (default 50, max 100)
+                cursor: Pagination cursor (before_kill_id) from previous response
+
         Returns:
             For query/recent:
             - kills: List of killmail records
             - count: Number of results
             - next_cursor: Cursor for pagination (null if no more results)
             - query: Echo of query parameters
+            - source: "store", "esi_fallback" (when store unavailable)
 
             For stats:
             - total_kills: Total killmails in window
@@ -131,11 +140,19 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
             - attackers: {count, primary_group, ships, final_blow}
             - total_value, total_value_formatted
 
+            For esi_history:
+            - kills: List of enriched killmail records (value=null, no zkb metadata)
+            - count: Number of results
+            - next_cursor: Cursor for next page (null if no more)
+            - query: Echo of query parameters
+            - source: "esi_direct"
+
         Examples:
             killmails(action="query", systems=["Jita"], hours=1)
             killmails(action="recent", limit=10)
             killmails(action="stats", systems=["Uedama", "Niarja"], group_by="system")
             killmails(action="analyze", killmail_input="https://zkillboard.com/kill/12345678/")
+            killmails(action="esi_history", hours=2160, limit=50)
         """
         # Policy check
         check_capability("killmails", action)
@@ -143,16 +160,30 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
         if action not in VALID_ACTIONS:
             return {"error": f"Invalid action: {action}", "valid_actions": list(VALID_ACTIONS)}
 
-        # Analyze action doesn't need the killmail store
+        # Actions that don't need the killmail store
         if action == "analyze":
             return await _handle_analyze(killmail_input)
+
+        if action == "esi_history":
+            return await _handle_esi_history(
+                hours=hours,
+                limit=limit,
+                cursor=cursor,
+            )
 
         # Get store
         store = _get_store()
         if store is None:
+            # Fallback to ESI for query/recent when store is unavailable
+            if action in ("query", "recent"):
+                return await _handle_esi_fallback(
+                    hours=hours,
+                    limit=limit,
+                )
             return {
                 "error": "Killmail store not initialized",
-                "hint": "Run the RedisQ poller to start collecting killmails",
+                "hint": "Run the RedisQ poller to start collecting killmails. "
+                "For kill history without the store, use action='esi_history'.",
             }
 
         try:
@@ -380,6 +411,256 @@ async def _resolve_systems(system_names: list[str]) -> list[int] | None:
     except (ImportError, RuntimeError) as e:
         logger.warning("Failed to resolve system names: %s", e)
         return None
+
+
+# =============================================================================
+# ESI Direct / Fallback Actions
+# =============================================================================
+
+_KILLMAIL_SCOPE = "esi-killmails.read_killmails.v1"
+
+
+async def _fetch_esi_killmail_refs(
+    before_kill_id: int | None = None,
+) -> tuple[list[dict[str, Any]], int, str | None]:
+    """
+    Fetch killmail refs from authenticated ESI.
+
+    Returns:
+        (refs_list, character_id, error_or_none)
+        Each ref has {killmail_id, killmail_hash}.
+    """
+    from aria_esi.store.esi_client import get_authenticated_async_esi_client
+
+    try:
+        auth_ctx = await get_authenticated_async_esi_client()
+    except RuntimeError as e:
+        return [], 0, f"No ESI credentials: {e}"
+
+    if not auth_ctx.creds.has_scope(_KILLMAIL_SCOPE):
+        return (
+            [],
+            auth_ctx.character_id,
+            (
+                f"scope_not_authorized: Missing {_KILLMAIL_SCOPE}. "
+                "Run 'uv run aria-esi setup' to authorize."
+            ),
+        )
+
+    char_id = auth_ctx.character_id
+    client = auth_ctx.client
+
+    params: dict[str, Any] = {}
+    if before_kill_id is not None:
+        params["before_kill_id"] = before_kill_id
+
+    data = await client.get_safe(
+        f"/characters/{char_id}/killmails/recent/",
+        params=params if params else None,
+        auth=True,
+    )
+
+    if not isinstance(data, list):
+        return [], char_id, "ESI returned unexpected response for killmail refs"
+
+    refs = [
+        {"killmail_id": r["killmail_id"], "killmail_hash": r["killmail_hash"]}
+        for r in data
+        if isinstance(r, dict) and "killmail_id" in r and "killmail_hash" in r
+    ]
+
+    return refs, char_id, None
+
+
+async def _enrich_killmail_refs(
+    refs: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], int]:
+    """
+    Enrich killmail refs by fetching full data from public ESI.
+
+    Returns:
+        (enriched_kills, enrichment_error_count)
+    """
+    from aria_esi.store.esi_client import get_async_esi_client
+
+    esi_client = await get_async_esi_client()
+    sem = asyncio.Semaphore(10)
+
+    async def fetch_one(ref: dict[str, Any]) -> dict[str, Any] | None:
+        async with sem:
+            kill_id = ref["killmail_id"]
+            kill_hash = ref["killmail_hash"]
+            data = await esi_client.get_safe(f"/killmails/{kill_id}/{kill_hash}/")
+            if not isinstance(data, dict):
+                return None
+            victim = data.get("victim", {})
+            attackers = data.get("attackers", [])
+            kill_time_str = data.get("killmail_time")
+            return {
+                "kill_id": kill_id,
+                "kill_time": kill_time_str,
+                "system_id": data.get("solar_system_id"),
+                "value": None,  # zkb metadata unavailable via ESI
+                "victim_ship_type_id": victim.get("ship_type_id"),
+                "victim_character_id": victim.get("character_id"),
+                "victim_corporation_id": victim.get("corporation_id"),
+                "victim_damage_taken": victim.get("damage_taken"),
+                "attacker_count": len(attackers),
+                "is_npc": None,
+                "is_solo": None,
+                "has_esi_details": True,
+            }
+
+    tasks = [fetch_one(ref) for ref in refs]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    enriched = []
+    errors = 0
+    for r in results:
+        if isinstance(r, dict):
+            enriched.append(r)
+        else:
+            errors += 1
+
+    return enriched, errors
+
+
+async def _handle_esi_history(
+    hours: int,
+    limit: int,
+    cursor: str | None,
+) -> dict:
+    """Handle esi_history action — fetch kill history directly from ESI."""
+    # No hour clamping for esi_history (the whole point)
+    hours = max(1, hours)
+    limit = min(max(1, limit), 100)
+
+    # Decode cursor as before_kill_id
+    before_kill_id = None
+    if cursor:
+        decoded = _decode_cursor(cursor)
+        if decoded is None:
+            return {"error": "Invalid cursor format"}
+        # Use kill_id from cursor as before_kill_id
+        before_kill_id = decoded[1]
+
+    refs, char_id, error = await _fetch_esi_killmail_refs(before_kill_id)
+    if error:
+        return {"error": error}
+
+    if not refs:
+        return wrap_output(
+            {
+                "kills": [],
+                "count": 0,
+                "next_cursor": None,
+                "query": {"hours": hours, "limit": limit, "source": "esi_direct"},
+                "source": "esi_direct",
+            },
+            items_key="kills",
+            max_items=100,
+        )
+
+    # Enrich refs
+    enriched, enrichment_errors = await _enrich_killmail_refs(refs)
+
+    # Filter by time window if hours specified
+    since = datetime.now(UTC) - timedelta(hours=hours)
+    filtered = []
+    for kill in enriched:
+        if kill["kill_time"]:
+            try:
+                kt = datetime.fromisoformat(kill["kill_time"].replace("Z", "+00:00"))
+                if kt >= since:
+                    filtered.append(kill)
+            except (ValueError, AttributeError):
+                filtered.append(kill)  # Keep if we can't parse
+        else:
+            filtered.append(kill)
+
+    # Apply limit
+    has_more = len(filtered) > limit
+    filtered = filtered[:limit]
+
+    # Build next cursor from last ref (not last filtered kill) for pagination
+    next_cursor = None
+    if has_more or len(refs) >= 50:  # ESI returns up to 50 per page
+        last_ref = refs[-1]
+        next_cursor = _encode_cursor(0, last_ref["killmail_id"])
+
+    result: dict[str, Any] = {
+        "kills": filtered,
+        "count": len(filtered),
+        "next_cursor": next_cursor,
+        "query": {"hours": hours, "limit": limit, "source": "esi_direct"},
+        "source": "esi_direct",
+    }
+    if enrichment_errors > 0:
+        result["enrichment_errors"] = enrichment_errors
+
+    return wrap_output(result, items_key="kills", max_items=100)
+
+
+async def _handle_esi_fallback(
+    hours: int,
+    limit: int,
+) -> dict:
+    """Fallback for query/recent when store is unavailable."""
+    # Keep the same clamping as store-based queries for consistency
+    hours = min(max(1, hours), 168)
+    limit = min(max(1, limit), 100)
+
+    refs, char_id, error = await _fetch_esi_killmail_refs()
+    if error:
+        return {"error": error}
+
+    if not refs:
+        return wrap_output(
+            {
+                "kills": [],
+                "count": 0,
+                "next_cursor": None,
+                "query": {"hours": hours, "limit": limit, "source": "esi_fallback"},
+                "source": "esi_fallback",
+            },
+            items_key="kills",
+            max_items=100,
+        )
+
+    enriched, enrichment_errors = await _enrich_killmail_refs(refs)
+
+    # Filter by time window
+    since = datetime.now(UTC) - timedelta(hours=hours)
+    filtered = []
+    for kill in enriched:
+        if kill["kill_time"]:
+            try:
+                kt = datetime.fromisoformat(kill["kill_time"].replace("Z", "+00:00"))
+                if kt >= since:
+                    filtered.append(kill)
+            except (ValueError, AttributeError):
+                filtered.append(kill)
+        else:
+            filtered.append(kill)
+
+    filtered = filtered[:limit]
+
+    result: dict[str, Any] = {
+        "kills": filtered,
+        "count": len(filtered),
+        "next_cursor": None,
+        "query": {
+            "systems": None,
+            "hours": hours,
+            "min_value": None,
+            "limit": limit,
+        },
+        "source": "esi_fallback",
+    }
+    if enrichment_errors > 0:
+        result["enrichment_errors"] = enrichment_errors
+
+    return wrap_output(result, items_key="kills", max_items=100)
 
 
 # =============================================================================

@@ -125,6 +125,7 @@ DEFAULT_ACTION_SENSITIVITY: dict[str, dict[str, SensitivityLevel]] = {
         "stats": SensitivityLevel.AGGREGATE,
         "recent": SensitivityLevel.AGGREGATE,
         "analyze": SensitivityLevel.PUBLIC,
+        "esi_history": SensitivityLevel.AUTHENTICATED,
     },
     "pilot": {
         # Mail is RESTRICTED - requires opt-in via mcp-policy.json

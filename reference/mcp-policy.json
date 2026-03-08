@@ -12,7 +12,12 @@
     "allowed_actions": [
       "pilot.mail_list",
       "pilot.mail_read",
-      "pilot.mining_ledger"
+      "pilot.mining_ledger",
+      "pilot.contracts",
+      "pilot.fittings_list",
+      "pilot.fittings_detail",
+      "pilot.lp_balance",
+      "fitting.calculate_stats"
     ],
     "audit_logging": true,
     "rate_limit_per_minute": 0
@@ -22,7 +27,7 @@
     "aggregate": "Aggregated public data (kill/jump statistics, FW frontlines)",
     "market": "Market prices and orders (Fuzzwork, ESI market endpoints)",
     "authenticated": "Requires ESI authentication (personal wallet, assets)",
-    "restricted": "Sensitive personal data (contracts, mail, corp roles)"
+    "restricted": "Sensitive personal data (mail, corp roles)"
   },
   "action_sensitivity_overrides": {
     "_comment": "Override default sensitivity for specific actions here",

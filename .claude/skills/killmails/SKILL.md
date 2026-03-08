@@ -31,9 +31,23 @@ esi_scopes:
 | Query by character | `killmails(action="query", character_id=12345)` |
 | Kill statistics | `killmails(action="stats", systems=["..."], group_by="system"\|"hour"\|"corporation")` |
 | Analyze specific kill | `killmails(action="analyze", killmail_input="<zkill_url_or_id>")` |
+| ESI kill history (beyond 7 days) | `killmails(action="esi_history", limit=50, hours=2160)` |
 | **CLI fallback** | `uv run aria-esi killmails` / `uv run aria-esi analyze-killmail <url>` |
 
 Use MCP dispatchers as the primary path. Fall back to CLI only if MCP is unavailable.
+
+### Data Window Limits
+
+**Store-based queries** (`query`, `recent`, `stats`): up to **168 hours (7 days)** of history. Requests for longer periods are clamped to 7 days.
+
+**ESI direct** (`esi_history`): **no time cap**. Fetches killmail refs from authenticated ESI (~50 kills per page). Use `cursor` from the response to paginate for more results.
+
+If the user requests a window beyond 7 days:
+1. Use `killmails(action="esi_history", hours=N, limit=50)` with the requested timeframe
+2. Paginate with `cursor` if needed for more results
+3. Note: ESI data does not include ISK values (`value` will be `null`). For ISK values on specific kills, use `action="analyze"`.
+
+When `query`/`recent` auto-fall back to ESI (store unavailable), the response includes `"source": "esi_fallback"`. The 7-day clamp still applies for consistency.
 
 ## Response Format
 
@@ -77,7 +91,7 @@ RECOMMENDATIONS:
 ### Pattern Analysis
 
 ```
-LOSS PATTERNS (Last 90 days) — 8 losses
+LOSS PATTERNS (Last 7 days) — 8 losses
 
 PvP: 5 (62%) | PvE: 3 (38%)
 Ships lost: Venture x3, Imicus x2, Catalyst x2, Vexor x1
@@ -112,14 +126,13 @@ After providing killmail data, suggest ONE related command when contextually rel
 
 ### Store Not Initialized / Poller Not Running
 
-If `killmails(action="query")`, `killmails(action="stats")`, or `killmails(action="recent")` returns an error about the store not being initialized or no data available, the real-time killmail poller is not running.
+`query` and `recent` **auto-fall back** to authenticated ESI when the store is unavailable. The response will include `"source": "esi_fallback"` — no special handling needed.
 
-**Recovery:**
-1. **Individual killmail analysis still works** -- use `killmails(action="analyze", killmail_input="<zkillboard_url>")` for specific kills
-2. **Suggest zKillboard** for browsing: `https://zkillboard.com/character/{character_id}/`
-3. **To enable the poller:** `uv run aria-esi redisq-start` (requires configuration)
+`stats` **cannot fall back** (it needs the store for aggregation). If stats returns "store not initialized":
+1. Suggest `action="esi_history"` for raw kill history
+2. **To enable the poller:** `uv run aria-esi redisq-start` (requires configuration)
 
-Do NOT retry query/stats/recent -- they will keep failing until the poller is started.
+`esi_history` and `analyze` **never need the store** — they always work with ESI credentials.
 
 ### No Killmails Found
 
@@ -136,6 +149,25 @@ If kill records show `has_esi_details: false` or `system_id: null`:
 - **Acknowledge gaps:** "System and attacker details unavailable — ESI enrichment pending"
 - **Do NOT redirect entirely to zKillboard** — use the available data first
 - **Suggest:** "For full details on a specific kill, use `/killmail <zkill_url>`" (the analyze action fetches ESI directly)
+
+### Missing ISK Values (ESI Fallback / ESI History)
+
+When data comes from ESI fallback or `esi_history` (check `"source": "esi_fallback"` or `"source": "esi_direct"`), the `value` field is `null` because ISK values come from zKillboard metadata which is unavailable via the ESI path. For ISK values on specific kills, use `action="analyze"` with the kill URL.
+
+### Batch Enrichment Failure
+
+If ALL returned records have `has_esi_details: false` (0% enrichment rate),
+this is not "pending" — the enrichment pipeline is likely not running.
+
+**Recovery:**
+1. State clearly: "Killmail data lacks tactical details — the ESI enrichment
+   pipeline appears inactive"
+2. For individual kill analysis: `/killmail <zkill_url>` fetches ESI directly
+3. To start enrichment: `uv run aria-esi redisq-start`
+
+Do not present a table of ISK values and timestamps alone as a useful
+response to "show my recent losses." If enrichment is completely absent,
+lead with the limitation and the recovery path.
 
 ## DO NOT
 
