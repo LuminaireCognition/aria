@@ -1,6 +1,6 @@
 ---
 name: escape-route
-description: Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. IMPORTANT: Always invoke this skill before calling universe MCP tools for route planning. This skill loads reference data required for accurate responses.
+description: Escape route planning for Eve Online. Find fastest routes to safe harbor from current position.
 model: sonnet
 category: tactical
 triggers:

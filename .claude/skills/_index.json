@@ -516,7 +516,7 @@
     {
       "name": "fitting",
       "description": "ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. IMPORTANT: Always invoke this skill before calling fitting or sde MCP tools. This skill loads reference data (EFT format, module names, drone stats) required for accurate responses.",
-      "model": "opus",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/fitting",
@@ -945,7 +945,7 @@
     {
       "name": "mission-brief",
       "description": "ARIA tactical intelligence briefing for Eve Online missions. Use for mission analysis, enemy intel, fitting advice, or combat preparation.",
-      "model": "opus",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/mission-brief",
