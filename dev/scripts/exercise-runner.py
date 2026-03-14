@@ -19,18 +19,24 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import copy
 import json
+import logging
 import os
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+HOOKS_DIR = PROJECT_ROOT / "dev" / "scripts" / "hooks"
+log = logging.getLogger(__name__)
 QUERIES_PATH = PROJECT_ROOT / "dev" / "reviews" / "SKILL_EXERCISE_QUERIES.md"
 OUTPUT_BASE = PROJECT_ROOT / "dev" / "reviews" / "exercise-outputs"
 
@@ -50,6 +56,8 @@ ALLOWED_TOOLS = [
     "Grep",
     # Skill invocation (critical — triggers SKILL.md + prerequisite loading)
     "Skill",
+    # Deferred tool discovery (required to load MCP tools at runtime)
+    "ToolSearch",
     # CLI fallback for skills that shell out to aria-esi
     "Bash(uv run:*)",
     # Web access for skills that fetch external data
@@ -131,64 +139,77 @@ def parse_queries(md_path: Path) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# JSON output parser
+# Stream output parser
 # ---------------------------------------------------------------------------
 
 
-def _parse_json_output(raw: str) -> tuple[str, list[dict]]:
+def _parse_stream_output(raw: str) -> tuple[str, list[dict]]:
     """
-    Parse claude -p --output-format json output.
+    Parse claude -p --verbose --output-format stream-json output.
+
+    The verbose stream-json format emits one JSON object per line with
+    conversation-level events (not Anthropic API streaming deltas):
+
+      {"type":"assistant", "message":{"content":[...]}} — model turns
+      {"type":"user", "message":{"content":[...]}}      — tool results
+      {"type":"result", "result":"..."}                  — final text
 
     Returns (text_content, tool_calls) where tool_calls is a list of
-    tool use/result pairs extracted from the conversation.
+    {tool, input, id, result?} dicts.
     """
-    try:
-        data = json.loads(raw)
-    except (json.JSONDecodeError, ValueError):
-        # Not JSON — fall back to treating as plain text
-        return raw, []
-
-    # The JSON output is a single result object with a "result" field
-    # containing the final text, and optionally "messages" with tool calls
     text_parts = []
     tool_calls = []
+    tool_results: dict[str, str] = {}  # tool_use_id → result text
 
-    # Handle top-level result field
-    if isinstance(data, dict):
-        result_text = data.get("result", "")
-        if result_text:
-            text_parts.append(result_text)
+    for line in raw.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
 
-        # Extract tool calls from messages if present
-        for msg in data.get("messages", []):
-            if not isinstance(msg, dict):
-                continue
-            role = msg.get("role", "")
+        etype = event.get("type", "")
 
-            # assistant messages may contain tool_use blocks
-            if role == "assistant":
-                for block in msg.get("content", []):
-                    if isinstance(block, dict) and block.get("type") == "tool_use":
-                        tool_calls.append({
-                            "tool": block.get("name", ""),
-                            "input": block.get("input", {}),
-                            "id": block.get("id", ""),
-                        })
+        # Assistant turns contain text and tool_use blocks.
+        # Reset text_parts each turn so only the LAST assistant turn's
+        # text survives — earlier turns contain intermediate reasoning
+        # that inflates output and produces false quality signals.
+        if etype == "assistant":
+            msg = event.get("message", {})
+            current_turn_text = []
+            for block in msg.get("content", []):
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "text":
+                    current_turn_text.append(block.get("text", ""))
+                elif block.get("type") == "tool_use":
+                    tool_calls.append({
+                        "tool": block.get("name", ""),
+                        "id": block.get("id", ""),
+                        "input": block.get("input", {}),
+                    })
+            if current_turn_text:
+                text_parts = current_turn_text  # reset, don't accumulate
 
-            # tool results
-            if role == "tool":
-                for block in msg.get("content", []):
-                    if isinstance(block, dict) and block.get("type") == "tool_result":
-                        tool_id = block.get("tool_use_id", "")
-                        # Match to the corresponding call
-                        for tc in tool_calls:
-                            if tc.get("id") == tool_id and "result" not in tc:
-                                # Truncate large results
-                                result_content = str(block.get("content", ""))[:2000]
-                                tc["result"] = result_content
-                                break
+        # User turns contain tool results
+        elif etype == "user":
+            msg = event.get("message", {})
+            for block in msg.get("content", []):
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "tool_result":
+                    tool_id = block.get("tool_use_id", "")
+                    result_text = str(block.get("content", ""))[:2000]
+                    tool_results[tool_id] = result_text
 
-    return "\n".join(text_parts) if text_parts else raw, tool_calls
+    # Attach results to their tool calls
+    for tc in tool_calls:
+        if tc["id"] in tool_results:
+            tc["result"] = tool_results[tc["id"]]
+
+    return "".join(text_parts), tool_calls
 
 
 # ---------------------------------------------------------------------------
@@ -213,6 +234,149 @@ def filter_queries(
 
 
 # ---------------------------------------------------------------------------
+# Git state assertions
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# Brevity checks
+# ---------------------------------------------------------------------------
+
+def parse_yaml_frontmatter(text: str) -> dict:
+    """Extract YAML frontmatter as a dict using regex (no yaml dependency)."""
+    m = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
+    if not m:
+        return {}
+    result = {}
+    for line in m.group(1).splitlines():
+        if ":" in line:
+            key, _, value = line.partition(":")
+            value = value.strip()
+            # Coerce numeric values
+            try:
+                value = int(value)
+            except ValueError:
+                pass
+            result[key.strip()] = value
+    return result
+
+
+BREVITY_EXEMPT_SKILLS = {"help"}
+
+
+def _check_brevity(query_label: str, response_lines: int) -> str | None:
+    """Return 'verbose' flag if response exceeds brevity cap, unless exempt."""
+    skill_name = query_label.rsplit("-q", 1)[0]
+    if skill_name in BREVITY_EXEMPT_SKILLS:
+        return None
+    # Read per-skill preferred_max_lines from SKILL.md frontmatter
+    index_path = PROJECT_ROOT / ".claude" / "skills" / skill_name / "SKILL.md"
+    max_lines = 30  # global default
+    if index_path.exists():
+        frontmatter = parse_yaml_frontmatter(index_path.read_text())
+        max_lines = frontmatter.get("preferred_max_lines", 30)
+    soft_ceiling = int(max_lines * 1.5)
+    if response_lines > soft_ceiling:
+        return "verbose"
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Quality checks
+# ---------------------------------------------------------------------------
+
+
+def quality_check(
+    tool_calls: list[dict],
+    body: str,
+    query: dict,
+    explicit: bool,
+) -> list[str]:
+    """
+    Run post-query quality checks and return a list of flag strings.
+
+    Flags:
+    - no-skill: In explicit mode, Skill tool was never invoked
+    - no-skill-ok: Skill not invoked but has injected_prerequisites (not a defect)
+    - mcp-fail(N): N MCP tool calls had "validation failed" in result
+    - brevity-N: N non-header content lines (verbose response)
+    - global-data: Killmail query with "my" in text used character_id=None
+    - skill-gate-violation: MCP/ToolSearch call appeared before first Skill call
+    """
+    flags: list[str] = []
+
+    # 1. no-skill: In explicit mode, verify Skill tool was used
+    if explicit:
+        has_skill = any(tc["tool"] == "Skill" for tc in tool_calls)
+        if not has_skill:
+            flags.append("no-skill")
+
+    # 2. mcp-fail: Count MCP tool calls with validation failures
+    mcp_failures = 0
+    for tc in tool_calls:
+        if tc["tool"].startswith("mcp__"):
+            result_text = tc.get("result", "")
+            if "validation failed" in result_text.lower():
+                mcp_failures += 1
+    if mcp_failures:
+        flags.append(f"mcp-fail({mcp_failures})")
+
+    # 3. brevity: Count non-header content lines
+    content_lines = [
+        line for line in body.splitlines()
+        if line.strip() and not line.startswith("#") and not line.startswith("---")
+    ]
+    query_label = f"{query['skill']}-q{query['query_num']}"
+    brevity_flag = _check_brevity(query_label, len(content_lines))
+    if brevity_flag:
+        flags.append(brevity_flag)
+
+    # 4. global-data: Killmail queries mentioning "my" without character_id
+    query_text = query.get("query_text", "").lower()
+    if query["skill"] in ("killmails", "killmail") and "my" in query_text:
+        for tc in tool_calls:
+            if tc["tool"] == "mcp__aria-universe__killmails":
+                inp = tc.get("input", {})
+                if inp.get("character_id") is None:
+                    flags.append("global-data")
+                    break
+
+    # 5. no-skill-ok: Distinguish injected-prerequisite skills from enforcement failures
+    if explicit and "no-skill" in flags:
+        skill_name = query.get("skill", "")
+        index_path = PROJECT_ROOT / ".claude" / "skills" / "_index.json"
+        if index_path.exists():
+            index = json.loads(index_path.read_text())
+            skill_meta = next(
+                (s for s in index["skills"] if s["name"] == skill_name), None
+            )
+            if skill_meta and skill_meta.get("injected_prerequisites"):
+                flags.remove("no-skill")
+                flags.append("no-skill-ok")
+
+    # 6. skill-gate-violation: MCP/ToolSearch call appears before first Skill call
+    first_skill_idx = None
+    for i, tc in enumerate(tool_calls):
+        if tc["tool"] == "Skill":
+            first_skill_idx = i
+            break
+    if first_skill_idx is not None:
+        # Check if any mcp__ or ToolSearch call precedes the first Skill call
+        for tc in tool_calls[:first_skill_idx]:
+            if tc["tool"].startswith("mcp__") or tc["tool"] == "ToolSearch":
+                flags.append("skill-gate-violation")
+                break
+    elif tool_calls:
+        # No Skill call at all — check if MCP/ToolSearch were used
+        for tc in tool_calls:
+            if tc["tool"].startswith("mcp__") or tc["tool"] == "ToolSearch":
+                flags.append("skill-gate-violation")
+                break
+
+    return flags
+
+
+# ---------------------------------------------------------------------------
 # Query runner
 # ---------------------------------------------------------------------------
 
@@ -223,6 +387,7 @@ def run_query(
     seq: int,
     timeout: int = 120,
     model: str | None = None,
+    effort: str | None = None,
     explicit: bool = False,
 ) -> dict:
     """
@@ -252,10 +417,12 @@ def run_query(
         f"---\n\n"
     )
 
-    # Build command — use --output-format json to capture tool calls
-    cmd = ["claude", "-p", "--output-format", "json"]
+    # Build command — use --output-format stream-json to capture tool calls
+    cmd = ["claude", "-p", "--verbose", "--output-format", "stream-json"]
     if model:
         cmd.extend(["--model", model])
+    if effort:
+        cmd.extend(["--effort", effort])
 
     # Allowed tools — the critical fix for hallucination prevention.
     # Without this, claude -p can't use tools (no interactive approval)
@@ -275,24 +442,101 @@ def run_query(
     # bypassing capture_output).
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
     env["GIT_SSH_COMMAND"] = "ssh -o BatchMode=yes"
+    # Disable keyring probe — it can block indefinitely in non-TTY subprocesses
+    # when the system keyring daemon requires interactive authentication.
+    env["ARIA_NO_KEYRING"] = "1"
+
+    # Install skill-enforcer hook for explicit mode
+    settings_local = PROJECT_ROOT / ".claude" / "settings.local.json"
+    saved_settings = None
+    if explicit and HOOKS_DIR.exists():
+        try:
+            if settings_local.exists():
+                saved_settings = settings_local.read_text()
+                existing = json.loads(saved_settings)
+            else:
+                existing = {}
+            merged = copy.deepcopy(existing)
+            merged.setdefault("hooks", {})
+
+            # Replace hooks with absolute paths for deterministic exercise runs.
+            # Production settings use $CLAUDE_PROJECT_DIR which may not resolve
+            # reliably in all claude -p contexts. Exercise runs need absolute paths.
+            cleanup_cmd = str(HOOKS_DIR / "skill-gate-cleanup-turn.sh")
+            hook_cmd = str(HOOKS_DIR / "skill-enforcer.sh")
+            merged["hooks"]["UserPromptSubmit"] = [
+                {"hooks": [{"type": "command", "command": cleanup_cmd}]},
+                {"hooks": [{"type": "command", "command": hook_cmd}]},
+            ]
+            gate_cmd = str(HOOKS_DIR / "skill-gate.sh")
+            merged["hooks"]["PreToolUse"] = [
+                {
+                    # Empty matcher = fire on all tools. The script's Phase 2
+                    # allowlist handles read-only tools internally.
+                    "hooks": [
+                        {"type": "command", "command": gate_cmd},
+                    ],
+                },
+            ]
+            session_cleanup_cmd = str(HOOKS_DIR / "skill-gate-cleanup.sh")
+            merged["hooks"]["SessionEnd"] = [
+                {
+                    "hooks": [
+                        {"type": "command", "command": session_cleanup_cmd},
+                    ]
+                },
+            ]
+            # F3: Deny rules to protect infrastructure files during exercise runs
+            merged.setdefault("permissions", {})
+            merged["permissions"].setdefault("deny", [])
+            deny_rules = [
+                # Block subagent spawning — subagents bypass --allowedTools and
+                # PreToolUse hooks, undermining both the edit sandbox and skill gate.
+                "Agent",
+                # Authoritative edit/write sandbox.
+                "Edit",
+                "Write",
+                # Infrastructure protection (defense-in-depth)
+                "Edit(/.claude/settings*)",
+                "Edit(/.claude/hooks/*)",
+                "Write(/.claude/settings*)",
+                "Write(/.claude/hooks/*)",
+                "Edit(/dev/scripts/hooks/*)",
+                "Write(/dev/scripts/hooks/*)",
+            ]
+            existing_deny = set(merged["permissions"]["deny"])
+            for rule in deny_rules:
+                if rule not in existing_deny:
+                    merged["permissions"]["deny"].append(rule)
+            settings_local.write_text(json.dumps(merged, indent=2) + "\n")
+        except Exception:
+            saved_settings = None  # Don't restore on error
 
     start = time.monotonic()
 
+    # Use Popen with start_new_session so claude and all its child
+    # processes (MCP servers, bash shells, aria-esi CLI) live in a
+    # dedicated process group. On timeout we kill the entire group,
+    # preventing orphaned grandchild processes.
+    proc = subprocess.Popen(
+        cmd,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        cwd=str(PROJECT_ROOT),
+        env=env,
+        start_new_session=True,
+    )
+
     try:
-        result = subprocess.run(
-            cmd,
-            input=input_text,
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            cwd=str(PROJECT_ROOT),
-            env=env,
+        stdout_raw, stderr_raw = proc.communicate(
+            input=input_text, timeout=timeout,
         )
         duration = time.monotonic() - start
 
         # Parse JSON output to extract text and tool calls
-        raw_stdout = result.stdout
-        stdout, tool_calls = _parse_json_output(raw_stdout)
+        stdout, tool_calls = _parse_stream_output(stdout_raw)
 
         # Strip <system-reminder> tags that leak into stdout
         stdout = SYSTEM_REMINDER_RE.sub("", stdout).strip()
@@ -302,32 +546,74 @@ def run_query(
             tool_log_path = output_path.with_suffix(".tools.json")
             tool_log_path.write_text(json.dumps(tool_calls, indent=2) + "\n")
 
-        # Debug: dump raw stdout when stripping removed significant content
-        raw_clean = SYSTEM_REMINDER_RE.sub("", raw_stdout).strip()
-        if len(raw_stdout) - len(raw_clean) > 200:
+        # Debug: dump raw stdout when parse produced nothing or when
+        # system-reminder stripping removed significant content
+        raw_clean = SYSTEM_REMINDER_RE.sub("", stdout_raw).strip()
+        if (not stdout and not tool_calls and stdout_raw.strip()) or \
+                len(stdout_raw) - len(raw_clean) > 200:
             raw_path = output_path.with_suffix(".raw")
-            raw_path.write_text(header + raw_stdout)
+            raw_path.write_text(header + stdout_raw)
 
-        if result.returncode != 0 and not stdout:
-            body = f"# ERROR (exit {result.returncode})\n\n{result.stderr[:500]}"
+        if proc.returncode != 0 and not stdout:
+            body = f"# ERROR (exit {proc.returncode})\n\n{stderr_raw[:500]}"
         elif not stdout:
-            body = "# EMPTY RESPONSE"
+            # Include stderr for diagnosis when claude -p exits cleanly but
+            # produces no output (e.g., hook failures, rate limits, startup errors)
+            stderr_hint = ""
+            if stderr_raw and stderr_raw.strip():
+                stderr_hint = f"\n\n```\nstderr: {stderr_raw[:300]}\n```"
+            body = f"# EMPTY RESPONSE{stderr_hint}"
         else:
             body = stdout
 
+        # Append compact Tool Trace footer for human readability
+        if tool_calls:
+            trace_lines = ["\n---\n## Tool Trace\n"]
+            for tc in tool_calls:
+                tool_name = tc["tool"]
+                inp = tc.get("input", {})
+                if tool_name == "Read":
+                    summary = inp.get("file_path", "?")
+                elif tool_name == "Skill":
+                    summary = inp.get("skill", "?")
+                elif tool_name.startswith("mcp__"):
+                    action = inp.get("action", "?")
+                    summary = f"{tool_name.split('__')[-1]}({action})"
+                else:
+                    summary = str(inp)[:80]
+                trace_lines.append(f"- `{tool_name}` → {summary}")
+            body += "\n".join(trace_lines)
+
         output_path.write_text(header + body)
+
+        # Quality checks
+        quality_flags = quality_check(
+            tool_calls=tool_calls,
+            body=body,
+            query=query,
+            explicit=explicit,
+        )
 
         return {
             "seq": seq,
             "filename": filename,
             "skill": query["skill"],
             "query_num": query["query_num"],
-            "status": "ok" if result.returncode == 0 else f"error:{result.returncode}",
+            "status": "ok" if proc.returncode == 0 and stdout else
+                      "empty" if proc.returncode == 0 else
+                      f"error:{proc.returncode}",
             "duration": round(duration, 1),
             "lines": len(body.splitlines()),
+            "quality": quality_flags,
         }
 
     except subprocess.TimeoutExpired:
+        # Kill the entire process group (claude + all children)
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except OSError:
+            proc.kill()
+        proc.wait()
         duration = time.monotonic() - start
         body = f"# TIMEOUT after {timeout}s"
         output_path.write_text(header + body)
@@ -339,7 +625,26 @@ def run_query(
             "status": "timeout",
             "duration": round(duration, 1),
             "lines": 1,
+            "quality": [],
         }
+
+    finally:
+        # Restore original settings.local.json
+        if saved_settings is not None:
+            settings_local.write_text(saved_settings)
+        elif explicit and settings_local.exists() and saved_settings is None:
+            # We created settings.local.json from scratch — remove our hook
+            try:
+                current = json.loads(settings_local.read_text())
+                hooks = current.get("hooks", {})
+                hooks.pop("UserPromptSubmit", None)
+                hooks.pop("PreToolUse", None)
+                if current == {} or current == {"hooks": {}}:
+                    settings_local.unlink()
+                else:
+                    settings_local.write_text(json.dumps(current, indent=2) + "\n")
+            except Exception:
+                pass
 
 
 # ---------------------------------------------------------------------------
@@ -353,6 +658,7 @@ def generate_manifest(
     results: list[dict],
     filter_desc: str,
     model: str | None,
+    effort: str | None,
     timeout: int,
     parallel: int,
 ) -> None:
@@ -361,6 +667,7 @@ def generate_manifest(
     total_lines = sum(r["lines"] for r in results)
     total_files = len(results)
     ok = sum(1 for r in results if r["status"] == "ok")
+    empty = sum(1 for r in results if r["status"] == "empty")
     errors = sum(1 for r in results if r["status"].startswith("error"))
     timeouts = sum(1 for r in results if r["status"] == "timeout")
 
@@ -370,24 +677,46 @@ def generate_manifest(
         f"- **Date:** {datetime.now().strftime('%Y-%m-%d')}",
         f"- **Filter:** {filter_desc}",
         f"- **Model:** {model or 'default'}",
+        f"- **Effort:** {effort or 'default'}",
         f"- **Timeout:** {timeout}s",
         f"- **Parallel workers:** {parallel}",
         f"- **Queries executed:** {total_files}",
-        f"- **Results:** {ok} ok, {errors} errors, {timeouts} timeouts",
+        f"- **Results:** {ok} ok, {empty} empty, {errors} errors, {timeouts} timeouts",
         f"- **Total output:** {total_files} files, {total_lines} lines",
         "",
         "## File Index",
         "",
-        "| # | Skill | Query | ESI | Status | Duration |",
-        "|---|-------|-------|-----|--------|----------|",
+        "| # | Skill | Query | ESI | Status | Duration | Quality |",
+        "|---|-------|-------|-----|--------|----------|---------|",
     ]
 
     for r, q in zip(results, queries):
         query_short = q["query_text"][:60].replace("\n", " ").replace("|", "\\|")
+        quality_str = ", ".join(r.get("quality", [])) or "-"
         lines.append(
             f"| {r['seq']:02d} | {r['skill']} | {query_short} | "
-            f"{q['esi_level']} | {r['status']} | {r['duration']}s |"
+            f"{q['esi_level']} | {r['status']} | {r['duration']}s | {quality_str} |"
         )
+
+    # Quality flag summary
+    all_flags: list[str] = []
+    for r in results:
+        all_flags.extend(r.get("quality", []))
+    if all_flags:
+        flag_counts = Counter(
+            # Normalize parametric flags like mcp-fail(2) → mcp-fail
+            re.sub(r"\(.*\)", "", f) for f in all_flags
+        )
+        lines.append("")
+        lines.append("## Quality Summary")
+        lines.append("")
+        # Separate defect flags from informational flags
+        defect_flags = {k: v for k, v in flag_counts.items() if k != "no-skill-ok"}
+        info_flags = {k: v for k, v in flag_counts.items() if k == "no-skill-ok"}
+        for flag, count in sorted(defect_flags.items(), key=lambda x: -x[1]):
+            lines.append(f"- **{flag}**: {count} occurrence(s)")
+        for flag, count in info_flags.items():
+            lines.append(f"- **{flag}**: {count} (injected prereqs, not a defect)")
 
     manifest = output_dir / "MANIFEST.md"
     manifest.write_text("\n".join(lines) + "\n")
@@ -396,6 +725,30 @@ def generate_manifest(
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
+
+def preflight_checks() -> list[str]:
+    """Run environment checks before exercises."""
+    warnings = []
+    # 1. Stale reference data (>30 days)
+    stale_threshold = time.time() - (30 * 86400)
+    reference_dir = Path("reference")
+    if reference_dir.is_dir():
+        stale_files = [
+            str(p) for pattern in ("**/*.json", "**/*.yaml")
+            for p in reference_dir.glob(pattern)
+            if p.stat().st_mtime < stale_threshold
+        ]
+        if stale_files:
+            warnings.append(
+                f"{len(stale_files)} reference files older than 30 days "
+                f"(e.g., {stale_files[0]})"
+            )
+    # 3. Universe graph exists
+    graph_path = Path("src/aria_esi/data/universe.universe")
+    if not graph_path.is_file():
+        warnings.append(f"Universe graph not found: {graph_path}")
+    return warnings
 
 
 def main():
@@ -419,6 +772,11 @@ def main():
     parser.add_argument(
         "--model",
         help="Claude model to use (passed to claude -p --model)",
+    )
+    parser.add_argument(
+        "--effort",
+        choices=["low", "medium", "high"],
+        help="Reasoning effort level (passed to claude -p --effort)",
     )
     parser.add_argument(
         "--dry-run",
@@ -496,6 +854,10 @@ def main():
     print(f"Output directory: {output_dir}")
     print(f"Allowed tools: {len(ALLOWED_TOOLS)} tools whitelisted")
 
+    preflight_warnings = preflight_checks()
+    for w in preflight_warnings:
+        print(f"  WARNING: {w}")
+
     # Run queries
     results = []
     if args.parallel <= 1:
@@ -503,7 +865,7 @@ def main():
         for seq, query in enumerate(filtered, 1):
             query_short = query["query_text"][:60].replace("\n", "\\n")
             print(f"  [{seq:02d}/{len(filtered)}] {query['skill']} q{query['query_num']}: \"{query_short}\"")
-            result = run_query(query, output_dir, seq, args.timeout, args.model, args.explicit)
+            result = run_query(query, output_dir, seq, args.timeout, args.model, args.effort, args.explicit)
             print(f"          → {result['status']} ({result['duration']}s, {result['lines']} lines)")
             results.append(result)
     else:
@@ -513,7 +875,7 @@ def main():
             for seq, query in enumerate(filtered, 1):
                 future = executor.submit(
                     run_query, query, output_dir, seq, args.timeout, args.model,
-                    args.explicit,
+                    args.effort, args.explicit,
                 )
                 futures[future] = (seq, query)
 
@@ -531,15 +893,16 @@ def main():
     # Generate manifest
     generate_manifest(
         output_dir, filtered, results,
-        filter_desc, args.model, args.timeout, args.parallel,
+        filter_desc, args.model, args.effort, args.timeout, args.parallel,
     )
 
     # Summary
     ok = sum(1 for r in results if r["status"] == "ok")
+    empty = sum(1 for r in results if r["status"] == "empty")
     errors = sum(1 for r in results if r["status"].startswith("error"))
     timeouts = sum(1 for r in results if r["status"] == "timeout")
     print()
-    print(f"Done: {ok} ok, {errors} errors, {timeouts} timeouts")
+    print(f"Done: {ok} ok, {empty} empty, {errors} errors, {timeouts} timeouts")
     print(f"Output: {output_dir}")
 
 

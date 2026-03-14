@@ -1,3 +1,5 @@
+> **Note:** Path disambiguation for *injected* prerequisites is superseded by dynamic context injection (see `PREREQUISITE_INJECTION_PROPOSAL.md`). Injected files are loaded via `` !`cat` `` syntax before the agent runs — no path resolution occurs at runtime. This document applies only to agent-loaded `prerequisite_files` entries.
+
 # Prerequisite File Path Disambiguation — Status
 
 Tracking document for applying the "Prerequisite File Path Disambiguation" standard
