@@ -17,8 +17,8 @@ from aria_esi.core.logging import get_logger
 from aria_esi.models.market import ScopePriceRefreshInfo, ScopeRefreshResult
 
 if TYPE_CHECKING:
-    from .database import MarketScope, MarketScopePrice, WatchlistItem
     from .database_async import AsyncMarketDatabase
+    from .database_common import MarketScope, MarketScopePrice, WatchlistItem
 
 logger = get_logger(__name__)
 
@@ -496,7 +496,7 @@ class MarketScopeFetcher:
         Creates MarketScopePrice records for each type in the watchlist,
         including zero-rows for items with no orders found.
         """
-        from .database import MarketScopePrice
+        from .database_common import MarketScopePrice
 
         now = int(time.time())
 

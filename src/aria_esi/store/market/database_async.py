@@ -15,8 +15,9 @@ import aiosqlite
 
 from ...core.config import get_settings
 from ...core.logging import get_logger
-from .database import (
+from .database_common import (
     SCHEMA_SQL,
+    SCHEMA_VERSION,
     CachedAggregate,
     CachedHistory,
     MarketScope,
@@ -77,7 +78,7 @@ class AsyncMarketDatabase:
         if conn is None:
             return
 
-        await conn.executescript(SCHEMA_SQL)
+        await conn.executescript(SCHEMA_SQL.format(schema_version=SCHEMA_VERSION))
         await conn.commit()
         logger.info("Async market database initialized at %s", self.db_path)
 

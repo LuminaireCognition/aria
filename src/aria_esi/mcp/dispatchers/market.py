@@ -139,6 +139,8 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
         include_custom_scopes: bool = False,
         scopes: list[str] | None = None,
         scope_owner_id: int | None = None,
+        min_absolute_profit: float = 100_000.0,
+        min_buy_price: float = 100.0,
         # build_cost / build_chain params
         me_level: int = 0,
         runs: int = 1,
@@ -234,6 +236,8 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                 sort_by: "margin", "profit_density", "hauling_score"
                 trade_mode: "immediate", "hybrid", "station_trading"
                 cargo_capacity_m3: For hauling_score calculation
+                min_absolute_profit: Min ISK profit per unit (default 100k)
+                min_buy_price: Min buy price in ISK (default 100)
 
             Arbitrage detail params (action="arbitrage_detail"):
                 type_name: Item name
@@ -325,6 +329,8 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                 "include_custom_scopes": include_custom_scopes,
                 "scopes": scopes,
                 "scope_owner_id": scope_owner_id,
+                "min_absolute_profit": min_absolute_profit,
+                "min_buy_price": min_buy_price,
                 "buy_region": buy_region,
                 "sell_region": sell_region,
                 "type_name": type_name,
@@ -395,6 +401,8 @@ def register_market_dispatcher(server: FastMCP, universe: UniverseGraph) -> None
                     include_custom_scopes,
                     scopes,
                     scope_owner_id,
+                    min_absolute_profit,
+                    min_buy_price,
                 )
             case "arbitrage_detail":
                 result = await _arbitrage_detail(type_name, buy_region, sell_region)
@@ -1137,6 +1145,8 @@ async def _arbitrage_scan(
     include_custom_scopes: bool,
     scopes: list[str] | None,
     scope_owner_id: int | None,
+    min_absolute_profit: float = 100_000.0,
+    min_buy_price: float = 100.0,
 ) -> dict:
     """Arbitrage scan action."""
     # Import and delegate to existing tool
@@ -1160,6 +1170,8 @@ async def _arbitrage_scan(
         include_custom_scopes,
         scopes,
         scope_owner_id,
+        min_absolute_profit,
+        min_buy_price,
     )
     return wrap_output(result, "opportunities", max_items=MARKET.OUTPUT_MAX_ARBITRAGE)
 

@@ -515,6 +515,32 @@ def cmd_price_batch(args: argparse.Namespace) -> dict:
 
 
 # =============================================================================
+# Find Nearby Command
+# =============================================================================
+
+
+def cmd_find(args: argparse.Namespace) -> dict:
+    """Find market sources near a system."""
+    import asyncio
+
+    from ..mcp.dispatchers.market import _find_nearby
+
+    result = asyncio.run(
+        _find_nearby(
+            item=args.item_name,
+            origin=args.proximity,
+            max_jumps=args.max_jumps,
+            order_type=args.order_type,
+            source_filter="all",
+            expand_regions=False,
+            max_regions=3,
+            limit=args.limit,
+        )
+    )
+    return result
+
+
+# =============================================================================
 # Argument Parser Registration
 # =============================================================================
 
@@ -635,6 +661,41 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
         help="Use Hek prices",
     )
     batch_parser.set_defaults(func=cmd_price_batch)
+
+    # Find nearby command
+    find_parser = subparsers.add_parser(
+        "find",
+        help="Find market sources near a system",
+    )
+    find_parser.add_argument(
+        "item_name",
+        help="Item name to search for",
+    )
+    find_parser.add_argument(
+        "--proximity",
+        required=True,
+        metavar="SYSTEM",
+        help="Reference system for proximity sorting (required)",
+    )
+    find_parser.add_argument(
+        "--max-jumps",
+        type=int,
+        default=10,
+        help="Maximum jump distance to search (default: 10)",
+    )
+    find_parser.add_argument(
+        "--order-type",
+        choices=["sell", "buy", "all"],
+        default="sell",
+        help="Order type to search (default: sell)",
+    )
+    find_parser.add_argument(
+        "--limit",
+        type=int,
+        default=10,
+        help="Maximum results to return (default: 10)",
+    )
+    find_parser.set_defaults(func=cmd_find)
 
 
 def _cmd_price_wrapper(args: argparse.Namespace) -> dict:

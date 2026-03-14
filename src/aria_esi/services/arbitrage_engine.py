@@ -373,6 +373,8 @@ class ArbitrageEngine:
         scopes: list[str] | None = None,
         scope_owner_id: int | None = None,
         include_custom_scopes: bool = False,
+        min_absolute_profit: float = 100_000.0,
+        min_buy_price: float = 100.0,
     ) -> list[ArbitrageOpportunity]:
         """
         Find arbitrage opportunities across trade hubs.
@@ -406,6 +408,8 @@ class ArbitrageEngine:
             scopes: List of scope names to include (requires include_custom_scopes=True)
             scope_owner_id: Character ID for scope ownership resolution
             include_custom_scopes: If True, include ad-hoc scope data in arbitrage scan
+            min_absolute_profit: Min net ISK profit per unit (default 100k)
+            min_buy_price: Min buy price in ISK (default 100)
 
         Returns:
             List of ArbitrageOpportunity sorted by specified sort mode
@@ -524,8 +528,10 @@ class ArbitrageEngine:
                 buy_price, sell_price, trade_mode, broker_fee_pct, sales_tax_pct
             )
 
-            # Filter out negative net profit opportunities
-            if net_profit <= 0:
+            # Filter out low-value and phantom orders
+            if net_profit <= 0 or net_profit < min_absolute_profit:
+                continue
+            if trade_mode == "station_trading" and buy_price < min_buy_price:
                 continue
 
             # Get effective volume for density calculation
@@ -700,6 +706,8 @@ class ArbitrageEngine:
         scopes: list[str] | None = None,
         scope_owner_id: int | None = None,
         include_custom_scopes: bool = False,
+        min_absolute_profit: float = 100_000.0,
+        min_buy_price: float = 100.0,
     ) -> ArbitrageScanResult:
         """
         Get a complete scan result with metadata.
@@ -721,6 +729,8 @@ class ArbitrageEngine:
             scopes: List of scope names to include (requires include_custom_scopes=True)
             scope_owner_id: Character ID for scope ownership resolution
             include_custom_scopes: If True, include ad-hoc scope data in arbitrage scan
+            min_absolute_profit: Min net ISK profit per unit (default 100k)
+            min_buy_price: Min buy price in ISK (default 100)
 
         Returns:
             ArbitrageScanResult with opportunities and metadata
@@ -741,6 +751,8 @@ class ArbitrageEngine:
             scopes=scopes,
             scope_owner_id=scope_owner_id,
             include_custom_scopes=include_custom_scopes,
+            min_absolute_profit=min_absolute_profit,
+            min_buy_price=min_buy_price,
         )
 
         # Determine overall freshness

@@ -36,54 +36,65 @@ KEYRING_REASON: Optional[str]
 # Sentinel key used for the functional probe at import time
 _PROBE_KEY = "aria-keyring-probe"
 
-# Attempt to import keyring with graceful fallback
-try:
-    import keyring
-    from keyring.errors import KeyringError, KeyringLocked
+# Honour ARIA_NO_KEYRING *before* the import-time probe.
+# The probe can block indefinitely when a system keyring daemon is present
+# but requires interactive authentication (e.g., GNOME Keyring locked in a
+# non-TTY subprocess).  Checking the env var here — rather than only at
+# runtime in is_keyring_enabled() — prevents the hang entirely.
+if os.environ.get("ARIA_NO_KEYRING", "").lower() in ("1", "true", "yes"):
+    KEYRING_AVAILABLE = False
+    KEYRING_BACKEND = None
+    KEYRING_REASON = "Disabled via ARIA_NO_KEYRING"
+    KeyringError = Exception  # type: ignore[assignment]  # Fallback for type hints
+else:
+    # Attempt to import keyring with graceful fallback
+    try:
+        import keyring
+        from keyring.errors import KeyringError, KeyringLocked
 
-    # Test that keyring is functional (not just importable)
-    # Some systems have keyring installed but no backend available
-    _backend = keyring.get_keyring()
-    _backend_name = _backend.__class__.__name__
+        # Test that keyring is functional (not just importable)
+        # Some systems have keyring installed but no backend available
+        _backend = keyring.get_keyring()
+        _backend_name = _backend.__class__.__name__
 
-    # Check for known non-functional backends
-    if "fail" in _backend_name.lower() or "null" in _backend_name.lower():
+        # Check for known non-functional backends
+        if "fail" in _backend_name.lower() or "null" in _backend_name.lower():
+            KEYRING_AVAILABLE = False
+            KEYRING_BACKEND = None
+            KEYRING_REASON = f"No functional keyring backend ({_backend_name})"
+        else:
+            # Functional probe: actually write/read/delete to verify the backend works.
+            # This catches locked collections (e.g., GNOME Keyring Login collection
+            # not unlocked in TTY sessions) that pass the name check but fail on use.
+            try:
+                keyring.set_password(KEYRING_SERVICE, _PROBE_KEY, "probe")
+                keyring.delete_password(KEYRING_SERVICE, _PROBE_KEY)
+                KEYRING_AVAILABLE = True
+                KEYRING_BACKEND = _backend_name
+                KEYRING_REASON = None
+            except KeyringLocked:
+                KEYRING_AVAILABLE = False
+                KEYRING_BACKEND = None
+                KEYRING_REASON = (
+                    f"Keyring collection is locked ({_backend_name}). "
+                    "Unlock with: echo -n PASSWORD | gnome-keyring-daemon --unlock"
+                )
+            except KeyringError as e:
+                KEYRING_AVAILABLE = False
+                KEYRING_BACKEND = None
+                KEYRING_REASON = f"Keyring probe failed ({_backend_name}): {e}"
+
+    except ImportError:
         KEYRING_AVAILABLE = False
         KEYRING_BACKEND = None
-        KEYRING_REASON = f"No functional keyring backend ({_backend_name})"
-    else:
-        # Functional probe: actually write/read/delete to verify the backend works.
-        # This catches locked collections (e.g., GNOME Keyring Login collection
-        # not unlocked in TTY sessions) that pass the name check but fail on use.
-        try:
-            keyring.set_password(KEYRING_SERVICE, _PROBE_KEY, "probe")
-            keyring.delete_password(KEYRING_SERVICE, _PROBE_KEY)
-            KEYRING_AVAILABLE = True
-            KEYRING_BACKEND = _backend_name
-            KEYRING_REASON = None
-        except KeyringLocked:
-            KEYRING_AVAILABLE = False
-            KEYRING_BACKEND = None
-            KEYRING_REASON = (
-                f"Keyring collection is locked ({_backend_name}). "
-                "Unlock with: echo -n PASSWORD | gnome-keyring-daemon --unlock"
-            )
-        except KeyringError as e:
-            KEYRING_AVAILABLE = False
-            KEYRING_BACKEND = None
-            KEYRING_REASON = f"Keyring probe failed ({_backend_name}): {e}"
+        KEYRING_REASON = "keyring package not installed (pip install aria[secure])"
+        KeyringError = Exception  # type: ignore[assignment]  # Fallback for type hints
 
-except ImportError:
-    KEYRING_AVAILABLE = False
-    KEYRING_BACKEND = None
-    KEYRING_REASON = "keyring package not installed (pip install aria[secure])"
-    KeyringError = Exception  # type: ignore[assignment]  # Fallback for type hints
-
-except Exception as e:  # noqa: BLE001 -- broad handler
-    KEYRING_AVAILABLE = False
-    KEYRING_BACKEND = None
-    KEYRING_REASON = f"Keyring initialization failed: {e}"
-    KeyringError = Exception  # type: ignore[assignment]  # Fallback for type hints
+    except Exception as e:  # noqa: BLE001 -- broad handler
+        KEYRING_AVAILABLE = False
+        KEYRING_BACKEND = None
+        KEYRING_REASON = f"Keyring initialization failed: {e}"
+        KeyringError = Exception  # type: ignore[assignment]  # Fallback for type hints
 
 
 def _warn_keyring_unavailable() -> None:

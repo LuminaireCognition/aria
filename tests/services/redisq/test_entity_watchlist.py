@@ -34,7 +34,7 @@ def manager(db_path: Path) -> EntityWatchlistManager:
 
         CREATE TABLE IF NOT EXISTS entity_watchlists (
             watchlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
+            name TEXT NOT NULL COLLATE NOCASE,
             description TEXT,
             watchlist_type TEXT NOT NULL CHECK(watchlist_type IN ('manual', 'war_targets', 'contacts')),
             owner_character_id INTEGER,
@@ -58,7 +58,7 @@ def manager(db_path: Path) -> EntityWatchlistManager:
         );
         CREATE INDEX IF NOT EXISTS idx_entity_items_entity ON entity_watchlist_items(entity_id, entity_type);
 
-        INSERT OR REPLACE INTO metadata (key, value) VALUES ('schema_version', '9');
+        INSERT OR REPLACE INTO metadata (key, value) VALUES ('schema_version', '10');
     """)
     conn.commit()
     conn.close()
@@ -304,3 +304,190 @@ class TestEntityValidation:
         # Invalid type
         with pytest.raises(ValueError, match="Invalid entity_type"):
             EntityWatchlistManager.validate_entity(98100001, "pilot")
+
+
+class TestCaseInsensitiveNames:
+    """Tests for case-insensitive watchlist name handling."""
+
+    def test_v10_migration_merges_case_duplicates(self, db_path: Path):
+        """Migration v10 merges case-variant watchlist names and their items."""
+        conn = sqlite3.connect(str(db_path))
+        # Create schema at v9 (pre-migration)
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS metadata (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS entity_watchlists (
+                watchlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT,
+                watchlist_type TEXT NOT NULL CHECK(watchlist_type IN ('manual', 'war_targets', 'contacts')),
+                owner_character_id INTEGER,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_entity_watchlists_owner
+                ON entity_watchlists(name, owner_character_id) WHERE owner_character_id IS NOT NULL;
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_entity_watchlists_global
+                ON entity_watchlists(name) WHERE owner_character_id IS NULL;
+            CREATE TABLE IF NOT EXISTS entity_watchlist_items (
+                watchlist_id INTEGER NOT NULL,
+                entity_id INTEGER NOT NULL,
+                entity_type TEXT NOT NULL CHECK(entity_type IN ('corporation', 'alliance')),
+                entity_name TEXT,
+                added_at INTEGER NOT NULL,
+                added_reason TEXT,
+                PRIMARY KEY (watchlist_id, entity_id, entity_type),
+                FOREIGN KEY (watchlist_id) REFERENCES entity_watchlists(watchlist_id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_entity_items_entity ON entity_watchlist_items(entity_id, entity_type);
+            INSERT OR REPLACE INTO metadata (key, value) VALUES ('schema_version', '9');
+        """)
+        # Insert case-variant duplicates
+        conn.execute(
+            "INSERT INTO entity_watchlists (name, watchlist_type, owner_character_id, created_at, updated_at) "
+            "VALUES ('Default', 'manual', NULL, 1000, 1000)"
+        )
+        conn.execute(
+            "INSERT INTO entity_watchlists (name, watchlist_type, owner_character_id, created_at, updated_at) "
+            "VALUES ('default', 'manual', NULL, 2000, 2000)"
+        )
+        # Add items — one shared entity and one unique per list
+        wl_ids = [row[0] for row in conn.execute("SELECT watchlist_id FROM entity_watchlists ORDER BY watchlist_id").fetchall()]
+        conn.execute(
+            "INSERT INTO entity_watchlist_items (watchlist_id, entity_id, entity_type, entity_name, added_at, added_reason) "
+            "VALUES (?, 98100001, 'corporation', 'Corp A', 1000, 'test')",
+            (wl_ids[0],),
+        )
+        conn.execute(
+            "INSERT INTO entity_watchlist_items (watchlist_id, entity_id, entity_type, entity_name, added_at, added_reason) "
+            "VALUES (?, 98100002, 'corporation', 'Corp B', 2000, 'test')",
+            (wl_ids[1],),
+        )
+        # Shared entity in second list
+        conn.execute(
+            "INSERT INTO entity_watchlist_items (watchlist_id, entity_id, entity_type, entity_name, added_at, added_reason) "
+            "VALUES (?, 98100001, 'corporation', 'Corp A', 2000, 'test2')",
+            (wl_ids[1],),
+        )
+        conn.commit()
+        conn.close()
+
+        # Trigger migration via MarketDatabase
+        from aria_esi.store.market.database import MarketDatabase
+
+        market_db = MarketDatabase(db_path)
+        market_db._get_connection()
+        market_db.close()
+
+        # Verify: single watchlist with both entities
+        mgr = EntityWatchlistManager(db_path)
+        try:
+            watchlists = mgr.list_watchlists()
+            assert len(watchlists) == 1
+            entities = mgr.get_entities(watchlists[0].watchlist_id)
+            entity_ids = {e.entity_id for e in entities}
+            assert 98100001 in entity_ids
+            assert 98100002 in entity_ids
+        finally:
+            mgr.close()
+
+    def test_case_insensitive_uniqueness_after_migration(self, db_path: Path):
+        """After migration, inserting a case-variant name raises IntegrityError."""
+        conn = sqlite3.connect(str(db_path))
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS metadata (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS entity_watchlists (
+                watchlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT,
+                watchlist_type TEXT NOT NULL CHECK(watchlist_type IN ('manual', 'war_targets', 'contacts')),
+                owner_character_id INTEGER,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_entity_watchlists_owner
+                ON entity_watchlists(name, owner_character_id) WHERE owner_character_id IS NOT NULL;
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_entity_watchlists_global
+                ON entity_watchlists(name) WHERE owner_character_id IS NULL;
+            CREATE TABLE IF NOT EXISTS entity_watchlist_items (
+                watchlist_id INTEGER NOT NULL,
+                entity_id INTEGER NOT NULL,
+                entity_type TEXT NOT NULL CHECK(entity_type IN ('corporation', 'alliance')),
+                entity_name TEXT,
+                added_at INTEGER NOT NULL,
+                added_reason TEXT,
+                PRIMARY KEY (watchlist_id, entity_id, entity_type),
+                FOREIGN KEY (watchlist_id) REFERENCES entity_watchlists(watchlist_id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_entity_items_entity ON entity_watchlist_items(entity_id, entity_type);
+            INSERT OR REPLACE INTO metadata (key, value) VALUES ('schema_version', '9');
+        """)
+        conn.commit()
+        conn.close()
+
+        # Trigger migration
+        from aria_esi.store.market.database import MarketDatabase
+
+        market_db = MarketDatabase(db_path)
+        market_db._get_connection()
+        market_db.close()
+
+        # Now test: create "hostiles", then try "Hostiles" — should fail
+        mgr = EntityWatchlistManager(db_path)
+        try:
+            mgr.create_watchlist(name="hostiles", watchlist_type="manual")
+            with pytest.raises(sqlite3.IntegrityError):
+                mgr.create_watchlist(name="Hostiles", watchlist_type="manual")
+        finally:
+            mgr.close()
+
+    def test_mixed_case_lookup(self, db_path: Path):
+        """Create with mixed case, retrieve with different case."""
+        conn = sqlite3.connect(str(db_path))
+        conn.executescript("""
+            CREATE TABLE IF NOT EXISTS metadata (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS entity_watchlists (
+                watchlist_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL COLLATE NOCASE,
+                description TEXT,
+                watchlist_type TEXT NOT NULL CHECK(watchlist_type IN ('manual', 'war_targets', 'contacts')),
+                owner_character_id INTEGER,
+                created_at INTEGER NOT NULL,
+                updated_at INTEGER NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_entity_watchlists_owner
+                ON entity_watchlists(name, owner_character_id) WHERE owner_character_id IS NOT NULL;
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_entity_watchlists_global
+                ON entity_watchlists(name) WHERE owner_character_id IS NULL;
+            CREATE TABLE IF NOT EXISTS entity_watchlist_items (
+                watchlist_id INTEGER NOT NULL,
+                entity_id INTEGER NOT NULL,
+                entity_type TEXT NOT NULL CHECK(entity_type IN ('corporation', 'alliance')),
+                entity_name TEXT,
+                added_at INTEGER NOT NULL,
+                added_reason TEXT,
+                PRIMARY KEY (watchlist_id, entity_id, entity_type),
+                FOREIGN KEY (watchlist_id) REFERENCES entity_watchlists(watchlist_id) ON DELETE CASCADE
+            );
+            CREATE INDEX IF NOT EXISTS idx_entity_items_entity ON entity_watchlist_items(entity_id, entity_type);
+            INSERT OR REPLACE INTO metadata (key, value) VALUES ('schema_version', '10');
+        """)
+        conn.commit()
+        conn.close()
+
+        mgr = EntityWatchlistManager(db_path)
+        try:
+            mgr.create_watchlist(name="War Targets", watchlist_type="war_targets")
+            retrieved = mgr.get_watchlist("war targets")
+            assert retrieved is not None
+            assert retrieved.name == "War Targets"
+        finally:
+            mgr.close()

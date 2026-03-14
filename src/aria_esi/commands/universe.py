@@ -1843,6 +1843,29 @@ def _classify_security_border(sec: float, neighbor_sec: float) -> str | None:
 
 
 # =============================================================================
+# Territory Analysis Command
+# =============================================================================
+
+
+def cmd_territory(args: argparse.Namespace) -> dict:
+    """Analyze sovereignty territory for a coalition or alliance."""
+    import asyncio
+
+    from ..mcp.dispatchers.universe._actions_intel import _territory_analysis
+
+    # Try to parse target as alliance ID, otherwise treat as coalition name
+    coalition = None
+    alliance_id = None
+    try:
+        alliance_id = int(args.target)
+    except ValueError:
+        coalition = args.target
+
+    result = asyncio.run(_territory_analysis(coalition=coalition, alliance_id=alliance_id))
+    return result
+
+
+# =============================================================================
 # Argument Parser Registration
 # =============================================================================
 
@@ -2122,3 +2145,20 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
         help="Include real-time gatecamp detection (requires RedisQ poller)",
     )
     orient_parser.set_defaults(func=cmd_orient)
+
+    # Territory analysis command
+    territory_parser = subparsers.add_parser(
+        "territory",
+        help="Analyze sovereignty territory for a coalition or alliance",
+    )
+    territory_parser.add_argument(
+        "target",
+        help="Coalition name or alliance ID",
+    )
+    territory_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="json_output",
+        help="Output as JSON instead of table",
+    )
+    territory_parser.set_defaults(func=cmd_territory)

@@ -48,6 +48,8 @@ async def _arbitrage_scan_impl(
     include_custom_scopes: bool = False,
     scopes: list[str] | None = None,
     scope_owner_id: int | None = None,
+    min_absolute_profit: float = 100_000.0,
+    min_buy_price: float = 100.0,
 ) -> dict:
     """Arbitrage scan implementation."""
     start_time = time.time()
@@ -127,6 +129,8 @@ async def _arbitrage_scan_impl(
             scopes=scopes if include_custom_scopes else None,
             scope_owner_id=scope_owner_id,
             include_custom_scopes=include_custom_scopes,
+            min_absolute_profit=min_absolute_profit,
+            min_buy_price=min_buy_price,
         )
 
         # Add route info if possible
@@ -151,6 +155,8 @@ async def _arbitrage_scan_impl(
                 scopes=scopes if include_custom_scopes else None,
                 scope_owner_id=scope_owner_id,
                 include_custom_scopes=include_custom_scopes,
+                min_absolute_profit=0,
+                min_buy_price=0,
             )
             if near_miss_result.opportunities:
                 result = result.model_copy(update={"near_misses": near_miss_result.opportunities})

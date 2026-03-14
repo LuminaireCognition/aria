@@ -152,9 +152,8 @@ class TestKeyringProbeDetection:
         status = get_keyring_status()
 
         if not status["available"]:
-            assert "locked" in (status["reason"] or "").lower() or "probe failed" in (
-                status["reason"] or ""
-            ).lower()
+            reason = (status["reason"] or "").lower()
+            assert "locked" in reason or "probe failed" in reason or "disabled" in reason
             assert status["backend"] is None
         else:
             # Keyring is genuinely available — verify it actually works
