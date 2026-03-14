@@ -1,10 +1,6 @@
 ---
 name: abyssal
-description: >
-  Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats.
-  Use when capsuleer asks about fitting ships for abyssal deadspace, abyssal
-  filaments, or abyssal weather/NPC encounters. This skill provides weather and
-  NPC reference data that the fitting skill does not have.
+description: Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats.
 model: sonnet
 category: tactical
 triggers:
