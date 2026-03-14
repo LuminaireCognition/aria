@@ -1,7 +1,7 @@
 ---
 name: mission-brief
 description: ARIA tactical intelligence briefing for Eve Online missions. Use for mission analysis, enemy intel, fitting advice, or combat preparation.
-model: opus
+model: sonnet
 category: tactical
 triggers:
   - "/mission-brief"
