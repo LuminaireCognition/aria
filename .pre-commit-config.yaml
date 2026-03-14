@@ -29,6 +29,55 @@ repos:
         language: system
         pass_filenames: false
 
+      - id: reference-data-check
+        name: Validate reference data consistency
+        entry: uv run python dev/scripts/validate-reference-data.py
+        language: system
+        pass_filenames: false
+        files: ^reference/
+
+      - id: archetype-module-check
+        name: Validate archetype module names against SDE
+        entry: uv run python dev/scripts/validate-archetype-modules.py
+        language: system
+        pass_filenames: false
+        files: ^reference/archetypes/
+
+      - id: archetype-rig-check
+        name: Validate archetype rigs against SDE
+        entry: uv run python dev/scripts/validate-archetype-rigs.py
+        language: system
+        pass_filenames: false
+        files: ^reference/archetypes/
+
+      - id: skill-index-check
+        name: Validate skill index integrity
+        entry: uv run python dev/scripts/validate-skill-index.py
+        language: system
+        pass_filenames: false
+        files: ^\.claude/skills/
+
+      - id: reference-schema-check
+        name: Validate reference file schemas
+        entry: uv run python dev/scripts/validate-reference-schemas.py
+        language: system
+        pass_filenames: false
+        files: ^reference/
+
+      - id: archetype-structure-check
+        name: Validate archetype structure
+        entry: uv run python dev/scripts/validate-archetype-structure.py
+        language: system
+        pass_filenames: false
+        files: ^reference/archetypes/
+
+      - id: persona-check
+        name: Validate persona structure
+        entry: uv run python dev/scripts/validate-personas.py
+        language: system
+        pass_filenames: false
+        files: ^personas/
+
       - id: commands-md-check
         name: Check COMMANDS.md freshness
         entry: uv run python .claude/scripts/generate-commands-md.py --check

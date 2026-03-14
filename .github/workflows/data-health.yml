@@ -12,6 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Validate reference data consistency
+        run: uv run python dev/scripts/validate-reference-data.py
+
+      - name: Validate skill index integrity
+        run: uv run python dev/scripts/validate-skill-index.py
+
+      - name: Validate reference file schemas
+        run: uv run python dev/scripts/validate-reference-schemas.py
+
       - name: Read data sources manifest
         id: manifest
         run: |
