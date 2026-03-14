@@ -19,7 +19,7 @@
     },
     {
       "name": "Ahbazon",
-      "system_id": 30003504,
+      "system_id": 30005196,
       "region": "Genesis",
       "security": 0.4,
       "reason": "Sole lowsec gate between Domain and Genesis highsec pipe. Unavoidable for Amarr-Gallente travel.",
@@ -33,7 +33,7 @@
     },
     {
       "name": "Rancer",
-      "system_id": 30002813,
+      "system_id": 30002718,
       "region": "Sinq Laison",
       "security": 0.4,
       "reason": "Lowsec pipe system between Sinq Laison and Metropolis. Notorious for persistent gatecamps.",
@@ -91,7 +91,7 @@
       "name": "Hek",
       "system_id": 30002053,
       "region": "Metropolis",
-      "security": 0.5,
+      "security": 0.8,
       "reason": "Minmatar trade hub on lowsec border. Gate to Eszur is a known camp spot.",
       "camp_frequency": "occasional",
       "typical_threats": ["lowsec gate camps", "suicide gankers near station"],

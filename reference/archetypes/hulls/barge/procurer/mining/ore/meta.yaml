@@ -62,7 +62,7 @@ upgrade_path:
   next_tier: t2_budget
   key_upgrades:
     - module: "Strip Miner I"
-      upgrade_to: "Strip Miner II"
+      upgrade_to: "Modulated Strip Miner II"
       skill_required: "Mining 5"
     - ship: "Skiff (Exhumer)"
       notes: "T2 variant with stronger tank and better yield"

@@ -20,7 +20,7 @@ eft: |
   Multispectrum Energized Membrane I
   Reactive Armor Hardener
 
-  50MN Y-T8 Compact Microwarpdrive
+  10MN Y-S8 Compact Afterburner
   Large Compact Pb-Acid Cap Battery
   Cap Recharger I
   Drone Navigation Computer I
@@ -54,7 +54,7 @@ stats:
   dps: 380
   ehp: 10936
   align_time: 9.0
-  speed_mwd: 1677
+  speed_ab: 670
   validated_date: "2026-02-27"
 
 damage_tuning:
@@ -91,7 +91,7 @@ damage_tuning:
       rigs:
         - from: "Medium Auxiliary Nano Pump I"
           to: "Medium Explosive Armor Reinforcer I"
-      notes: "Angels are fast - use MWD to maintain range"
+      notes: "Angels are fast - use AB to maintain range"
 
     blood_raiders:
       # Blood Raiders deal EM/Therm, weak to EM
@@ -123,8 +123,25 @@ damage_tuning:
         anti_frigate: "Acolyte I"
       notes: "Rogue Drones deal all damage types - keep omni tank"
 
+    equilibrium_of_mankind:
+      # EoM deal Kin/Therm, weak to Kinetic
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Kinetic Armor Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Thermal Armor Hardener I"
+      drones:
+        primary: "Vespa I"
+        anti_frigate: "Hornet I"
+      notes: "EoM deal Kin/Therm - kinetic hardener + thermal hardener, kinetic drones"
+
     mercenaries:
       # Mercenaries deal Kin/Therm, weak to Thermal
+      modules:
+        - from: "Multispectrum Energized Membrane I"
+          to: "Kinetic Armor Hardener I"
+        - from: "Reactive Armor Hardener"
+          to: "Thermal Armor Hardener I"
       drones:
         primary: "Hammerhead I"
         anti_frigate: "Hobgoblin I"
@@ -134,7 +151,7 @@ notes:
   purpose: "General-purpose L2 mission runner for pilots with moderate skills"
   engagement: "Orbit at 30-40km, let drones do the work"
   warnings:
-    - "Not cap stable with MWD running continuously"
+    - "AB is cap stable — leave it running for signature reduction"
     - "Recall drones before warping"
 
 upgrade_path:

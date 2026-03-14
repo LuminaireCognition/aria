@@ -2,6 +2,7 @@
 
 Quick reference for faction damage profiles and EWAR. Applies to agent missions, DED sites, and other PvE combat content.
 
+For curated mission intel, see [`missions/INDEX.md`](missions/INDEX.md) (git-tracked).
 For cached mission intel, see [`cache/INDEX.md`](cache/INDEX.md) (auto-generated, gitignored).
 
 ## Damage Quick Reference
@@ -14,7 +15,7 @@ For cached mission intel, see [`cache/INDEX.md`](cache/INDEX.md) (auto-generated
 | Guristas | Kin/Therm | Kin > Therm |
 | Sansha | EM/Therm | EM > Therm |
 | Rogue Drones | Omni | EM > Therm |
-| EoM | EM/Therm | Kin > EM/Therm |
+| EoM | Kin/Therm | Kin > Therm |
 | Mercenaries | Mixed | Therm > Kin |
 
 ## EWAR by Faction
