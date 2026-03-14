@@ -17,7 +17,7 @@ from aria_esi.mcp.dispatchers.universe import (
 from aria_esi.mcp.dispatchers.universe import (
     _find_best_start,
     _nearest_neighbor_tsp,
-    register_waypoints_tools,
+    _optimize_waypoints as _action_optimize_waypoints,
 )
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
@@ -92,28 +92,6 @@ def registered_waypoint_universe(waypoint_universe: UniverseGraph) -> UniverseGr
     mock_server = MagicMock()
     register_tools(mock_server, waypoint_universe)
     return waypoint_universe
-
-
-# =============================================================================
-# Helper Functions
-# =============================================================================
-
-
-def _capture_tool(universe: UniverseGraph):
-    """Helper to capture the registered tool function."""
-    captured_tool = None
-
-    def mock_tool():
-        def decorator(func):
-            nonlocal captured_tool
-            captured_tool = func
-            return func
-        return decorator
-
-    mock_server = MagicMock()
-    mock_server.tool = mock_tool
-    register_waypoints_tools(mock_server, universe)
-    return captured_tool
 
 
 # =============================================================================
@@ -289,8 +267,7 @@ class TestUniverseOptimizeWaypointsIntegration:
 
     def test_basic_optimization(self, registered_waypoint_universe: UniverseGraph):
         """Basic waypoint optimization works."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(waypoints=["Jita", "Perimeter", "Urlen"]))
+        result = asyncio.run(_action_optimize_waypoints(waypoints=["Jita", "Perimeter", "Urlen"], origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         assert "waypoints" in result
         assert len(result["waypoints"]) == 3
@@ -298,11 +275,12 @@ class TestUniverseOptimizeWaypointsIntegration:
 
     def test_with_origin_and_return(self, registered_waypoint_universe: UniverseGraph):
         """Origin with return creates loop."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(
+        result = asyncio.run(_action_optimize_waypoints(
             waypoints=["Perimeter", "Urlen", "Haatomo"],
             origin="Jita",
             return_to_origin=True,
+            security_filter="any",
+            avoid_systems=None,
         ))
 
         assert result["origin"] == "Jita"
@@ -312,11 +290,12 @@ class TestUniverseOptimizeWaypointsIntegration:
 
     def test_one_way_route(self, registered_waypoint_universe: UniverseGraph):
         """One-way route without return."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(
+        result = asyncio.run(_action_optimize_waypoints(
             waypoints=["Perimeter", "Urlen", "Haatomo"],
             origin="Jita",
             return_to_origin=False,
+            security_filter="any",
+            avoid_systems=None,
         ))
 
         assert result["is_loop"] is False
@@ -324,8 +303,7 @@ class TestUniverseOptimizeWaypointsIntegration:
 
     def test_case_insensitive_names(self, registered_waypoint_universe: UniverseGraph):
         """System names are case-insensitive."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(waypoints=["jita", "PERIMETER", "Urlen"]))
+        result = asyncio.run(_action_optimize_waypoints(waypoints=["jita", "PERIMETER", "Urlen"], origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         visited_names = {wp["name"] for wp in result["waypoints"]}
         assert "Jita" in visited_names
@@ -333,17 +311,19 @@ class TestUniverseOptimizeWaypointsIntegration:
 
     def test_duplicate_waypoints_deduplicated(self, registered_waypoint_universe: UniverseGraph):
         """Duplicate waypoints are removed."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(waypoints=["Jita", "Perimeter", "Jita", "Urlen"]))
+        result = asyncio.run(_action_optimize_waypoints(waypoints=["Jita", "Perimeter", "Jita", "Urlen"], origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         # Should only have 3 unique waypoints
         assert len(result["waypoints"]) == 3
 
     def test_unresolved_waypoints_reported(self, registered_waypoint_universe: UniverseGraph):
         """Unknown waypoints are reported in result."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(
-            waypoints=["Jita", "UnknownSystem", "Perimeter", "AnotherFake"]
+        result = asyncio.run(_action_optimize_waypoints(
+            waypoints=["Jita", "UnknownSystem", "Perimeter", "AnotherFake"],
+            origin=None,
+            return_to_origin=True,
+            security_filter="any",
+            avoid_systems=None,
         ))
 
         assert len(result["unresolved_waypoints"]) == 2
@@ -352,19 +332,22 @@ class TestUniverseOptimizeWaypointsIntegration:
 
     def test_avoid_systems(self, registered_waypoint_universe: UniverseGraph):
         """Avoid systems are excluded from route."""
-        tool = _capture_tool(registered_waypoint_universe)
-
         # Without avoidance, Perimeter is on direct path
-        result_normal = asyncio.run(tool(
+        result_normal = asyncio.run(_action_optimize_waypoints(
             waypoints=["Jita", "Urlen"],
+            origin=None,
+            return_to_origin=True,
             security_filter="any",
+            avoid_systems=None,
         ))
 
         # With avoidance
-        result_avoid = asyncio.run(tool(
+        result_avoid = asyncio.run(_action_optimize_waypoints(
             waypoints=["Jita", "Urlen"],
-            avoid_systems=["Perimeter"],
+            origin=None,
+            return_to_origin=True,
             security_filter="any",
+            avoid_systems=["Perimeter"],
         ))
 
         # Both should still complete, but paths may differ
@@ -373,8 +356,7 @@ class TestUniverseOptimizeWaypointsIntegration:
 
     def test_visit_order_in_result(self, registered_waypoint_universe: UniverseGraph):
         """Waypoints include visit_order field."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(waypoints=["Jita", "Perimeter", "Urlen"]))
+        result = asyncio.run(_action_optimize_waypoints(waypoints=["Jita", "Perimeter", "Urlen"], origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         for i, wp in enumerate(result["waypoints"]):
             assert wp["visit_order"] == i
@@ -390,73 +372,53 @@ class TestWaypointErrors:
 
     def test_too_few_waypoints(self, registered_waypoint_universe: UniverseGraph):
         """Raises error for less than 2 waypoints."""
-        tool = _capture_tool(registered_waypoint_universe)
-
         with pytest.raises(InvalidParameterError) as exc:
-            asyncio.run(tool(waypoints=["Jita"]))
+            asyncio.run(_action_optimize_waypoints(waypoints=["Jita"], origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         assert "waypoints" in str(exc.value)
         assert "2" in str(exc.value)
 
     def test_too_many_waypoints(self, registered_waypoint_universe: UniverseGraph):
         """Raises error for more than 50 waypoints."""
-        tool = _capture_tool(registered_waypoint_universe)
-
         # Create 51 waypoint names (will fail validation before resolution)
         many_waypoints = [f"System{i}" for i in range(51)]
 
         with pytest.raises(InvalidParameterError) as exc:
-            asyncio.run(tool(waypoints=many_waypoints))
+            asyncio.run(_action_optimize_waypoints(waypoints=many_waypoints, origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         assert "waypoints" in str(exc.value)
         assert "50" in str(exc.value)
 
     def test_invalid_security_filter(self, registered_waypoint_universe: UniverseGraph):
         """Raises error for invalid security_filter."""
-        tool = _capture_tool(registered_waypoint_universe)
-
         with pytest.raises(InvalidParameterError) as exc:
-            asyncio.run(tool(
+            asyncio.run(_action_optimize_waypoints(
                 waypoints=["Jita", "Perimeter"],
-                security_filter="invalid"
+                origin=None,
+                return_to_origin=True,
+                security_filter="invalid",
+                avoid_systems=None,
             ))
 
         assert "security_filter" in str(exc.value)
 
     def test_unknown_origin(self, registered_waypoint_universe: UniverseGraph):
         """Raises error for unknown origin system."""
-        tool = _capture_tool(registered_waypoint_universe)
-
         with pytest.raises(SystemNotFoundError):
-            asyncio.run(tool(
+            asyncio.run(_action_optimize_waypoints(
                 waypoints=["Jita", "Perimeter"],
-                origin="UnknownSystem"
+                origin="UnknownSystem",
+                return_to_origin=True,
+                security_filter="any",
+                avoid_systems=None,
             ))
 
     def test_insufficient_valid_waypoints(self, registered_waypoint_universe: UniverseGraph):
         """Raises error if too few waypoints resolve."""
-        tool = _capture_tool(registered_waypoint_universe)
-
         with pytest.raises(InvalidParameterError) as exc:
-            asyncio.run(tool(waypoints=["Unknown1", "Unknown2", "Jita"]))
+            asyncio.run(_action_optimize_waypoints(waypoints=["Unknown1", "Unknown2", "Jita"], origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         assert "waypoints" in str(exc.value)
-
-
-# =============================================================================
-# Tool Registration Tests
-# =============================================================================
-
-
-class TestWaypointToolRegistration:
-    """Test waypoint tool registration."""
-
-    def test_tool_registered(self, waypoint_universe: UniverseGraph):
-        """universe_optimize_waypoints tool is registered."""
-        mock_server = MagicMock()
-        register_waypoints_tools(mock_server, waypoint_universe)
-
-        mock_server.tool.assert_called()
 
 
 # =============================================================================
@@ -469,8 +431,7 @@ class TestOptimizedWaypointResultModel:
 
     def test_model_serialization(self, registered_waypoint_universe: UniverseGraph):
         """Result serializes to valid dict."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(waypoints=["Jita", "Perimeter", "Urlen"]))
+        result = asyncio.run(_action_optimize_waypoints(waypoints=["Jita", "Perimeter", "Urlen"], origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         # Should be a dict (model_dump output)
         assert isinstance(result, dict)
@@ -479,8 +440,7 @@ class TestOptimizedWaypointResultModel:
 
     def test_waypoint_info_fields(self, registered_waypoint_universe: UniverseGraph):
         """WaypointInfo has all required fields."""
-        tool = _capture_tool(registered_waypoint_universe)
-        result = asyncio.run(tool(waypoints=["Jita", "Perimeter"]))
+        result = asyncio.run(_action_optimize_waypoints(waypoints=["Jita", "Perimeter"], origin=None, return_to_origin=True, security_filter="any", avoid_systems=None))
 
         wp = result["waypoints"][0]
         assert "name" in wp

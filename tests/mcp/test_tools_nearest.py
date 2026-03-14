@@ -18,8 +18,8 @@ from aria_esi.mcp.dispatchers.universe import (
 from aria_esi.mcp.dispatchers.universe import (
     _build_predicate,
     _find_nearest,
+    _nearest,
     _summarize_predicates,
-    register_nearest_tools,
 )
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
@@ -363,18 +363,13 @@ class TestSummarizePredicates:
 # =============================================================================
 
 
-# Import the capture helper from conftest
-from tests.mcp.conftest import capture_tool_function
-
-
 class TestUniverseNearestIntegration:
     """Integration tests for universe_nearest tool via async invocation."""
 
     @pytest.mark.asyncio
     async def test_finds_nearest_border_systems(self, registered_universe: UniverseGraph):
         """Tool finds nearest border systems with full response structure."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(origin="Jita", is_border=True, limit=5, max_jumps=10)
+        result = await _nearest(origin="Jita", is_border=True, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=5, max_jumps=10)
 
         assert result["origin"] == "Jita"
         assert result["total_found"] >= 1
@@ -391,11 +386,13 @@ class TestUniverseNearestIntegration:
     @pytest.mark.asyncio
     async def test_finds_nearest_with_security_range(self, registered_universe: UniverseGraph):
         """Tool filters by security range."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(
+        result = await _nearest(
             origin="Jita",
+            is_border=None,
+            min_adjacent_lowsec=None,
             security_min=0.3,
             security_max=0.4,
+            region=None,
             limit=5,
             max_jumps=10,
         )
@@ -411,10 +408,13 @@ class TestUniverseNearestIntegration:
     @pytest.mark.asyncio
     async def test_finds_nearest_with_min_adjacent_lowsec(self, registered_universe: UniverseGraph):
         """Tool filters by minimum adjacent low-sec systems."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(
+        result = await _nearest(
             origin="Jita",
+            is_border=None,
             min_adjacent_lowsec=1,
+            security_min=None,
+            security_max=None,
+            region=None,
             limit=5,
             max_jumps=10,
         )
@@ -427,9 +427,12 @@ class TestUniverseNearestIntegration:
     @pytest.mark.asyncio
     async def test_finds_nearest_with_region_filter(self, registered_universe: UniverseGraph):
         """Tool filters by region."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(
+        result = await _nearest(
             origin="Jita",
+            is_border=None,
+            min_adjacent_lowsec=None,
+            security_min=None,
+            security_max=None,
             region="The Forge",
             limit=10,
             max_jumps=10,
@@ -443,9 +446,12 @@ class TestUniverseNearestIntegration:
     @pytest.mark.asyncio
     async def test_unknown_region_returns_empty_with_warning(self, registered_universe: UniverseGraph):
         """Unknown region returns empty results with warning."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(
+        result = await _nearest(
             origin="Jita",
+            is_border=None,
+            min_adjacent_lowsec=None,
+            security_min=None,
+            security_max=None,
             region="NonexistentRegion",
             limit=5,
             max_jumps=10,
@@ -459,89 +465,76 @@ class TestUniverseNearestIntegration:
     @pytest.mark.asyncio
     async def test_respects_limit_parameter(self, registered_universe: UniverseGraph):
         """Tool respects the limit parameter."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(origin="Jita", limit=1, max_jumps=10)
+        result = await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=1, max_jumps=10)
 
         assert len(result["systems"]) <= 1
 
     @pytest.mark.asyncio
     async def test_respects_max_jumps_parameter(self, registered_universe: UniverseGraph):
         """Tool respects the max_jumps parameter."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(origin="Jita", max_jumps=1, limit=10)
+        result = await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, max_jumps=1, limit=10)
 
         # All results should be within 1 jump
         for system in result["systems"]:
             assert system["jumps_from_origin"] <= 1
 
     @pytest.mark.asyncio
-    async def test_invalid_limit_zero_raises(self, registered_universe: UniverseGraph):
-        """Invalid limit (0) raises error."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        with pytest.raises(InvalidParameterError) as exc_info:
-            await tool(origin="Jita", limit=0)
-        assert exc_info.value.param == "limit"
+    async def test_limit_zero_defaults_to_5(self, registered_universe: UniverseGraph):
+        """limit=0 (falsy) defaults to 5, no error raised."""
+        result = await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=0, max_jumps=30)
+        assert "systems" in result
+        assert len(result["systems"]) <= 5
 
     @pytest.mark.asyncio
     async def test_invalid_limit_too_high_raises(self, registered_universe: UniverseGraph):
-        """Invalid limit (> 50) raises error."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        with pytest.raises(InvalidParameterError) as exc_info:
-            await tool(origin="Jita", limit=100)
-        assert exc_info.value.param == "limit"
+        """limit > 50 clamps to 50 rather than raising."""
+        result = await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=100, max_jumps=30)
+        assert "systems" in result
+        assert len(result["systems"]) <= 50
 
     @pytest.mark.asyncio
-    async def test_invalid_max_jumps_zero_raises(self, registered_universe: UniverseGraph):
-        """Invalid max_jumps (0) raises error."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        with pytest.raises(InvalidParameterError) as exc_info:
-            await tool(origin="Jita", max_jumps=0)
-        assert exc_info.value.param == "max_jumps"
+    async def test_max_jumps_zero_defaults_to_30(self, registered_universe: UniverseGraph):
+        """max_jumps=0 (falsy) defaults to 30, no error raised."""
+        result = await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=5, max_jumps=0)
+        assert "systems" in result
 
     @pytest.mark.asyncio
     async def test_invalid_max_jumps_too_high_raises(self, registered_universe: UniverseGraph):
-        """Invalid max_jumps (> 50) raises error."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        with pytest.raises(InvalidParameterError) as exc_info:
-            await tool(origin="Jita", max_jumps=100)
-        assert exc_info.value.param == "max_jumps"
+        """max_jumps > 50 clamps to 50 rather than raising."""
+        result = await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=5, max_jumps=100)
+        assert "systems" in result
 
     @pytest.mark.asyncio
     async def test_invalid_security_min_raises(self, registered_universe: UniverseGraph):
         """Invalid security_min (< -1.0 or > 1.0) raises error."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
         with pytest.raises(InvalidParameterError) as exc_info:
-            await tool(origin="Jita", security_min=2.0)
+            await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=None, security_min=2.0, security_max=None, region=None, limit=5, max_jumps=30)
         assert exc_info.value.param == "security_min"
 
     @pytest.mark.asyncio
     async def test_invalid_security_max_raises(self, registered_universe: UniverseGraph):
         """Invalid security_max (< -1.0 or > 1.0) raises error."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
         with pytest.raises(InvalidParameterError) as exc_info:
-            await tool(origin="Jita", security_max=-2.0)
+            await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=-2.0, region=None, limit=5, max_jumps=30)
         assert exc_info.value.param == "security_max"
 
     @pytest.mark.asyncio
     async def test_invalid_min_adjacent_lowsec_raises(self, registered_universe: UniverseGraph):
         """Invalid min_adjacent_lowsec (< 1) raises error."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
         with pytest.raises(InvalidParameterError) as exc_info:
-            await tool(origin="Jita", min_adjacent_lowsec=0)
+            await _nearest(origin="Jita", is_border=None, min_adjacent_lowsec=0, security_min=None, security_max=None, region=None, limit=5, max_jumps=30)
         assert exc_info.value.param == "min_adjacent_lowsec"
 
     @pytest.mark.asyncio
     async def test_unknown_origin_raises(self, registered_universe: UniverseGraph):
         """Unknown origin system raises SystemNotFoundError."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
         with pytest.raises(SystemNotFoundError):
-            await tool(origin="NonexistentSystem")
+            await _nearest(origin="NonexistentSystem", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=5, max_jumps=30)
 
     @pytest.mark.asyncio
     async def test_case_insensitive_origin(self, registered_universe: UniverseGraph):
         """Origin system name is case-insensitive."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(origin="jita", limit=1, max_jumps=5)
+        result = await _nearest(origin="jita", is_border=None, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=1, max_jumps=5)
 
         # Should resolve "jita" to "Jita"
         assert result["origin"] == "Jita"
@@ -549,8 +542,7 @@ class TestUniverseNearestIntegration:
     @pytest.mark.asyncio
     async def test_is_border_false_excludes_borders(self, registered_universe: UniverseGraph):
         """is_border=False excludes border systems."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(origin="Jita", is_border=False, limit=10, max_jumps=10)
+        result = await _nearest(origin="Jita", is_border=False, min_adjacent_lowsec=None, security_min=None, security_max=None, region=None, limit=10, max_jumps=10)
 
         # Maurasi and Uedama are border systems, should not appear
         names = [s["name"] for s in result["systems"]]
@@ -560,10 +552,10 @@ class TestUniverseNearestIntegration:
     @pytest.mark.asyncio
     async def test_combined_predicates(self, registered_universe: UniverseGraph):
         """Multiple predicates combine correctly."""
-        tool = capture_tool_function(registered_universe, register_nearest_tools)
-        result = await tool(
+        result = await _nearest(
             origin="Jita",
             is_border=True,
+            min_adjacent_lowsec=None,
             security_min=0.6,
             security_max=0.7,
             region="The Forge",

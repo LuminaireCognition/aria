@@ -17,10 +17,10 @@ from aria_esi.mcp.dispatchers.universe import (
     _build_loop_result,
     _expand_tour_matrix,
     _find_borders_with_distance,
+    _loop,
     _nearest_neighbor_tsp_matrix,
     _plan_loop,
     _select_diverse_borders_matrix,
-    register_loop_tools,
 )
 from aria_esi.mcp.errors import InsufficientBordersError, InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
@@ -322,22 +322,6 @@ class TestPlanLoop:
 
 
 # =============================================================================
-# Tool Registration Tests
-# =============================================================================
-
-
-class TestLoopToolRegistration:
-    """Test loop tool registration."""
-
-    def test_tool_registered(self, mock_universe: UniverseGraph):
-        """universe_loop tool is registered."""
-        mock_server = MagicMock()
-        register_loop_tools(mock_server, mock_universe)
-
-        mock_server.tool.assert_called()
-
-
-# =============================================================================
 # Integration Tests
 # =============================================================================
 
@@ -345,32 +329,12 @@ class TestLoopToolRegistration:
 class TestUniverseLoopIntegration:
     """Integration tests for the universe_loop tool."""
 
-    def _capture_tool(self, registered_universe: UniverseGraph):
-        """Helper to capture the registered tool function."""
-        from aria_esi.mcp.dispatchers.universe import register_loop_tools
-
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-        register_loop_tools(mock_server, registered_universe)
-        return captured_tool
-
     def test_loop_returns_to_origin(self, registered_universe: UniverseGraph):
         """Loop starts and ends at origin."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(origin="Jita", target_jumps=20, min_borders=2, max_borders=3)
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         if "systems" in result:
@@ -381,9 +345,8 @@ class TestUniverseLoopIntegration:
         """Loop visits border systems."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(origin="Jita", target_jumps=20, min_borders=2, max_borders=3)
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         if "border_systems_visited" in result:
@@ -394,9 +357,8 @@ class TestUniverseLoopIntegration:
         """Loop efficiency is reasonable."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(origin="Jita", target_jumps=20, min_borders=2, max_borders=3)
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         if "efficiency" in result:
@@ -407,83 +369,66 @@ class TestUniverseLoopIntegration:
         """Raises InsufficientBordersError when not enough borders found."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InsufficientBordersError):
             asyncio.run(
-                captured_tool(origin="Jita", target_jumps=10, min_borders=10, max_borders=15)
+                _loop(origin="Jita", target_jumps=10, min_borders=10, max_borders=15, optimize="density", security_filter="highsec", avoid_systems=None)
             )
 
     def test_loop_invalid_target_jumps_low(self, registered_universe: UniverseGraph):
         """Invalid target_jumps (too low) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(origin="Jita", target_jumps=5))
+            asyncio.run(_loop(origin="Jita", target_jumps=5, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None))
 
     def test_loop_invalid_target_jumps_high(self, registered_universe: UniverseGraph):
         """Invalid target_jumps (too high) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(origin="Jita", target_jumps=200))
+            asyncio.run(_loop(origin="Jita", target_jumps=200, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None))
 
     def test_loop_invalid_min_borders_low(self, registered_universe: UniverseGraph):
         """Invalid min_borders (too low) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(origin="Jita", min_borders=1))
+            asyncio.run(_loop(origin="Jita", target_jumps=20, min_borders=1, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None))
 
     def test_loop_invalid_min_borders_high(self, registered_universe: UniverseGraph):
         """Invalid min_borders (too high) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(origin="Jita", min_borders=15))
+            asyncio.run(_loop(origin="Jita", target_jumps=20, min_borders=15, max_borders=20, optimize="density", security_filter="highsec", avoid_systems=None))
 
     def test_loop_invalid_max_borders_low(self, registered_universe: UniverseGraph):
         """Invalid max_borders (less than min) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(origin="Jita", min_borders=5, max_borders=3))
+            asyncio.run(_loop(origin="Jita", target_jumps=20, min_borders=5, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None))
 
     def test_loop_invalid_max_borders_high(self, registered_universe: UniverseGraph):
         """Invalid max_borders (too high) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(origin="Jita", max_borders=20))
+            asyncio.run(_loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=20, optimize="density", security_filter="highsec", avoid_systems=None))
 
     def test_loop_unknown_origin(self, registered_universe: UniverseGraph):
         """Unknown origin raises SystemNotFoundError."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(SystemNotFoundError):
-            asyncio.run(captured_tool(origin="UnknownSystem"))
+            asyncio.run(_loop(origin="UnknownSystem", target_jumps=20, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None))
 
     def test_loop_case_insensitive_origin(self, registered_universe: UniverseGraph):
         """Origin is case-insensitive."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(origin="jita", target_jumps=20, min_borders=2, max_borders=3)
+            _loop(origin="jita", target_jumps=20, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         if "systems" in result:
@@ -493,9 +438,8 @@ class TestUniverseLoopIntegration:
         """Loop result includes total jumps."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(origin="Jita", target_jumps=20, min_borders=2, max_borders=3)
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         if "total_jumps" in result:
@@ -505,9 +449,8 @@ class TestUniverseLoopIntegration:
         """Loop result includes backtrack info."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(origin="Jita", target_jumps=20, min_borders=2, max_borders=3)
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         assert "backtrack_jumps" in result
@@ -526,29 +469,10 @@ class TestLoopPerformance:
         """Loop planning within latency budget."""
         import asyncio
 
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-
-        from aria_esi.mcp.dispatchers.universe import register_loop_tools
-
-        register_loop_tools(mock_server, registered_universe)
-
         start = time.perf_counter()
         for _ in range(10):  # Fewer iterations since loop is more complex
             asyncio.run(
-                captured_tool(
-                    origin="Jita", target_jumps=20, min_borders=2, max_borders=3
-                )
+                _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=3, optimize="density", security_filter="highsec", avoid_systems=None)
             )
         elapsed = time.perf_counter() - start
 
@@ -783,37 +707,12 @@ class TestOptimizeModes:
 class TestOptimizeModeIntegration:
     """Integration tests for optimize parameter in universe_loop tool."""
 
-    def _capture_tool(self, registered_universe: UniverseGraph):
-        """Helper to capture the registered tool function."""
-        from aria_esi.mcp.dispatchers.universe import register_loop_tools
-
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-        register_loop_tools(mock_server, registered_universe)
-        return captured_tool
-
     def test_optimize_density_via_tool(self, registered_universe: UniverseGraph):
         """Optimize=density works through the tool interface."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(
-                origin="Jita",
-                target_jumps=20,
-                min_borders=2,
-                optimize="density",
-            )
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=None, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         assert "error" not in result
@@ -823,14 +722,8 @@ class TestOptimizeModeIntegration:
         """Optimize=coverage works through the tool interface."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(
-                origin="Jita",
-                target_jumps=20,
-                min_borders=2,
-                optimize="coverage",
-            )
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=None, optimize="coverage", security_filter="highsec", avoid_systems=None)
         )
 
         assert "error" not in result
@@ -840,31 +733,17 @@ class TestOptimizeModeIntegration:
         """Invalid optimize value raises InvalidParameterError."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
             asyncio.run(
-                captured_tool(
-                    origin="Jita",
-                    target_jumps=20,
-                    min_borders=2,
-                    optimize="invalid_mode",
-                )
+                _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=None, optimize="invalid_mode", security_filter="highsec", avoid_systems=None)
             )
 
     def test_max_borders_none_allowed(self, registered_universe: UniverseGraph):
         """max_borders=None is allowed (no artificial cap)."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(
-                origin="Jita",
-                target_jumps=20,
-                min_borders=2,
-                max_borders=None,  # No cap
-                optimize="density",
-            )
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=None, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         assert "error" not in result
@@ -874,15 +753,8 @@ class TestOptimizeModeIntegration:
         """Explicit max_borders cap is respected."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(
-                origin="Jita",
-                target_jumps=20,
-                min_borders=2,
-                max_borders=2,
-                optimize="density",
-            )
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=2, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         assert "error" not in result

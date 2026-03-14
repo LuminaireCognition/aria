@@ -14,12 +14,12 @@ import numpy as np
 import pytest
 
 from aria_esi.mcp.dispatchers.universe import (
+    _analyze,
     _analyze_route,
     _find_chokepoints,
     _find_danger_zones,
     _route_compute_security_summary,
     _validate_connectivity,
-    register_analyze_tools,
 )
 from aria_esi.mcp.errors import InvalidParameterError, RouteNotFoundError
 from aria_esi.mcp.tools import register_tools
@@ -363,22 +363,6 @@ class TestAnalyzeRoute:
 
 
 # =============================================================================
-# Tool Registration Tests
-# =============================================================================
-
-
-class TestAnalyzeToolRegistration:
-    """Test analyze tool registration."""
-
-    def test_tool_registered(self, mock_universe: UniverseGraph):
-        """universe_analyze tool is registered."""
-        mock_server = MagicMock()
-        register_analyze_tools(mock_server, mock_universe)
-
-        mock_server.tool.assert_called()
-
-
-# =============================================================================
 # Integration Tests
 # =============================================================================
 
@@ -386,31 +370,11 @@ class TestAnalyzeToolRegistration:
 class TestUniverseAnalyzeIntegration:
     """Integration tests for the universe_analyze tool."""
 
-    def _capture_tool(self, registered_universe: UniverseGraph):
-        """Helper to capture the registered tool function."""
-        from aria_esi.mcp.dispatchers.universe import register_analyze_tools
-
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-        register_analyze_tools(mock_server, registered_universe)
-        return captured_tool
-
     def test_analyze_safe_route(self, registered_universe: UniverseGraph):
         """Safe route analysis."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(systems=["Jita", "Perimeter", "Urlen"]))
+        result = asyncio.run(_analyze(systems=["Jita", "Perimeter", "Urlen"]))
 
         assert result["security_summary"]["lowsec_jumps"] == 0
         assert result["security_summary"]["nullsec_jumps"] == 0
@@ -421,9 +385,8 @@ class TestUniverseAnalyzeIntegration:
         """Dangerous route identifies threats."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(systems=["Jita", "Maurasi", "Sivala", "Ala"])
+            _analyze(systems=["Jita", "Maurasi", "Sivala", "Ala"])
         )
 
         assert result["security_summary"]["lowsec_jumps"] >= 1
@@ -434,19 +397,15 @@ class TestUniverseAnalyzeIntegration:
         """Disconnected systems raise error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(RouteNotFoundError):
-            asyncio.run(captured_tool(systems=["Jita", "Amarr"]))
+            asyncio.run(_analyze(systems=["Jita", "Amarr"]))
 
     def test_analyze_unknown_system(self, registered_universe: UniverseGraph):
         """Unknown system raises helpful error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError) as exc_info:
-            asyncio.run(captured_tool(systems=["Jita", "UnknownSystem"]))
+            asyncio.run(_analyze(systems=["Jita", "UnknownSystem"]))
 
         assert "Unknown system" in str(exc_info.value)
 
@@ -454,10 +413,8 @@ class TestUniverseAnalyzeIntegration:
         """Single system raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError) as exc_info:
-            asyncio.run(captured_tool(systems=["Jita"]))
+            asyncio.run(_analyze(systems=["Jita"]))
 
         assert "At least 2" in str(exc_info.value)
 
@@ -465,17 +422,14 @@ class TestUniverseAnalyzeIntegration:
         """Empty systems list raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(systems=[]))
+            asyncio.run(_analyze(systems=[]))
 
     def test_analyze_security_summary_totals(self, registered_universe: UniverseGraph):
         """Security category jumps sum to total_jumps (origin excluded)."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(systems=["Jita", "Perimeter", "Urlen"]))
+        result = asyncio.run(_analyze(systems=["Jita", "Perimeter", "Urlen"]))
 
         summary = result["security_summary"]
         total = summary["highsec_jumps"] + summary["lowsec_jumps"] + summary["nullsec_jumps"]
@@ -485,8 +439,7 @@ class TestUniverseAnalyzeIntegration:
         """System names are case-insensitive."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(systems=["jita", "PERIMETER", "Urlen"]))
+        result = asyncio.run(_analyze(systems=["jita", "PERIMETER", "Urlen"]))
 
         assert result["systems"][0]["name"] == "Jita"
         assert result["systems"][1]["name"] == "Perimeter"
@@ -496,8 +449,7 @@ class TestUniverseAnalyzeIntegration:
         """Analysis includes full system details."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(systems=["Jita", "Perimeter"]))
+        result = asyncio.run(_analyze(systems=["Jita", "Perimeter"]))
 
         system = result["systems"][0]
         assert "name" in system
@@ -519,26 +471,9 @@ class TestAnalyzePerformance:
         """Analysis completes within latency budget."""
         import asyncio
 
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-
-        from aria_esi.mcp.dispatchers.universe import register_analyze_tools
-
-        register_analyze_tools(mock_server, registered_universe)
-
         start = time.perf_counter()
         for _ in range(100):
-            asyncio.run(captured_tool(systems=["Jita", "Perimeter", "Urlen"]))
+            asyncio.run(_analyze(systems=["Jita", "Perimeter", "Urlen"]))
         elapsed = time.perf_counter() - start
 
         avg_time = elapsed / 100

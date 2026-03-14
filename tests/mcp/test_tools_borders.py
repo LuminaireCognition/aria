@@ -14,9 +14,9 @@ import numpy as np
 import pytest
 
 from aria_esi.mcp.dispatchers.universe import (
+    _borders,
     _build_border_system,
     _find_border_systems,
-    register_borders_tools,
 )
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
@@ -229,23 +229,6 @@ class TestBuildBorderSystem:
 
 
 # =============================================================================
-# Tool Registration Tests
-# =============================================================================
-
-
-class TestBordersToolRegistration:
-    """Test borders tool registration."""
-
-    def test_tool_registered(self, mock_universe: UniverseGraph):
-        """universe_borders tool is registered."""
-        mock_server = MagicMock()
-        register_borders_tools(mock_server, mock_universe)
-
-        # Verify server.tool() decorator was called
-        mock_server.tool.assert_called()
-
-
-# =============================================================================
 # Integration Tests
 # =============================================================================
 
@@ -253,31 +236,11 @@ class TestBordersToolRegistration:
 class TestUniverseBordersIntegration:
     """Integration tests for the universe_borders tool."""
 
-    def _capture_tool(self, registered_universe: UniverseGraph):
-        """Helper to capture the registered tool function."""
-        from aria_esi.mcp.dispatchers.universe import register_borders_tools
-
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-        register_borders_tools(mock_server, registered_universe)
-        return captured_tool
-
     def test_borders_from_jita(self, registered_universe: UniverseGraph):
         """Find borders near Jita."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Jita", limit=5, max_jumps=15))
+        result = asyncio.run(_borders(origin="Jita", limit=5, max_jumps=15))
 
         assert result["origin"] == "Jita"
         assert result["total_found"] >= 1
@@ -287,8 +250,7 @@ class TestUniverseBordersIntegration:
         """Results sorted by distance."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Jita", limit=10, max_jumps=15))
+        result = asyncio.run(_borders(origin="Jita", limit=10, max_jumps=15))
 
         distances = [b["jumps_from_origin"] for b in result["borders"]]
         assert distances == sorted(distances)
@@ -297,8 +259,7 @@ class TestUniverseBordersIntegration:
         """Border systems have adjacent lowsec populated."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Jita", limit=5, max_jumps=15))
+        result = asyncio.run(_borders(origin="Jita", limit=5, max_jumps=15))
 
         for border in result["borders"]:
             assert len(border["adjacent_lowsec"]) > 0
@@ -307,54 +268,44 @@ class TestUniverseBordersIntegration:
         """Max jumps limits search radius."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Jita", max_jumps=1, limit=50))
+        result = asyncio.run(_borders(origin="Jita", limit=50, max_jumps=1))
 
         for border in result["borders"]:
             assert border["jumps_from_origin"] <= 1
 
-    def test_borders_invalid_limit(self, registered_universe: UniverseGraph):
-        """Invalid limit raises error."""
+    def test_borders_overlimit_limit_clamped(self, registered_universe: UniverseGraph):
+        """Over-max limit is clamped to maximum (action function clamps, does not raise)."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
+        result = asyncio.run(_borders(origin="Jita", limit=100, max_jumps=15))  # Clamped to 50
+        assert result["total_found"] >= 0  # Valid result, clamped
 
-        with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool("Jita", limit=100, max_jumps=15))  # Over max
-
-    def test_borders_invalid_limit_zero(self, registered_universe: UniverseGraph):
-        """Zero limit raises error."""
+    def test_borders_zero_limit_uses_default(self, registered_universe: UniverseGraph):
+        """Zero limit is treated as default (10) by action function."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
+        result = asyncio.run(_borders(origin="Jita", limit=0, max_jumps=15))
+        assert result["total_found"] >= 0  # Valid result with default limit
 
-        with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool("Jita", limit=0, max_jumps=15))
-
-    def test_borders_invalid_max_jumps(self, registered_universe: UniverseGraph):
-        """Invalid max_jumps raises error."""
+    def test_borders_overlimit_max_jumps_clamped(self, registered_universe: UniverseGraph):
+        """Over-max max_jumps is clamped to maximum (action function clamps, does not raise)."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
+        result = asyncio.run(_borders(origin="Jita", limit=10, max_jumps=50))  # Clamped to 30
+        assert result["total_found"] >= 0  # Valid result, clamped
 
-        with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool("Jita", limit=10, max_jumps=50))  # Over max
-
-    def test_borders_invalid_max_jumps_zero(self, registered_universe: UniverseGraph):
-        """Zero max_jumps raises error."""
+    def test_borders_zero_max_jumps_uses_default(self, registered_universe: UniverseGraph):
+        """Zero max_jumps is treated as default (15) by action function."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
-        with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool("Jita", limit=10, max_jumps=0))
+        result = asyncio.run(_borders(origin="Jita", limit=10, max_jumps=0))
+        assert result["total_found"] >= 0  # Valid result with default max_jumps
 
     def test_borders_origin_is_border(self, registered_universe: UniverseGraph):
         """Origin that is a border system appears at distance 0."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Maurasi", limit=5, max_jumps=15))
+        result = asyncio.run(_borders(origin="Maurasi", limit=5, max_jumps=15))
 
         # Maurasi should appear first at distance 0
         assert result["total_found"] >= 1
@@ -366,17 +317,14 @@ class TestUniverseBordersIntegration:
         """Unknown origin raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(SystemNotFoundError):
-            asyncio.run(captured_tool("UnknownSystem", limit=5, max_jumps=15))
+            asyncio.run(_borders(origin="UnknownSystem", limit=5, max_jumps=15))
 
     def test_borders_case_insensitive(self, registered_universe: UniverseGraph):
         """Origin is case-insensitive."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("jita", limit=5, max_jumps=15))
+        result = asyncio.run(_borders(origin="jita", limit=5, max_jumps=15))
 
         assert result["origin"] == "Jita"  # Canonical form
         assert result["total_found"] >= 1
@@ -385,8 +333,7 @@ class TestUniverseBordersIntegration:
         """Search radius is included in response."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Jita", limit=5, max_jumps=10))
+        result = asyncio.run(_borders(origin="Jita", limit=5, max_jumps=10))
 
         assert result["search_radius"] == 10
 
@@ -403,26 +350,9 @@ class TestBordersPerformance:
         """Border discovery within latency budget."""
         import asyncio
 
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-
-        from aria_esi.mcp.dispatchers.universe import register_borders_tools
-
-        register_borders_tools(mock_server, registered_universe)
-
         start = time.perf_counter()
         for _ in range(100):
-            asyncio.run(captured_tool("Jita", limit=10, max_jumps=15))
+            asyncio.run(_borders(origin="Jita", limit=10, max_jumps=15))
         elapsed = time.perf_counter() - start
 
         avg_time = elapsed / 100

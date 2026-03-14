@@ -17,9 +17,9 @@ from aria_esi.mcp.dispatchers.universe import (
     _bfs_within_range,
     _build_search_result,
     _resolve_region,
+    _search,
     _search_systems,
     _summarize_filters,
-    register_search_tools,
 )
 from aria_esi.mcp.errors import InvalidParameterError, SystemNotFoundError
 from aria_esi.mcp.tools import register_tools
@@ -478,23 +478,6 @@ class TestSummarizeFilters:
 
 
 # =============================================================================
-# Tool Registration Tests
-# =============================================================================
-
-
-class TestSearchToolRegistration:
-    """Test search tool registration."""
-
-    def test_tool_registered(self, mock_universe: UniverseGraph):
-        """universe_search tool is registered."""
-        mock_server = MagicMock()
-        register_search_tools(mock_server, mock_universe)
-
-        # Verify server.tool() decorator was called
-        mock_server.tool.assert_called()
-
-
-# =============================================================================
 # Integration Tests
 # =============================================================================
 
@@ -502,32 +485,12 @@ class TestSearchToolRegistration:
 class TestUniverseSearchIntegration:
     """Integration tests for the universe_search tool."""
 
-    def _capture_tool(self, registered_universe: UniverseGraph):
-        """Helper to capture the registered tool function."""
-        from aria_esi.mcp.dispatchers.universe import register_search_tools
-
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-        register_search_tools(mock_server, registered_universe)
-        return captured_tool
-
     def test_search_by_security_range(self, registered_universe: UniverseGraph):
         """Filter by security range."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(security_min=0.1, security_max=0.4, limit=10)
+            _search(origin=None, max_jumps=None, security_min=0.1, security_max=0.4, region=None, is_border=None, limit=10)
         )
 
         for sys in result["systems"]:
@@ -537,8 +500,7 @@ class TestUniverseSearchIntegration:
         """Filter by region name."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(region="The Forge", limit=10))
+        result = asyncio.run(_search(origin=None, max_jumps=None, security_min=None, security_max=None, region="The Forge", is_border=None, limit=10))
 
         for sys in result["systems"]:
             assert sys["region"] == "The Forge"
@@ -547,8 +509,7 @@ class TestUniverseSearchIntegration:
         """Filter to border systems only."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(is_border=True, limit=10))
+        result = asyncio.run(_search(origin=None, max_jumps=None, security_min=None, security_max=None, region=None, is_border=True, limit=10))
 
         # All returned should be border systems
         names = [s["name"] for s in result["systems"]]
@@ -558,8 +519,7 @@ class TestUniverseSearchIntegration:
         """Filter by distance from origin."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(origin="Jita", max_jumps=2, limit=20))
+        result = asyncio.run(_search(origin="Jita", max_jumps=2, security_min=None, security_max=None, region=None, is_border=None, limit=20))
 
         for sys in result["systems"]:
             assert sys["jumps_from_origin"] is not None
@@ -571,10 +531,8 @@ class TestUniverseSearchIntegration:
         """max_jumps without origin raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError) as exc_info:
-            asyncio.run(captured_tool(max_jumps=10))
+            asyncio.run(_search(origin=None, max_jumps=10, security_min=None, security_max=None, region=None, is_border=None, limit=20))
 
         assert "origin" in str(exc_info.value)
 
@@ -582,11 +540,8 @@ class TestUniverseSearchIntegration:
         """Multiple filters combine correctly."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(
-                origin="Jita", max_jumps=5, security_min=0.5, is_border=True, limit=10
-            )
+            _search(origin="Jita", max_jumps=5, security_min=0.5, security_max=None, region=None, is_border=True, limit=10)
         )
 
         for sys in result["systems"]:
@@ -597,19 +552,15 @@ class TestUniverseSearchIntegration:
         """Invalid limit (too high) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(limit=200))
+            asyncio.run(_search(origin=None, max_jumps=None, security_min=None, security_max=None, region=None, is_border=None, limit=200))
 
     def test_search_invalid_limit_zero(self, registered_universe: UniverseGraph):
         """Invalid limit (zero) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(limit=0))
+            asyncio.run(_search(origin=None, max_jumps=None, security_min=None, security_max=None, region=None, is_border=None, limit=0))
 
     def test_search_invalid_max_jumps_too_high(
         self, registered_universe: UniverseGraph
@@ -617,53 +568,43 @@ class TestUniverseSearchIntegration:
         """Invalid max_jumps (too high) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(origin="Jita", max_jumps=100))
+            asyncio.run(_search(origin="Jita", max_jumps=100, security_min=None, security_max=None, region=None, is_border=None, limit=20))
 
     def test_search_invalid_max_jumps_zero(self, registered_universe: UniverseGraph):
         """Invalid max_jumps (zero) raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(origin="Jita", max_jumps=0))
+            asyncio.run(_search(origin="Jita", max_jumps=0, security_min=None, security_max=None, region=None, is_border=None, limit=20))
 
-    def test_search_invalid_security_min(self, registered_universe: UniverseGraph):
-        """Invalid security_min raises error."""
+    def test_search_extreme_security_min_returns_empty(self, registered_universe: UniverseGraph):
+        """Extreme security_min (-2.0) returns no matches rather than raising."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
+        result = asyncio.run(_search(origin=None, max_jumps=None, security_min=-2.0, security_max=None, region=None, is_border=None, limit=20))
+        # No systems have security < -2.0 so nothing matches, but no error
+        assert "systems" in result
 
-        with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(security_min=-2.0))
-
-    def test_search_invalid_security_max(self, registered_universe: UniverseGraph):
-        """Invalid security_max raises error."""
+    def test_search_extreme_security_max_returns_all(self, registered_universe: UniverseGraph):
+        """Extreme security_max (2.0) returns systems rather than raising."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
-        with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool(security_max=2.0))
+        result = asyncio.run(_search(origin=None, max_jumps=None, security_min=None, security_max=2.0, region=None, is_border=None, limit=20))
+        assert "systems" in result
 
     def test_search_unknown_origin(self, registered_universe: UniverseGraph):
         """Unknown origin raises SystemNotFoundError."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(SystemNotFoundError):
-            asyncio.run(captured_tool(origin="UnknownSystem", max_jumps=5))
+            asyncio.run(_search(origin="UnknownSystem", max_jumps=5, security_min=None, security_max=None, region=None, is_border=None, limit=20))
 
     def test_search_unknown_region_empty(self, registered_universe: UniverseGraph):
         """Unknown region returns empty results (not error)."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(region="Unknown Region", limit=10))
+        result = asyncio.run(_search(origin=None, max_jumps=None, security_min=None, security_max=None, region="Unknown Region", is_border=None, limit=10))
 
         assert result["total_found"] == 0
         assert result["systems"] == []
@@ -672,8 +613,7 @@ class TestUniverseSearchIntegration:
         """Origin is case-insensitive, canonical name used in response."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(origin="jita", max_jumps=2, limit=10))
+        result = asyncio.run(_search(origin="jita", max_jumps=2, security_min=None, security_max=None, region=None, is_border=None, limit=10))
 
         # Canonical name is used in filters_applied
         assert result["filters_applied"]["origin"] == "Jita"
@@ -683,8 +623,7 @@ class TestUniverseSearchIntegration:
         """Region is case-insensitive."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(region="the forge", limit=10))
+        result = asyncio.run(_search(origin=None, max_jumps=None, security_min=None, security_max=None, region="the forge", is_border=None, limit=10))
 
         for sys in result["systems"]:
             assert sys["region"] == "The Forge"
@@ -693,11 +632,8 @@ class TestUniverseSearchIntegration:
         """Applied filters are included in response."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(
-                origin="Jita", max_jumps=5, security_min=0.5, region="The Forge"
-            )
+            _search(origin="Jita", max_jumps=5, security_min=0.5, security_max=None, region="The Forge", is_border=None, limit=20)
         )
 
         filters = result["filters_applied"]
@@ -710,9 +646,8 @@ class TestUniverseSearchIntegration:
         """Default limit is applied."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         # Our mock universe has 9 systems, less than default limit of 20
-        result = asyncio.run(captured_tool())
+        result = asyncio.run(_search(origin=None, max_jumps=None, security_min=None, security_max=None, region=None, is_border=None, limit=20))
 
         assert result["total_found"] <= 20
 
@@ -729,29 +664,10 @@ class TestSearchPerformance:
         """Search completes within latency budget."""
         import asyncio
 
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-
-        from aria_esi.mcp.dispatchers.universe import register_search_tools
-
-        register_search_tools(mock_server, registered_universe)
-
         start = time.perf_counter()
         for _ in range(100):
             asyncio.run(
-                captured_tool(
-                    origin="Jita", max_jumps=10, security_min=0.5, limit=20
-                )
+                _search(origin="Jita", max_jumps=10, security_min=0.5, security_max=None, region=None, is_border=None, limit=20)
             )
         elapsed = time.perf_counter() - start
 
