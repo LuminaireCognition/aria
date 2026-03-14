@@ -13,7 +13,7 @@ import igraph as ig
 import numpy as np
 import pytest
 
-from aria_esi.mcp.dispatchers.universe import register_systems_tools
+from aria_esi.mcp.dispatchers.universe import _systems
 from aria_esi.mcp.tools import register_tools
 from aria_esi.mcp.utils import build_system_info
 from aria_esi.universe import UniverseGraph
@@ -187,23 +187,6 @@ class TestBuildSystemInfo:
 
 
 # =============================================================================
-# Tool Registration Tests
-# =============================================================================
-
-
-class TestSystemsToolRegistration:
-    """Test systems tool registration."""
-
-    def test_tool_registered(self, mock_universe: UniverseGraph):
-        """universe_systems tool is registered."""
-        mock_server = MagicMock()
-        register_systems_tools(mock_server, mock_universe)
-
-        # Verify server.tool() decorator was called
-        mock_server.tool.assert_called()
-
-
-# =============================================================================
 # Integration Tests
 # =============================================================================
 
@@ -211,31 +194,11 @@ class TestSystemsToolRegistration:
 class TestUniverseSystemsIntegration:
     """Integration tests for the universe_systems tool."""
 
-    def _capture_tool(self, registered_universe: UniverseGraph):
-        """Helper to capture the registered tool function."""
-        from aria_esi.mcp.dispatchers.universe import register_systems_tools
-
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-        register_systems_tools(mock_server, registered_universe)
-        return captured_tool
-
     def test_single_system_lookup(self, registered_universe: UniverseGraph):
         """Single system returns complete info."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["Jita"]))
+        result = asyncio.run(_systems(systems=["Jita"]))
 
         assert result["found"] == 1
         assert result["not_found"] == 0
@@ -247,8 +210,7 @@ class TestUniverseSystemsIntegration:
         """Batch lookup preserves input order."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["Sivala", "Jita", "Perimeter"]))
+        result = asyncio.run(_systems(systems=["Sivala", "Jita", "Perimeter"]))
 
         assert result["found"] == 3
         assert result["systems"][0]["name"] == "Sivala"
@@ -259,8 +221,7 @@ class TestUniverseSystemsIntegration:
         """Unknown systems return null in position."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["Jita", "UnknownSystem", "Perimeter"]))
+        result = asyncio.run(_systems(systems=["Jita", "UnknownSystem", "Perimeter"]))
 
         assert result["found"] == 2
         assert result["not_found"] == 1
@@ -272,30 +233,26 @@ class TestUniverseSystemsIntegration:
         """Lookup ignores case."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["jita", "JITA", "JiTa"]))
+        result = asyncio.run(_systems(systems=["jita", "JITA", "JiTa"]))
 
         assert result["found"] == 3
         for sys in result["systems"]:
             assert sys["name"] == "Jita"  # Canonical form
 
-    def test_empty_list_returns_empty(self, registered_universe: UniverseGraph):
-        """Empty input returns empty results."""
+    def test_empty_list_raises_error(self, registered_universe: UniverseGraph):
+        """Empty input raises InvalidParameterError (systems is required)."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool([]))
+        from aria_esi.mcp.errors import InvalidParameterError
 
-        assert result["found"] == 0
-        assert result["not_found"] == 0
-        assert result["systems"] == []
+        with pytest.raises(InvalidParameterError):
+            asyncio.run(_systems(systems=[]))
 
     def test_all_unknown_systems(self, registered_universe: UniverseGraph):
         """All unknown systems returns all nulls."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["Unknown1", "Unknown2", "Unknown3"]))
+        result = asyncio.run(_systems(systems=["Unknown1", "Unknown2", "Unknown3"]))
 
         assert result["found"] == 0
         assert result["not_found"] == 3
@@ -305,8 +262,7 @@ class TestUniverseSystemsIntegration:
         """Neighbor info includes all fields."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["Jita"]))
+        result = asyncio.run(_systems(systems=["Jita"]))
 
         neighbors = result["systems"][0]["neighbors"]
         assert len(neighbors) > 0
@@ -319,8 +275,7 @@ class TestUniverseSystemsIntegration:
         """Low-sec systems have correct security class."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["Sivala"]))
+        result = asyncio.run(_systems(systems=["Sivala"]))
 
         assert result["found"] == 1
         assert result["systems"][0]["name"] == "Sivala"
@@ -331,8 +286,7 @@ class TestUniverseSystemsIntegration:
         """Null-sec systems have correct security class."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["Ala"]))
+        result = asyncio.run(_systems(systems=["Ala"]))
 
         assert result["found"] == 1
         assert result["systems"][0]["name"] == "Ala"
@@ -343,8 +297,7 @@ class TestUniverseSystemsIntegration:
         """Border system has is_border flag and adjacent_lowsec."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool(["Maurasi"]))
+        result = asyncio.run(_systems(systems=["Maurasi"]))
 
         assert result["found"] == 1
         system = result["systems"][0]
@@ -364,26 +317,9 @@ class TestSystemsPerformance:
         """Single system lookup within latency budget."""
         import asyncio
 
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-
-        from aria_esi.mcp.dispatchers.universe import register_systems_tools
-
-        register_systems_tools(mock_server, registered_universe)
-
         start = time.perf_counter()
         for _ in range(100):
-            asyncio.run(captured_tool(["Jita"]))
+            asyncio.run(_systems(systems=["Jita"]))
         elapsed = time.perf_counter() - start
 
         avg_time = elapsed / 100
@@ -394,26 +330,9 @@ class TestSystemsPerformance:
         """Batch lookup within latency budget."""
         import asyncio
 
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-
-        from aria_esi.mcp.dispatchers.universe import register_systems_tools
-
-        register_systems_tools(mock_server, registered_universe)
-
         start = time.perf_counter()
         for _ in range(100):
-            asyncio.run(captured_tool(["Jita", "Perimeter", "Maurasi", "Urlen", "Sivala"]))
+            asyncio.run(_systems(systems=["Jita", "Perimeter", "Maurasi", "Urlen", "Sivala"]))
         elapsed = time.perf_counter() - start
 
         avg_time = elapsed / 100

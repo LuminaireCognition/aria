@@ -18,8 +18,8 @@ from aria_esi.mcp.dispatchers.universe import (
     _calculate_route,
     _compute_safe_weights,
     _compute_unsafe_weights,
-    register_route_tools,
 )
+from aria_esi.mcp.dispatchers.universe import _route
 from aria_esi.mcp.dispatchers.universe import (
     _route_compute_security_summary as _compute_security_summary,
 )
@@ -366,23 +366,6 @@ class TestBuildRouteResult:
 
 
 # =============================================================================
-# Tool Registration Tests
-# =============================================================================
-
-
-class TestRouteToolRegistration:
-    """Test route tool registration."""
-
-    def test_tool_registered(self, mock_universe: UniverseGraph):
-        """universe_route tool is registered."""
-        mock_server = MagicMock()
-        register_route_tools(mock_server, mock_universe)
-
-        # Verify server.tool() decorator was called
-        mock_server.tool.assert_called()
-
-
-# =============================================================================
 # Integration Tests
 # =============================================================================
 
@@ -390,31 +373,11 @@ class TestRouteToolRegistration:
 class TestUniverseRouteIntegration:
     """Integration tests for the universe_route tool."""
 
-    def _capture_tool(self, registered_universe: UniverseGraph):
-        """Helper to capture the registered tool function."""
-        from aria_esi.mcp.dispatchers.universe import register_route_tools
-
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-        register_route_tools(mock_server, registered_universe)
-        return captured_tool
-
     def test_universe_route_basic(self, registered_universe: UniverseGraph):
         """Basic route calculation works end-to-end."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Jita", "Urlen", "shortest"))
+        result = asyncio.run(_route(origin="Jita", destination="Urlen", mode="shortest", avoid_systems=None))
 
         assert result["origin"] == "Jita"
         assert result["destination"] == "Urlen"
@@ -426,21 +389,17 @@ class TestUniverseRouteIntegration:
         """Invalid mode raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         with pytest.raises(InvalidParameterError):
-            asyncio.run(captured_tool("Jita", "Urlen", "invalid"))
+            asyncio.run(_route(origin="Jita", destination="Urlen", mode="invalid", avoid_systems=None))
 
     def test_universe_route_unknown_system(self, registered_universe: UniverseGraph):
         """Unknown system with multiple suggestions raises error."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-
         # "a" matches multiple systems, so no auto-correction, raises error
         # Note: Single-suggestion typos like "Jit" -> "Jita" are auto-corrected
         with pytest.raises(SystemNotFoundError) as exc:
-            asyncio.run(captured_tool("a", "Urlen", "shortest"))
+            asyncio.run(_route(origin="a", destination="Urlen", mode="shortest", avoid_systems=None))
 
         assert len(exc.value.suggestions) > 0
 
@@ -448,8 +407,7 @@ class TestUniverseRouteIntegration:
         """System names are case-insensitive."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("jita", "URLEN", "shortest"))
+        result = asyncio.run(_route(origin="jita", destination="URLEN", mode="shortest", avoid_systems=None))
 
         assert result["jumps"] == 2
 
@@ -457,8 +415,7 @@ class TestUniverseRouteIntegration:
         """Safe mode works correctly."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Jita", "Urlen", "safe"))
+        result = asyncio.run(_route(origin="Jita", destination="Urlen", mode="safe", avoid_systems=None))
 
         assert result["mode"] == "safe"
         assert result["jumps"] >= 2
@@ -467,8 +424,7 @@ class TestUniverseRouteIntegration:
         """Unsafe mode works correctly."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
-        result = asyncio.run(captured_tool("Jita", "Ala", "unsafe"))
+        result = asyncio.run(_route(origin="Jita", destination="Ala", mode="unsafe", avoid_systems=None))
 
         assert result["mode"] == "unsafe"
         # Route must go through low/null-sec to reach Ala
@@ -559,32 +515,12 @@ class TestAvoidSystems:
 class TestAvoidSystemsIntegration:
     """Integration tests for avoid_systems via the full tool interface."""
 
-    def _capture_tool(self, registered_universe: UniverseGraph):
-        """Helper to capture the registered tool function."""
-        from aria_esi.mcp.dispatchers.universe import register_route_tools
-
-        captured_tool = None
-
-        def mock_tool():
-            def decorator(func):
-                nonlocal captured_tool
-                captured_tool = func
-                return func
-
-            return decorator
-
-        mock_server = MagicMock()
-        mock_server.tool = mock_tool
-        register_route_tools(mock_server, registered_universe)
-        return captured_tool
-
     def test_avoid_systems_via_tool(self, registered_universe: UniverseGraph):
         """avoid_systems parameter works through full tool interface."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool("Jita", "Urlen", "shortest", avoid_systems=["Perimeter"])
+            _route(origin="Jita", destination="Urlen", mode="shortest", avoid_systems=["Perimeter"])
         )
 
         # Route should not contain Perimeter
@@ -596,9 +532,8 @@ class TestAvoidSystemsIntegration:
         """Unknown systems in avoid_systems generate warnings."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool("Jita", "Urlen", "shortest", avoid_systems=["NonexistentSystem"])
+            _route(origin="Jita", destination="Urlen", mode="shortest", avoid_systems=["NonexistentSystem"])
         )
 
         # Should still calculate route but include warning
@@ -610,10 +545,9 @@ class TestAvoidSystemsIntegration:
         """Mix of valid and invalid avoid_systems works correctly."""
         import asyncio
 
-        captured_tool = self._capture_tool(registered_universe)
         result = asyncio.run(
-            captured_tool(
-                "Jita", "Urlen", "shortest", avoid_systems=["Perimeter", "InvalidSystem"]
+            _route(
+                origin="Jita", destination="Urlen", mode="shortest", avoid_systems=["Perimeter", "InvalidSystem"]
             )
         )
 

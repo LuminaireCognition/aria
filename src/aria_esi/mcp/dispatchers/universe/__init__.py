@@ -47,19 +47,6 @@ from ._actions_planning import (
     _optimize_waypoints,  # noqa: F401
 )
 
-# Compat register functions
-from ._compat import (
-    register_activity_tools,  # noqa: F401
-    register_analyze_tools,  # noqa: F401
-    register_borders_tools,  # noqa: F401
-    register_loop_tools,  # noqa: F401
-    register_nearest_tools,  # noqa: F401
-    register_route_tools,  # noqa: F401
-    register_search_tools,  # noqa: F401
-    register_systems_tools,  # noqa: F401
-    register_waypoints_tools,  # noqa: F401
-)
-
 # Dispatcher
 from ._dispatcher import (
     VALID_ACTIONS,  # noqa: F401

@@ -197,7 +197,7 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
 
             Activity params (action="activity"):
                 systems: Systems to query
-                include_realtime: Include real-time kill data if poller is healthy
+                include_realtime: Include real-time kill data
 
             Hotspots params (action="hotspots"):
                 origin: Search center
@@ -215,15 +215,15 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 faction: Filter to specific faction
 
             Local area params (action="local_area"):
-                origin: Current system for orientation
+                origin: Center system
                 max_jumps: Search radius (default 10, max 30)
-                include_realtime: Include real-time gatecamp detection
-                hotspot_threshold: Min kills to classify as hotspot (default 5)
-                quiet_threshold: Max kills for quiet zone (default 0)
-                ratting_threshold: Min NPC kills for ratting bank (default 100)
+                include_realtime: Add gatecamp detection
+                hotspot_threshold: Min kills for hotspot
+                quiet_threshold: Max kills for quiet zone
+                ratting_threshold: Min NPC kills for ratting
 
             Territory analysis params (action="territory_analysis"):
-                coalition: Coalition ID or alias (e.g., "imperium", "goons")
+                coalition: Coalition ID or alias
                 alliance_id: Alliance ID to analyze
 
         Returns:

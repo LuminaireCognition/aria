@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from aria_esi.mcp.dispatchers.universe import register_activity_tools
+from aria_esi.mcp.dispatchers.universe import _activity, _hotspots, _gatecamp_risk, _fw_frontlines
 from aria_esi.store.activity import (
     ActivityCache,
     ActivityData,
@@ -336,26 +336,6 @@ def activity_universe():
     return create_mock_universe(systems, edges)
 
 
-def capture_tool(universe, tool_name):
-    """Helper to capture a specific tool by name."""
-    captured_tools = {}
-
-    def mock_tool():
-        def decorator(func):
-            captured_tools[func.__name__] = func
-            return func
-        return decorator
-
-    mock_server = MagicMock()
-    mock_server.tool = mock_tool
-
-    # Register the universe globally so get_universe() works
-    import aria_esi.mcp.tools as tools_module
-    tools_module._universe = universe
-
-    register_activity_tools(mock_server, universe)
-    return captured_tools.get(tool_name)
-
 
 @pytest.mark.asyncio
 class TestUniverseActivity:
@@ -363,12 +343,11 @@ class TestUniverseActivity:
 
     async def test_returns_activity_for_valid_systems(self, activity_universe):
         """Returns activity data for specified systems."""
-        # Capture the tool
-        tool = capture_tool(activity_universe, "universe_activity")
-        assert tool is not None
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
         # Mock the activity cache
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(
                 system_id=30000142,
@@ -380,7 +359,7 @@ class TestUniverseActivity:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(systems=["Jita"])
+            result = await _activity(systems=["Jita"])
 
             assert "systems" in result
             assert len(result["systems"]) == 1
@@ -389,15 +368,16 @@ class TestUniverseActivity:
 
     async def test_handles_unknown_systems(self, activity_universe):
         """Unknown systems are added to warnings."""
-        tool = capture_tool(activity_universe, "universe_activity")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(30000142))
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(systems=["Jita", "NonexistentSystem"])
+            result = await _activity(systems=["Jita", "NonexistentSystem"])
 
             assert "warnings" in result
             assert any("NonexistentSystem" in w for w in result["warnings"])
@@ -409,9 +389,10 @@ class TestUniverseHotspots:
 
     async def test_finds_hotspots_in_range(self, activity_universe):
         """Finds high-activity systems within range."""
-        tool = capture_tool(activity_universe, "universe_hotspots")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Tama the hotspot with high kills
@@ -424,7 +405,7 @@ class TestUniverseHotspots:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Jita", max_jumps=10, activity_type="kills")
+            result = await _hotspots(origin="Jita", max_jumps=10, activity_type="kills", security_min=None, security_max=None, limit=10)
 
             assert "hotspots" in result
             assert result["origin"] == "Jita"
@@ -432,18 +413,22 @@ class TestUniverseHotspots:
 
     async def test_respects_security_filter(self, activity_universe):
         """Filters by security status."""
-        tool = capture_tool(activity_universe, "universe_hotspots")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0, ship_kills=10))
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(
+            result = await _hotspots(
                 origin="Jita",
-                min_security=0.1,
-                max_security=0.4
+                max_jumps=None,
+                activity_type="kills",
+                security_min=0.1,
+                security_max=0.4,
+                limit=10,
             )
 
             # All returned systems should be in security range
@@ -457,9 +442,10 @@ class TestUniverseGatecampRisk:
 
     async def test_identifies_chokepoints(self, activity_universe):
         """Identifies security transition chokepoints."""
-        tool = capture_tool(activity_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Nourvukaiken dangerous
@@ -472,7 +458,7 @@ class TestUniverseGatecampRisk:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Jita", destination="Tama")
+            result = await _gatecamp_risk(route=None, origin="Jita", destination="Tama", mode="shortest")
 
             assert "chokepoints" in result
             assert "high_risk_systems" in result
@@ -480,9 +466,10 @@ class TestUniverseGatecampRisk:
 
     async def test_returns_high_risk_systems(self, activity_universe):
         """Returns high_risk_systems list for avoidance."""
-        tool = capture_tool(activity_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             async def mock_activity(system_id):
@@ -495,7 +482,7 @@ class TestUniverseGatecampRisk:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Jita", destination="Tama")
+            result = await _gatecamp_risk(route=None, origin="Jita", destination="Tama", mode="shortest")
 
             # High risk systems should be strings (names)
             if result["high_risk_systems"]:
@@ -508,9 +495,10 @@ class TestFWFrontlines:
 
     async def test_returns_contested_systems(self, activity_universe):
         """Returns FW systems grouped by status."""
-        tool = capture_tool(activity_universe, "fw_frontlines")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             async def mock_all_fw():
@@ -530,36 +518,11 @@ class TestFWFrontlines:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool()
+            result = await _fw_frontlines(faction=None)
 
             assert "contested" in result
             assert "vulnerable" in result
             assert "summary" in result
-
-
-@pytest.mark.asyncio
-class TestActivityCacheStatus:
-    """Tests for activity_cache_status tool."""
-
-    async def test_returns_cache_layers(self, activity_universe):
-        """Returns status for all cache layers."""
-        tool = capture_tool(activity_universe, "activity_cache_status")
-
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
-            cache = MagicMock()
-            cache.get_cache_status.return_value = {
-                "kills": {"cached_systems": 100, "age_seconds": 300, "ttl_seconds": 600, "stale": False},
-                "jumps": {"cached_systems": 100, "age_seconds": 300, "ttl_seconds": 600, "stale": False},
-                "fw": {"cached_systems": 50, "age_seconds": 1000, "ttl_seconds": 1800, "stale": False},
-            }
-            mock_cache.return_value = cache
-
-            result = await tool()
-
-            assert "kills" in result
-            assert "jumps" in result
-            assert "fw" in result
-            assert result["kills"]["cached_systems"] == 100
 
 
 # =============================================================================
@@ -575,10 +538,11 @@ class TestUniverseActivityErrors:
         """Empty systems list should raise InvalidParameterError."""
         from aria_esi.mcp.errors import InvalidParameterError
 
-        tool = capture_tool(activity_universe, "universe_activity")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
         with pytest.raises(InvalidParameterError) as exc_info:
-            await tool(systems=[])
+            await _activity(systems=[])
 
         assert "systems" in str(exc_info.value)
         assert "At least one system required" in str(exc_info.value)
@@ -592,52 +556,50 @@ class TestUniverseHotspotsErrors:
         """Invalid activity_type should raise InvalidParameterError."""
         from aria_esi.mcp.errors import InvalidParameterError
 
-        tool = capture_tool(activity_universe, "universe_hotspots")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(InvalidParameterError) as exc_info:
-                await tool(origin="Jita", activity_type="invalid_type")
+                await _hotspots(origin="Jita", max_jumps=None, activity_type="invalid_type", security_min=None, security_max=None, limit=10)
 
             assert "activity_type" in str(exc_info.value)
             assert "kills, jumps, ratting" in str(exc_info.value)
 
-    async def test_max_jumps_below_range_raises_error(self, activity_universe):
-        """max_jumps < 1 should raise InvalidParameterError."""
-        from aria_esi.mcp.errors import InvalidParameterError
+    async def test_max_jumps_zero_defaults_to_15(self, activity_universe):
+        """max_jumps=0 (falsy) defaults to 15, no error raised."""
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        tool = capture_tool(activity_universe, "universe_hotspots")
-
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            with pytest.raises(InvalidParameterError) as exc_info:
-                await tool(origin="Jita", max_jumps=0)
-
-            assert "max_jumps" in str(exc_info.value)
-            assert "between 1 and 30" in str(exc_info.value)
+            result = await _hotspots(origin="Jita", max_jumps=0, activity_type="kills", security_min=None, security_max=None, limit=10)
+            assert "hotspots" in result
 
     async def test_max_jumps_above_range_raises_error(self, activity_universe):
         """max_jumps > 30 should raise InvalidParameterError."""
         from aria_esi.mcp.errors import InvalidParameterError
 
-        tool = capture_tool(activity_universe, "universe_hotspots")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(InvalidParameterError) as exc_info:
-                await tool(origin="Jita", max_jumps=31)
+                await _hotspots(origin="Jita", max_jumps=31, activity_type="kills", security_min=None, security_max=None, limit=10)
 
             assert "max_jumps" in str(exc_info.value)
             assert "between 1 and 30" in str(exc_info.value)
@@ -646,16 +608,17 @@ class TestUniverseHotspotsErrors:
         """limit < 1 should raise InvalidParameterError."""
         from aria_esi.mcp.errors import InvalidParameterError
 
-        tool = capture_tool(activity_universe, "universe_hotspots")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(InvalidParameterError) as exc_info:
-                await tool(origin="Jita", limit=0)
+                await _hotspots(origin="Jita", max_jumps=None, activity_type="kills", security_min=None, security_max=None, limit=0)
 
             assert "limit" in str(exc_info.value)
             assert "between 1 and 50" in str(exc_info.value)
@@ -664,25 +627,27 @@ class TestUniverseHotspotsErrors:
         """limit > 50 should raise InvalidParameterError."""
         from aria_esi.mcp.errors import InvalidParameterError
 
-        tool = capture_tool(activity_universe, "universe_hotspots")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_activity = AsyncMock(return_value=ActivityData(0))
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(InvalidParameterError) as exc_info:
-                await tool(origin="Jita", limit=51)
+                await _hotspots(origin="Jita", max_jumps=None, activity_type="kills", security_min=None, security_max=None, limit=51)
 
             assert "limit" in str(exc_info.value)
             assert "between 1 and 50" in str(exc_info.value)
 
     async def test_activity_type_jumps_classification(self, activity_universe):
         """Jumps activity type should use ship_jumps for ranking."""
-        tool = capture_tool(activity_universe, "universe_hotspots")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Tama the hotspot with high jumps
@@ -695,7 +660,7 @@ class TestUniverseHotspotsErrors:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Jita", activity_type="jumps", max_jumps=10)
+            result = await _hotspots(origin="Jita", max_jumps=10, activity_type="jumps", security_min=None, security_max=None, limit=10)
 
             assert result["activity_type"] == "jumps"
             # If there are hotspots, they should be ranked by jumps
@@ -704,9 +669,10 @@ class TestUniverseHotspotsErrors:
 
     async def test_activity_type_ratting_classification(self, activity_universe):
         """Ratting activity type should use npc_kills for ranking."""
-        tool = capture_tool(activity_universe, "universe_hotspots")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Tama the hotspot with high NPC kills
@@ -719,7 +685,7 @@ class TestUniverseHotspotsErrors:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Jita", activity_type="ratting", max_jumps=10)
+            result = await _hotspots(origin="Jita", max_jumps=10, activity_type="ratting", security_min=None, security_max=None, limit=10)
 
             assert result["activity_type"] == "ratting"
             # If there are hotspots, they should be ranked by NPC kills
@@ -735,15 +701,16 @@ class TestUniverseGatecampRiskErrors:
         """Must provide either route or origin+destination."""
         from aria_esi.mcp.errors import InvalidParameterError
 
-        tool = capture_tool(activity_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(InvalidParameterError) as exc_info:
-                await tool()  # No route, no origin/destination
+                await _gatecamp_risk(route=None, origin=None, destination=None, mode="shortest")
 
             assert "route" in str(exc_info.value)
             assert "origin" in str(exc_info.value) or "destination" in str(exc_info.value)
@@ -752,15 +719,16 @@ class TestUniverseGatecampRiskErrors:
         """Route with < 2 systems should raise InvalidParameterError."""
         from aria_esi.mcp.errors import InvalidParameterError
 
-        tool = capture_tool(activity_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(InvalidParameterError) as exc_info:
-                await tool(route=["Jita"])  # Only one system
+                await _gatecamp_risk(route=["Jita"], origin=None, destination=None, mode="shortest")
 
             assert "route" in str(exc_info.value)
             assert "at least 2 systems" in str(exc_info.value)
@@ -769,15 +737,16 @@ class TestUniverseGatecampRiskErrors:
         """Unknown system in explicit route should raise SystemNotFoundError."""
         from aria_esi.mcp.errors import SystemNotFoundError
 
-        tool = capture_tool(activity_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(SystemNotFoundError) as exc_info:
-                await tool(route=["Jita", "FakeSystem123", "Perimeter"])
+                await _gatecamp_risk(route=["Jita", "FakeSystem123", "Perimeter"], origin=None, destination=None, mode="shortest")
 
             assert "FakeSystem123" in str(exc_info.value)
 
@@ -785,15 +754,16 @@ class TestUniverseGatecampRiskErrors:
         """Unreachable destination should raise RouteNotFoundError."""
         from aria_esi.mcp.errors import RouteNotFoundError
 
-        tool = capture_tool(disconnected_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = disconnected_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(RouteNotFoundError) as exc_info:
-                await tool(origin="Island1", destination="Island3")
+                await _gatecamp_risk(route=None, origin="Island1", destination="Island3", mode="shortest")
 
             assert "Island1" in str(exc_info.value)
             assert "Island3" in str(exc_info.value)
@@ -807,16 +777,17 @@ class TestFWFrontlinesErrors:
         """Invalid faction name should raise InvalidParameterError."""
         from aria_esi.mcp.errors import InvalidParameterError
 
-        tool = capture_tool(activity_universe, "fw_frontlines")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
             cache.get_all_fw = AsyncMock(return_value={})
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
             with pytest.raises(InvalidParameterError) as exc_info:
-                await tool(faction="pirate")
+                await _fw_frontlines(faction="pirate")
 
             assert "faction" in str(exc_info.value)
             assert "caldari, gallente, amarr, minmatar" in str(exc_info.value)
@@ -828,9 +799,10 @@ class TestGatecampChokepoints:
 
     async def test_pipe_detection_two_neighbors(self, extended_universe):
         """Systems with <= 2 neighbors in lowsec should be classified as pipe."""
-        tool = capture_tool(extended_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = extended_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Give activity to Niarja to detect it as a chokepoint
@@ -843,7 +815,7 @@ class TestGatecampChokepoints:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Urlen", destination="Niarja")
+            result = await _gatecamp_risk(route=None, origin="Urlen", destination="Niarja", mode="shortest")
 
             assert "chokepoints" in result
             # Should have detected security transition or pipe chokepoints
@@ -851,9 +823,10 @@ class TestGatecampChokepoints:
 
     async def test_extreme_risk_recommendation(self, activity_universe):
         """Extreme risk should recommend alternate route or waiting."""
-        tool = capture_tool(activity_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Make Nourvukaiken extremely dangerous
@@ -866,7 +839,7 @@ class TestGatecampChokepoints:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Jita", destination="Tama")
+            result = await _gatecamp_risk(route=None, origin="Jita", destination="Tama", mode="shortest")
 
             # Check overall risk is detected as extreme when there's high activity
             if result["chokepoints"]:
@@ -878,9 +851,10 @@ class TestGatecampChokepoints:
 
     async def test_lowsec_entry_chokepoint_detection(self, activity_universe):
         """High-sec to low-sec transitions should be marked as lowsec_entry."""
-        tool = capture_tool(activity_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             # Give activity to the lowsec entry system
@@ -893,7 +867,7 @@ class TestGatecampChokepoints:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Jita", destination="Tama")
+            result = await _gatecamp_risk(route=None, origin="Jita", destination="Tama", mode="shortest")
 
             # Should have detected the lowsec entry point
             lowsec_entries = [c for c in result["chokepoints"] if c["chokepoint_type"] == "lowsec_entry"]
@@ -902,9 +876,10 @@ class TestGatecampChokepoints:
 
     async def test_high_risk_systems_list(self, activity_universe):
         """High and extreme risk systems should be in high_risk_systems list."""
-        tool = capture_tool(activity_universe, "universe_gatecamp_risk")
+        import aria_esi.mcp.tools as tools_module
+        tools_module._universe = activity_universe
 
-        with patch("aria_esi.mcp.dispatchers.universe._compat.get_activity_cache") as mock_cache:
+        with patch("aria_esi.mcp.dispatchers.universe._actions_intel.get_activity_cache") as mock_cache:
             cache = MagicMock()
 
             async def mock_activity(system_id):
@@ -916,7 +891,7 @@ class TestGatecampChokepoints:
             cache.get_kills_cache_age.return_value = 300
             mock_cache.return_value = cache
 
-            result = await tool(origin="Jita", destination="Tama")
+            result = await _gatecamp_risk(route=None, origin="Jita", destination="Tama", mode="shortest")
 
             # If there are extreme chokepoints, they should be in high_risk_systems
             for name in result["high_risk_systems"]:

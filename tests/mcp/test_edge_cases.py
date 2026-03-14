@@ -12,9 +12,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from aria_esi.mcp.dispatchers.universe import (
-    register_loop_tools,
-    register_route_tools,
-    register_search_tools,
+    _loop,
+    _route,
+    _search,
+    _systems,
 )
 from aria_esi.mcp.errors import (
     InsufficientBordersError,
@@ -22,8 +23,6 @@ from aria_esi.mcp.errors import (
 )
 from aria_esi.mcp.tools import register_tools
 from aria_esi.universe import UniverseGraph
-
-from .conftest import capture_tool_function
 
 # =============================================================================
 # InsufficientBordersError Tests
@@ -76,8 +75,7 @@ class TestMinimalUniverse:
         mock_server = MagicMock()
         register_tools(mock_server, minimal_universe)
 
-        tool = capture_tool_function(minimal_universe, register_route_tools)
-        result = asyncio.run(tool(origin="Solo", destination="Solo"))
+        result = asyncio.run(_route(origin="Solo", destination="Solo", mode="shortest", avoid_systems=None))
 
         assert result["jumps"] == 0
         assert len(result["systems"]) == 1
@@ -88,10 +86,7 @@ class TestMinimalUniverse:
         mock_server = MagicMock()
         register_tools(mock_server, minimal_universe)
 
-        from aria_esi.mcp.dispatchers.universe import register_systems_tools
-
-        tool = capture_tool_function(minimal_universe, register_systems_tools)
-        result = asyncio.run(tool(systems=["Solo"]))
+        result = asyncio.run(_systems(systems=["Solo"]))
 
         assert result["found"] == 1
         assert result["systems"][0]["neighbors"] == []
@@ -105,18 +100,15 @@ class TestDisconnectedUniverse:
         mock_server = MagicMock()
         register_tools(mock_server, disconnected_universe)
 
-        tool = capture_tool_function(disconnected_universe, register_route_tools)
-
         with pytest.raises(RouteNotFoundError):
-            asyncio.run(tool(origin="Island1", destination="Island3"))
+            asyncio.run(_route(origin="Island1", destination="Island3", mode="shortest", avoid_systems=None))
 
     def test_route_within_connected_component(self, disconnected_universe: UniverseGraph):
         """Route within same component works."""
         mock_server = MagicMock()
         register_tools(mock_server, disconnected_universe)
 
-        tool = capture_tool_function(disconnected_universe, register_route_tools)
-        result = asyncio.run(tool(origin="Island1", destination="Island2"))
+        result = asyncio.run(_route(origin="Island1", destination="Island2", mode="shortest", avoid_systems=None))
 
         assert result["jumps"] == 1
 
@@ -134,10 +126,9 @@ class TestBoundaryConditions:
         mock_server = MagicMock()
         register_tools(mock_server, standard_universe)
 
-        tool = capture_tool_function(standard_universe, register_search_tools)
         # Look for systems with exactly 0.95 security
         result = asyncio.run(
-            tool(security_min=0.94, security_max=0.96)
+            _search(origin=None, max_jumps=None, security_min=0.94, security_max=0.96, region=None, is_border=None, limit=20)
         )
 
         # Should find Jita (0.95)
@@ -148,9 +139,8 @@ class TestBoundaryConditions:
         mock_server = MagicMock()
         register_tools(mock_server, standard_universe)
 
-        tool = capture_tool_function(standard_universe, register_search_tools)
         result = asyncio.run(
-            tool(security_min=0.9, security_max=0.5)
+            _search(origin=None, max_jumps=None, security_min=0.9, security_max=0.5, region=None, is_border=None, limit=20)
         )
 
         # No systems can match impossible range
@@ -161,9 +151,8 @@ class TestBoundaryConditions:
         mock_server = MagicMock()
         register_tools(mock_server, extended_universe)
 
-        tool = capture_tool_function(extended_universe, register_loop_tools)
         result = asyncio.run(
-            tool(origin="Jita", target_jumps=20, min_borders=2, max_borders=2)
+            _loop(origin="Jita", target_jumps=20, min_borders=2, max_borders=2, optimize="density", security_filter="highsec", avoid_systems=None)
         )
 
         # Should have exactly 2 borders
@@ -183,25 +172,21 @@ class TestEmptyInputs:
         mock_server = MagicMock()
         register_tools(mock_server, standard_universe)
 
-        tool = capture_tool_function(standard_universe, register_route_tools)
         result = asyncio.run(
-            tool(origin="Jita", destination="Urlen", avoid_systems=[])
+            _route(origin="Jita", destination="Urlen", mode="shortest", avoid_systems=[])
         )
 
         assert result["jumps"] > 0
 
     def test_systems_lookup_empty_list(self, standard_universe: UniverseGraph):
-        """Empty systems list returns empty results."""
+        """Empty systems list raises InvalidParameterError."""
+        from aria_esi.mcp.errors import InvalidParameterError
+
         mock_server = MagicMock()
         register_tools(mock_server, standard_universe)
 
-        from aria_esi.mcp.dispatchers.universe import register_systems_tools
-
-        tool = capture_tool_function(standard_universe, register_systems_tools)
-        result = asyncio.run(tool(systems=[]))
-
-        assert result["found"] == 0
-        assert result["systems"] == []
+        with pytest.raises(InvalidParameterError):
+            asyncio.run(_systems(systems=[]))
 
 
 # =============================================================================
@@ -217,8 +202,7 @@ class TestCaseSensitivity:
         mock_server = MagicMock()
         register_tools(mock_server, standard_universe)
 
-        tool = capture_tool_function(standard_universe, register_route_tools)
-        result = asyncio.run(tool(origin="jita", destination="Urlen"))
+        result = asyncio.run(_route(origin="jita", destination="Urlen", mode="shortest", avoid_systems=None))
 
         assert result["systems"][0]["name"] == "Jita"
 
@@ -227,8 +211,7 @@ class TestCaseSensitivity:
         mock_server = MagicMock()
         register_tools(mock_server, standard_universe)
 
-        tool = capture_tool_function(standard_universe, register_route_tools)
-        result = asyncio.run(tool(origin="Jita", destination="URLEN"))
+        result = asyncio.run(_route(origin="Jita", destination="URLEN", mode="shortest", avoid_systems=None))
 
         assert result["systems"][-1]["name"] == "Urlen"
 
@@ -237,7 +220,6 @@ class TestCaseSensitivity:
         mock_server = MagicMock()
         register_tools(mock_server, standard_universe)
 
-        tool = capture_tool_function(standard_universe, register_route_tools)
-        result = asyncio.run(tool(origin="JiTa", destination="uRlEn"))
+        result = asyncio.run(_route(origin="JiTa", destination="uRlEn", mode="shortest", avoid_systems=None))
 
         assert result["jumps"] > 0

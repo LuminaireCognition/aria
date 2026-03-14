@@ -226,42 +226,6 @@ def registered_extended_universe(extended_universe: UniverseGraph) -> UniverseGr
 
 
 # =============================================================================
-# Test Helpers
-# =============================================================================
-
-
-def capture_tool_function(universe: UniverseGraph, register_func: callable) -> callable:
-    """
-    Helper to capture the registered tool function for direct testing.
-
-    Args:
-        universe: UniverseGraph to register with
-        register_func: Tool registration function (e.g., register_route_tools)
-
-    Returns:
-        The captured async tool function
-
-    Example:
-        from aria_esi.mcp.dispatchers.universe import register_route_tools
-        tool = capture_tool_function(universe, register_route_tools)
-        result = await tool(origin="Jita", destination="Amarr")
-    """
-    captured_tool = None
-
-    def mock_tool():
-        def decorator(func):
-            nonlocal captured_tool
-            captured_tool = func
-            return func
-        return decorator
-
-    mock_server = MagicMock()
-    mock_server.tool = mock_tool
-    register_func(mock_server, universe)
-    return captured_tool
-
-
-# =============================================================================
 # Edge Case Fixtures
 # =============================================================================
 
