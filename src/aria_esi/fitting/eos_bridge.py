@@ -644,6 +644,12 @@ class EOSBridge:
             if slots.low_total and slots.low_used < slots.low_total:
                 empty = slots.low_total - slots.low_used
                 warnings.append(f"Empty low slots: {empty} of {slots.low_total} unused")
+            if slots.rig_total and slots.rig_used < slots.rig_total:
+                empty = slots.rig_total - slots.rig_used
+                warnings.append(
+                    f"Empty rig slots: {empty} of {slots.rig_total} unused "
+                    f"— rigs are cheap and always beneficial"
+                )
 
             return FitStatsResult(
                 ship_type_id=parsed_fit.ship_type_id,

@@ -179,6 +179,7 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
                 return await _handle_esi_fallback(
                     hours=hours,
                     limit=limit,
+                    character_id=character_id,
                 )
             return {
                 "error": "Killmail store not initialized",
@@ -310,18 +311,27 @@ async def _handle_query(
             entry["attacker_count"] = esi.attacker_count
         formatted_kills.append(entry)
 
-    return wrap_output(
-        {
-            "kills": formatted_kills,
-            "count": len(formatted_kills),
-            "next_cursor": next_cursor,
-            "query": {
-                "systems": systems,
-                "hours": hours,
-                "min_value": min_value,
-                "limit": limit,
-            },
+    scope = "character" if character_id else "global"
+    result_dict: dict[str, Any] = {
+        "kills": formatted_kills,
+        "count": len(formatted_kills),
+        "next_cursor": next_cursor,
+        "query": {
+            "systems": systems,
+            "hours": hours,
+            "min_value": min_value,
+            "limit": limit,
         },
+        "scope": scope,
+    }
+    if scope == "global":
+        result_dict["scope_note"] = (
+            "Data from global killmail feed — not filtered to your character. "
+            "Use character_id parameter to filter to your kills/losses."
+        )
+
+    return wrap_output(
+        result_dict,
         items_key="kills",
         max_items=100,
     )
@@ -556,6 +566,7 @@ async def _handle_esi_history(
                 "next_cursor": None,
                 "query": {"hours": hours, "limit": limit, "source": "esi_direct"},
                 "source": "esi_direct",
+                "scope": "character",
             },
             items_key="kills",
             max_items=100,
@@ -594,6 +605,7 @@ async def _handle_esi_history(
         "next_cursor": next_cursor,
         "query": {"hours": hours, "limit": limit, "source": "esi_direct"},
         "source": "esi_direct",
+        "scope": "character",
     }
     if enrichment_errors > 0:
         result["enrichment_errors"] = enrichment_errors
@@ -604,6 +616,7 @@ async def _handle_esi_history(
 async def _handle_esi_fallback(
     hours: int,
     limit: int,
+    character_id: int | None = None,
 ) -> dict:
     """Fallback for query/recent when store is unavailable."""
     # Keep the same clamping as store-based queries for consistency
@@ -614,15 +627,28 @@ async def _handle_esi_fallback(
     if error:
         return {"error": error}
 
+    # Compute scope note for mismatched character_id
+    scope_note = None
+    if character_id and char_id and character_id != char_id:
+        scope_note = (
+            f"Requested character_id={character_id} differs from authenticated "
+            f"character ({char_id}). ESI fallback returns data for the "
+            f"authenticated character only."
+        )
+
     if not refs:
+        empty_result: dict[str, Any] = {
+            "kills": [],
+            "count": 0,
+            "next_cursor": None,
+            "query": {"hours": hours, "limit": limit, "source": "esi_fallback"},
+            "source": "esi_fallback",
+            "scope": "character",
+        }
+        if scope_note:
+            empty_result["scope_note"] = scope_note
         return wrap_output(
-            {
-                "kills": [],
-                "count": 0,
-                "next_cursor": None,
-                "query": {"hours": hours, "limit": limit, "source": "esi_fallback"},
-                "source": "esi_fallback",
-            },
+            empty_result,
             items_key="kills",
             max_items=100,
         )
@@ -656,7 +682,10 @@ async def _handle_esi_fallback(
             "limit": limit,
         },
         "source": "esi_fallback",
+        "scope": "character",
     }
+    if scope_note:
+        result["scope_note"] = scope_note
     if enrichment_errors > 0:
         result["enrichment_errors"] = enrichment_errors
 

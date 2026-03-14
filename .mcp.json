@@ -2,7 +2,10 @@
   "mcpServers": {
     "aria-universe": {
       "command": "uv",
-      "args": ["run", "aria-universe"]
+      "args": ["run", "aria-universe"],
+      "env": {
+        "ARIA_NO_KEYRING": "1"
+      }
     }
   }
 }

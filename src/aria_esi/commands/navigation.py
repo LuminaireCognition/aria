@@ -231,7 +231,12 @@ def cmd_route(args: argparse.Namespace) -> dict[str, Any]:
     graph_mode = mode_map.get(route_flag, "shortest")
 
     # Calculate route using NavigationService
-    path = nav_service.calculate_route(origin_idx, dest_idx, graph_mode, avoid_indices)  # type: ignore[arg-type]
+    from ..services.navigation.errors import RouteNotFoundError
+
+    try:
+        path = nav_service.calculate_route(origin_idx, dest_idx, graph_mode, avoid_indices)  # type: ignore[arg-type]
+    except RouteNotFoundError:
+        path = []
 
     if not path:
         # Check if origin or destination is in wormhole space (J-space)

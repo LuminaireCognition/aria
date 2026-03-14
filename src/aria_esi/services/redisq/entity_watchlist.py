@@ -150,6 +150,7 @@ class EntityWatchlistManager:
         Raises:
             sqlite3.IntegrityError: If name already exists for this owner
         """
+        name = name.strip()
         conn = self._get_connection()
         now = int(time.time())
 
@@ -191,13 +192,14 @@ class EntityWatchlistManager:
         Returns:
             EntityWatchlist if found, None otherwise
         """
+        name = name.strip()
         conn = self._get_connection()
 
         if owner_character_id is None:
             row = conn.execute(
                 """
                 SELECT * FROM entity_watchlists
-                WHERE name = ? AND owner_character_id IS NULL
+                WHERE name = ? COLLATE NOCASE AND owner_character_id IS NULL
                 """,
                 (name,),
             ).fetchone()
@@ -205,7 +207,7 @@ class EntityWatchlistManager:
             row = conn.execute(
                 """
                 SELECT * FROM entity_watchlists
-                WHERE name = ? AND owner_character_id = ?
+                WHERE name = ? COLLATE NOCASE AND owner_character_id = ?
                 """,
                 (name, owner_character_id),
             ).fetchone()

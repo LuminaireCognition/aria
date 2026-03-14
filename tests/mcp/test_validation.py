@@ -5,6 +5,7 @@ import pytest
 from aria_esi.mcp.validation import (
     FITTING_ACTION_PARAMS,
     MARKET_ACTION_PARAMS,
+    PILOT_ACTION_PARAMS,
     SDE_ACTION_PARAMS,
     SKILLS_ACTION_PARAMS,
     UNIVERSE_ACTION_PARAMS,
@@ -108,6 +109,20 @@ class TestParameterSchemas:
             "hull_stats",
         }
         assert set(FITTING_ACTION_PARAMS.keys()) == expected_actions
+
+    def test_pilot_schema_has_all_actions(self):
+        """Verify pilot schema covers all documented actions."""
+        expected_actions = {
+            "mail_list",
+            "mail_read",
+            "mining_ledger",
+            "contracts",
+            "fittings_list",
+            "fittings_detail",
+            "lp_balance",
+            "lp_offers",
+        }
+        assert set(PILOT_ACTION_PARAMS.keys()) == expected_actions
 
 
 class TestValidateActionParams:
@@ -319,7 +334,106 @@ class TestGetDefaultValues:
         assert defaults["station_only"] is True
         assert defaults["min_profit_pct"] == 5.0
 
+    def test_market_invention_defaults(self):
+        """Invention skill defaults should not trigger warnings."""
+        warnings = validate_action_params(
+            "market",
+            "find_nearby",
+            {
+                "item": "Vexor Navy Issue Blueprint",
+                "encryption_skill": 4,
+                "science_skill_1": 4,
+                "science_skill_2": 4,
+            },
+        )
+        # encryption_skill, science_skill_1, science_skill_2 are not valid
+        # for find_nearby, but at default values they should be suppressed
+        assert warnings == []
+
+    def test_market_invention_nondefault_warns(self):
+        """Non-default invention skill values should warn for wrong action."""
+        warnings = validate_action_params(
+            "market",
+            "find_nearby",
+            {
+                "item": "Vexor Navy Issue Blueprint",
+                "encryption_skill": 5,  # Non-default
+            },
+        )
+        assert len(warnings) == 1
+        assert "encryption_skill" in warnings[0]
+
+    def test_pilot_defaults(self):
+        """Test pilot dispatcher defaults."""
+        defaults = get_default_values("pilot")
+        assert defaults["unread_only"] is False
+        assert defaults["limit"] == 50
+        assert defaults["days"] == 30
+        assert defaults["issued"] is True
+        assert defaults["received"] is True
+        assert defaults["eft"] is False
+        assert defaults["affordable"] is False
+
     def test_unknown_dispatcher_returns_empty(self):
         """Unknown dispatcher should return empty defaults."""
         defaults = get_default_values("unknown")
         assert defaults == {}
+
+
+class TestPilotValidation:
+    """Test pilot dispatcher parameter validation."""
+
+    def test_pilot_contracts_valid_params(self):
+        """Valid contracts params should return no warnings."""
+        warnings = validate_action_params(
+            "pilot",
+            "contracts",
+            {"status_filter": "active", "limit": 50, "issued": True, "received": True},
+        )
+        assert warnings == []
+
+    def test_pilot_contracts_irrelevant_params(self):
+        """Irrelevant params for contracts should generate warnings."""
+        warnings = validate_action_params(
+            "pilot",
+            "contracts",
+            {"status_filter": "active", "ship_filter": "Vexor"},
+        )
+        assert len(warnings) == 1
+        assert "ship_filter" in warnings[0]
+
+    def test_pilot_lp_balance_no_params(self):
+        """lp_balance accepts no params — defaults should not warn."""
+        warnings = validate_action_params(
+            "pilot",
+            "lp_balance",
+            {
+                "unread_only": False,
+                "limit": 50,
+                "days": 30,
+                "issued": True,
+                "received": True,
+                "eft": False,
+                "affordable": False,
+            },
+        )
+        assert warnings == []
+
+    def test_pilot_fittings_list_only_ship_filter(self):
+        """fittings_list should only accept ship_filter."""
+        warnings = validate_action_params(
+            "pilot",
+            "fittings_list",
+            {"ship_filter": "Vexor", "limit": 10},  # limit is non-default
+        )
+        assert len(warnings) == 1
+        assert "limit" in warnings[0]
+
+    def test_pilot_mail_read_requires_mail_id(self):
+        """mail_read valid params should pass."""
+        warnings = validate_action_params(
+            "pilot",
+            "mail_read",
+            {"mail_id": 12345},
+        )
+        assert warnings == []

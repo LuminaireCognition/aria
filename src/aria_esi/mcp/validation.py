@@ -226,6 +226,22 @@ FITTING_ACTION_PARAMS: dict[str, set[str]] = {
 
 
 # =============================================================================
+# Pilot Dispatcher Parameter Schema
+# =============================================================================
+
+PILOT_ACTION_PARAMS: dict[str, set[str]] = {
+    "mail_list": {"unread_only", "limit"},
+    "mail_read": {"mail_id"},
+    "mining_ledger": {"days", "system_filter", "ore_filter"},
+    "contracts": {"status_filter", "type_filter", "issued", "received", "limit"},
+    "fittings_list": {"ship_filter"},
+    "fittings_detail": {"fitting_id", "eft"},
+    "lp_balance": set(),
+    "lp_offers": {"corporation_name", "search", "max_lp", "affordable"},
+}
+
+
+# =============================================================================
 # Validation Functions
 # =============================================================================
 
@@ -276,6 +292,9 @@ def get_default_values(dispatcher: str) -> dict[str, Any]:
             "max_structure_pages": 5,
             "me_level": 0,
             "runs": 1,
+            "encryption_skill": 4,
+            "science_skill_1": 4,
+            "science_skill_2": 4,
         }
     elif dispatcher == "sde":
         return {
@@ -290,6 +309,16 @@ def get_default_values(dispatcher: str) -> dict[str, Any]:
     elif dispatcher == "fitting":
         return {
             "use_pilot_skills": False,
+        }
+    elif dispatcher == "pilot":
+        return {
+            "unread_only": False,
+            "limit": 50,
+            "days": 30,
+            "issued": True,
+            "received": True,
+            "eft": False,
+            "affordable": False,
         }
     return {}
 
@@ -323,6 +352,7 @@ def validate_action_params(
         "sde": SDE_ACTION_PARAMS,
         "skills": SKILLS_ACTION_PARAMS,
         "fitting": FITTING_ACTION_PARAMS,
+        "pilot": PILOT_ACTION_PARAMS,
     }
 
     schema = schema_map.get(dispatcher)

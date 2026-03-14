@@ -98,7 +98,13 @@ class NavigationService:
             # Post-path validation: igraph treats inf as traversable when
             # it's the only option, so reject paths with non-highsec systems
             if path and any(self.universe.security[idx] < HIGHSEC_THRESHOLD for idx in path):
-                return []
+                from .errors import RouteNotFoundError
+
+                raise RouteNotFoundError(
+                    origin=self.universe.idx_to_name[origin_idx],
+                    destination=self.universe.idx_to_name[dest_idx],
+                    reason="all available paths traverse lowsec or nullsec; try mode='shortest' with avoid_systems for a threat-annotated alternative",
+                )
             return path
 
         elif mode == "unsafe":

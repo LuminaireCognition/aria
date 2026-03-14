@@ -844,3 +844,124 @@ class TestESIHistory:
 
         assert "error" in result
         assert "scope_not_authorized" in result["error"]
+
+
+# =============================================================================
+# Scope Metadata Tests
+# =============================================================================
+
+
+class TestScopeMetadata:
+    """Tests for scope metadata in killmail responses."""
+
+    def test_query_global_scope(self, killmails_dispatcher, mock_killmail_store, sample_killmails):
+        """Query without character_id returns scope=global with scope_note."""
+        mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails)
+
+        with patch(
+            "aria_esi.mcp.dispatchers.killmails._get_store",
+            return_value=mock_killmail_store,
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query")
+            )
+
+        assert result["scope"] == "global"
+        assert "scope_note" in result
+        assert "character_id" in result["scope_note"]
+
+    def test_query_character_scope(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """Query with character_id returns scope=character, no scope_note."""
+        mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails[:1])
+
+        with patch(
+            "aria_esi.mcp.dispatchers.killmails._get_store",
+            return_value=mock_killmail_store,
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query", character_id=12345)
+            )
+
+        assert result["scope"] == "character"
+        assert "scope_note" not in result
+
+    def test_esi_fallback_scope(self, killmails_dispatcher):
+        """ESI fallback always returns scope=character."""
+        mock_auth = _make_mock_auth_ctx()
+        mock_auth.client.get_safe = AsyncMock(return_value=[])
+
+        with (
+            patch("aria_esi.mcp.dispatchers.killmails._get_store", return_value=None),
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query")
+            )
+
+        assert result["scope"] == "character"
+
+    def test_esi_history_scope(self, killmails_dispatcher):
+        """ESI history always returns scope=character."""
+        mock_auth = _make_mock_auth_ctx()
+        mock_auth.client.get_safe = AsyncMock(return_value=[])
+
+        with (
+            patch("aria_esi.mcp.dispatchers.killmails.check_capability"),
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="esi_history", hours=168)
+            )
+
+        assert result["scope"] == "character"
+
+    def test_esi_fallback_no_scope_note(self, killmails_dispatcher):
+        """ESI fallback without character_id has no scope_note."""
+        mock_auth = _make_mock_auth_ctx()
+        mock_auth.client.get_safe = AsyncMock(return_value=[])
+
+        with (
+            patch("aria_esi.mcp.dispatchers.killmails._get_store", return_value=None),
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query")
+            )
+
+        assert result["scope"] == "character"
+        assert "scope_note" not in result
+
+    def test_esi_fallback_mismatched_character_id(self, killmails_dispatcher):
+        """ESI fallback with mismatched character_id includes scope_note."""
+        mock_auth = _make_mock_auth_ctx(char_id=12345)
+        mock_auth.client.get_safe = AsyncMock(return_value=[])
+
+        with (
+            patch("aria_esi.mcp.dispatchers.killmails._get_store", return_value=None),
+            patch(
+                "aria_esi.store.esi_client.get_authenticated_async_esi_client",
+                new_callable=AsyncMock,
+                return_value=mock_auth,
+            ),
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query", character_id=99999)
+            )
+
+        assert result["scope"] == "character"
+        assert "scope_note" in result
+        assert "99999" in result["scope_note"]

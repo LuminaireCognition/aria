@@ -459,6 +459,7 @@ def build_parser() -> argparse.ArgumentParser:
         "pi",
         "sovereignty",
         "freshness",
+        "build_cost",
     ]
 
     for name in _COMMAND_MODULES:

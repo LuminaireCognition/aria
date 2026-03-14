@@ -14,6 +14,7 @@ Provides authenticated ESI access for character-specific data:
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import defaultdict
 from datetime import UTC, datetime, timedelta
@@ -22,6 +23,9 @@ from typing import TYPE_CHECKING, Any, Literal
 from ..context import log_context, wrap_output
 from ..errors import InvalidParameterError
 from ..policy import check_capability
+from ..validation import add_validation_warnings, validate_action_params
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
@@ -116,7 +120,7 @@ def register_pilot_dispatcher(server: FastMCP) -> None:
 
             Contracts params (action="contracts"):
                 status_filter: "active", "completed", or None for all
-                type_filter: "item_exchange", "courier", "auction", or None
+                type_filter: Contract type filter
                 issued: Include contracts you issued (default True)
                 received: Include contracts assigned to you (default True)
                 limit: Max results (default 50)
@@ -132,10 +136,10 @@ def register_pilot_dispatcher(server: FastMCP) -> None:
                 (none)
 
             LP offers params (action="lp_offers"):
-                corporation_name: Corporation name, ID, or shortcut (required)
+                corporation_name: Corp name, ID, or shortcut
                 search: Filter offers by item name (partial match)
                 max_lp: Maximum LP cost to show
-                affordable: Only show offers you can afford (default False)
+                affordable: Only show affordable offers
 
         Returns:
             For contracts:
@@ -172,31 +176,60 @@ def register_pilot_dispatcher(server: FastMCP) -> None:
         # Policy check
         check_capability("pilot", action)
 
+        # Validate parameters for this action
+        validation_warnings = validate_action_params(
+            "pilot",
+            action,
+            {
+                "unread_only": unread_only,
+                "limit": limit,
+                "mail_id": mail_id,
+                "days": days,
+                "system_filter": system_filter,
+                "ore_filter": ore_filter,
+                "status_filter": status_filter,
+                "type_filter": type_filter,
+                "issued": issued,
+                "received": received,
+                "ship_filter": ship_filter,
+                "fitting_id": fitting_id,
+                "eft": eft,
+                "corporation_name": corporation_name,
+                "search": search,
+                "max_lp": max_lp,
+                "affordable": affordable,
+            },
+        )
+
         match action:
             case "mail_list":
-                return await _mail_list(unread_only=unread_only, limit=limit)
+                result = await _mail_list(unread_only=unread_only, limit=limit)
             case "mail_read":
-                return await _mail_read(mail_id=mail_id)
+                result = await _mail_read(mail_id=mail_id)
             case "mining_ledger":
-                return await _mining_ledger(
+                result = await _mining_ledger(
                     days=days, system_filter=system_filter, ore_filter=ore_filter
                 )
             case "contracts":
-                return await _contracts(
-                    status_filter=status_filter,
-                    type_filter=type_filter,
-                    issued=issued,
-                    received=received,
-                    limit=limit,
-                )
+                try:
+                    result = await _contracts(
+                        status_filter=status_filter,
+                        type_filter=type_filter,
+                        issued=issued,
+                        received=received,
+                        limit=limit,
+                    )
+                except Exception as e:
+                    logger.exception("Contracts action failed: %s", e)
+                    raise
             case "fittings_list":
-                return await _fittings_list(ship_filter=ship_filter)
+                result = await _fittings_list(ship_filter=ship_filter)
             case "fittings_detail":
-                return await _fittings_detail(fitting_id=fitting_id, eft=eft)
+                result = await _fittings_detail(fitting_id=fitting_id, eft=eft)
             case "lp_balance":
-                return await _lp_balance()
+                result = await _lp_balance()
             case "lp_offers":
-                return await _lp_offers(
+                result = await _lp_offers(
                     corporation_name=corporation_name,
                     search=search,
                     max_lp=max_lp,
@@ -204,6 +237,8 @@ def register_pilot_dispatcher(server: FastMCP) -> None:
                 )
             case _:
                 raise InvalidParameterError("action", action, "Unknown action")
+
+        return add_validation_warnings(result, validation_warnings)
 
 
 # =============================================================================

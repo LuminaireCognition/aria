@@ -65,16 +65,19 @@ class TestNavigationService:
         assert path == [0]
 
     def test_calculate_route_safe_blocks_lowsec(self, standard_universe):
-        """Safe mode returns empty path when no highsec-only route exists."""
+        """Safe mode raises RouteNotFoundError with reason when no highsec-only route exists."""
+        from aria_esi.services.navigation.errors import RouteNotFoundError
         from aria_esi.services.navigation.router import NavigationService
 
         service = NavigationService(standard_universe)
 
         # Jita to Ala: must go through Sivala (low-sec) and Ala (null-sec)
         # Safe mode hard-blocks non-highsec, so no route exists
-        path = service.calculate_route(0, 5, mode="safe")
+        with pytest.raises(RouteNotFoundError) as exc_info:
+            service.calculate_route(0, 5, mode="safe")
 
-        assert path == []
+        assert exc_info.value.reason is not None
+        assert "lowsec" in exc_info.value.reason or "nullsec" in exc_info.value.reason
 
     def test_calculate_route_safe_highsec_only(self, standard_universe):
         """Safe mode succeeds for fully highsec routes."""

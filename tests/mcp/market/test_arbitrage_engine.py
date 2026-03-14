@@ -327,7 +327,9 @@ class TestArbitrageDetection:
         mock_conn.execute = MagicMock(return_value=mock_cursor)
         mock_db._get_connection.return_value = mock_conn
 
-        opportunities = await engine.find_opportunities(min_profit_pct=5.0)
+        opportunities = await engine.find_opportunities(
+            min_profit_pct=5.0, min_absolute_profit=0, min_buy_price=0,
+        )
 
         assert len(opportunities) == 1
         opp = opportunities[0]
@@ -644,7 +646,7 @@ class TestTotalFound:
         mock_conn.execute = MagicMock(return_value=mock_cursor)
         engine._database._get_connection.return_value = mock_conn
 
-        result = await engine.get_scan_result()
+        result = await engine.get_scan_result(min_absolute_profit=0, min_buy_price=0)
 
         assert result.total_found == 2
         assert len(result.opportunities) == 2
