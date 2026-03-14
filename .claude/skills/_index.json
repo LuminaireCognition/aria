@@ -960,12 +960,17 @@
       ],
       "requires_pilot": true,
       "prerequisite_files": [
-        "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/skills.json",
-        "userdata/pilots/{active_pilot}/ships.md"
+        "userdata/pilots/{active_pilot}/profile.md"
       ],
       "data_sources": [
-        "reference/archetypes/{hull_path}"
+        "reference/archetypes/{hull_path}",
+        "reference/archetypes/INDEX.md",
+        "reference/archetypes/_shared/faction_tuning.yaml",
+        "reference/mechanics/drones.json",
+        "reference/mechanics/missiles.json",
+        "reference/mechanics/projectile_turrets.json",
+        "reference/mechanics/laser_turrets.json",
+        "reference/mechanics/hybrid_turrets.json"
       ],
       "external_sources": [
         "wiki.eveuniversity.org"
@@ -977,15 +982,8 @@
       "required_tools": [],
       "injected_prerequisites": [
         "reference/mechanics/npc_damage_types.md",
-        "reference/mechanics/drones.json",
-        "reference/mechanics/missiles.json",
-        "reference/mechanics/projectile_turrets.json",
-        "reference/mechanics/laser_turrets.json",
-        "reference/mechanics/hybrid_turrets.json",
         "reference/pve-intel/INDEX.md",
-        "reference/pve-intel/missions/INDEX.md",
-        "reference/archetypes/INDEX.md",
-        "reference/archetypes/_shared/faction_tuning.yaml"
+        "reference/pve-intel/missions/INDEX.md"
       ]
     },
     {

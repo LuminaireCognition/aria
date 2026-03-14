@@ -163,6 +163,8 @@ Some queries map to knowledge-only skills that don't use MCP tools (so the skill
 | "set up", "configure", "first time", "getting started" | `/first-run-setup` skill (alias: `/setup`) |
 | "fit [ship] for abyssal", "abyssal fit" | `/abyssal` skill (not `/fitting`) |
 | "watchlist", "war targets", "watch list" | No skill — use CLI directly: `uv run aria-esi watchlist-list`, `watchlist-add`, `watchlist-remove` |
+| "brief me on [mission]", "what's the blitz for [mission]" | `/mission-brief` (intel-only default) |
+| "fit for [mission]", "fitting for [mission]" | `/mission-brief --fit` or `/fitting` |
 
 Knowledge-only skills have no MCP calls to gate, so they rely on prompt-level routing rather than hook enforcement.
 
