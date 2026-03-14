@@ -90,8 +90,8 @@ class TestBrevityChecks:
         assert _check_brevity("price-q1", 25) is None
 
     def test_check_brevity_over_limit(self):
-        """50 lines, non-exempt skill returns 'verbose'."""
-        assert _check_brevity("build-cost-q1", 50) == "verbose"
+        """80 lines, non-exempt skill (build-cost, ceiling=75) returns 'verbose'."""
+        assert _check_brevity("build-cost-q1", 80) == "verbose"
 
     def test_check_brevity_exempt_skill(self):
         """Exempt skill (help) returns None regardless of line count."""
@@ -103,7 +103,7 @@ class TestBrevityChecks:
 
     def test_quality_check_brevity_integration(self):
         """End-to-end: quality_check flags verbose responses."""
-        body = "\n".join(f"line {i}" for i in range(50))
+        body = "\n".join(f"line {i}" for i in range(80))
         query = {"skill": "build-cost", "query_num": 1, "query_text": "test"}
         flags = quality_check(
             tool_calls=[],
