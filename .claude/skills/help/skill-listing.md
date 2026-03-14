@@ -7,7 +7,7 @@
 - /clones: Clone and implant status tracking. Safety-critical for knowing your medical clone location and active implants before risky operations.
 - /contracts: Personal contract management. View item exchange, courier, and auction contracts - both issued and received.
 - /corp: Corporation management and queries. Use for corp status, wallet, assets, blueprints, or industry jobs.
-- /escape-route: Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. IMPORTANT: Always invoke this skill before calling universe MCP tools for route planning. This skill loads reference data required for accurate responses.
+- /escape-route: Escape route planning for Eve Online. Find fastest routes to safe harbor from current position.
 - /esi-query: Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings.
 - /exploration: ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification.
 - /find: Find market sources near your location. Use for finding blueprints, items, or specific market sources by proximity.
@@ -15,7 +15,7 @@
 - /fit-budget: Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions.
 - /fit-check: Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions.
 - /fit-recommend: Recommend ship fittings from the archetype library based on role, hull, budget, and skill tier.
-- /fitting: ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. IMPORTANT: Always invoke this skill before calling fitting or sde MCP tools. This skill loads reference data (EFT format, module names, drone stats) required for accurate responses.
+- /fitting: ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.
 - /fittings: View saved ship fittings from ESI. List fittings, filter by hull, and export to EFT format.
 - /gatecamp: Real-time gatecamp detection and intel. Check for active camps in systems or along routes.
 - /help: Display available ARIA commands and capabilities. Use when capsuleer needs guidance on what ARIA can do.
@@ -41,7 +41,7 @@
 - /route: Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance.
 - /sec-status: Security status tracking for Eve Online. Monitor sec status, calculate tag costs, and track empire access restrictions.
 - /ship-next: Ship progression advisor for new and intermediate pilots. Recommends your next ship based on current skills, wallet, and preferred activities.
-- /skillplan: Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and "Easy 80%" recommendations. IMPORTANT: Always invoke this skill before calling skills or sde MCP tools. This skill loads reference data required for accurate responses.
+- /skillplan: Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and "Easy 80%" recommendations.
 - /skillqueue: Monitor EVE Online skill training queue and ETA. View current training progress and upcoming skills.
 - /standings: Standings tracker and progression planner for agent access, faction requirements, and standing repair strategies.
 - /threat-assessment: ARIA security and threat analysis for Eve Online. Use for system safety evaluation, activity risk assessment, or travel route analysis.
