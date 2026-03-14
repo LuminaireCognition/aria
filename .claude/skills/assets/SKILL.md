@@ -13,6 +13,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-assets.read_assets.v1
+argument-hint: "[--ships|--type NAME|--location NAME|--value]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot", "mcp__aria-universe__market", "mcp__aria-universe__sde", "mcp__aria-universe__universe"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Asset Audit Module
@@ -178,3 +182,7 @@ With `--insights`, run `uv run aria-esi assets --insights` and present results. 
 - PLEX in PLEX vault is a separate ESI endpoint (not included)
 - Asset safety items are in limbo for 5-20 days
 - Assets in AssetSafety flag have a 5-day delivery delay — always note this
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

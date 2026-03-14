@@ -10,8 +10,10 @@ triggers:
   - "ransom for [ship]"
   - "what should I charge"
 requires_pilot: true
+preferred_max_lines: 40
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
+argument-hint: "<ship_type> [--cargo ISK] [--implants]"
 ---
 
 # Ransom Calculator Module
@@ -116,4 +118,5 @@ Ransom at 40-50% of implant set value.
 - Ransom is legitimate EVE gameplay — present calculations objectively
 - Honor all ransom agreements — reputation determines future payments
 - Note when ransom isn't viable (flee risk, backup incoming)
+- Append a one-line `Sources:` footer listing MCP calls made
 - **Closing (rp_level on/full):** "The Code says: honor your terms, Captain." **(rp_level off):** "Always honor ransom agreements — reputation determines future payments."

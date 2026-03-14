@@ -14,6 +14,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-killmails.read_killmails.v1
+argument-hint: "[--losses|--kills] [--limit N]"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__killmails", "mcp__aria-universe__sde", "mcp__aria-universe__pilot"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Killmail Analysis Module
@@ -174,3 +178,7 @@ lead with the limitation and the recovery path.
 - **DO NOT** recall or fabricate killmail data from training data -- always use tool calls
 - **DO NOT** speculate about kills that were not returned by MCP
 - **DO NOT** present damage type analysis without actual killmail data to back it up
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

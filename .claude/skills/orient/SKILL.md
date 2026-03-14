@@ -13,6 +13,8 @@ triggers:
   - "dropped into [system]"
   - "situational awareness"
 requires_pilot: false
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__universe"]
+preferred_max_lines: 45
 ---
 
 # ARIA Local Orientation Module
@@ -32,7 +34,7 @@ Orientation intel MUST come from tool calls. Do NOT fabricate sovereignty, activ
 
 **The `local_area` response is the single source of truth for orientation.** Present only fields that exist in the response. If the response has no `sovereignty` field, do NOT add sovereignty data from training knowledge.
 
-> **⚠️ HALLUCINATION GUARD:** Every system name, sovereignty claim, kill count, escape route, and threat level MUST come from the `local_area` response or other MCP calls made in this session. If a field is not in the tool response, it does not exist for this assessment. NEVER supplement tool data with training data knowledge.
+> **[!] HALLUCINATION GUARD:** Every system name, sovereignty claim, kill count, escape route, and threat level MUST come from the `local_area` response or other MCP calls made in this session. If a field is not in the tool response, it does not exist for this assessment. NEVER supplement tool data with training data knowledge.
 
 > ❌ **NEVER** use `include_realtime=False` — this disables real-time gatecamp detection and recent kill alerts. The MCP default is `false`, so you MUST explicitly set `include_realtime=True`.
 
@@ -143,7 +145,7 @@ FACTION WARFARE WARZONE
 │ Kedama   │ 1     │ Caldari  │ Caldari   │ uncontested │ 12%       │
 │ Enaluri  │ 2     │ Caldari  │ Gallente  │ vulnerable  │ 92%       │
 
-⚠️ 1 vulnerable system nearby - expect heavy militia activity
+[!] 1 vulnerable system nearby - expect heavy militia activity
 ```
 
 ### When to Show FW Data
@@ -151,6 +153,12 @@ FACTION WARFARE WARZONE
 - Always show when `fw_systems` contains entries
 - Prioritize vulnerable and contested systems
 - Include total FW system count if many are in range
+
+## Output Rules
+
+- System table: cap at 8 nearest systems, sort by jumps
+- Target: ≤30 lines
+- Append a one-line `Sources:` footer listing MCP calls made
 
 ## Anti-Patterns
 

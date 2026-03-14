@@ -13,6 +13,9 @@ triggers:
 requires_pilot: true
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
+argument-hint: "<system> [--route <origin> <destination>]"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__universe", "mcp__aria-universe__killmails"]
+preferred_max_lines: 45
 ---
 
 # ARIA Threat Assessment Module
@@ -128,6 +131,12 @@ THREAT LEVEL: STRUCTURAL: CRITICAL (null-sec) | LIVE: QUIET (0 kills/hr)
 
 A null-sec system with zero kills is structurally dangerous but currently quiet. A 0.5 high-sec system with 15 kills/hr is structurally moderate but currently dangerous. Both dimensions matter.
 
+## Output format
+
+- Activity table: cap at 6 systems, sorted by threat level (highest first)
+- One-line verdict per system (sec status, NPC kills, pod kills, ship kills)
+- Target: ≤30 lines
+
 ## Anti-Patterns
 
 ❌ **WRONG:** Show "8 contested FW systems" with specific percentages without calling `fw_frontlines` or `local_area`
@@ -141,3 +150,5 @@ A null-sec system with zero kills is structurally dangerous but currently quiet.
 
 ❌ **WRONG:** Present sovereignty data ("Goonswarm / Imperium") without querying `universe(action="systems")`
 ✅ **RIGHT:** Sovereignty data must come from the `sovereignty` field in a systems or local_area response
+
+- Append a one-line `Sources:` footer listing MCP calls made

@@ -11,6 +11,8 @@ triggers:
   - "review all skills"
 requires_pilot: false
 data_sources: []
+argument-hint: "<template> <target|ALL>"
+disable-model-invocation: true
 ---
 
 # aria-review Dispatcher

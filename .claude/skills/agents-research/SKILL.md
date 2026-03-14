@@ -12,6 +12,9 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-characters.read_agents_research.v1
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Research Agents Monitor
@@ -128,6 +131,27 @@ If ESI is not configured or scope is missing: state the limitation and provide t
 | No research agents | "Consider starting R&D partnerships for passive datacore income" |
 | Discussing invention | "Check accumulated RP with `/agents-research`" |
 
+## Standings CLI Reference
+
+The `uv run aria-esi standings` command returns:
+```json
+{
+  "standings": [
+    {"from_id": 1000101, "from_type": "npc_corp", "name": "CreoDron", "standing": 3.73},
+    {"from_id": 3009895, "from_type": "agent", "name": "Agent Name", "standing": 7.99}
+  ]
+}
+```
+
+Filter by name: `jq '.standings[] | select(.name == "CreoDron")'`
+Filter by type: `jq '.standings[] | select(.from_type == "npc_corp")'`
+
+Field reference:
+- `from_id`: Entity ID (NPC corp, faction, or agent)
+- `from_type`: `"npc_corp"`, `"faction"`, or `"agent"`
+- `name`: Resolved entity name
+- `standing`: Standing value (-10.0 to +10.0)
+
 ## Cross-References
 
 | Related Command | Use Case |
@@ -142,3 +166,7 @@ If ESI is not configured or scope is missing: state the limitation and provide t
 - **Sorting:** Sort agents by accumulated RP (highest first)
 - **Rounding:** Display RP values to 1 decimal place
 - **Age:** Show days active for context on partnership duration
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

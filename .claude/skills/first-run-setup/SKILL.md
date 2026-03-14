@@ -11,6 +11,7 @@ triggers:
   - "first run"
   - "help me set up"
 requires_pilot: false
+disable-model-invocation: true
 ---
 
 # ARIA First-Run Setup Module

@@ -40,6 +40,40 @@ This is a blocking gate — the skill MUST NOT generate a response until these f
 | `fitting` | `EFT-FORMAT.md`, `drones.json`, `MODULE_NAMES.md` | Wrong module names, drone stats, EFT format errors |
 | `skillplan` | `skill_plans.yaml`, `ship_efficacy_rules.yaml`, `meta_module_alternatives.yaml` | Wrong training recommendations, missing meta alternatives |
 
+### 1.6. Injected Prerequisites (Dynamic Context)
+
+Some prerequisite files are injected directly into the skill prompt using Claude Code's `` !`command` `` dynamic context syntax. When a SKILL.md body contains `` !`cat path/to/file` ``, the file content is substituted into the prompt before the agent sees it.
+
+**Effect:** The agent receives reference data as part of the skill prompt — no Read tool call needed. This eliminates the compliance gap where agents skip or confabulate prerequisite file paths.
+
+**Tracking:** Injected files are listed in `injected_prerequisites` (frontmatter and `_index.json`). Agent-loaded files remain in `prerequisite_files`. No path may appear in both.
+
+**Injection format in SKILL.md:**
+```markdown
+## Reference: [Label] (injected)
+<!-- prerequisite: path/to/file -->
+!`cat path/to/file`
+```
+
+**Skills with injected prerequisites:**
+
+| Skill | Injected Files | Agent-Loaded Files |
+|-------|---------------|-------------------|
+| `mission-brief` | 10 reference files (damage types, weapons, indices, faction tuning) | 3 pilot data files |
+| `fitting` | EFT-FORMAT.md, drones.json, MODULE_NAMES.md | — |
+| `exploration` | exploration_sites.md, hacking_guide.md | — |
+| `abyssal` | abyssal_deadspace.json | — |
+| `mining-advisory` | ore_database.md | — |
+| `pi` | planetary-interaction.json | — |
+| `reactions` | fuel_blocks.json | — |
+| `gatecamp` | chokepoints.json | — |
+| `fit-recommend` | archetypes/INDEX.md | — |
+| `fit-budget` | module_tiers.yaml, esi-error-handling.md | — |
+| `skillplan` | skill_plans.yaml, ship_efficacy_rules.yaml, meta_module_alternatives.yaml, esi-error-handling.md | — |
+| 22 ESI skills | esi-error-handling.md | — |
+
+**For new skills:** Prefer injection for static reference files that are always needed. Reserve `prerequisite_files` for files requiring runtime resolution (pilot data, ESI-synced content).
+
 ### 2. Check for Overlay
 
 If `has_persona_overlay: true` in `_index.json`:

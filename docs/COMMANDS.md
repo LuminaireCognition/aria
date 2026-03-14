@@ -12,11 +12,11 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 |---------|-------------|---------|
 | `/abyssal` | Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats. | "abyssal deadspace" |
 | `/clones` | Clone and implant status tracking. Safety-critical for knowing your medical clone location and active implants before risky operations. | "clone status" |
-| `/escape-route` | Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. | "escape route" |
+| `/escape-route` | Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. IMPORTANT: Always invoke this skill before calling universe MCP tools for route planning. This skill loads reference data required for accurate responses. | "escape route" |
 | `/fit-budget` | Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions. | "budget version of this fit" |
 | `/fit-check` | Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions. | "can I fly this fit" |
 | `/fit-recommend` | Recommend ship fittings from the archetype library based on role, hull, budget, and skill tier. | "recommend a fit" |
-| `/fitting` | ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. | "fit my [ship]" |
+| `/fitting` | ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. IMPORTANT: Always invoke this skill before calling fitting or sde MCP tools. This skill loads reference data (EFT format, module names, drone stats) required for accurate responses. | "fit my [ship]" |
 | `/gatecamp` | Real-time gatecamp detection and intel. Check for active camps in systems or along routes. | "is there a camp in [system]" |
 | `/hunting-grounds` | Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition. | "hunting grounds" |
 | `/killmail` | Analyze individual killmails with enriched tactical context | "analyze killmail" |
@@ -26,7 +26,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/orient` | Local area intel for orientation in unknown space. Use after wormhole jumps, filaments, or when dropped into unfamiliar territory. | "orient me" |
 | `/route` | Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance. | "route from [origin] to [destination]" |
 | `/ship-next` | Ship progression advisor for new and intermediate pilots. Recommends your next ship based on current skills, wallet, and preferred activities. | "what ship should I fly next" |
-| `/skillplan` | Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and "Easy 80%" recommendations. | "what skills for [ship]" |
+| `/skillplan` | Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and "Easy 80%" recommendations. IMPORTANT: Always invoke this skill before calling skills or sde MCP tools. This skill loads reference data required for accurate responses. | "what skills for [ship]" |
 | `/skillqueue` | Monitor EVE Online skill training queue and ETA. View current training progress and upcoming skills. | "skill queue" |
 | `/threat-assessment` | ARIA security and threat analysis for Eve Online. Use for system safety evaluation, activity risk assessment, or travel route analysis. | "threat assessment" |
 | `/watchlist` | Manage entity watchlists for tracking corporations and alliances. Monitor war targets and get alerts when watched entities appear in kills. | "who am I tracking" |
@@ -42,7 +42,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/isk-compare` | Compare ISK/hour across activities you can do with your current skills and ships. Find the most efficient way to earn ISK at your level. | "best way to make ISK" |
 | `/lp-store` | Track LP balances and browse LP store offers. Essential for self-sufficient gameplay where LP store is the primary source of faction items. | "check my LP" |
 | `/orders` | View active market orders and order history. Track buy/sell orders, escrow, and fill status. | "my market orders" |
-| `/price` | EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis. | "price check [item]" |
+| `/price` | Market price lookups. Use for 'how much is [item]', price checks, buy/sell spreads, or item valuation. | "price check [item]" |
 | `/ransom-calc` | Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants. | "ransom calc" |
 | `/wallet-journal` | View wallet transaction history and ISK flow analysis. Use for financial tracking, profit/loss analysis, or identifying income sources. | "where did my ISK go" |
 
@@ -51,7 +51,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | Command | Description | Example |
 |---------|-------------|---------|
 | `/agents-research` | Monitor research agent partnerships and accumulated research points. Track passive RP generation from R&D agents. | "my research agents" |
-| `/build-cost` | Manufacturing cost calculator. Calculates material costs, profit margins, and ME efficiency. | "cost to build [item]" |
+| `/build-cost` | Manufacturing cost calculator. Use for 'cost to build', profit margins, build-vs-buy, and ME efficiency. | "cost to build [item]" |
 | `/exploration` | ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification. | "exploration analysis" |
 | `/fittings` | View saved ship fittings from ESI. List fittings, filter by hull, and export to EFT format. | "my saved fits" |
 | `/industry-jobs` | Monitor personal manufacturing, research, copying, and invention jobs. View active jobs, completion times, and recent history. | "my industry jobs" |
@@ -77,7 +77,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | Command | Description | Example |
 |---------|-------------|---------|
 | `/aria-review` | Run standardized review prompts against skills, codebases, and other targets. Use when the user wants to audit, review, or analyze a skill or code directory using a named review template. Supports individual targets and ALL for batch execution. | "review skill" |
-| `/esi-query` | Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings. | "where am I" |
+| `/esi-query` | Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings. | "current location" |
 | `/first-run-setup` | Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue. | "set up my profile" |
 | `/help` | Display available ARIA commands and capabilities. Use when capsuleer needs guidance on what ARIA can do. | "help" |
 

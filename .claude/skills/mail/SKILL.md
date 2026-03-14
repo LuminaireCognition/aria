@@ -12,6 +12,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-mail.read_mail.v1
+argument-hint: "[--unread|--id N]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA EVE Mail Reader
@@ -71,3 +75,7 @@ Adapt format to RP level: markdown table for `off`, box-drawing for `on`/`full`.
 - **Timestamps:** Use relative time for recent, full date for older
 - **Body Formatting:** Preserve original line breaks and spacing
 - **HTML:** Strip any HTML tags from mail body
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

@@ -1,6 +1,6 @@
 ---
 name: build-cost
-description: Manufacturing cost calculator. Calculates material costs, profit margins, and ME efficiency.
+description: Manufacturing cost calculator. Use for 'cost to build', profit margins, build-vs-buy, and ME efficiency.
 model: sonnet
 category: industry
 triggers:
@@ -11,6 +11,8 @@ triggers:
   - "build vs buy [item]"
   - "BOM for [item]"
 requires_pilot: false
+argument-hint: "<item_name> [--me LEVEL] [--runs N]"
+preferred_max_lines: 50
 ---
 
 # ARIA Build Cost Calculator
@@ -33,6 +35,12 @@ Ask: *Can `build_cost` contribute meaningfully to this query?*
 - **Fully in-scope** (T1 item cost, ME comparison, T2 BOM, build vs buy single item) → call `build_cost`, use Response Template
 - **Partially in-scope** (vertical integration, build chains, component comparison) → call `build_cost` for the top-level item, render Response Template, then append Partial-Scope Caveat
 - **Fully out-of-scope** (invention ROI, datacores, BPC acquisition, success rate analysis) → Out-of-Scope Template, then stop
+
+**Exception:** If the user names a specific decryptor (e.g., "with the Attainment
+decryptor"), the query is **partially in-scope**: look up the decryptor's ME modifier
+per the T2 Items section, run `build_cost` at that ME level, and present the result
+with the T2 scope notice. The user has already made the invention decision — they
+want manufacturing-step cost.
 
 "Is it profitable to build [T2 item]?" requires invention economics → out of scope.
 "Show me the full build chain for X" → partially in scope: run top-level BOM, append caveat.
@@ -169,8 +177,15 @@ If `is_complete` is false, lead with **INCOMPLETE CALCULATION** warning (missing
 
 If margin < 0 and there's room to improve (ME < 10 for T1, or no facility), suggest re-running with better parameters. For T2, do not suggest `--me 10` (unreachable via invention).
 
+## Output format
+
+- BOM table: top 5 materials by cost contribution, then "... and N more (X ISK total)"
+- Never include CLI error traces, debugging output, or git investigation in responses
+- Target: ≤30 lines
+
 ## Rules
 
 - Every ISK figure must trace to a `build_cost` response field
 - One tool: `market(action="build_cost")` — no side-queries to `sde(blueprint_info)` or `market(prices)`
 - For T2/invention/vertical queries, follow the Query Classification Gate
+- Append a one-line `Sources:` footer listing MCP calls made

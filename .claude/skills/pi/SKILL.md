@@ -1,7 +1,7 @@
 ---
 name: pi
 description: Planetary Interaction guide for production chains, planet resources, and colony planning.
-model: haiku
+model: sonnet
 category: operations
 triggers:
   - "/pi"
@@ -12,8 +12,11 @@ triggers:
   - "PI guide"
   - "what planets have [resource]"
 requires_pilot: false
-prerequisite_files:
+preferred_max_lines: 40
+injected_prerequisites:
   - reference/mechanics/planetary-interaction.json
+argument-hint: "[--planet TYPE|--product NAME]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__sde"]
 ---
 
 # ARIA Planetary Interaction Module
@@ -216,3 +219,8 @@ For P4 products, note they require Barren or Temperate planets. If profit is neg
 
 - P4 production requires Barren or Temperate planets (High Tech Production Plant restriction)
 - Export tax is based on tier, not market value
+- Append a one-line `Sources:` footer listing MCP calls and prerequisite reference files consulted
+
+## Reference: Planetary Interaction Data (injected)
+<!-- prerequisite: reference/mechanics/planetary-interaction.json -->
+!`cat reference/mechanics/planetary-interaction.json`

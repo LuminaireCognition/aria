@@ -20,6 +20,8 @@ data_sources:
   - userdata/pilots/{active_pilot}/operations.md
   - reference/activities/isk_estimates.yaml
 external_sources: []
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA ISK/Hour Comparison Module
@@ -120,3 +122,7 @@ Validate each recommendation against the pilot's operational constraints (profil
 - Include passive income options (often overlooked)
 - Frame recommendations around pilot's current state
 - Don't oversell any activity - be realistic
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

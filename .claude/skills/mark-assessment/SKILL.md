@@ -11,9 +11,12 @@ triggers:
   - "evaluate target"
   - "should I engage"
 requires_pilot: true
+preferred_max_lines: 40
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
+argument-hint: "<pilot_name|ship_type>"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__killmails", "mcp__aria-universe__sde", "mcp__aria-universe__universe"]
 ---
 
 # Mark Assessment Module
@@ -44,6 +47,8 @@ If Step 1 fails, fall back to `sde(action="item_info")` and state "unavailable" 
 If a market call fails, present the formula with placeholder variables and suggest `/price <ship>`.
 
 > **HALLUCINATION GUARD:** Hull price and gank ship cost MUST come from `market(action="prices")` in this session. Ship group, cargo capacity, base HP, and align time MUST come from `sde(action="item_info")`. Never state ISK values or ship stats from training data — this includes EHP ranges, cargo capacity estimates, and align times. If a tool call returns no numeric attributes, show the gap explicitly — do not fill it with approximate ranges from recall.
+>
+> When presenting DPS, EHP, or HP values that are computed from base stats or estimated rather than returned directly by `fitting(action="calculate_stats")`, suffix with `(est.)`. Example: `EHP: ~14,000 (est.)`.
 
 ### Field → Source Mapping
 
@@ -81,7 +86,7 @@ ENGAGEMENT: {VIABLE / MARGINAL / NOT VIABLE}
 SHIP PROFILE:
   Hull value: {hull_price} ISK
   Typical fit: {estimated_fitted_value} ISK
-  Tank: {ehp} EHP {(fitted) or (base hull — actual depends on fit)}
+  Tank: {ehp} EHP {(fitted) or (est.) (base hull — actual depends on fit)}
   Cargo: {cargo_capacity} m³
 
 GANK MATH ({security} system):        [highsec only]
@@ -99,6 +104,11 @@ VERDICT: {assessment summary}
 {closing — rp_level on/full: "Your call, Captain." | off: omit}
 ═══════════════════════════════════════════════════════════════════
 ```
+
+## Output Rules
+
+- Keep response under 30 lines
+- Append a one-line `Sources:` footer listing MCP calls and reference files used
 
 ## CONCORD Response Times
 

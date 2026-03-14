@@ -22,13 +22,14 @@ data_sources:
 
 ## Pre-flight Sync
 
-Before generating the status report, sync standings data from ESI:
+Before generating the status report, attempt to sync standings data from ESI — **only if ESI is available**:
 
-1. Run: `uv run aria-esi sync-profile`
-2. If sync succeeds, proceed with report generation using updated profile data
-3. If sync fails (no ESI auth), continue with existing profile data and note the sync status
+1. Check session boot context for ESI status. If `esi.status` is `"none"` or ESI auth is unavailable, **skip sync entirely** and proceed with existing profile data.
+2. If ESI is available, run: `uv run aria-esi sync-profile`
+3. If sync succeeds, proceed with updated profile data
+4. If sync fails at runtime, continue with existing profile data and note the sync status
 
-This ensures standings shown in the status report reflect current ESI values.
+**Never call `aria-esi sync-profile` or other ESI-authenticated commands when ESI is unavailable.** This skill must function fully from cached profile data alone.
 
 ## Objective Cross-Check
 

@@ -12,6 +12,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-contracts.read_character_contracts.v1
+argument-hint: "[--type exchange|courier|auction]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Contracts Module
@@ -138,3 +142,7 @@ After displaying contracts, suggest ONE related action when relevant:
 - **Location Resolution:** Convert station IDs to readable names
 - **ISK Formatting:** Use standard ISK format (e.g., "50M ISK")
 - **Privacy:** Don't expose counterparty details unnecessarily
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

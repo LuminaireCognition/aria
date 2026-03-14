@@ -16,6 +16,9 @@ has_persona_overlay: true
 data_sources:
   - userdata/pilots/{active_pilot}/missions.md
   - userdata/pilots/{active_pilot}/exploration.md
+disable-model-invocation: true
+preferred_max_lines: 15
+allowed-tools: Read, Write, Grep, Glob
 ---
 
 # Operations Journal
@@ -77,6 +80,18 @@ On first use, replace the placeholder template entry under the header.
 ## Inline Argument Parsing
 
 Support quick entries: `/journal mission "Gone Berserk" Serpentis success +0.15` or `/journal exploration "Crumbling Serpentis..." Relic Masalle 0.6 3/3`. If arguments incomplete, prompt for remaining fields.
+
+### Cross-Reference Check
+
+Before asking the user for missing fields (agent, level, etc.):
+
+1. Read the pilot's `missions.md` for prior entries of the same mission name
+2. Check the pilot's `profile.md` for `Mission Provider`
+3. If existing records consistently show the same agent for this mission,
+   **suggest rather than ask**: "Your records show Gone Berserk is from
+   Federation Navy — logging under that agent. Correct?"
+4. Only ask an open-ended question when records are ambiguous (multiple
+   agents for the same mission) or no prior entries exist
 
 ## Statistics Updates
 

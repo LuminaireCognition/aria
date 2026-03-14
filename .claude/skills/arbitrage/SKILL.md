@@ -11,6 +11,8 @@ triggers:
   - "cross-region trading"
   - "price gaps between hubs"
 requires_pilot: false
+argument-hint: "[--cargo M3] [--sort mode] [--min-profit %]"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__market"]
 ---
 
 # ARIA Market Arbitrage Module (V2)
@@ -147,4 +149,5 @@ Ad-hoc scopes extend scanning beyond the 5 trade hubs. Pass `include_custom_scop
 - **DO NOT** use `profit_pct` for sorting (it's gross margin). Use `net_margin_pct`.
 - **DO NOT** ignore liquidity. High margin items often have low volume.
 - **DO NOT** assume all items fit in cargo (check packaged volume).
+- Append a one-line `Sources:` footer listing MCP calls made
 

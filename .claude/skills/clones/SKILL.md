@@ -15,6 +15,9 @@ requires_pilot: true
 esi_scopes:
   - esi-clones.read_clones.v1
   - esi-clones.read_implants.v1
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__pilot"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Clone Status Module
@@ -95,3 +98,7 @@ Additional clones available via:
   - Advanced Infomorph Psychology skill (+1 per level)
   - Clone Soldier Tags (from pirate NPCs)
 ```
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

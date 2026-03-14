@@ -10,6 +10,10 @@ triggers:
   - "track [alliance]"
   - "sync war targets"
 requires_pilot: false
+preferred_max_lines: 30
+argument-hint: "[add|remove|list] [entity_name]"
+disable-model-invocation: true
+allowed-tools: Read, Grep, Glob, Bash, mcp__aria-universe__market, mcp__aria-universe__sde
 ---
 
 # Entity Watchlist Module
@@ -40,6 +44,15 @@ uv run aria-esi sync-wars --character-id <id> --corporation-id <id>
 uv run aria-esi redisq-watched --minutes 60                      # Recent kills
 ```
 
+## Name Normalization
+
+When listing watchlists, perform case-insensitive deduplication. If multiple lists differ only by case (e.g., "Default" and "default"), warn the user:
+
+```
+[!] Duplicate watchlist names detected (case mismatch): "Default" and "default"
+    Consider merging with: uv run aria-esi watchlist-delete "default"
+```
+
 ## War Target Sync
 
 Requires ESI authentication. If ESI unavailable:
@@ -50,6 +63,11 @@ Requires ESI authentication. If ESI unavailable:
 
 List watchlists with name, type, entity count, and last sync time. Show entities grouped by type (corporations, alliances) with IDs and add dates.
 
+## Output Rules
+
+- Keep response under 30 lines
+- Append a one-line `Sources:` footer listing MCP calls and CLI commands used
+
 ## Contextual Suggestions
 
 | Context | Suggest |
@@ -57,3 +75,9 @@ List watchlists with name, type, entity count, and last sync time. Show entities
 | Added war target | `/threat-assessment` for their activity |
 | Synced wars | `/gatecamp` on common routes |
 | Tracking gankers | `/route --safe` to avoid hotspots |
+
+## Error Handling
+If CLI commands (`aria-esi watchlist-*`) return errors:
+1. Report the error to the user with the exact message
+2. Suggest they run `uv run aria-esi db-migrate` if the error suggests schema issues
+3. Do NOT attempt to debug source code or fix bugs during skill execution

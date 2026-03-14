@@ -20,6 +20,9 @@ data_sources:
   - userdata/pilots/{active_pilot}/operations.md
   - reference/archetypes/INDEX.md
 external_sources: []
+argument-hint: "[--activity NAME]"
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Ship Progression Advisor
@@ -193,3 +196,7 @@ Scale recommendations to wallet. Suggest maintaining 3x replacement cost before 
 
 - Default to pilot's faction from profile
 - Always show at least one "ready now" option if possible
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

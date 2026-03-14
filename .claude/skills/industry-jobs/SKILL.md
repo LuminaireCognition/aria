@@ -13,6 +13,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-industry.read_character_jobs.v1
+argument-hint: "[--active|--history]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Industry Jobs Monitor
@@ -95,3 +99,7 @@ After displaying industry jobs, suggest ONE related action when relevant:
 - **Ready Jobs:** Always highlight jobs awaiting delivery - pilot action needed
 - **Sorting:** Active jobs first (by completion time), then ready-for-delivery
 - **History:** Include completed jobs only when --history or --all flag used
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

@@ -12,6 +12,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-markets.read_character_orders.v1
+argument-hint: "[--buy|--sell|--history]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Market Orders Monitor
@@ -98,3 +102,7 @@ If ESI is not configured or scope is missing: state the limitation and provide t
 - **Escrow:** Always show escrow amounts for buy orders
 - **Duration:** Show days remaining until expiration
 - **Location:** Abbreviate long station names
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

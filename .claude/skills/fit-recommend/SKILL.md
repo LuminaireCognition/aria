@@ -12,7 +12,7 @@ triggers:
   - "fit recommendation"
 requires_pilot: false
 esi_scopes: []
-prerequisite_files:
+injected_prerequisites:
   - reference/archetypes/INDEX.md
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
@@ -21,6 +21,7 @@ external_sources: []
 required_tools:
   - fitting.recommend
 has_persona_overlay: false
+argument-hint: "<hull|role> [--budget ISK] [--tier t1|t2]"
 ---
 
 # ARIA Fit Recommendation
@@ -116,3 +117,7 @@ Path: reference/archetypes/[path]
 ```
 
 When `estimated_cost` is `null`, display "Cost: N/A (market data unavailable)".
+
+## Reference: Archetypes Index (injected)
+<!-- prerequisite: reference/archetypes/INDEX.md -->
+!`cat reference/archetypes/INDEX.md`
