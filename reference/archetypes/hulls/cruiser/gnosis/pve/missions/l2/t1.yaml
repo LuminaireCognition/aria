@@ -107,7 +107,7 @@ upgrade_path:
   next_tier: meta
   key_upgrades:
     - module: "Heavy Missile Launcher I"
-      upgrade_to: "Arbalest Compact Heavy Assault Missile Launcher"
+      upgrade_to: "Prototype 'Arbalest' Heavy Assault Missile Launcher I"
       skill_required: "Heavy Assault Missiles 1"
     - module: "Hammerhead I"
       upgrade_to: "Hammerhead II"

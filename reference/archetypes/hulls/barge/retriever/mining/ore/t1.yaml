@@ -63,7 +63,7 @@ upgrade_path:
   next_tier: meta
   key_upgrades:
     - module: "Strip Miner I"
-      upgrade_to: "Strip Miner II"
+      upgrade_to: "Modulated Strip Miner II"
       skill_required: "Mining 5"
     - module: "Mining Laser Upgrade I"
       upgrade_to: "Mining Laser Upgrade II"

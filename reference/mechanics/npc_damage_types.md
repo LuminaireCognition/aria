@@ -27,8 +27,8 @@ Quick reference for combat encounters. Tank against what they deal; deal what th
 | Faction | They Deal | You Deal | EWAR | Notes |
 |---------|-----------|----------|------|-------|
 | **Rogue Drones** | Omni (varies) | EM > Therm | None | No bounties; alloy drops |
-| **Equilibrium of Mankind** | EM / Therm | Kin > EM/Therm | Varies | Mission-specific |
-| **Mercenaries** | Mixed | Kin > Therm | Varies | Often mixed with drones |
+| **Equilibrium of Mankind** | Kin / Therm | Kin > Therm | Varies | Mission-specific; use mission cache when available |
+| **Mercenaries** | Mixed | Therm > Kin | Varies | Often mixed with drones |
 | **Sleepers** | Omni | Omni-tank | Neuts | Wormhole space; adaptive |
 | **Triglavians** | 60% Therm / 40% Exp | Exp > Therm | All except ECM | Ramping damage |
 

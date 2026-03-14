@@ -42,21 +42,21 @@ upgrade_paths:
   # Armor Repairers
   small_armor_repairer:
     enduring: "Small I-a Enduring Armor Repairer"
-    compact: "Small Compact Armor Repairer"
+    compact: "Small ACM Compact Armor Repairer"
     t1: "Small Armor Repairer I"
     t2: "Small Armor Repairer II"
     faction: "Corpii C-Type Small Armor Repairer"
 
   medium_armor_repairer:
     enduring: "Medium I-a Enduring Armor Repairer"
-    compact: "Medium Compact Armor Repairer"
+    compact: "Medium ACM Compact Armor Repairer"
     t1: "Medium Armor Repairer I"
     t2: "Medium Armor Repairer II"
     faction: "Corpum C-Type Medium Armor Repairer"
 
   large_armor_repairer:
     enduring: "Large I-a Enduring Armor Repairer"
-    compact: "Large Compact Armor Repairer"
+    compact: "Large ACM Compact Armor Repairer"
     t1: "Large Armor Repairer I"
     t2: "Large Armor Repairer II"
     faction: "Corpus C-Type Large Armor Repairer"
@@ -73,23 +73,23 @@ upgrade_paths:
     # No T2/faction variants - reactive is unique
 
   damage_control:
-    compact: "Compact Damage Control"
+    compact: "IFFA Compact Damage Control"
     t1: "Damage Control I"
     t2: "Damage Control II"
-    faction: "IFFA Compact Damage Control"
+    faction: "Shadow Serpentis Damage Control"
 
   # Shield Extenders
   medium_shield_extender:
     compact: "Medium Azeotropic Restrained Shield Extender"
     t1: "Medium Shield Extender I"
     t2: "Medium Shield Extender II"
-    faction: "Pithum C-Type Medium Shield Extender"
+    faction: "Caldari Navy Medium Shield Extender"
 
   large_shield_extender:
     compact: "Large Azeotropic Restrained Shield Extender"
     t1: "Large Shield Extender I"
     t2: "Large Shield Extender II"
-    faction: "Pithum C-Type Large Shield Extender"
+    faction: "Caldari Navy Large Shield Extender"
 
   # Shield Hardeners
   adaptive_invulnerability_field:
@@ -191,17 +191,17 @@ upgrade_paths:
     t2: "Light Missile Launcher II"
 
   heavy_missile_launcher:
-    compact: "Arbalest Compact Heavy Missile Launcher"
+    compact: "'Arbalest' Heavy Missile Launcher"
     t1: "Heavy Missile Launcher I"
     t2: "Heavy Missile Launcher II"
 
   rapid_light_missile_launcher:
-    compact: "Arbalest Compact Rapid Light Missile Launcher"
+    compact: "Prototype 'Arbalest' Rapid Light Missile Launcher"
     t1: "Rapid Light Missile Launcher I"
     t2: "Rapid Light Missile Launcher II"
 
   cruise_missile_launcher:
-    compact: "Arbalest Compact Cruise Missile Launcher"
+    compact: "'Arbalest' Cruise Launcher I"
     t1: "Cruise Missile Launcher I"
     t2: "Cruise Missile Launcher II"
 

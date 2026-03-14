@@ -147,8 +147,15 @@
   },
   "common_drone_ships": {
     "tristan": {"bandwidth": 25, "bay": 40},
+    "worm": {"bandwidth": 10, "bay": 25},
+    "algos": {"bandwidth": 35, "bay": 60},
+    "dragoon": {"bandwidth": 25, "bay": 75},
     "vexor": {"bandwidth": 75, "bay": 125},
+    "vexor_navy_issue": {"bandwidth": 75, "bay": 200},
+    "gila": {"bandwidth": 20, "bay": 100},
+    "ishtar": {"bandwidth": 125, "bay": 375},
     "myrmidon": {"bandwidth": 100, "bay": 200},
+    "rattlesnake": {"bandwidth": 50, "bay": 175},
     "dominix": {"bandwidth": 125, "bay": 375}
   }
 }

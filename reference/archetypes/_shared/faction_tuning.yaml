@@ -39,6 +39,14 @@ armor_active:
   sansha:
     inherit: blood_raiders
 
+  equilibrium_of_mankind:
+    modules:
+      - slot: resist
+        to: ["Kinetic Armor Hardener I", "Thermal Armor Hardener I"]
+    drones:
+      primary: kinetic
+      anti_frigate: kinetic
+
   angel_cartel:
     modules:
       - slot: resist
@@ -101,6 +109,14 @@ shield_passive:
 
   sansha:
     inherit: blood_raiders
+
+  equilibrium_of_mankind:
+    modules:
+      - slot: resist
+        to: ["Kinetic Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: kinetic
+      anti_frigate: kinetic
 
   angel_cartel:
     modules:
@@ -165,6 +181,14 @@ shield_active:
   sansha:
     inherit: blood_raiders
 
+  equilibrium_of_mankind:
+    modules:
+      - slot: resist
+        to: ["Kinetic Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: kinetic
+      anti_frigate: kinetic
+
   angel_cartel:
     modules:
       - slot: resist
@@ -224,6 +248,14 @@ shield_buffer:
 
   sansha:
     inherit: blood_raiders
+
+  equilibrium_of_mankind:
+    modules:
+      - slot: resist
+        to: ["Kinetic Shield Hardener I", "Thermal Shield Hardener I"]
+    drones:
+      primary: kinetic
+      anti_frigate: kinetic
 
   angel_cartel:
     modules:

@@ -26,12 +26,12 @@ eft: |
   Multispectrum Shield Hardener I
   Cap Recharger I
 
-  Arbalest Compact Heavy Assault Missile Launcher
-  Arbalest Compact Heavy Assault Missile Launcher
-  Arbalest Compact Heavy Assault Missile Launcher
-  Arbalest Compact Heavy Assault Missile Launcher
-  Arbalest Compact Heavy Assault Missile Launcher
-  Arbalest Compact Heavy Assault Missile Launcher
+  Prototype 'Arbalest' Heavy Assault Missile Launcher I
+  Prototype 'Arbalest' Heavy Assault Missile Launcher I
+  Prototype 'Arbalest' Heavy Assault Missile Launcher I
+  Prototype 'Arbalest' Heavy Assault Missile Launcher I
+  Prototype 'Arbalest' Heavy Assault Missile Launcher I
+  Prototype 'Arbalest' Heavy Assault Missile Launcher I
 
   Medium Core Defense Field Extender I
   Medium Core Defense Field Extender I
@@ -90,7 +90,7 @@ notes:
 upgrade_path:
   next_tier: t2_budget
   key_upgrades:
-    - module: "Arbalest Compact Heavy Assault Missile Launcher"
+    - module: "Prototype 'Arbalest' Heavy Assault Missile Launcher I"
       upgrade_to: "Heavy Assault Missile Launcher II"
       skill_required: "Heavy Assault Missiles 5"
     - module: "Multispectrum Shield Hardener I"
