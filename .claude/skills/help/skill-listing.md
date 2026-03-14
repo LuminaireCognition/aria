@@ -1,0 +1,49 @@
+- /abyssal: Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats.
+- /agents-research: Monitor research agent partnerships and accumulated research points. Track passive RP generation from R&D agents.
+- /arbitrage: Cross-region arbitrage opportunity scanner. Find profitable trade routes between trade hubs with hauling score analysis.
+- /aria-status: ARIA operational status report. Use when capsuleer requests status, sitrep, or operational summary.
+- /assets: Asset inventory with valuation. View assets across stations with market value calculations.
+- /build-cost: Manufacturing cost calculator. Use for 'cost to build', profit margins, build-vs-buy, and ME efficiency.
+- /clones: Clone and implant status tracking. Safety-critical for knowing your medical clone location and active implants before risky operations.
+- /contracts: Personal contract management. View item exchange, courier, and auction contracts - both issued and received.
+- /corp: Corporation management and queries. Use for corp status, wallet, assets, blueprints, or industry jobs.
+- /escape-route: Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. IMPORTANT: Always invoke this skill before calling universe MCP tools for route planning. This skill loads reference data required for accurate responses.
+- /esi-query: Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings.
+- /exploration: ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification.
+- /find: Find market sources near your location. Use for finding blueprints, items, or specific market sources by proximity.
+- /first-run-setup: Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue.
+- /fit-budget: Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions.
+- /fit-check: Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions.
+- /fit-recommend: Recommend ship fittings from the archetype library based on role, hull, budget, and skill tier.
+- /fitting: ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. IMPORTANT: Always invoke this skill before calling fitting or sde MCP tools. This skill loads reference data (EFT format, module names, drone stats) required for accurate responses.
+- /fittings: View saved ship fittings from ESI. List fittings, filter by hull, and export to EFT format.
+- /gatecamp: Real-time gatecamp detection and intel. Check for active camps in systems or along routes.
+- /help: Display available ARIA commands and capabilities. Use when capsuleer needs guidance on what ARIA can do.
+- /hunting-grounds: Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition.
+- /industry-jobs: Monitor personal manufacturing, research, copying, and invention jobs. View active jobs, completion times, and recent history.
+- /isk-compare: Compare ISK/hour across activities you can do with your current skills and ships. Find the most efficient way to earn ISK at your level.
+- /journal: Log mission completions and exploration discoveries to operational records.
+- /killmail: Analyze individual killmails with enriched tactical context
+- /killmails: Kill and loss history analysis. Post-mortem on ship losses to understand what killed you and how to improve survivability.
+- /lp-store: Track LP balances and browse LP store offers. Essential for self-sufficient gameplay where LP store is the primary source of faction items.
+- /mail: Read EVE mail headers and bodies. View inbox, filter unread, and read specific messages.
+- /mark-assessment: Target evaluation for Eve Online. Assess potential marks based on ship type, likely cargo, and engagement viability.
+- /mining: View mining ledger with ore extraction history. Track what you've mined, where, and when over the past 30 days.
+- /mining-advisory: ARIA mining operations guidance for Eve Online. Use for ore recommendations, belt intel, Venture fitting, or mining optimization.
+- /mission-brief: ARIA tactical intelligence briefing for Eve Online missions. Use for mission analysis, enemy intel, fitting advice, or combat preparation.
+- /orders: View active market orders and order history. Track buy/sell orders, escrow, and fill status.
+- /orient: Local area intel for orientation in unknown space. Use after wormhole jumps, filaments, or when dropped into unfamiliar territory.
+- /pi: Planetary Interaction guide for production chains, planet resources, and colony planning.
+- /pilot: View pilot identity and configuration. Shows full data for authenticated pilot, public data for others.
+- /price: Market price lookups. Use for 'how much is [item]', price checks, buy/sell spreads, or item valuation.
+- /ransom-calc: Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants.
+- /reactions: Moon material reactions and fuel block reference data. Authoritative source for fuel block types, factions, and recipes. Calculate costs, profits, and production times.
+- /route: Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance.
+- /sec-status: Security status tracking for Eve Online. Monitor sec status, calculate tag costs, and track empire access restrictions.
+- /ship-next: Ship progression advisor for new and intermediate pilots. Recommends your next ship based on current skills, wallet, and preferred activities.
+- /skillplan: Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and "Easy 80%" recommendations. IMPORTANT: Always invoke this skill before calling skills or sde MCP tools. This skill loads reference data required for accurate responses.
+- /skillqueue: Monitor EVE Online skill training queue and ETA. View current training progress and upcoming skills.
+- /standings: Standings tracker and progression planner for agent access, faction requirements, and standing repair strategies.
+- /threat-assessment: ARIA security and threat analysis for Eve Online. Use for system safety evaluation, activity risk assessment, or travel route analysis.
+- /wallet-journal: View wallet transaction history and ISK flow analysis. Use for financial tracking, profit/loss analysis, or identifying income sources.
+- /watchlist: Manage entity watchlists for tracking corporations and alliances. Monitor war targets and get alerts when watched entities appear in kills.

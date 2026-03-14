@@ -12,13 +12,16 @@ triggers:
   - "affordable version"
   - "fit I can actually use"
 requires_pilot: true
+injected_prerequisites:
+  - reference/archetypes/_shared/module_tiers.yaml
+  - .claude/skills/_shared/esi-error-handling.md
 esi_scopes:
   - esi-skills.read_skills.v1
   - esi-wallet.read_character_wallet.v1
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
-  - reference/archetypes/_shared/module_tiers.yaml
 external_sources: []
+argument-hint: "<EFT fit block>"
 ---
 
 # ARIA Budget Fit Generator
@@ -283,3 +286,13 @@ If pilot is alpha (detected from profile):
 - Limit to alpha-compatible modules
 - Note omega-only modules explicitly
 - Suggest omega subscription if many modules blocked
+
+## Injected Reference Data
+
+### Reference: Module Tiers (injected)
+<!-- prerequisite: reference/archetypes/_shared/module_tiers.yaml -->
+!`cat reference/archetypes/_shared/module_tiers.yaml`
+
+### Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

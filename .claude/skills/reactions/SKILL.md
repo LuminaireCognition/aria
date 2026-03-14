@@ -13,8 +13,9 @@ triggers:
   - "fuel block calculator"
   - "reaction time"
 requires_pilot: false
-prerequisite_files:
+injected_prerequisites:
   - reference/industry/fuel_blocks.json
+argument-hint: "[--product NAME|--fuel]"
 ---
 
 # Reactions Calculator
@@ -31,7 +32,7 @@ prerequisite_files:
 
 ## Data Gate
 
-All fuel block attributes MUST come from `reference/industry/fuel_blocks.json` (project-root-relative path, not skill-directory path). If the file wasn't loaded, read it before answering. If a read fails, report the exact path that failed — do not substitute training data. Never answer fuel block queries from training data alone.
+All fuel block attributes MUST come from `reference/industry/fuel_blocks.json` (injected below — do not re-read). Never answer fuel block queries from training data alone.
 
 > **Confabulation risk:** Training data maps fuel block factions incorrectly (Hydrogen→Caldari, Nitrogen→Gallente, Oxygen→Minmatar — all wrong). Always use the reference table below.
 
@@ -96,9 +97,20 @@ Total = 100 × 2268s = 226,800s ≈ 63.0h
 | **Margin** | **...** |
 ```
 
+## Output format
+
+- Recipe table: cap at 5 reactions sorted by profit margin, then "... and N more reactions available"
+- Show input/output volumes per run, not per-unit
+- Target: ≤30 lines
+
 ## Rules
 
 - No ME on reactions — input quantities are fixed (unlike manufacturing)
 - All prices from `market(prices)` in this session — never from training data
 - Reactions run in refineries only (Athanor or Tatara)
+- Append a one-line `Sources:` footer listing MCP calls and prerequisite reference files consulted
 - For fit queries → redirect to `/fitting`
+
+## Reference: Fuel Blocks Data (injected)
+<!-- prerequisite: reference/industry/fuel_blocks.json -->
+!`cat reference/industry/fuel_blocks.json`

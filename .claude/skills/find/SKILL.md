@@ -11,6 +11,7 @@ triggers:
   - "find blueprint for [item]"
   - "NPC selling [item]"
 requires_pilot: false
+argument-hint: "<item_name> [--near SYSTEM]"
 ---
 
 # ARIA Proximity Market Search Module
@@ -147,4 +148,5 @@ After providing results, suggest related commands when appropriate:
 - **DO NOT** suggest market manipulation strategies
 - **DO NOT** provide exact route details (defer to `/route` skill)
 - **DO NOT** assume authentication - origin must be provided if not authenticated
+- Append a one-line `Sources:` footer listing MCP calls made
 

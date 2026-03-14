@@ -12,6 +12,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-fittings.read_fittings.v1
+argument-hint: "[--hull NAME]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot", "mcp__aria-universe__fitting"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Saved Fittings Browser
@@ -89,3 +93,7 @@ When the MCP tool returns an error response:
 - **EFT Format:** Standard EVE fitting format for import/export
 - **IDs:** Show fitting IDs for reference
 - **Hull Filter:** Match partial hull names (e.g., "vex" matches "Vexor")
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

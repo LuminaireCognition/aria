@@ -11,11 +11,13 @@ triggers:
   - "belt intel"
   - "mining optimization"
 requires_pilot: true
-prerequisite_files:
+injected_prerequisites:
   - reference/mechanics/ore_database.md
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/ships.md
+argument-hint: "[--system NAME|--ore NAME]"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__market", "mcp__aria-universe__sde"]
 ---
 
 # Mining Operations Module
@@ -30,7 +32,7 @@ data_sources:
 
 | Step | Call | Provides |
 |------|------|----------|
-| 1 | Read `reference/mechanics/ore_database.md` (project-root-relative path, not skill-directory path) | Ore types, security bands, mineral yields |
+| 1 | (injected below — do not re-read) | Ore types, security bands, mineral yields |
 | 2 | `universe(action="systems", systems=["..."])` | System security status |
 | 3 | `market(action="prices", items=[...])` | Current ore/mineral prices (if ISK comparison needed) |
 
@@ -92,3 +94,8 @@ After advisory, suggest ONE related command when relevant:
 - Prioritize manufacturing utility over ISK/hour for self-sufficient pilots
 - Include safety reminders for non-1.0 systems
 - Align while mining in lower security; use Survey Scanner to find best rocks
+- Append a one-line `Sources:` footer listing MCP calls and prerequisite reference files consulted
+
+## Reference: Ore Database (injected)
+<!-- prerequisite: reference/mechanics/ore_database.md -->
+!`cat reference/mechanics/ore_database.md`

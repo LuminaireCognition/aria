@@ -15,6 +15,10 @@ esi_scopes:
   - esi-location.read_location.v1
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
+argument-hint: "[--from SYSTEM]"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__universe"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # Escape Route
@@ -119,3 +123,7 @@ Nearest harbor: [system] - [jumps] jumps
 - **DO NOT** delay with unnecessary information
 - **DO NOT** assume high-sec is always an option
 - **DO NOT** forget security status restrictions
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

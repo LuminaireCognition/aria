@@ -12,7 +12,7 @@ triggers:
   - "abyssal fit"
   - "filament guide"
 requires_pilot: false
-prerequisite_files:
+injected_prerequisites:
   - reference/mechanics/abyssal_deadspace.json
 ---
 
@@ -28,7 +28,7 @@ prerequisite_files:
 
 ## Data Gate
 
-Attempt to read `reference/mechanics/abyssal_deadspace.json` (project-root-relative path, not skill-directory path) before processing the query. All responses must trace to this file — no training-data backfill.
+Abyssal reference data is injected below — do not re-read `reference/mechanics/abyssal_deadspace.json`. All responses must trace to this data — no training-data backfill.
 
 If the file cannot be read: **do not output a blanket failure**. Proceed to the routing table below — it specifies per-query-type fallbacks (inline tables for weather/tier, explicit "no verified data" for ship/NPC queries that have no inline fallback).
 
@@ -45,6 +45,8 @@ For any weather query, output this table first, then add ship-specific context:
 | Dark | Purple | n/a (turrets -50% range) | n/a | Balanced (25% each) |
 
 > Source: `weather_types[name].effects` and `weather_types[name].npc_damage_profile`
+>
+> **Note:** NPC damage profiles are approximate and vary by NPC variant within each weather type. Do not state splits as exact ratios.
 
 ### Tier Reference (distilled from abyssal_deadspace.json)
 
@@ -69,6 +71,8 @@ For any weather query, output this table first, then add ship-specific context:
 | Ship | `ship_recommendations[hull]` + SDE cross-check | "Hull not in reference — check SDE only" |
 | Which weather for [ship] | `ship_recommendations[hull].preferred_weather` → then `weather_types[name]` | "No ship data in reference — see [abyss.eve-nt.uk](https://abyss.eve-nt.uk)" |
 | NPC | `npc_factions[name]`, `weather_npc_pools[weather]` | "No verified NPC data for this query — see abyss.eve-nt.uk" |
+
+> **NPC damage profiles are approximate** across all query types (weather and NPC faction). Do not state damage splits as exact ratios (e.g., "50/50"). Use `~` prefix or say "primarily X / secondary Y" instead.
 | Fit | Redirect to `/fitting <ship> for <weather> abyssal` | n/a |
 
 **Compound queries** (e.g., "best weather for [ship] at tier [N]"): apply all matching rows. Tier context enriches the answer but does not change the routing path.
@@ -83,12 +87,19 @@ Always include: Abyssal Deadspace has a strict **20-minute time limit** — fail
 
 ## Rules
 
+- Keep response under 30 lines
+- Append a one-line `Sources:` footer listing MCP calls and reference files used
 - Every stat must trace to the reference file — no training-data backfill
 - If the reference file lacks the queried data, stop and say what is missing
 - For Ship queries, cross-validate hull via `sde(item_info)` before presenting
 - Do not guarantee specific loot values (RNG varies widely)
 - Do not recommend T5/T6 to inexperienced pilots
 - Do not generate fits, module lists, or EFT blocks — defer to `/fitting`
+- Do not recommend specific drone types or sizes — drone selection depends on hull bandwidth, which varies per ship. Defer to `/fitting`
 - Ship queries: only cite fields from `ship_recommendations[hull]` (strengths, weaknesses, preferred_weather, notes, max_recommended_tier). Do NOT name specific NPC entities or sub-types — describe mechanics instead (e.g., "neut structures can drain cap" not "Ephialtes Lancers neut")
 - Weather queries: only cite fields from `weather_types[name]`. Do NOT generate NPC entity names or describe room compositions — that requires `weather_npc_pools` and belongs to NPC queries
 - NPC queries: cite `npc_factions[name]` and `weather_npc_pools[weather]`. You may name special NPCs from `special_npcs` only when the key exists in that section
+
+## Reference: Abyssal Deadspace Data (injected)
+<!-- prerequisite: reference/mechanics/abyssal_deadspace.json -->
+!`cat reference/mechanics/abyssal_deadspace.json`

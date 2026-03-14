@@ -22,6 +22,47 @@ This document defines the standard frontmatter schema for ARIA skills.
 | `external_sources` | string[] | [] | Trusted external domains skill may fetch from |
 | `esi_scopes` | string[] | [] | ESI scopes required for full functionality |
 | `category` | string | "general" | Grouping: tactical, operations, financial, identity, system |
+| `injected_prerequisites` | string[] | [] | Files injected into skill prompt via `` !`cat` `` dynamic context (see §Injected Prerequisites) |
+
+## Injected Prerequisites
+
+Some prerequisite files are injected directly into the skill prompt at invocation time using Claude Code's `` !`command` `` dynamic context syntax. This guarantees the data is present before the agent runs — no compliance gap.
+
+### Eligibility Criteria
+
+A file is eligible for injection when ALL of:
+1. **Static path** — no `{active_pilot}` or runtime-resolved variables
+2. **Stable content** — changes only via commits, not at runtime
+3. **Reasonable size** — injection costs context tokens; ~2,000 lines max per skill
+4. **Always needed** — used on every invocation, not conditionally
+
+### Injection Format
+
+In the SKILL.md body, add a block per injected file:
+
+```markdown
+## Reference: [Label] (injected)
+<!-- prerequisite: path/to/file -->
+!`cat path/to/file`
+```
+
+Group multiple blocks under `## Injected Reference Data` when a skill has several injected files.
+
+### Invariant
+
+A skill's total prerequisites = `injected_prerequisites` (loaded via `` !`cat` ``) + `prerequisite_files` (agent-loaded at runtime). **No path may appear in both arrays.** The union covers all authoritative data the skill depends on.
+
+### Frontmatter Example
+
+```yaml
+---
+name: exploration
+injected_prerequisites:
+  - reference/mechanics/exploration_sites.md
+  - reference/mechanics/hacking_guide.md
+prerequisite_files: []
+---
+```
 
 ## Example Frontmatter
 
@@ -48,11 +89,14 @@ triggers:
   - "prepare for mission"
   - "I accepted a mission against [faction]"
 requires_pilot: true
-data_sources:
+injected_prerequisites:
+  - reference/mechanics/npc_damage_types.md
+  - reference/mechanics/drones.json
+prerequisite_files:
   - userdata/pilots/{active_pilot}/profile.md
+data_sources:
   - userdata/pilots/{active_pilot}/ships.md
   - reference/pve-intel/cache/INDEX.md
-  - reference/mechanics/npc_damage_types.md
 external_sources:
   - wiki.eveuniversity.org
 esi_scopes: []

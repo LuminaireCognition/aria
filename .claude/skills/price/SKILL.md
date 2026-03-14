@@ -1,6 +1,6 @@
 ---
 name: price
-description: EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis.
+description: Market price lookups. Use for 'how much is [item]', price checks, buy/sell spreads, or item valuation.
 model: sonnet
 category: financial
 triggers:
@@ -11,6 +11,9 @@ triggers:
   - "market price for [item]"
   - "value of [item]"
 requires_pilot: false
+argument-hint: "<item_name> [--region NAME|--jita|--amarr]"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__market", "mcp__aria-universe__sde"]
+preferred_max_lines: 35
 ---
 
 # ARIA Market Price Module
@@ -120,3 +123,4 @@ After price data, suggest ONE related command if relevant:
 - Global prices cached 1 hour, regional orders 5 minutes
 - No trading advice, price predictions, or market manipulation speculation
 - No selling recommendations for pilots with `market_trading: false`
+- Append a one-line `Sources:` footer listing MCP calls made

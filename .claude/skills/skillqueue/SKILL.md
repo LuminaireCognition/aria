@@ -13,6 +13,8 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-skills.read_skillqueue.v1
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Skill Queue Monitor
@@ -119,3 +121,7 @@ After displaying skill queue, suggest ONE related action when relevant:
 - **Precision:** Show progress to one decimal place for currently training skill
 - **Time Format:** Use "Xd Yh Zm" for durations, show dates for completion times
 - **Empty Emphasis:** Empty queue is a significant state - highlight it as a warning
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

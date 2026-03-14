@@ -17,11 +17,13 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-skills.read_skills.v1
-prerequisite_files:
+injected_prerequisites:
   - reference/activities/skill_plans.yaml
   - reference/skills/ship_efficacy_rules.yaml
   - reference/skills/meta_module_alternatives.yaml
+  - .claude/skills/_shared/esi-error-handling.md
 external_sources: []
+argument-hint: "<ship|module|activity>"
 ---
 
 # ARIA Skill Planning Advisor
@@ -32,15 +34,7 @@ external_sources: []
 
 ## Data Gate
 
-Read all prerequisite files before processing any query:
-
-| Step | File | Provides |
-|------|------|----------|
-| 1 | Read `reference/activities/skill_plans.yaml` (project-root-relative path, not skill-directory path) | Activity skill plan definitions |
-| 2 | Read `reference/skills/ship_efficacy_rules.yaml` (project-root-relative path, not skill-directory path) | Ship efficacy calculation rules |
-| 3 | Read `reference/skills/meta_module_alternatives.yaml` (project-root-relative path, not skill-directory path) | Meta module substitution data |
-
-If a read fails, report the exact path that failed — do not substitute training data.
+All prerequisite reference files (skill plans, ship efficacy rules, meta module alternatives, ESI error handling) are injected below — do not re-read them.
 
 > **HALLUCINATION GUARD:** Every training time, skill name, skill level, and efficacy estimate MUST come from MCP tool responses in this session. Training times are calculated server-side based on skill rank and attributes — do NOT estimate or fabricate training times from training data. If the tool did not return a training time for a specific skill, do not invent one.
 
@@ -103,3 +97,21 @@ For **activity plans** (mining, exploration, etc.), use `skills(action="activity
 
 ❌ **WRONG:** Call `easy_80_plan` without `current_skills` and present times as accurate
 ✅ **RIGHT:** Without `current_skills`, ALL times are from-scratch estimates. Show the warning.
+
+## Injected Reference Data
+
+### Reference: Skill Plans (injected)
+<!-- prerequisite: reference/activities/skill_plans.yaml -->
+!`cat reference/activities/skill_plans.yaml`
+
+### Reference: Ship Efficacy Rules (injected)
+<!-- prerequisite: reference/skills/ship_efficacy_rules.yaml -->
+!`cat reference/skills/ship_efficacy_rules.yaml`
+
+### Reference: Meta Module Alternatives (injected)
+<!-- prerequisite: reference/skills/meta_module_alternatives.yaml -->
+!`cat reference/skills/meta_module_alternatives.yaml`
+
+### Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

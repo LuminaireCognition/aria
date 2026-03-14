@@ -14,6 +14,9 @@ triggers:
   - "route avoiding [system]"
   - "route but not through [system]"
 requires_pilot: false
+argument-hint: "[<origin>] <destination> [--safe|--shortest]"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__universe"]
+preferred_max_lines: 45
 ---
 
 # ARIA Route Planning Module
@@ -40,6 +43,10 @@ requires_pilot: false
 | `--shortest` | `shortest` | Shortest path regardless of security (default) |
 | `--risky` | `insecure` | Prefer low-sec/null routes (faster through dangerous space) |
 | `--avoid` | `avoid_systems` | Exclude specific systems from route (e.g., `--avoid Uedama,Niarja`) |
+
+### Safe-Mode Intent Detection
+
+When the user's query contains "safe", "safest", "secure", or "safely", use `mode="safe"` as the **primary** route. Show the shortest route as a brief alternative ("Shortest alternative: N jumps via [key system]"). Do not bury the safe route in prose while presenting the shortest route as the primary result.
 
 ### Avoiding Systems
 
@@ -171,6 +178,11 @@ uv run aria-esi route Dodixie Jita --shortest
 uv run aria-esi route Amarr Jita --risky
 uv run aria-esi route Dodixie Jita --avoid Uedama
 ```
+
+## Output Rules
+
+- Keep response under 30 lines (route table + summary + threat advisory)
+- Append a one-line `Sources:` footer listing MCP calls made
 
 ## Behavior Notes
 

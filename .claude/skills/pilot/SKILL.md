@@ -20,6 +20,9 @@ esi_scopes:
   - esi-characters.read_corporation_roles.v1
   - esi-wallet.read_character_wallet.v1
   - esi-skills.read_skills.v1
+argument-hint: "[pilot_name]"
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Pilot Identity Module
@@ -127,3 +130,7 @@ Profile: [path to profile.md]
 | Detailed standings | `/esi-query standings` |
 | Skills list | `/esi-query skills` |
 | Corporation details | `/corp` |
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

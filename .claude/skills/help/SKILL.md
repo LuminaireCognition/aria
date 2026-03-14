@@ -12,17 +12,23 @@ triggers:
   - "how do I..."
   - "show me the options"
 requires_pilot: false
-data_sources:
-  - .claude/skills/_index.json
+preferred_max_lines: 80
+injected_prerequisites:
+  - .claude/skills/help/skill-listing.md
 ---
 
 # ARIA Help — Dynamic Dispatcher
 
-This skill generates help output from `.claude/skills/_index.json` at runtime. Do not hardcode command lists or topic descriptions.
+This skill generates help output from the pre-loaded skill listing below. Do not hardcode command lists or topic descriptions.
 
-## Step 1: Load the Index
+## Step 1: Skill Listing (pre-loaded)
 
-Read `.claude/skills/_index.json`. Parse the `skills` array. Each entry has: `name`, `description`, `category`, `triggers`, `requires_pilot`, `esi_scopes`, `data_sources`, `prerequisite_files`.
+The available skills are listed below (injected at load time):
+
+<!-- prerequisite: .claude/skills/help/skill-listing.md -->
+!`cat .claude/skills/help/skill-listing.md`
+
+For topic detail queries, also reference `.claude/skills/_index.json` for full metadata (triggers, esi_scopes, data_sources, category).
 
 ## Step 2: Determine Request Type
 

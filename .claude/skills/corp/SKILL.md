@@ -16,6 +16,9 @@ esi_scopes:
   - esi-assets.read_corporation_assets.v1
   - esi-corporations.read_blueprints.v1
   - esi-industry.read_corporation_jobs.v1
+argument-hint: "[status|wallet|assets|blueprints|jobs]"
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Corporation Management Module
@@ -138,3 +141,7 @@ Query corporation industry job status.
 - **JSON Output:** Script returns structured JSON for ARIA to format
 - **Timestamp Protocol:** Wallet data always includes query timestamp
 - **Role-Based Access:** ESI enforces CEO/Director role server-side
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

@@ -42,7 +42,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/isk-compare` | Compare ISK/hour across activities you can do with your current skills and ships. Find the most efficient way to earn ISK at your level. | "best way to make ISK" |
 | `/lp-store` | Track LP balances and browse LP store offers. Essential for self-sufficient gameplay where LP store is the primary source of faction items. | "check my LP" |
 | `/orders` | View active market orders and order history. Track buy/sell orders, escrow, and fill status. | "my market orders" |
-| `/price` | EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis. | "price check [item]" |
+| `/price` | Market price lookups. Use for 'how much is [item]', price checks, buy/sell spreads, or item valuation. | "price check [item]" |
 | `/ransom-calc` | Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants. | "ransom calc" |
 | `/wallet-journal` | View wallet transaction history and ISK flow analysis. Use for financial tracking, profit/loss analysis, or identifying income sources. | "where did my ISK go" |
 
@@ -51,7 +51,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | Command | Description | Example |
 |---------|-------------|---------|
 | `/agents-research` | Monitor research agent partnerships and accumulated research points. Track passive RP generation from R&D agents. | "my research agents" |
-| `/build-cost` | Manufacturing cost calculator. Calculates material costs, profit margins, and ME efficiency. | "cost to build [item]" |
+| `/build-cost` | Manufacturing cost calculator. Use for 'cost to build', profit margins, build-vs-buy, and ME efficiency. | "cost to build [item]" |
 | `/exploration` | ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification. | "exploration analysis" |
 | `/fittings` | View saved ship fittings from ESI. List fittings, filter by hull, and export to EFT format. | "my saved fits" |
 | `/industry-jobs` | Monitor personal manufacturing, research, copying, and invention jobs. View active jobs, completion times, and recent history. | "my industry jobs" |
@@ -77,7 +77,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | Command | Description | Example |
 |---------|-------------|---------|
 | `/aria-review` | Run standardized review prompts against skills, codebases, and other targets. Use when the user wants to audit, review, or analyze a skill or code directory using a named review template. Supports individual targets and ALL for batch execution. | "review skill" |
-| `/esi-query` | Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings. | "where am I" |
+| `/esi-query` | Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings. | "current location" |
 | `/first-run-setup` | Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue. | "set up my profile" |
 | `/help` | Display available ARIA commands and capabilities. Use when capsuleer needs guidance on what ARIA can do. | "help" |
 

@@ -18,6 +18,9 @@ esi_scopes:
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
 external_sources: []
+argument-hint: "<EFT fit block>"
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Fit Check Module
@@ -190,3 +193,7 @@ Group costs by slot type for clarity:
 Wallet balance is fetched via ESI for the comparison but is only shown as a relative indicator ("You can afford X replacements"). If the pilot prefers not to show wallet, the cost breakdown is still useful on its own.
 
 Be encouraging even if pilot can't fully fly the fit — frame substitutions as a path forward.
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

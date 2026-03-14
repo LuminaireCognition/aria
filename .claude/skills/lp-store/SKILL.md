@@ -12,6 +12,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-characters.read_loyalty.v1
+argument-hint: "[--corp NAME|--item NAME]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot", "mcp__aria-universe__market"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # Loyalty Points Module
@@ -132,3 +136,7 @@ Not all corporations offer loyalty rewards. Mission-giving NPC corps have LP sto
 - **RIGHT:** Call `lp-offers "Federation Navy"` — match the exact corporation requested
 - **WRONG:** Show LP store offers without making any `lp-offers` CLI call
 - **RIGHT:** Call the CLI, present only what it returns
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

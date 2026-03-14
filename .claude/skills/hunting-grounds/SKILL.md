@@ -13,6 +13,9 @@ triggers:
 requires_pilot: true
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
+argument-hint: "<system|region> [--range N]"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__universe", "mcp__aria-universe__killmails"]
+preferred_max_lines: 45
 ---
 
 # Hunting Grounds Module
@@ -79,6 +82,7 @@ Build the output table using ONLY data from Phase 1a/1b responses. For each syst
 - If `hotspots` returned 3 systems, present 3 — not 5.
 - If the subject system (Phase 1a) is also in the hotspots list, merge the rows — don't duplicate.
 - Narrative sections (analysis, recommendations, viability breakdowns) MUST NOT introduce systems absent from the tool response. If a system was not returned by `hotspots` or `activity`, it does not exist for this analysis.
+- When referencing sovereignty or coalition territory, cite the data source (e.g., "sovereignty via ESI/DOTLAN") or disclaim: "Coalition boundaries are approximate and may be outdated." Never state coalition membership as established fact without a tool-sourced `sovereignty` or `territory_analysis` response backing it.
 
 **MCP failure:** If `activity` or `hotspots` calls fail entirely, report that hunting ground analysis requires live activity data and cannot proceed without it.
 
@@ -129,6 +133,11 @@ For each system: system name, security, region, viability rating, live intel (fr
 4. **Phase 2:** Present Rancer first (quiet: 1 kill, 83 jumps — patient hunting only), then top hotspots from the tool response with their actual numbers.
 
 **Key:** Rancer is quiet → say so. Don't substitute a different system as if it were the answer.
+
+## Output Rules
+
+- Keep response under 45 lines
+- Append a one-line `Sources:` footer listing MCP calls made
 
 ## Anti-Patterns
 

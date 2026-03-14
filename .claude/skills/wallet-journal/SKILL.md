@@ -15,6 +15,11 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-wallet.read_character_wallet.v1
+argument-hint: "[--days N] [--type TYPE]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot"]
+preferred_max_lines: 20
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # Wallet Journal
@@ -109,3 +114,7 @@ Possible reasons:
 - **Percentages:** Round to nearest whole percent for income breakdown
 - **Timeframes:** Default 7 days, max 30 days (ESI limitation)
 - **Privacy:** Transaction details include counterparty - respect privacy if sharing
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

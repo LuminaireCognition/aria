@@ -12,6 +12,10 @@ triggers:
 requires_pilot: true
 esi_scopes:
   - esi-industry.read_character_mining.v1
+argument-hint: "[--days N]"
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA Mining Ledger
@@ -75,3 +79,7 @@ Adapt format to RP level: markdown table for `off`, box-drawing for `on`/`full`.
 - **Security:** Show system security status for context
 - **Filtering:** Support filtering by system, ore type, or date range
 - **Retention Warning:** Always mention 30-day data limit
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

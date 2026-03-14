@@ -17,6 +17,9 @@ esi_scopes:
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - reference/mechanics/security_status.json
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__pilot", "mcp__aria-universe__market"]
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # Security Status Module
@@ -35,7 +38,12 @@ If ESI is unavailable or the `esi-characters.read_standings.v1` scope is missing
 
 ## Execution Flow
 
-1. **Get current sec status** from ESI (or ask pilot if unavailable).
+1. **Get current sec status** via CLI:
+   ```bash
+   uv run aria-esi pilot
+   ```
+   Extract the `security_status` field from the JSON response.
+   If ESI is unavailable or the field is missing, ask the pilot for their current security status and note "Based on self-reported value."
 1b. **Positive sec status gate:** If current security status is >= 0.0, the pilot has unrestricted highsec access and does not need security tags.
    - Report current status and confirm full empire access
    - Skip the TAG RECOVERY OPTIONS section entirely
@@ -82,3 +90,7 @@ TAG RECOVERY OPTIONS:
 - **DO NOT** suggest the pilot should "go legit"
 - **DO NOT** moralize about criminal gameplay
 - **DO NOT** forget that low-sec/null are always accessible
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`

@@ -21,13 +21,14 @@
       "data_sources": [],
       "path": ".claude/skills/abyssal/SKILL.md",
       "directory": "abyssal",
-      "prerequisite_files": [
-        "reference/mechanics/abyssal_deadspace.json"
-      ],
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": [],
       "required_tools": [
         "sde.item_info"
+      ],
+      "injected_prerequisites": [
+        "reference/mechanics/abyssal_deadspace.json"
       ]
     },
     {
@@ -48,13 +49,14 @@
       ],
       "path": ".claude/skills/agents-research/SKILL.md",
       "directory": "agents-research",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
         "sde.agent_search"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -148,18 +150,19 @@
       ],
       "path": ".claude/skills/assets/SKILL.md",
       "directory": "assets",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
         "market.valuation"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
       "name": "build-cost",
-      "description": "Manufacturing cost calculator. Calculates material costs, profit margins, and ME efficiency.",
+      "description": "Manufacturing cost calculator. Use for 'cost to build', profit margins, build-vs-buy, and ME efficiency.",
       "model": "sonnet",
       "category": "industry",
       "triggers": [
@@ -202,12 +205,13 @@
       ],
       "path": ".claude/skills/clones/SKILL.md",
       "directory": "clones",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "contracts",
@@ -227,12 +231,13 @@
       ],
       "path": ".claude/skills/contracts/SKILL.md",
       "directory": "contracts",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "corp",
@@ -256,12 +261,13 @@
       ],
       "path": ".claude/skills/corp/SKILL.md",
       "directory": "corp",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "escape-route",
@@ -285,12 +291,13 @@
       ],
       "path": ".claude/skills/escape-route/SKILL.md",
       "directory": "escape-route",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "external_sources": [],
       "required_tools": [
         "universe.route"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -300,13 +307,11 @@
       "category": "system",
       "triggers": [
         "/esi-query",
-        "where am I",
         "current location",
         "what ship am I in",
         "wallet balance",
         "how much ISK",
         "check my skills",
-        "my standings",
         "my blueprints"
       ],
       "requires_pilot": true,
@@ -324,11 +329,12 @@
       ],
       "path": ".claude/skills/esi-query/SKILL.md",
       "directory": "esi-query",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "exploration",
@@ -345,10 +351,7 @@
         "data site"
       ],
       "requires_pilot": true,
-      "prerequisite_files": [
-        "reference/mechanics/exploration_sites.md",
-        "reference/mechanics/hacking_guide.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/exploration.md"
@@ -357,7 +360,11 @@
       "directory": "exploration",
       "external_sources": [],
       "esi_scopes": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        "reference/mechanics/exploration_sites.md",
+        "reference/mechanics/hacking_guide.md"
+      ]
     },
     {
       "name": "find",
@@ -425,19 +432,20 @@
         "esi-wallet.read_character_wallet.v1"
       ],
       "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md",
-        "reference/archetypes/_shared/module_tiers.yaml"
+        "userdata/pilots/{active_pilot}/profile.md"
       ],
       "external_sources": [],
       "path": ".claude/skills/fit-budget/SKILL.md",
       "directory": "fit-budget",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "required_tools": [
         "fitting.calculate_stats",
         "sde.meta_variants",
         "market.prices"
+      ],
+      "injected_prerequisites": [
+        "reference/archetypes/_shared/module_tiers.yaml",
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -465,13 +473,14 @@
       "external_sources": [],
       "path": ".claude/skills/fit-check/SKILL.md",
       "directory": "fit-check",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "required_tools": [
         "fitting.calculate_stats",
         "fitting.extract_requirements",
         "market.valuation"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -496,17 +505,18 @@
       "external_sources": [],
       "path": ".claude/skills/fit-recommend/SKILL.md",
       "directory": "fit-recommend",
-      "prerequisite_files": [
-        "reference/archetypes/INDEX.md"
-      ],
+      "prerequisite_files": [],
       "required_tools": [
         "fitting.recommend"
+      ],
+      "injected_prerequisites": [
+        "reference/archetypes/INDEX.md"
       ]
     },
     {
       "name": "fitting",
       "description": "ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.",
-      "model": "claude-opus-4-6",
+      "model": "sonnet",
       "category": "tactical",
       "triggers": [
         "/fitting",
@@ -520,11 +530,7 @@
       "requires_pilot": true,
       "requires_eos_validation": true,
       "validation_tool": "fitting(action='calculate_stats')",
-      "prerequisite_files": [
-        ".claude/skills/fitting/EFT-FORMAT.md",
-        "reference/mechanics/drones.json",
-        "reference/fittings/MODULE_NAMES.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md",
@@ -543,6 +549,11 @@
       "required_tools": [
         "fitting.calculate_stats",
         "sde.item_info"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/fitting/EFT-FORMAT.md",
+        "reference/mechanics/drones.json",
+        "reference/fittings/MODULE_NAMES.md"
       ]
     },
     {
@@ -563,12 +574,13 @@
       ],
       "path": ".claude/skills/fittings/SKILL.md",
       "directory": "fittings",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "gatecamp",
@@ -586,14 +598,15 @@
       "has_persona_overlay": true,
       "path": ".claude/skills/gatecamp/SKILL.md",
       "directory": "gatecamp",
-      "prerequisite_files": [
-        "reference/mechanics/chokepoints.json"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
       "required_tools": [
         "universe.activity"
+      ],
+      "injected_prerequisites": [
+        "reference/mechanics/chokepoints.json"
       ]
     },
     {
@@ -667,12 +680,13 @@
       ],
       "path": ".claude/skills/industry-jobs/SKILL.md",
       "directory": "industry-jobs",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "isk-compare",
@@ -701,10 +715,11 @@
       "external_sources": [],
       "path": ".claude/skills/isk-compare/SKILL.md",
       "directory": "isk-compare",
-      "prerequisite_files": [
+      "prerequisite_files": [],
+      "required_tools": [],
+      "injected_prerequisites": [
         ".claude/skills/_shared/esi-error-handling.md"
-      ],
-      "required_tools": []
+      ]
     },
     {
       "name": "journal",
@@ -777,12 +792,13 @@
       ],
       "path": ".claude/skills/killmails/SKILL.md",
       "directory": "killmails",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "lp-store",
@@ -802,13 +818,14 @@
       ],
       "path": ".claude/skills/lp-store/SKILL.md",
       "directory": "lp-store",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
         "market.prices"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -829,13 +846,14 @@
       ],
       "path": ".claude/skills/mail/SKILL.md",
       "directory": "mail",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
         "pilot.mail_list"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -884,13 +902,14 @@
       ],
       "path": ".claude/skills/mining/SKILL.md",
       "directory": "mining",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "required_tools": [
         "pilot.mining_ledger"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -907,9 +926,7 @@
         "mining optimization"
       ],
       "requires_pilot": true,
-      "prerequisite_files": [
-        "reference/mechanics/ore_database.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/ships.md"
@@ -920,6 +937,9 @@
       "esi_scopes": [],
       "required_tools": [
         "market.prices"
+      ],
+      "injected_prerequisites": [
+        "reference/mechanics/ore_database.md"
       ]
     },
     {
@@ -940,14 +960,6 @@
       ],
       "requires_pilot": true,
       "prerequisite_files": [
-        "reference/mechanics/npc_damage_types.md",
-        "reference/mechanics/drones.json",
-        "reference/mechanics/missiles.json",
-        "reference/mechanics/projectile_turrets.json",
-        "reference/mechanics/laser_turrets.json",
-        "reference/mechanics/hybrid_turrets.json",
-        "reference/pve-intel/cache/INDEX.md",
-        "reference/archetypes/INDEX.md",
         "userdata/pilots/{active_pilot}/profile.md",
         "userdata/pilots/{active_pilot}/skills.json",
         "userdata/pilots/{active_pilot}/ships.md"
@@ -962,7 +974,19 @@
       "directory": "mission-brief",
       "esi_scopes": [],
       "has_persona_overlay": true,
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        "reference/mechanics/npc_damage_types.md",
+        "reference/mechanics/drones.json",
+        "reference/mechanics/missiles.json",
+        "reference/mechanics/projectile_turrets.json",
+        "reference/mechanics/laser_turrets.json",
+        "reference/mechanics/hybrid_turrets.json",
+        "reference/pve-intel/INDEX.md",
+        "reference/pve-intel/missions/INDEX.md",
+        "reference/archetypes/INDEX.md",
+        "reference/archetypes/_shared/faction_tuning.yaml"
+      ]
     },
     {
       "name": "orders",
@@ -982,12 +1006,13 @@
       ],
       "path": ".claude/skills/orders/SKILL.md",
       "directory": "orders",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "orient",
@@ -1018,7 +1043,7 @@
     {
       "name": "pi",
       "description": "Planetary Interaction guide for production chains, planet resources, and colony planning.",
-      "model": "haiku",
+      "model": "sonnet",
       "category": "operations",
       "triggers": [
         "/pi",
@@ -1033,13 +1058,14 @@
       "data_sources": [],
       "path": ".claude/skills/pi/SKILL.md",
       "directory": "pi",
-      "prerequisite_files": [
-        "reference/mechanics/planetary-interaction.json"
-      ],
+      "prerequisite_files": [],
       "external_sources": [],
       "esi_scopes": [],
       "required_tools": [
         "market.prices"
+      ],
+      "injected_prerequisites": [
+        "reference/mechanics/planetary-interaction.json"
       ]
     },
     {
@@ -1069,17 +1095,18 @@
       ],
       "path": ".claude/skills/pilot/SKILL.md",
       "directory": "pilot",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "external_sources": [],
       "required_tools": [
         "sde.resolve_names"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
       "name": "price",
-      "description": "EVE Online market price lookups. Use for item valuation, buy/sell spreads, or market analysis.",
+      "description": "Market price lookups. Use for 'how much is [item]', price checks, buy/sell spreads, or item valuation.",
       "model": "sonnet",
       "category": "financial",
       "triggers": [
@@ -1146,15 +1173,16 @@
       "requires_pilot": false,
       "path": ".claude/skills/reactions/SKILL.md",
       "directory": "reactions",
-      "prerequisite_files": [
-        "reference/industry/fuel_blocks.json"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
       "required_tools": [
         "sde.blueprint_info",
         "market.prices"
+      ],
+      "injected_prerequisites": [
+        "reference/industry/fuel_blocks.json"
       ]
     },
     {
@@ -1208,12 +1236,13 @@
       ],
       "path": ".claude/skills/sec-status/SKILL.md",
       "directory": "sec-status",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "external_sources": [],
       "required_tools": [
         "market.prices"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -1243,14 +1272,15 @@
       "external_sources": [],
       "path": ".claude/skills/ship-next/SKILL.md",
       "directory": "ship-next",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "required_tools": [
         "sde.item_info",
         "skills.easy_80_plan",
         "market.prices",
         "fitting.recommend"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -1274,18 +1304,19 @@
       "esi_scopes": [
         "esi-skills.read_skills.v1"
       ],
-      "prerequisite_files": [
-        "reference/activities/skill_plans.yaml",
-        "reference/skills/ship_efficacy_rules.yaml",
-        "reference/skills/meta_module_alternatives.yaml",
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "external_sources": [],
       "path": ".claude/skills/skillplan/SKILL.md",
       "directory": "skillplan",
       "data_sources": [],
       "required_tools": [
         "skills.easy_80_plan"
+      ],
+      "injected_prerequisites": [
+        "reference/activities/skill_plans.yaml",
+        "reference/skills/ship_efficacy_rules.yaml",
+        "reference/skills/meta_module_alternatives.yaml",
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -1307,12 +1338,13 @@
       ],
       "path": ".claude/skills/skillqueue/SKILL.md",
       "directory": "skillqueue",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "standings",
@@ -1346,11 +1378,12 @@
       "external_sources": [],
       "path": ".claude/skills/standings/SKILL.md",
       "directory": "standings",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "required_tools": [
         "sde.agent_search"
+      ],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
     {
@@ -1401,12 +1434,13 @@
       ],
       "path": ".claude/skills/wallet-journal/SKILL.md",
       "directory": "wallet-journal",
-      "prerequisite_files": [
-        ".claude/skills/_shared/esi-error-handling.md"
-      ],
+      "prerequisite_files": [],
       "data_sources": [],
       "external_sources": [],
-      "required_tools": []
+      "required_tools": [],
+      "injected_prerequisites": [
+        ".claude/skills/_shared/esi-error-handling.md"
+      ]
     },
     {
       "name": "watchlist",

@@ -11,6 +11,8 @@ requires_pilot: false
 has_persona_overlay: true
 external_sources:
   - zkillboard.com
+argument-hint: "<kill_id|URL>"
+allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__killmails", "mcp__aria-universe__sde"]
 ---
 
 # ARIA Killmail Intel Module
@@ -64,7 +66,7 @@ ATTACKERS: 8 pilots
   Final Blow: AttackerName (Legion)
 
 CONTEXT:
-  ⚠️ Part of active gatecamp (3 kills in 10 min)
+  [!] Part of active gatecamp (3 kills in 10 min)
   System has 12 kills in last hour
 
 ───────────────────────────────────────────────────────────────────
@@ -93,6 +95,11 @@ Unable to fetch killmail data.
 Try again in a moment, or check the URL at:
 https://zkillboard.com/kill/12345678/
 ```
+
+## Output Rules
+
+- Keep response under 30 lines
+- Append a one-line `Sources:` footer listing MCP calls made
 
 ## Disambiguation
 

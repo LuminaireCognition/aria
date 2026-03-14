@@ -24,6 +24,9 @@ esi_scopes:
   - esi-characters.read_standings.v1
   - esi-skills.read_skills.v1
   - esi-characters.read_blueprints.v1
+argument-hint: "<query>"
+injected_prerequisites:
+  - .claude/skills/_shared/esi-error-handling.md
 ---
 
 # ARIA GalNet Interface Module (ESI Integration)
@@ -130,3 +133,7 @@ Until then, profile data files provide context.
 - Never display raw access tokens to the capsuleer
 - Refresh tokens are sensitive - treat as classified
 - **Reference:** `reference/mechanics/esi_api_urls.md` for working ESI URLs and endpoints
+
+## Reference: ESI Error Handling (injected)
+<!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
+!`cat .claude/skills/_shared/esi-error-handling.md`
