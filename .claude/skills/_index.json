@@ -271,7 +271,7 @@
     },
     {
       "name": "escape-route",
-      "description": "Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. IMPORTANT: Always invoke this skill before calling universe MCP tools for route planning. This skill loads reference data required for accurate responses.",
+      "description": "Escape route planning for Eve Online. Find fastest routes to safe harbor from current position.",
       "model": "sonnet",
       "category": "tactical",
       "triggers": [
@@ -515,7 +515,7 @@
     },
     {
       "name": "fitting",
-      "description": "ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. IMPORTANT: Always invoke this skill before calling fitting or sde MCP tools. This skill loads reference data (EFT format, module names, drone stats) required for accurate responses.",
+      "description": "ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.",
       "model": "sonnet",
       "category": "tactical",
       "triggers": [
@@ -1285,7 +1285,7 @@
     },
     {
       "name": "skillplan",
-      "description": "Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and \"Easy 80%\" recommendations. IMPORTANT: Always invoke this skill before calling skills or sde MCP tools. This skill loads reference data required for accurate responses.",
+      "description": "Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and \"Easy 80%\" recommendations.",
       "model": "sonnet",
       "category": "tactical",
       "triggers": [

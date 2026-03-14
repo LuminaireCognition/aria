@@ -12,11 +12,11 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 |---------|-------------|---------|
 | `/abyssal` | Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats. | "abyssal deadspace" |
 | `/clones` | Clone and implant status tracking. Safety-critical for knowing your medical clone location and active implants before risky operations. | "clone status" |
-| `/escape-route` | Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. IMPORTANT: Always invoke this skill before calling universe MCP tools for route planning. This skill loads reference data required for accurate responses. | "escape route" |
+| `/escape-route` | Escape route planning for Eve Online. Find fastest routes to safe harbor from current position. | "escape route" |
 | `/fit-budget` | Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions. | "budget version of this fit" |
 | `/fit-check` | Validate if you can fly a ship fit (skill check) and afford it (cost check). Paste any EFT fit for comprehensive analysis with substitution suggestions. | "can I fly this fit" |
 | `/fit-recommend` | Recommend ship fittings from the archetype library based on role, hull, budget, and skill tier. | "recommend a fit" |
-| `/fitting` | ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. IMPORTANT: Always invoke this skill before calling fitting or sde MCP tools. This skill loads reference data (EFT format, module names, drone stats) required for accurate responses. | "fit my [ship]" |
+| `/fitting` | ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization. | "fit my [ship]" |
 | `/gatecamp` | Real-time gatecamp detection and intel. Check for active camps in systems or along routes. | "is there a camp in [system]" |
 | `/hunting-grounds` | Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition. | "hunting grounds" |
 | `/killmail` | Analyze individual killmails with enriched tactical context | "analyze killmail" |
@@ -26,7 +26,7 @@ All commands can be invoked as slash commands (`/command`) or as natural languag
 | `/orient` | Local area intel for orientation in unknown space. Use after wormhole jumps, filaments, or when dropped into unfamiliar territory. | "orient me" |
 | `/route` | Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance. | "route from [origin] to [destination]" |
 | `/ship-next` | Ship progression advisor for new and intermediate pilots. Recommends your next ship based on current skills, wallet, and preferred activities. | "what ship should I fly next" |
-| `/skillplan` | Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and "Easy 80%" recommendations. IMPORTANT: Always invoke this skill before calling skills or sde MCP tools. This skill loads reference data required for accurate responses. | "what skills for [ship]" |
+| `/skillplan` | Skill planning advisor for EVE Online. Analyze skill requirements for ships, modules, or activities with training time estimates and "Easy 80%" recommendations. | "what skills for [ship]" |
 | `/skillqueue` | Monitor EVE Online skill training queue and ETA. View current training progress and upcoming skills. | "skill queue" |
 | `/threat-assessment` | ARIA security and threat analysis for Eve Online. Use for system safety evaluation, activity risk assessment, or travel route analysis. | "threat assessment" |
 | `/watchlist` | Manage entity watchlists for tracking corporations and alliances. Monitor war targets and get alerts when watched entities appear in kills. | "who am I tracking" |
