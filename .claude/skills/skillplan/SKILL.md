@@ -55,6 +55,20 @@ All prerequisite reference files (skill plans, ship efficacy rules, meta module 
 | Ship efficacy rules | Prerequisite file | `reference/skills/ship_efficacy_rules.yaml` (pre-read) |
 | Meta alternatives reference | Prerequisite file | `reference/skills/meta_module_alternatives.yaml` (pre-read) |
 
+## Pre-Flight Check
+
+**MANDATORY FIRST STEP:** Before any plan call, fetch pilot skills via CLI.
+If this was blocked by the skill-gate earlier in the conversation (before this
+skill was invoked), you MUST retry it now — the gate clears once the Skill tool
+runs. Do not proceed to `easy_80_plan` or `activity_plan` without `current_skills`.
+
+```
+uv run aria-esi skills
+```
+
+If the CLI call fails (no ESI credentials, network error), warn the user that
+training times will be from-scratch estimates, then continue without `current_skills`.
+
 ## Pilot Skills — Mandatory for Accurate Training Times
 
 **CRITICAL:** Training time estimates are **wrong** if `current_skills` is not passed to `easy_80_plan`. Without it, all times calculate from level 0 — massively overstating training needed.
@@ -65,7 +79,7 @@ Load pilot skills via `uv run aria-esi skills` and build a `{name: level}` dict 
 
 For most queries, the optimal call sequence is:
 
-1. **`uv run aria-esi skills`** → fetch pilot's current skills (when ESI available)
+1. **`uv run aria-esi skills`** → fetch pilot's current skills (MANDATORY — retry if previously blocked by skill-gate)
 2. **`skills(action="easy_80_plan", item="...", current_skills={...})`** → generates the full plan with accurate delta-based training times
 
 That's it. Two calls. The `easy_80_plan` response includes:

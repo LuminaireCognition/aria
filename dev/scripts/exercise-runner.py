@@ -300,7 +300,8 @@ def quality_check(
     - no-skill-ok: Skill not invoked but has injected_prerequisites (not a defect)
     - mcp-fail(N): N MCP tool calls had "validation failed" in result
     - brevity-N: N non-header content lines (verbose response)
-    - global-data: Killmail query with "my" in text used character_id=None
+    - global-data: Killmail response scope=global on personal query (auto-resolve failed)
+    - contracts-failed: Contracts MCP action returned structured error
     - skill-gate-violation: MCP/ToolSearch call appeared before first Skill call
     """
     flags: list[str] = []
@@ -331,14 +332,25 @@ def quality_check(
     if brevity_flag:
         flags.append(brevity_flag)
 
-    # 4. global-data: Killmail queries mentioning "my" without character_id
+    # 4. global-data: Killmail response with scope=global on personal queries
+    #    (After auto-resolve fix, character_id=None in input is expected —
+    #    the dispatcher resolves it server-side. Check response scope instead.)
     query_text = query.get("query_text", "").lower()
     if query["skill"] in ("killmails", "killmail") and "my" in query_text:
         for tc in tool_calls:
             if tc["tool"] == "mcp__aria-universe__killmails":
-                inp = tc.get("input", {})
-                if inp.get("character_id") is None:
+                result_text = tc.get("result", "")
+                if '"scope": "global"' in result_text or '"scope":"global"' in result_text:
                     flags.append("global-data")
+                    break
+
+    # 4b. contracts-failed: contracts MCP action returned structured error
+    if query["skill"] == "contracts":
+        for tc in tool_calls:
+            if tc["tool"] == "mcp__aria-universe__pilot":
+                result_text = tc.get("result", "")
+                if "contracts_failed" in result_text:
+                    flags.append("contracts-failed")
                     break
 
     # 5. no-skill-ok: Distinguish injected-prerequisite skills from enforcement failures

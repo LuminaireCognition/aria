@@ -59,6 +59,17 @@ def _get_store():
     return SQLiteKillmailStore(db_path=store_path, read_only=True)
 
 
+async def _resolve_character_id() -> int | None:
+    """Resolve character_id from ESI credentials. Returns None if unavailable."""
+    try:
+        from ...store.esi_client import get_authenticated_async_esi_client
+
+        auth_ctx = await get_authenticated_async_esi_client()
+        return auth_ctx.character_id
+    except (RuntimeError, ImportError):
+        return None
+
+
 def register_killmails_dispatcher(server: FastMCP) -> None:
     """
     Register the killmails dispatcher with MCP server.
@@ -170,6 +181,10 @@ def register_killmails_dispatcher(server: FastMCP) -> None:
                 limit=limit,
                 cursor=cursor,
             )
+
+        # Auto-resolve character_id from ESI credentials for query/recent
+        if action in ("query", "recent") and character_id is None:
+            character_id = await _resolve_character_id()
 
         # Get store
         store = _get_store()
@@ -326,8 +341,8 @@ async def _handle_query(
     }
     if scope == "global":
         result_dict["scope_note"] = (
-            "Data from global killmail feed — not filtered to your character. "
-            "Use character_id parameter to filter to your kills/losses."
+            "No ESI credentials available — showing global killmail feed. "
+            "Authenticate with ESI to auto-scope to your character."
         )
 
     return wrap_output(

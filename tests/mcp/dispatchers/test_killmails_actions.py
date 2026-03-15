@@ -846,6 +846,93 @@ class TestESIHistory:
         assert "scope_not_authorized" in result["error"]
 
 
+
+# =============================================================================
+# Auto-resolve Character ID Tests
+# =============================================================================
+
+
+class TestAutoResolveCharacterId:
+    """Tests for automatic character_id resolution from ESI credentials."""
+
+    def test_query_auto_resolves_character_id(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """Query without character_id auto-resolves from ESI credentials."""
+        mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails[:1])
+
+        mock_auth_ctx = MagicMock()
+        mock_auth_ctx.character_id = 99000001
+
+        with (
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._get_store",
+                return_value=mock_killmail_store,
+            ),
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._resolve_character_id",
+                new_callable=AsyncMock,
+                return_value=99000001,
+            ),
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query")
+            )
+
+        assert result["scope"] == "character"
+        # Verify character_id was passed to the store
+        call_kwargs = mock_killmail_store.query_kills.call_args
+        assert call_kwargs.kwargs.get("character_id") == 99000001
+
+    def test_query_no_credentials_stays_global(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """Query without credentials keeps scope=global."""
+        mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails[:1])
+
+        with (
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._get_store",
+                return_value=mock_killmail_store,
+            ),
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._resolve_character_id",
+                new_callable=AsyncMock,
+                return_value=None,
+            ),
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query")
+            )
+
+        assert result["scope"] == "global"
+        assert "scope_note" in result
+
+    def test_explicit_character_id_skips_resolve(
+        self, killmails_dispatcher, mock_killmail_store, sample_killmails
+    ):
+        """Explicit character_id skips auto-resolve."""
+        mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails[:1])
+
+        with (
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._get_store",
+                return_value=mock_killmail_store,
+            ),
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._resolve_character_id",
+                new_callable=AsyncMock,
+            ) as mock_resolve,
+        ):
+            result = asyncio.run(
+                killmails_dispatcher(action="query", character_id=12345)
+            )
+
+        # _resolve_character_id should NOT have been called
+        mock_resolve.assert_not_called()
+        assert result["scope"] == "character"
+
+
 # =============================================================================
 # Scope Metadata Tests
 # =============================================================================
@@ -855,12 +942,19 @@ class TestScopeMetadata:
     """Tests for scope metadata in killmail responses."""
 
     def test_query_global_scope(self, killmails_dispatcher, mock_killmail_store, sample_killmails):
-        """Query without character_id returns scope=global with scope_note."""
+        """Query without credentials returns scope=global with scope_note."""
         mock_killmail_store.query_kills = AsyncMock(return_value=sample_killmails)
 
-        with patch(
-            "aria_esi.mcp.dispatchers.killmails._get_store",
-            return_value=mock_killmail_store,
+        with (
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._get_store",
+                return_value=mock_killmail_store,
+            ),
+            patch(
+                "aria_esi.mcp.dispatchers.killmails._resolve_character_id",
+                new_callable=AsyncMock,
+                return_value=None,
+            ),
         ):
             result = asyncio.run(
                 killmails_dispatcher(action="query")
@@ -868,7 +962,7 @@ class TestScopeMetadata:
 
         assert result["scope"] == "global"
         assert "scope_note" in result
-        assert "character_id" in result["scope_note"]
+        assert "ESI credentials" in result["scope_note"]
 
     def test_query_character_scope(
         self, killmails_dispatcher, mock_killmail_store, sample_killmails
