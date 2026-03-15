@@ -136,6 +136,7 @@ A comprehensive catalog of natural language queries designed to exercise each AR
 - **Queries:**
   1. "Show my recent losses"
   2. "Analyze my loss patterns over the last 90 days"
+  3. "Show my recent kills from the last 24 hours"
 
 ### mark-assessment *(persona-exclusive: paria)*
 - **ESI:** NONE
@@ -172,6 +173,7 @@ A comprehensive catalog of natural language queries designed to exercise each AR
 - **Queries:**
   1. "What skills do I need for an Ishtar and how long will it take with Easy 80%?"
   2. "What's the skill plan for gas huffing?"
+  3. "What skills do I need for a Prospect and gas mining?"
 
 ### skillqueue
 - **ESI:** LOW
@@ -212,6 +214,7 @@ A comprehensive catalog of natural language queries designed to exercise each AR
 - **Queries:**
   1. "Show me my active contracts"
   2. "What courier contracts do I have in progress and what's the collateral at risk?"
+  3. "List all my contracts"
 
 ### find
 - **ESI:** NONE

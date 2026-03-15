@@ -20,6 +20,7 @@ from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Literal
 
+from ...core.client import ESIError
 from ..context import log_context, wrap_output
 from ..errors import InvalidParameterError
 from ..policy import check_capability
@@ -221,7 +222,11 @@ def register_pilot_dispatcher(server: FastMCP) -> None:
                     )
                 except Exception as e:
                     logger.exception("Contracts action failed: %s", e)
-                    raise
+                    result = {
+                        "error": "contracts_failed",
+                        "message": str(e),
+                        "hint": "Try CLI fallback: uv run aria-esi contracts",
+                    }
             case "fittings_list":
                 result = await _fittings_list(ship_filter=ship_filter)
             case "fittings_detail":
@@ -619,20 +624,34 @@ def _calculate_days_remaining(expiry_str: str | None) -> int | None:
 
 
 async def _resolve_names_batch(client: Any, ids: set[int]) -> dict[int, str]:
-    """Resolve a batch of entity IDs (characters, corps) to names."""
+    """Resolve a batch of entity IDs to names via POST /universe/names/.
+
+    Uses the bulk names endpoint which handles all entity types (characters,
+    corporations, alliances, factions) in a single call and silently omits
+    invalid or deleted IDs from the response.
+    """
     names: dict[int, str] = {}
-    for eid in list(ids)[:30]:
-        if not eid:
-            continue
-        info = await client.get_safe(f"/characters/{eid}/")
-        if isinstance(info, dict) and "name" in info:
-            names[eid] = info["name"]
-            continue
-        info = await client.get_safe(f"/corporations/{eid}/")
-        if isinstance(info, dict) and "name" in info:
-            names[eid] = info["name"]
+    valid_ids = [eid for eid in ids if eid]
+    if not valid_ids:
+        return names
+
+    # POST /universe/names/ accepts up to 1000 IDs per request
+    batch = valid_ids[:1000]
+    try:
+        result = await client.post("/universe/names/", data=batch)
+        if isinstance(result, list):
+            for entry in result:
+                if isinstance(entry, dict) and "id" in entry and "name" in entry:
+                    names[entry["id"]] = entry["name"]
+    except (ESIError, OSError):
+        logger.debug("POST /universe/names/ failed, falling back to per-ID lookup")
+
+    # Fill in any IDs that weren't resolved (deleted chars, invalid IDs, etc.)
+    for eid in valid_ids[:30]:
+        if eid in names:
             continue
         names[eid] = f"Unknown-{eid}"
+
     return names
 
 
@@ -640,9 +659,12 @@ async def _resolve_location_name_async(client: Any, location_id: int | None) -> 
     """Resolve a location ID to a name."""
     if not location_id:
         return "Unknown Location"
-    station = await client.get_safe(f"/universe/stations/{location_id}/")
-    if isinstance(station, dict) and "name" in station:
-        return station["name"]
+    try:
+        station = await client.get_safe(f"/universe/stations/{location_id}/")
+        if isinstance(station, dict) and "name" in station:
+            return station["name"]
+    except (ESIError, OSError):
+        logger.debug("Failed to resolve location %s", location_id)
     return f"Structure-{location_id}"
 
 
@@ -656,7 +678,14 @@ async def _contracts(
     """List personal contracts."""
     from aria_esi.store.esi_client import get_async_esi_client, get_authenticated_async_esi_client
 
-    auth_ctx = await get_authenticated_async_esi_client()
+    try:
+        auth_ctx = await get_authenticated_async_esi_client()
+    except RuntimeError as e:
+        return {
+            "error": "no_esi_credentials",
+            "message": str(e),
+            "hint": "Run 'uv run aria-esi setup' to configure ESI credentials",
+        }
     client = auth_ctx.client
     char_id = auth_ctx.character_id
 
