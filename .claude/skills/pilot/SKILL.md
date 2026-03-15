@@ -59,8 +59,8 @@ uv run aria-esi pilot 2123984364
 |------|--------------|-------------|
 | Authenticated identity (full) | No | `uv run aria-esi pilot` |
 | Public info (any pilot) | No | `uv run aria-esi pilot "<name>"` |
-| Wallet balance | No (included in `pilot` response) | `uv run aria-esi pilot` -> `wallet_balance` |
-| Skill points | No (included in `pilot` response) | `uv run aria-esi pilot` -> `skill_points.total` |
+| Wallet balance | No (included in `pilot` response) | `uv run aria-esi pilot` → `wallet_balance` |
+| Skill points | No (included in `pilot` response) | `uv run aria-esi pilot` → `skill_points.total` |
 | Standings | No | `uv run aria-esi standings` |
 
 The `pilot()` MCP dispatcher exists but serves other skills (`mail_list`, `contracts`, `fittings_list`, etc.) — it has no identity/wallet/SP actions.
@@ -85,7 +85,7 @@ If ESI is unavailable, fall back to local profile data and note "Showing local p
 | Wallet Balance | ESI authenticated | Yes | No |
 | Skill Points | ESI authenticated | Yes | No |
 
-### Field -> Source Mapping
+### Field → Source Mapping
 
 Every value in the response MUST come from the source listed here. If the source was not queried or returned an error, show `[no data]` for that field.
 
@@ -95,14 +95,14 @@ Every value in the response MUST come from the source listed here. If the source
 | Corporation/Alliance | ESI public endpoint | `uv run aria-esi pilot` |
 | Security Status | ESI public endpoint | `uv run aria-esi pilot` |
 | Birthday | ESI public endpoint | `uv run aria-esi pilot` |
-| Wallet Balance | ESI authenticated | `uv run aria-esi pilot` -> `wallet_balance` field |
-| Total Skill Points | ESI authenticated | `uv run aria-esi pilot` -> `skill_points.total` field |
+| Wallet Balance | ESI authenticated | `uv run aria-esi pilot` → `wallet_balance` field |
+| Total Skill Points | ESI authenticated | `uv run aria-esi pilot` → `skill_points.total` field |
 | EVE Experience | Local profile | `Read profile.md` |
 | RP Level | Local profile | `Read profile.md` |
 | Module Tier | Local profile | `Read profile.md` |
 | Faction Alignment | Local profile | `Read profile.md` |
 | Constraints | Local profile | `Read profile.md` |
-| ESI Scope Count | Credentials metadata | `uv run aria-esi pilot` -> `esi_status` field |
+| ESI Scope Count | Credentials metadata | `uv run aria-esi pilot` → `esi_status` field |
 
 **Note:** The `pilot` CLI fetches wallet and skill points in a single call. Do not make separate `wallet` or `skills` CLI calls — the `pilot` response already includes both as `wallet_balance` and `skill_points.total`. If either ESI scope is missing, the field is simply absent from the response (not an error).
 
@@ -178,7 +178,7 @@ Profile: [path to profile.md]
 
 **For not found:** State the query and suggest checking spelling or using character ID.
 
-**For no ESI credentials:** Show local profile data only with note that ESI setup enables live data (`uv run python .claude/scripts/arh-setupa-oauth-setup.py`).
+**For no ESI credentials:** Show local profile data only with note that ESI setup enables live data (`uv run python .claude/scripts/aria-oauth-setup.py`).
 
 **For ESI errors:** Show the error message and suggest retrying or checking ESI status.
 
