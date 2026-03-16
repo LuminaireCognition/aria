@@ -75,13 +75,15 @@ def cmd_corp_info(args: argparse.Namespace) -> dict:
         # Direct corporation ID
         corp_id = int(target)
     else:
-        # Search by name using POST /universe/ids/
+        # Search by name using POST /universe/ids/ (exact match)
+        resolved_name = None
         try:
             result = public_client.post("/universe/ids/", [target])
             if result and isinstance(result, dict):
                 corps = result.get("corporations", [])
                 if corps:
                     corp_id = corps[0].get("id")
+                    resolved_name = corps[0].get("name")
         except ESIError:
             pass
 
@@ -89,6 +91,19 @@ def cmd_corp_info(args: argparse.Namespace) -> dict:
             return {
                 "error": "not_found",
                 "message": f"No corporation found matching: {target}",
+                "hint": "ESI uses exact name matching. Try the corporation ID, "
+                "check spelling, or look up the exact name on zKillboard/DOTLAN.",
+                "query_timestamp": query_ts,
+            }
+
+        # Validate: ESI resolved a name but it doesn't match the query
+        if resolved_name and resolved_name.lower() != target.lower():
+            return {
+                "error": "not_found",
+                "message": f"No corporation found matching: {target}",
+                "hint": "ESI uses exact name matching. Try the corporation ID, "
+                "check spelling, or look up the exact name on zKillboard/DOTLAN.",
+                "near_match": {"id": corp_id, "name": resolved_name},
                 "query_timestamp": query_ts,
             }
 

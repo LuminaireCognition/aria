@@ -514,6 +514,59 @@ class TestCheckRequirementsAction:
         assert result["missing_skills"][0]["current"] == 3
 
 
+    def test_check_requirements_auto_sentinel(self, fitting_dispatcher):
+        """pilot_skills='auto' resolves from cached skills."""
+        cached = {3436: 5, 33699: 4}
+        mock_result = {
+            "can_fly": True,
+            "missing_skills": [],
+            "total_skills_checked": 2,
+        }
+
+        with (
+            patch(
+                "aria_esi.commands.skills.load_cached_skills",
+                return_value=cached,
+            ),
+            patch(
+                "aria_esi.mcp.dispatchers.fitting._check_requirements",
+                new_callable=AsyncMock,
+                return_value=mock_result,
+            ) as mock_check,
+        ):
+            result = asyncio.run(
+                fitting_dispatcher(
+                    action="check_requirements",
+                    eft=SAMPLE_EFT,
+                    pilot_skills="auto",
+                )
+            )
+
+        assert result["can_fly"] is True
+        call_args = mock_check.call_args
+        passed_skills = call_args[0][1]
+        # Should be str-keyed (MCP transport format)
+        assert passed_skills == {"3436": 5, "33699": 4}
+
+    def test_check_requirements_auto_sentinel_no_cache(self, fitting_dispatcher):
+        """pilot_skills='auto' raises InvalidParameterError when no cache exists."""
+        with patch(
+            "aria_esi.commands.skills.load_cached_skills",
+            return_value=None,
+        ):
+            with pytest.raises(InvalidParameterError) as exc:
+                asyncio.run(
+                    fitting_dispatcher(
+                        action="check_requirements",
+                        eft=SAMPLE_EFT,
+                        pilot_skills="auto",
+                    )
+                )
+
+        assert "pilot_skills" in str(exc.value)
+        assert "cached" in str(exc.value).lower() or "sync" in str(exc.value).lower()
+
+
 # =============================================================================
 # Extract Requirements Action Tests
 # =============================================================================

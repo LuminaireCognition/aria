@@ -493,6 +493,69 @@ class TestSkillsCommand:
         assert result.get("filter_applied") == "navigation"
 
 
+    def test_cmd_skills_with_comma_filter(self, empty_args, mock_credentials, mock_client):
+        """Test skills command with comma-separated multi-name filter."""
+        from aria_esi.commands.skills import cmd_skills
+
+        empty_args.filter = "Diplomacy,Connections"
+
+        mock_skills_data = {
+            "total_sp": 50000000,
+            "unallocated_sp": 0,
+            "skills": [
+                {
+                    "skill_id": 3357,
+                    "trained_skill_level": 4,
+                    "active_skill_level": 4,
+                    "skillpoints_in_skill": 45255,
+                },
+                {
+                    "skill_id": 3359,
+                    "trained_skill_level": 3,
+                    "active_skill_level": 3,
+                    "skillpoints_in_skill": 24000,
+                },
+                {
+                    "skill_id": 3300,
+                    "trained_skill_level": 5,
+                    "active_skill_level": 5,
+                    "skillpoints_in_skill": 256000,
+                },
+            ],
+        }
+
+        mock_client.get.return_value = mock_skills_data
+
+        # Map skill IDs to names
+        name_map = {
+            3357: "Diplomacy",
+            3359: "Connections",
+            3300: "Spaceship Command",
+        }
+
+        with patch(
+            "aria_esi.commands.skills.get_authenticated_client",
+            return_value=(mock_client, mock_credentials),
+        ):
+            with patch("aria_esi.commands.skills.ESIClient") as MockPublicClient:
+                mock_public = create_mock_public_client()
+
+                def resolve_by_url(url, **kwargs):
+                    for sid, name in name_map.items():
+                        if str(sid) in url:
+                            return {"name": name, "group_id": 255}
+                    return {"name": "Unknown", "group_id": 255}
+
+                mock_public.get_safe.side_effect = resolve_by_url
+                MockPublicClient.return_value = mock_public
+                result = cmd_skills(empty_args)
+
+        assert result.get("filter_applied") == "Diplomacy,Connections"
+        assert result.get("skill_count") == 2
+        skill_names = {s["name"] for s in result["skills"]}
+        assert skill_names == {"Diplomacy", "Connections"}
+
+
 class TestSkillqueueCommand:
     """Tests for skillqueue command."""
 

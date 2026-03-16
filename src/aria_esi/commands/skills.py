@@ -253,9 +253,11 @@ def cmd_skills(args: argparse.Namespace) -> dict:
         sid = s["skill_id"]
         name = skill_names.get(sid, f"Unknown-{sid}")
 
-        # Apply filter if specified
-        if skill_filter and skill_filter.lower() not in name.lower():
-            continue
+        # Apply filter if specified (supports comma-separated terms)
+        if skill_filter:
+            terms = [t.strip().lower() for t in skill_filter.split(",")]
+            if not any(term in name.lower() for term in terms):
+                continue
 
         skill_list.append(
             {
@@ -421,7 +423,11 @@ def register_parsers(subparsers: argparse._SubParsersAction) -> None:
 
     # Skills command
     skills_parser = subparsers.add_parser("skills", help="Fetch trained skill levels")
-    skills_parser.add_argument("filter", nargs="?", help="Filter skills by name (optional)")
+    skills_parser.add_argument(
+        "filter",
+        nargs="?",
+        help="Filter skills by name, comma-separated for multiple (e.g. Diplomacy,Connections)",
+    )
     skills_parser.set_defaults(func=cmd_skills)
 
     # Skillqueue command
