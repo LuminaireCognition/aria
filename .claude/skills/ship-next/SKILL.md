@@ -18,10 +18,10 @@ esi_scopes:
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/operations.md
-  - reference/archetypes/INDEX.md
 external_sources: []
 argument-hint: "[--activity NAME]"
 injected_prerequisites:
+  - reference/archetypes/INDEX.md
   - .claude/skills/_shared/esi-error-handling.md
 ---
 
@@ -61,7 +61,7 @@ uv run aria-esi ensure-fresh skills
 | `fresh` | `esi_available` | Action |
 |---------|-----------------|--------|
 | `true`  | --               | Full context gathering with fresh skills |
-| `false` | `false`         | Use profile data only. Note: "Based on profile data (ESI unavailable)" |
+| `false` | `false`         | Use profile data only. Follow Fallback Messaging rules from ESI Error Handling fragment |
 | `false` | `true` (sync failed) | Use cached skills if `age_hours < 72`, warn about staleness |
 
 ### Wallet Handling
@@ -142,7 +142,7 @@ For each recommended hull, attempt to attach a starter fit from the archetype li
 For each recommendation, provide:
 - **Why this ship**: What makes it good for the activity (verified from SDE)
 - **Key skills**: Most important skills to train
-- **Fit budget**: Typical hull + fit cost (from archetype `estimated_cost` if available, otherwise check `reference/archetypes/INDEX.md` for reference fit and use archetype `skill_requirements.required` for readiness calculation)
+- **Fit budget**: Typical hull + fit cost (from archetype `estimated_cost` if available, otherwise check the injected archetype index for reference fit and use archetype `skill_requirements.required` for readiness calculation)
 - **Upgrade path**: What comes after this ship
 - **Example Fit**: EFT block from archetype (if available from Step 5)
 
@@ -196,6 +196,12 @@ Scale recommendations to wallet. Suggest maintaining 3x replacement cost before 
 
 - Default to pilot's faction from profile
 - Always show at least one "ready now" option if possible
+
+## Injected Reference Data
+
+### Archetype Index (injected)
+<!-- prerequisite: reference/archetypes/INDEX.md -->
+!`cat reference/archetypes/INDEX.md`
 
 ## Reference: ESI Error Handling (injected)
 <!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->

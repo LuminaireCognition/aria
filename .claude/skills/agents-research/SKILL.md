@@ -71,7 +71,7 @@ R&D agents also require the corresponding science skill at the agent's level:
 
 Run the ESI wrapper command:
 ```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi agents-research
+uv run aria-esi agents-research
 ```
 
 > **HALLUCINATION GUARD:** All agent names, RP values, skill names, and partnership data MUST come from CLI output. Do NOT supplement with training data knowledge.
@@ -89,6 +89,23 @@ The CLI returns JSON with these key fields per agent:
 Summary block includes `total_agents`, `total_daily_rp`, `total_accumulated_rp`.
 
 Empty response returns `"agents": []` with a message.
+
+### Field → Source Mapping
+
+Every value in the response MUST come from the source listed here. If the source was not queried or returned an error, show `[no data]` for that field.
+
+| Output Field | Required Source | JSON Field |
+|-------------|----------------|------------|
+| Agent Name | CLI response | `agent_name` |
+| Agent Corporation | CLI response | `agent_corp` |
+| Research Skill | CLI response | `skill_name` |
+| Daily RP Rate | CLI response | `points_per_day` |
+| Accumulated RP | CLI response | `accumulated_rp` |
+| Days Active | CLI response | `days_active` |
+| Total Daily RP | CLI summary | `summary.total_daily_rp` |
+| Total Accumulated RP | CLI summary | `summary.total_accumulated_rp` |
+| Corp Standing | Standings CLI | `standings[].standing` (filtered by corp name) |
+
 
 ## SDE Agent Search Limitations
 
@@ -143,14 +160,27 @@ The `uv run aria-esi standings` command returns:
 }
 ```
 
-Filter by name: `jq '.standings[] | select(.name == "CreoDron")'`
-Filter by type: `jq '.standings[] | select(.from_type == "npc_corp")'`
+Parse the JSON directly from the tool result. Do not pipe through `jq` or other external processors.
 
 Field reference:
 - `from_id`: Entity ID (NPC corp, faction, or agent)
 - `from_type`: `"npc_corp"`, `"faction"`, or `"agent"`
 - `name`: Resolved entity name
 - `standing`: Standing value (-10.0 to +10.0)
+
+## Anti-Patterns
+
+- **WRONG:** Say "collect your 1,885 datacores" or "you have accumulated 1,885 datacores"
+- **RIGHT:** Say "you have 1,885 research points — visit the agent to exchange RP for datacores"
+
+- **WRONG:** Conflate research points (RP) with datacores. RP is the currency; datacores are the product purchased with RP.
+- **RIGHT:** Always use "research points" or "RP" for `accumulated_rp`. Only mention datacores when explaining what RP can buy.
+
+- **WRONG:** State agent names or research skills from training data
+- **RIGHT:** Only present agents returned by the CLI response
+
+- **WRONG:** Claim a standing value without querying standings CLI
+- **RIGHT:** Query standings and filter for the specific corporation
 
 ## Cross-References
 

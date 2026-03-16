@@ -16,9 +16,9 @@ esi_scopes:
   - esi-characters.read_standings.v1
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
-  - reference/mechanics/security_status.json
 allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__pilot", "mcp__aria-universe__market"]
 injected_prerequisites:
+  - reference/mechanics/security_status.json
   - .claude/skills/_shared/esi-error-handling.md
 ---
 
@@ -49,8 +49,8 @@ If ESI is unavailable or the `esi-characters.read_standings.v1` scope is missing
    - Skip the TAG RECOVERY OPTIONS section entirely
    - If `--tags` or `--target` was specified, explain: "Your security status is already positive. Tags only recover from negative status."
    - Only proceed to steps 2-4 if sec status is negative
-2. **Read `reference/mechanics/security_status.json`** for threshold data, faction police response times, clone soldier tag values, tag farming locations, and sec loss values.
-3. **Present empire access** based on current status against thresholds from reference file.
+2. **Use the injected security status reference data below** for threshold data, faction police response times, clone soldier tag values, tag farming locations, and sec loss values.
+3. **Present empire access** based on current status against thresholds from the injected reference data.
 4. **If `--tags` or `--target`:** Fetch tag prices via `market(action="prices", items=["Clone Soldier Trainer", "Clone Soldier Recruiter", "Clone Soldier Transporter", "Clone Soldier Negotiator"])`. Compute ISK-per-sec-point for each tag type. Recommend cheapest tags first.
 
 ## Response Format
@@ -62,12 +62,12 @@ CURRENT STATUS: [value]
 ───────────────────────────────────────────────────────────────────
 EMPIRE ACCESS:
 
-  [For each threshold from reference file, show access status]
+  [For each threshold from the injected reference data, show access status]
 
   Station Docking: [restriction status]
 
 FACTION POLICE:
-  [Response behavior from reference file]
+  [Response behavior from the injected reference data]
 
 TAG RECOVERY OPTIONS:
   To [threshold]: [N] tags (~[computed] ISK)
@@ -90,6 +90,12 @@ TAG RECOVERY OPTIONS:
 - **DO NOT** suggest the pilot should "go legit"
 - **DO NOT** moralize about criminal gameplay
 - **DO NOT** forget that low-sec/null are always accessible
+
+## Injected Reference Data
+
+### Security Status Reference (injected)
+<!-- prerequisite: reference/mechanics/security_status.json -->
+!`cat reference/mechanics/security_status.json`
 
 ## Reference: ESI Error Handling (injected)
 <!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->

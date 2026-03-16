@@ -38,6 +38,10 @@ allowed-tools: [Read, Grep, Glob, Bash, WebFetch, WebSearch, "mcp__aria-universe
 
 # Mission Brief
 
+**Path resolution:** All `reference/` paths are relative to the project root,
+NOT relative to this skill's directory. Read `reference/pve-intel/INDEX.md`,
+not `.claude/skills/mission-brief/reference/pve-intel/INDEX.md`.
+
 ## Protocol
 
 **Intel only by default.** Present Quick Reference, Spawns, Blitz, and Tactical Notes from prerequisite data and wiki. Fitting is opt-in via `--fit` flag — without it, skip all fitting sections entirely and do not read fitting reference data.

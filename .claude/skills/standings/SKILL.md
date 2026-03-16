@@ -21,13 +21,12 @@ requires_pilot: true
 esi_scopes:
   - esi-characters.read_standings.v1
   - esi-skills.read_skills.v1
-data_sources:
-  - reference/mechanics/standings_thresholds.json
-  - reference/mechanics/epic_arcs.json
 external_sources: []
 argument-hint: "[--faction NAME|--corp NAME]"
 allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__pilot", "mcp__aria-universe__sde"]
 injected_prerequisites:
+  - reference/mechanics/standings_thresholds.json
+  - reference/mechanics/epic_arcs.json
   - .claude/skills/_shared/esi-error-handling.md
 ---
 
@@ -46,8 +45,8 @@ injected_prerequisites:
 ## Data Sources
 
 - **ESI:** Live standings via `uv run aria-esi standings`
-- **Reference:** Read `reference/mechanics/standings_thresholds.json` for agent level thresholds, derived standing formulas, standing gain estimates, and repair strategies.
-- **Reference:** Read `reference/mechanics/epic_arcs.json` for epic arc details, faction choices, and cooldowns.
+- **Reference:** Use the injected standings thresholds data below for agent level thresholds, derived standing formulas, standing gain estimates, and repair strategies.
+- **Reference:** Use the injected epic arcs data below for epic arc details, faction choices, and cooldowns.
 
 **CRITICAL:** Always ensure fresh standings data before answering eligibility questions. Use the freshness gate below.
 
@@ -95,7 +94,7 @@ This already includes access level calculations - use directly for quick answers
 When asked for general standings ("/standings"):
 
 1. Query ESI: `uv run aria-esi standings`
-2. Read `standings_thresholds.json` for threshold context
+2. Use the injected standings thresholds for threshold context
 3. Query skills for Connections/Diplomacy levels
 4. Present organized by faction and corporation
 
@@ -127,7 +126,7 @@ When asked about agent access:
 1. Query ESI for current standings
 2. Query skills for Connections level
 3. Calculate effective standing using formula from `standings_thresholds.json`
-4. Compare to threshold from reference data
+4. Compare to threshold from injected reference data
 5. Use `sde(action="agent_search")` to find nearest agents
 
 ### Research Agent Query
@@ -146,8 +145,8 @@ When asked about R&D / research agents:
 When asked how to reach a standing (e.g., "/standings plan Caldari 5.0"):
 
 1. Query current standing from ESI
-2. Calculate gap to target using formulas from `standings_thresholds.json`
-3. Read `standings_thresholds.json` for progression strategies and `epic_arcs.json` for arc-based repair options
+2. Calculate gap to target using formulas from the injected standings thresholds
+3. Use the injected standings thresholds for progression strategies and the injected epic arcs data for arc-based repair options
 4. Present: Current Status / Agent Access / Progression Path / Accelerators / Skill Recommendations
 
 ### Standing Repair Query
@@ -155,13 +154,13 @@ When asked how to reach a standing (e.g., "/standings plan Caldari 5.0"):
 When asked about repairing negative standings:
 
 1. Query current standing
-2. Read `epic_arcs.json` for repair strategies
-3. Read `standings_thresholds.json` for Diplomacy skill effects and repair strategies
+2. Use the injected epic arcs data for repair strategies
+3. Use the injected standings thresholds for Diplomacy skill effects and repair strategies
 4. Present strategies in order of effectiveness
 
 ## Derived Standing Calculation
 
-Read `standings_thresholds.json → derived_standings_formula` for the Connections/Diplomacy formulas. **Always show both raw and effective standings in output.**
+Use `derived_standings_formula` from the injected standings thresholds for the Connections/Diplomacy formulas. **Always show both raw and effective standings in output.**
 
 ## Standings CLI Output Schema
 
@@ -175,8 +174,7 @@ The `uv run aria-esi standings` command returns:
 }
 ```
 
-Filter by name: `jq '.standings[] | select(.name == "CreoDron")'`
-Filter by type: `jq '.standings[] | select(.from_type == "npc_corp")'`
+Parse the JSON directly from the tool result. Do not pipe through `jq` or other external processors.
 
 Field reference:
 - `from_id`: Entity ID (NPC corp, faction, or agent)
@@ -218,6 +216,16 @@ uv run aria-esi skills
 - **DO NOT** recommend killing friendly faction NPCs
 - **DO NOT** suggest COSMOS missions without warning they're one-time only
 - **DO NOT** forget to factor in Connections/Diplomacy skills
+
+## Injected Reference Data
+
+### Standings Thresholds (injected)
+<!-- prerequisite: reference/mechanics/standings_thresholds.json -->
+!`cat reference/mechanics/standings_thresholds.json`
+
+### Epic Arcs (injected)
+<!-- prerequisite: reference/mechanics/epic_arcs.json -->
+!`cat reference/mechanics/epic_arcs.json`
 
 ## Reference: ESI Error Handling (injected)
 <!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->

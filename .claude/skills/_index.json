@@ -707,17 +707,17 @@
         "esi-skills.read_skills.v1",
         "esi-characters.read_standings.v1"
       ],
-      "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/operations.md",
-        "reference/activities/isk_estimates.yaml"
-      ],
+      "data_sources": [],
       "external_sources": [],
       "path": ".claude/skills/isk-compare/SKILL.md",
       "directory": "isk-compare",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/operations.md"
+      ],
       "required_tools": [],
       "injected_prerequisites": [
+        "reference/activities/isk_estimates.yaml",
         ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
@@ -1229,8 +1229,7 @@
         "esi-characters.read_standings.v1"
       ],
       "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md",
-        "reference/mechanics/security_status.json"
+        "userdata/pilots/{active_pilot}/profile.md"
       ],
       "path": ".claude/skills/sec-status/SKILL.md",
       "directory": "sec-status",
@@ -1240,6 +1239,7 @@
         "market.prices"
       ],
       "injected_prerequisites": [
+        "reference/mechanics/security_status.json",
         ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
@@ -1262,15 +1262,14 @@
         "esi-skills.read_skills.v1",
         "esi-wallet.read_character_wallet.v1"
       ],
-      "data_sources": [
-        "userdata/pilots/{active_pilot}/profile.md",
-        "userdata/pilots/{active_pilot}/operations.md",
-        "reference/archetypes/INDEX.md"
-      ],
+      "data_sources": [],
       "external_sources": [],
       "path": ".claude/skills/ship-next/SKILL.md",
       "directory": "ship-next",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "userdata/pilots/{active_pilot}/profile.md",
+        "userdata/pilots/{active_pilot}/operations.md"
+      ],
       "required_tools": [
         "sde.item_info",
         "skills.easy_80_plan",
@@ -1278,6 +1277,7 @@
         "fitting.recommend"
       ],
       "injected_prerequisites": [
+        "reference/archetypes/INDEX.md",
         ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
@@ -1369,10 +1369,7 @@
         "esi-characters.read_standings.v1",
         "esi-skills.read_skills.v1"
       ],
-      "data_sources": [
-        "reference/mechanics/standings_thresholds.json",
-        "reference/mechanics/epic_arcs.json"
-      ],
+      "data_sources": [],
       "external_sources": [],
       "path": ".claude/skills/standings/SKILL.md",
       "directory": "standings",
@@ -1381,6 +1378,8 @@
         "sde.agent_search"
       ],
       "injected_prerequisites": [
+        "reference/mechanics/standings_thresholds.json",
+        "reference/mechanics/epic_arcs.json",
         ".claude/skills/_shared/esi-error-handling.md"
       ]
     },
