@@ -86,7 +86,7 @@ def archetype_yamls(index_entries) -> dict[str, dict]:
     """Load every archetype YAML referenced by INDEX.md."""
     loaded = {}
     for entry in index_entries:
-        full_path = ARCHETYPES_DIR / entry["path"]
+        full_path = PROJECT_ROOT / entry["path"]
         if full_path.exists():
             loaded[entry["path"]] = yaml.safe_load(full_path.read_text())
     return loaded
@@ -107,7 +107,7 @@ def all_hull_yamls() -> dict[str, dict]:
     loaded = {}
     hulls_dir = ARCHETYPES_DIR / "hulls"
     for f in sorted(hulls_dir.rglob("*.yaml")):
-        loaded[str(f.relative_to(ARCHETYPES_DIR))] = yaml.safe_load(f.read_text())
+        loaded[str(f.relative_to(PROJECT_ROOT))] = yaml.safe_load(f.read_text())
     return loaded
 
 
@@ -127,7 +127,7 @@ class TestIndexDiskSync:
         """Every path in INDEX.md exists on disk."""
         missing = []
         for entry in index_entries:
-            full_path = ARCHETYPES_DIR / entry["path"]
+            full_path = PROJECT_ROOT / entry["path"]
             if not full_path.exists():
                 missing.append(entry["path"])
         assert not missing, f"INDEX.md references missing files: {missing}"

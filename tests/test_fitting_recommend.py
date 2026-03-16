@@ -212,7 +212,7 @@ class TestRecommendLiveIndex:
 
     def test_all_paths_valid(self, entries):
         """All paths in filtered results exist on disk."""
-        archetypes_dir = PROJECT_ROOT / "reference" / "archetypes"
         for entry in entries:
-            path = archetypes_dir / entry["path"]
+            path = PROJECT_ROOT / entry["path"]
             assert path.exists(), f"Missing: {entry['path']}"
+

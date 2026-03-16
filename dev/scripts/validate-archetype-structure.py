@@ -84,7 +84,7 @@ VALID_DAMAGE_TYPES = {
 # Helpers
 # ---------------------------------------------------------------------------
 
-INDEX_PATH_RE = re.compile(r"`(hulls/[^`]+\.yaml)`")
+INDEX_PATH_RE = re.compile(r"`(reference/archetypes/hulls/[^`]+\.yaml)`")
 
 
 def load_known_tank_profiles() -> set[str]:
@@ -275,7 +275,7 @@ def run_validation(verbose: bool = False) -> list[CheckResult]:
         ))
     else:
         for idx_path in index_paths:
-            full = ARCHETYPES_DIR / idx_path
+            full = PROJECT_ROOT / idx_path
             if full.exists():
                 if verbose:
                     results.append(CheckResult(
@@ -290,7 +290,7 @@ def run_validation(verbose: bool = False) -> list[CheckResult]:
     # Check 6: index_completeness
     index_path_set = set(index_paths)
     for path in yaml_files:
-        rel_from_archetypes = str(path.relative_to(ARCHETYPES_DIR))
+        rel_from_archetypes = str(path.relative_to(PROJECT_ROOT))
         if rel_from_archetypes in index_path_set:
             if verbose:
                 results.append(CheckResult(
