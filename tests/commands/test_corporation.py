@@ -72,7 +72,7 @@ class TestCorpInfoCommand:
         args.target = "Test Corporation"
 
         mock_public = MagicMock()
-        mock_public.post.return_value = {"corporations": [{"id": 98000001}]}
+        mock_public.post.return_value = {"corporations": [{"id": 98000001, "name": "Test Corporation"}]}
         mock_public.get_dict_safe.return_value = mock_corporation_info
 
         with patch("aria_esi.commands.corporation.ESIClient") as mock_public_cls:
@@ -97,6 +97,41 @@ class TestCorpInfoCommand:
             result = cmd_corp_info(args)
 
             assert result["error"] == "not_found"
+
+    def test_corp_info_name_mismatch_returns_near_match(self, mock_corporation_info):
+        """Test that fuzzy ESI match is rejected with near_match hint."""
+        args = argparse.Namespace()
+        args.target = "Brave Newbies Inc"
+
+        mock_public = MagicMock()
+        mock_public.post.return_value = {
+            "corporations": [{"id": 99000001, "name": "brothers of oblivion"}]
+        }
+
+        with patch("aria_esi.commands.corporation.ESIClient") as mock_public_cls:
+            mock_public_cls.return_value = mock_public
+
+            result = cmd_corp_info(args)
+
+            assert result["error"] == "not_found"
+            assert result["near_match"]["name"] == "brothers of oblivion"
+            assert result["near_match"]["id"] == 99000001
+
+    def test_corp_info_missing_resolved_name_rejected(self, mock_corporation_info):
+        """Test that ESI response without name field is rejected."""
+        args = argparse.Namespace()
+        args.target = "Some Corporation"
+
+        mock_public = MagicMock()
+        mock_public.post.return_value = {"corporations": [{"id": 98000001}]}
+
+        with patch("aria_esi.commands.corporation.ESIClient") as mock_public_cls:
+            mock_public_cls.return_value = mock_public
+
+            result = cmd_corp_info(args)
+
+            assert result["error"] == "not_found"
+            assert "near_match" not in result
 
 
 class TestCorpStatusCommand:

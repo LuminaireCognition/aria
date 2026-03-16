@@ -96,16 +96,18 @@ def cmd_corp_info(args: argparse.Namespace) -> dict:
                 "query_timestamp": query_ts,
             }
 
-        # Validate: ESI resolved a name but it doesn't match the query
-        if resolved_name and resolved_name.lower() != target.lower():
-            return {
+        # Validate: resolved name must exist and match the query exactly
+        if not resolved_name or resolved_name.lower() != target.lower():
+            error: dict = {
                 "error": "not_found",
                 "message": f"No corporation found matching: {target}",
                 "hint": "ESI uses exact name matching. Try the corporation ID, "
                 "check spelling, or look up the exact name on zKillboard/DOTLAN.",
-                "near_match": {"id": corp_id, "name": resolved_name},
                 "query_timestamp": query_ts,
             }
+            if resolved_name:
+                error["near_match"] = {"id": corp_id, "name": resolved_name}
+            return error
 
     # Get corporation public info
     corp = public_client.get_dict_safe(f"/corporations/{corp_id}/")
