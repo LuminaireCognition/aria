@@ -40,10 +40,37 @@ case "$TOOL_NAME" in
       if echo "$COMMAND" | grep -qE 'watchlist-|journal|sync-wars'; then
         exit 0
       fi
-      echo "SKILL-GATE-BLOCK: Invoke the Skill tool for the relevant skill before using aria-esi CLI." >&2
+      # Build skill hint based on CLI subcommand
+      HINT=""
+      if echo "$COMMAND" | grep -qE '\bskills\b'; then
+        HINT=" Try /skillqueue, /fit-check, /ship-next, or /isk-compare."
+      elif echo "$COMMAND" | grep -qE '\bstandings\b'; then
+        HINT=" Try /standings."
+      elif echo "$COMMAND" | grep -qE '\bwallet\b'; then
+        HINT=" Try /fit-check, /fit-budget, or /ship-next."
+      elif echo "$COMMAND" | grep -qE '\bclones\b'; then
+        HINT=" Try /clones."
+      fi
+      echo "SKILL-GATE-BLOCK: Invoke the Skill tool for the relevant skill before using aria-esi CLI.${HINT}" >&2
       exit 2
     fi
     exit 0
+    ;;
+  mcp__aria-universe__fitting)
+    # Exempt resolve_names — read-only SDE name lookup, no confabulation risk
+    if echo "$INPUT" | jq -r '.tool_input // empty' | grep -q '"resolve_names"'; then
+      exit 0
+    fi
+    echo "SKILL-GATE-BLOCK: Invoke the Skill tool for the relevant skill before calling ${TOOL_NAME}. Try /fit-check or /fit-budget." >&2
+    exit 2
+    ;;
+  mcp__aria-universe__skills)
+    echo "SKILL-GATE-BLOCK: Invoke the Skill tool for the relevant skill before calling ${TOOL_NAME}. Try /skillqueue, /ship-next, or /isk-compare." >&2
+    exit 2
+    ;;
+  mcp__aria-universe__market)
+    echo "SKILL-GATE-BLOCK: Invoke the Skill tool for the relevant skill before calling ${TOOL_NAME}. Try /fit-check, /fit-budget, /price, or /build-cost." >&2
+    exit 2
     ;;
   mcp__*)
     # Exempt resolve_names — read-only SDE name lookup, no confabulation risk
