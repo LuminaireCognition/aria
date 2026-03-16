@@ -34,6 +34,10 @@ preferred_max_lines: 45
 
 # Fitting Module
 
+**Path resolution:** All `reference/` paths are relative to the project root,
+NOT relative to this skill's directory. Read `reference/mechanics/missiles.json`,
+not `.claude/skills/fitting/reference/mechanics/missiles.json`.
+
 ## Query Triage
 
 Classify the request before starting any build work:

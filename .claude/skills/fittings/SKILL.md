@@ -50,8 +50,8 @@ pilot(action="fittings_detail", fitting_id=12345, eft=True)
 ### CLI (fallback)
 
 ```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi fittings [--ship <hull>]
-PYTHONPATH=.claude/scripts uv run python -m aria_esi fittings-detail <fitting_id> [--eft]
+uv run aria-esi fittings [--ship <hull>]
+uv run aria-esi fittings-detail <fitting_id> [--eft]
 ```
 
 ## Response Format

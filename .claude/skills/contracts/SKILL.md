@@ -61,7 +61,7 @@ pilot(action="contracts", status_filter="completed", limit=10)
 ### CLI (fallback)
 
 ```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi contracts [options]
+uv run aria-esi contracts [options]
 ```
 
 | Option | Description |
@@ -93,6 +93,27 @@ Present contracts organized by status (Outstanding, In Progress, Completed). Inc
 ```
 
 For no contracts: "No active contracts found."
+
+
+### Field → Source Mapping
+
+Every table column MUST map to the specific JSON field listed here. Do not swap, merge, or omit columns.
+
+| Table Column | JSON Field | Notes |
+|-------------|-----------|-------|
+| Type | `type_display` | "Item Exchange", "Courier", "Auction" |
+| Title | `title` | Contract title or type if no custom title |
+| Price/Reward | `price_formatted` | For couriers, use `reward_formatted` |
+| Collateral | `collateral_formatted` | Courier contracts only |
+| Issued Date | `date_issued` | Format as YYYY-MM-DD |
+| Expires | `date_expired` | Format as YYYY-MM-DD or "days remaining" |
+| Status | `status_display` | "Outstanding", "In Progress", "Finished" |
+| Issuer | `issuer_name` | The character who created the contract |
+| Acceptor | `acceptor_name` | The character who accepted (if any) |
+
+**Column discipline:** The Status value (`status_display`) MUST only appear in a Status column. Never place status in the Date column. If a table has no Status column, omit the value rather than misplace it.
+
+**Direction clarity:** When showing contracts, indicate whether the authenticated pilot is the issuer or acceptor. For self-issued contracts, show the acceptor as the counterparty.
 
 ## Courier Contract Guidance
 

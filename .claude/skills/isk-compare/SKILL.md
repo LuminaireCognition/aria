@@ -18,9 +18,9 @@ esi_scopes:
 data_sources:
   - userdata/pilots/{active_pilot}/profile.md
   - userdata/pilots/{active_pilot}/operations.md
-  - reference/activities/isk_estimates.yaml
 external_sources: []
 injected_prerequisites:
+  - reference/activities/isk_estimates.yaml
   - .claude/skills/_shared/esi-error-handling.md
 ---
 
@@ -37,7 +37,7 @@ injected_prerequisites:
 
 ## Data Sources
 
-Read `reference/activities/isk_estimates.yaml` for all ISK/hour baselines, activity requirements, access gates, effort levels, variance data, and scaling notes.
+Use the injected ISK estimates data below for all ISK/hour baselines, activity requirements, access gates, effort levels, variance data, and scaling notes.
 
 ### ESI Data (when available)
 
@@ -52,7 +52,7 @@ If ESI is unavailable, the pilot profile contains enough for useful recommendati
 - Module tier for skill tier estimation
 - Operations file for available ships
 
-Note in response: "Based on profile data (ESI unavailable)"
+Follow the Fallback Messaging rules in the ESI Error Handling fragment below.
 
 ## Execution Flow
 
@@ -65,7 +65,7 @@ uv run aria-esi standings
 
 ### Step 2: Determine Accessible Activities
 
-Read `reference/activities/isk_estimates.yaml` for activity requirements and access gates. Cross-reference against pilot skills and standings to categorize each activity.
+Use the injected ISK estimates data for activity requirements and access gates. Cross-reference against pilot skills and standings to categorize each activity.
 
 ### Step 3: Categorize by Availability
 
@@ -78,7 +78,7 @@ Read `reference/activities/isk_estimates.yaml` for activity requirements and acc
 
 ### Step 4: Add Context
 
-For each activity, include effort level, risk level, variance, and scaling from `isk_estimates.yaml`.
+For each activity, include effort level, risk level, variance, and scaling from the injected ISK estimates data.
 
 ## Response Format
 
@@ -122,6 +122,12 @@ Validate each recommendation against the pilot's operational constraints (profil
 - Include passive income options (often overlooked)
 - Frame recommendations around pilot's current state
 - Don't oversell any activity - be realistic
+
+## Injected Reference Data
+
+### ISK Estimates (injected)
+<!-- prerequisite: reference/activities/isk_estimates.yaml -->
+!`cat reference/activities/isk_estimates.yaml`
 
 ## Reference: ESI Error Handling (injected)
 <!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->

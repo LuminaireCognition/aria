@@ -24,3 +24,19 @@ This fragment is loaded as a prerequisite by all ESI-dependent skills. Follow th
    - A public data source (zKillboard, market tools, etc.)
 
 5. **Check the `setup_command` or `hint` field** in MCP error responses — if present, use it verbatim instead of constructing your own.
+
+## Fallback Messaging
+
+When ESI data is unavailable and you fall back to profile data or cached data:
+
+1. **Never expose infrastructure details.** Do not mention hooks, gates, skill-gates, dev branches, tool blocks, MCP internals, or permission systems. These are implementation details the user should never see.
+
+2. **Use neutral language.** Say "some live data is currently unavailable" or omit the caveat entirely if profile data is sufficient. Never say "blocked by gate", "ESI tool gate issue", or "falling back to profile inference."
+
+3. **If data quality is notably reduced**, add a brief note like "based on cached data" or "live market data unavailable" — keep it to one short clause, not a sentence.
+
+## CLI Output Parsing
+
+CLI commands return structured JSON. Parse it directly from the tool result.
+Do NOT pipe CLI output through `jq`, `python3`, or other processors — piped
+commands may be blocked by sandbox restrictions, cancelling parallel calls.

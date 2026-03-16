@@ -165,8 +165,12 @@ Some queries map to knowledge-only skills that don't use MCP tools (so the skill
 | "watchlist", "war targets", "watch list" | No skill — use CLI directly: `uv run aria-esi watchlist-list`, `watchlist-add`, `watchlist-remove` |
 | "brief me on [mission]", "what's the blitz for [mission]" | `/mission-brief` (intel-only default) |
 | "fit for [mission]", "fitting for [mission]" | `/mission-brief --fit` or `/fitting` |
+| "can I fly this fit", "check this fit", "fit requirements" | `/fit-check` |
+| "budget fit", "make this cheaper", "downgrade fit" | `/fit-budget` |
+| "what ship next", "upgrade path", "ship progression" | `/ship-next` |
+| "best ISK", "ISK per hour", "compare money making" | `/isk-compare` |
 
-Knowledge-only skills have no MCP calls to gate, so they rely on prompt-level routing rather than hook enforcement.
+Knowledge-only skills have no MCP calls to gate, so they rely on prompt-level routing rather than hook enforcement. ESI-dependent skills are also listed here because the model often pre-fetches data before invoking the Skill tool, triggering skill-gate violations.
 
 ## Skill Loading
 

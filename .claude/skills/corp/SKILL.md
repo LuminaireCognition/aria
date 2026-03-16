@@ -214,7 +214,7 @@ Query corporation industry job status.
 - **NPC Corporation:** Inform the user that corp management features require a player corporation. The `/corp info` subcommand still works for lookups.
 - **Missing Scopes:** State which scope is required and provide the setup command (`uv run python .claude/scripts/aria-oauth-setup.py`).
 - **Insufficient Role:** Explain that the subcommand requires CEO or Director role. Note that recently granted roles may take up to 24 hours for ESI to recognize.
-- **Corporation Not Found:** Suggest checking spelling, using the corporation ID, or searching for part of the name.
+- **Corporation Not Found:** ESI uses exact name matching. Suggest checking spelling or using the corporation ID. Point the user to zKillboard or DOTLAN for name verification. **Never retry with partial name fragments** — partial searches return unrelated entities and erode trust. If the CLI returns a `near_match` field, mention it as an unverified suggestion with the caveat that it may not be the intended corporation.
 
 ## Contextual Suggestions
 

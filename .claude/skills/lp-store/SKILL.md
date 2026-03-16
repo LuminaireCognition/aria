@@ -24,9 +24,9 @@ injected_prerequisites:
 
 | Query Type | MCP Call (preferred) | CLI Fallback |
 |------------|---------------------|--------------|
-| LP balance | `pilot(action="lp_balance")` | `uv run python -m aria_esi lp` |
-| LP store browse | `pilot(action="lp_offers", corporation_name="<corp>")` | `uv run python -m aria_esi lp-offers "<corp>"` |
-| LP analysis | `pilot(action="lp_offers", corporation_name="<corp>")` | `uv run python -m aria_esi lp-analyze "<corp>"` |
+| LP balance | `pilot(action="lp_balance")` | `uv run aria-esi lp` |
+| LP store browse | `pilot(action="lp_offers", corporation_name="<corp>")` | `uv run aria-esi lp-offers "<corp>"` |
+| LP analysis | `pilot(action="lp_offers", corporation_name="<corp>")` | `uv run aria-esi lp-analyze "<corp>"` |
 
 **Corporation matching:** The corporation name MUST match the user's request exactly.
 
@@ -57,9 +57,9 @@ pilot(action="lp_offers", corporation_name="Federation Navy", affordable=True)
 ### CLI (fallback)
 
 ```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi lp
-PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-offers "<corp>" [--search <term>] [--max-lp <N>] [--affordable]
-PYTHONPATH=.claude/scripts uv run python -m aria_esi lp-analyze "<corp>"
+uv run aria-esi lp
+uv run aria-esi lp-offers "<corp>" [--search <term>] [--max-lp <N>] [--affordable]
+uv run aria-esi lp-analyze "<corp>"
 ```
 
 ## Data Locality
@@ -134,8 +134,15 @@ Not all corporations offer loyalty rewards. Mission-giving NPC corps have LP sto
 
 - **WRONG:** Present Caldari Navy items when user asked for Federation Navy LP store
 - **RIGHT:** Call `lp-offers "Federation Navy"` — match the exact corporation requested
+
 - **WRONG:** Show LP store offers without making any `lp-offers` CLI call
 - **RIGHT:** Call the CLI, present only what it returns
+
+- **WRONG:** Say "you can afford N offers" based only on LP balance without checking ISK cost
+- **RIGHT:** Either cross-check wallet balance, or qualify: "N offers within your LP budget (ISK cost not verified)"
+
+- **WRONG:** Dump hundreds of offers as a prose list when user asks "what can I buy"
+- **RIGHT:** Use `affordable=True` or `max_lp=<balance>` to filter, then show top 10–15 actionable offers sorted by value. Mention total count and suggest `--search` for specific items.
 
 ## Reference: ESI Error Handling (injected)
 <!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->

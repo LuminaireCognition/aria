@@ -15,7 +15,7 @@ requires_pilot: true
 esi_scopes:
   - esi-clones.read_clones.v1
   - esi-clones.read_implants.v1
-allowed-tools: [Read, Grep, Glob, "mcp__aria-universe__pilot"]
+allowed-tools: [Read, Grep, Glob, Bash, "mcp__aria-universe__pilot"]
 injected_prerequisites:
   - .claude/skills/_shared/esi-error-handling.md
 ---
@@ -29,7 +29,7 @@ injected_prerequisites:
 ### Full Clone Status
 
 ```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi clones
+uv run aria-esi clones
 ```
 
 Shows medical clone location, all jump clones and their locations, implants in each clone, and jump clone cooldown status.
@@ -37,7 +37,7 @@ Shows medical clone location, all jump clones and their locations, implants in e
 ### Active Implants Only
 
 ```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi implants
+uv run aria-esi implants
 ```
 
 Shows implants in your current active clone, organized by slot (Attribute Enhancers slots 1-5, Hardwirings slots 6-10).
@@ -45,7 +45,7 @@ Shows implants in your current active clone, organized by slot (Attribute Enhanc
 ### Jump Clone Status
 
 ```bash
-PYTHONPATH=.claude/scripts uv run python -m aria_esi jump-clones
+uv run aria-esi jump-clones
 ```
 
 Shows jump clone locations and whether you can currently jump (24h cooldown).
@@ -96,8 +96,18 @@ Jump clones require the Infomorph Psychology skill:
 
 Additional clones available via:
   - Advanced Infomorph Psychology skill (+1 per level)
-  - Clone Soldier Tags (from pirate NPCs)
 ```
+
+## Anti-Patterns
+
+- **WRONG:** Mention Clone Soldier Tags as a way to get additional jump clones
+- **RIGHT:** Additional jump clones come from Infomorph Psychology and Advanced Infomorph Psychology skills only. Clone Soldier Tags are used for security status repair (a different mechanic).
+
+- **WRONG:** State implant names or clone locations from training data
+- **RIGHT:** Only present data returned by the ESI CLI response
+
+- **WRONG:** Say "you have no implants" without querying ESI
+- **RIGHT:** Call the CLI and present the actual `active_implants` from the response
 
 ## Reference: ESI Error Handling (injected)
 <!-- prerequisite: .claude/skills/_shared/esi-error-handling.md -->
