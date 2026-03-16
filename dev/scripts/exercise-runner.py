@@ -14,6 +14,8 @@ Usage:
     uv run python dev/scripts/exercise-runner.py --skills help,price --dry-run
     uv run python dev/scripts/exercise-runner.py --filter NONE --parallel 4 --timeout 180
     uv run python dev/scripts/exercise-runner.py --explicit --skills fitting --filter NONE
+    uv run python dev/scripts/exercise-runner.py --changed --explicit --dry-run
+    uv run python dev/scripts/exercise-runner.py --changed --explicit --timeout 180
 """
 
 from __future__ import annotations
@@ -234,6 +236,46 @@ def filter_queries(
 
 
 # ---------------------------------------------------------------------------
+# Changed skill detection
+# ---------------------------------------------------------------------------
+
+
+def detect_changed_skills(base: str = "main") -> list[str]:
+    """Detect skills with modified SKILL.md files relative to a base branch.
+
+    Scans git diff for changes under .claude/skills/*/SKILL.md and returns
+    the skill directory names. This lets the exercise runner target exactly
+    the skills touched in the current branch.
+    """
+    try:
+        # Staged + unstaged changes vs base branch
+        result = subprocess.run(
+            ["git", "diff", "--name-only", base, "--", ".claude/skills/"],
+            capture_output=True, text=True, cwd=str(PROJECT_ROOT),
+        )
+        if result.returncode != 0:
+            # Fallback: diff against working tree only (no base branch)
+            result = subprocess.run(
+                ["git", "diff", "--name-only", "--", ".claude/skills/"],
+                capture_output=True, text=True, cwd=str(PROJECT_ROOT),
+            )
+        paths = result.stdout.strip().splitlines()
+    except FileNotFoundError:
+        return []
+
+    skills = set()
+    for p in paths:
+        # .claude/skills/{name}/SKILL.md → name
+        parts = p.split("/")
+        if len(parts) >= 4 and parts[0] == ".claude" and parts[1] == "skills":
+            skill_name = parts[2]
+            # Skip shared/internal dirs
+            if not skill_name.startswith("_"):
+                skills.add(skill_name)
+    return sorted(skills)
+
+
+# ---------------------------------------------------------------------------
 # Git state assertions
 # ---------------------------------------------------------------------------
 
@@ -378,8 +420,10 @@ def quality_check(
             if tc["tool"].startswith("mcp__") or tc["tool"] == "ToolSearch":
                 flags.append("skill-gate-violation")
                 break
-    elif tool_calls:
-        # No Skill call at all — check if MCP/ToolSearch were used
+    elif tool_calls and "no-skill-ok" not in flags:
+        # No Skill call at all — check if MCP/ToolSearch were used.
+        # Skip when no-skill-ok: injected-prerequisite skills don't need
+        # the Skill tool, so MCP calls without it are expected behavior.
         for tc in tool_calls:
             if tc["tool"].startswith("mcp__") or tc["tool"] == "ToolSearch":
                 flags.append("skill-gate-violation")
@@ -625,10 +669,50 @@ def run_query(
             os.killpg(proc.pid, signal.SIGKILL)
         except OSError:
             proc.kill()
-        proc.wait()
+        # Drain pipe buffers - process is dead, returns immediately
+        stdout_raw, stderr_raw = proc.communicate()
         duration = time.monotonic() - start
-        body = f"# TIMEOUT after {timeout}s"
+
+        # Parse whatever partial stream output was captured
+        partial_text, tool_calls = _parse_stream_output(stdout_raw)
+        partial_text = SYSTEM_REMINDER_RE.sub('', partial_text).strip()
+
+        # Save tool trace if any calls were captured
+        if tool_calls:
+            tool_log_path = output_path.with_suffix('.tools.json')
+            tool_log_path.write_text(json.dumps(tool_calls, indent=2) + '\n')
+
+        # Build timeout output with partial data
+        body = f"# TIMEOUT after {timeout}s\n"
+        if partial_text:
+            body += f"\n## Partial Output\n\n{partial_text}\n"
+        if tool_calls:
+            trace_lines = ["\n---\n## Tool Trace (partial)\n"]
+            for tc in tool_calls:
+                tool_name = tc["tool"]
+                inp = tc.get("input", {})
+                if tool_name == "Read":
+                    summary = inp.get("file_path", "?")
+                elif tool_name == "Skill":
+                    summary = inp.get("skill", "?")
+                elif tool_name.startswith("mcp__"):
+                    action = inp.get("action", "?")
+                    summary = f"{tool_name.split('__')[-1]}({action})"
+                else:
+                    summary = str(inp)[:80]
+                trace_lines.append(f"- `{tool_name}` \u2192 {summary}")
+            body += "\n".join(trace_lines)
+
         output_path.write_text(header + body)
+
+        # Run quality checks on partial data
+        quality_flags = quality_check(
+            tool_calls=tool_calls,
+            body=body,
+            query=query,
+            explicit=explicit,
+        )
+
         return {
             "seq": seq,
             "filename": filename,
@@ -636,8 +720,8 @@ def run_query(
             "query_num": query["query_num"],
             "status": "timeout",
             "duration": round(duration, 1),
-            "lines": 1,
-            "quality": [],
+            "lines": len(body.splitlines()),
+            "quality": quality_flags,
         }
 
     finally:
@@ -808,6 +892,17 @@ def main():
              "natural language trigger matching. Bypasses skill-not-firing issues.",
     )
     parser.add_argument(
+        "--changed",
+        action="store_true",
+        help="Auto-detect skills with modified SKILL.md files in the current "
+             "branch (vs main). Combines with --skills if both specified.",
+    )
+    parser.add_argument(
+        "--changed-base",
+        default="main",
+        help="Base branch for --changed detection (default: main)",
+    )
+    parser.add_argument(
         "--queries-file",
         type=Path,
         default=QUERIES_PATH,
@@ -826,12 +921,29 @@ def main():
     queries = parse_queries(args.queries_file)
     print(f"Parsed {len(queries)} queries from {args.queries_file.name}")
 
+    # Resolve --changed to skill names
+    if args.changed:
+        changed = detect_changed_skills(args.changed_base)
+        if not changed:
+            print("Warning: --changed found no modified skills", file=sys.stderr)
+        else:
+            print(f"Detected {len(changed)} changed skills: {', '.join(changed)}")
+        # Merge with explicit --skills if provided
+        if args.skills:
+            explicit = args.skills.split(",")
+            merged = sorted(set(changed) | set(explicit))
+            args.skills = ",".join(merged)
+        else:
+            args.skills = ",".join(changed) if changed else None
+
     # Filter
     esi_levels = args.filter.split(",") if args.filter else None
     skill_names = args.skills.split(",") if args.skills else None
     filtered = filter_queries(queries, esi_levels, skill_names)
 
     filter_desc_parts = []
+    if args.changed:
+        filter_desc_parts.append("changed")
     if args.explicit:
         filter_desc_parts.append("explicit")
     if esi_levels:
