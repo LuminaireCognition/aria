@@ -526,29 +526,24 @@ class TestSkillsCommand:
 
         mock_client.get.return_value = mock_skills_data
 
-        # Map skill IDs to names
-        name_map = {
-            3357: "Diplomacy",
-            3359: "Connections",
-            3300: "Spaceship Command",
+        # Map skill IDs to names — mock resolve_type_ids directly since
+        # it uses SDE + ESI POST, not get_safe
+        resolved = {
+            3357: {"name": "Diplomacy", "group_id": 255, "market_group_id": None},
+            3359: {"name": "Connections", "group_id": 255, "market_group_id": None},
+            3300: {"name": "Spaceship Command", "group_id": 255, "market_group_id": None},
         }
 
         with patch(
             "aria_esi.commands.skills.get_authenticated_client",
             return_value=(mock_client, mock_credentials),
         ):
-            with patch("aria_esi.commands.skills.ESIClient") as MockPublicClient:
-                mock_public = create_mock_public_client()
-
-                def resolve_by_url(url, **kwargs):
-                    for sid, name in name_map.items():
-                        if str(sid) in url:
-                            return {"name": name, "group_id": 255}
-                    return {"name": "Unknown", "group_id": 255}
-
-                mock_public.get_safe.side_effect = resolve_by_url
-                MockPublicClient.return_value = mock_public
-                result = cmd_skills(empty_args)
+            with patch("aria_esi.commands.skills.ESIClient"):
+                with patch(
+                    "aria_esi.commands._resolution.resolve_type_ids",
+                    return_value=resolved,
+                ):
+                    result = cmd_skills(empty_args)
 
         assert result.get("filter_applied") == "Diplomacy,Connections"
         assert result.get("skill_count") == 2
