@@ -804,7 +804,7 @@ def _estimate_cost(project_root: Path, archetype_path: str) -> int | None:
     """
     import yaml
 
-    yaml_path = project_root / "reference" / "archetypes" / archetype_path
+    yaml_path = project_root / archetype_path
     if not yaml_path.exists():
         return None
 
