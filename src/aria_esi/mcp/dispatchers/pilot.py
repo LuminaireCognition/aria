@@ -1138,13 +1138,16 @@ async def _resolve_corporation_async(client: Any, query: str) -> tuple[int | Non
         name = info.get("name") if isinstance(info, dict) else None
         return corp_id, name
 
-    # ESI search via POST /universe/ids/
+    # ESI search via POST /universe/ids/ (exact match)
     try:
         resolved = await client.post("/universe/ids/", data=[query])
         if isinstance(resolved, dict):
             corps = resolved.get("corporations", [])
             if corps:
-                return corps[0]["id"], corps[0]["name"]
+                resolved_name = corps[0]["name"]
+                # Validate: only accept exact name matches
+                if resolved_name.lower() == query.lower():
+                    return corps[0]["id"], resolved_name
     except Exception:  # noqa: BLE001
         pass
 

@@ -493,6 +493,64 @@ class TestSkillsCommand:
         assert result.get("filter_applied") == "navigation"
 
 
+    def test_cmd_skills_with_comma_filter(self, empty_args, mock_credentials, mock_client):
+        """Test skills command with comma-separated multi-name filter."""
+        from aria_esi.commands.skills import cmd_skills
+
+        empty_args.filter = "Diplomacy,Connections"
+
+        mock_skills_data = {
+            "total_sp": 50000000,
+            "unallocated_sp": 0,
+            "skills": [
+                {
+                    "skill_id": 3357,
+                    "trained_skill_level": 4,
+                    "active_skill_level": 4,
+                    "skillpoints_in_skill": 45255,
+                },
+                {
+                    "skill_id": 3359,
+                    "trained_skill_level": 3,
+                    "active_skill_level": 3,
+                    "skillpoints_in_skill": 24000,
+                },
+                {
+                    "skill_id": 3300,
+                    "trained_skill_level": 5,
+                    "active_skill_level": 5,
+                    "skillpoints_in_skill": 256000,
+                },
+            ],
+        }
+
+        mock_client.get.return_value = mock_skills_data
+
+        # Map skill IDs to names — mock resolve_type_ids directly since
+        # it uses SDE + ESI POST, not get_safe
+        resolved = {
+            3357: {"name": "Diplomacy", "group_id": 255, "market_group_id": None},
+            3359: {"name": "Connections", "group_id": 255, "market_group_id": None},
+            3300: {"name": "Spaceship Command", "group_id": 255, "market_group_id": None},
+        }
+
+        with patch(
+            "aria_esi.commands.skills.get_authenticated_client",
+            return_value=(mock_client, mock_credentials),
+        ):
+            with patch("aria_esi.commands.skills.ESIClient"):
+                with patch(
+                    "aria_esi.commands._resolution.resolve_type_ids",
+                    return_value=resolved,
+                ):
+                    result = cmd_skills(empty_args)
+
+        assert result.get("filter_applied") == "Diplomacy,Connections"
+        assert result.get("skill_count") == 2
+        skill_names = {s["name"] for s in result["skills"]}
+        assert skill_names == {"Diplomacy", "Connections"}
+
+
 class TestSkillqueueCommand:
     """Tests for skillqueue command."""
 

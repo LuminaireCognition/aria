@@ -265,7 +265,10 @@ def register_fitting_dispatcher(server: FastMCP, universe: UniverseGraph) -> Non
                     result["metadata"]["warnings"].append(policy_fallback_warning)
             case "check_requirements":
                 if isinstance(pilot_skills, str):
-                    pilot_skills = _coerce_pilot_skills(pilot_skills)
+                    if pilot_skills.lower() in ("auto", "cached"):
+                        pilot_skills = _resolve_cached_skills()
+                    else:
+                        pilot_skills = _coerce_pilot_skills(pilot_skills)
                 result = await _check_requirements(eft, pilot_skills)
             case "extract_requirements":
                 result = await _extract_requirements(eft)
@@ -425,6 +428,21 @@ async def _calculate_stats(
             "error": "calculation_error",
             "message": str(e),
         }
+
+
+def _resolve_cached_skills() -> dict:
+    """Load pilot skills from local cache (written by ensure-fresh/sync-skills)."""
+    from aria_esi.commands.skills import load_cached_skills
+
+    skills = load_cached_skills()
+    if skills is None:
+        raise InvalidParameterError(
+            "pilot_skills",
+            "auto",
+            "No cached skills found. Run sync-skills first.",
+        )
+    # Return as str-keyed dict (matching MCP transport format)
+    return {str(k): v for k, v in skills.items()}
 
 
 def _coerce_pilot_skills(raw: str) -> dict:
