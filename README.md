@@ -153,6 +153,7 @@ uv run aria-esi --help
 
 ---
 
+
 ## See It In Action
 
 > **Note:** These are real ARIA responses, not mockups. ARIA uses natural language — no special syntax needed.
@@ -160,52 +161,36 @@ uv run aria-esi --help
 ### Mission Brief
 
 ```text
-❯ I need to run level 2 Damsel in Distress in a vexor.
+❯ I need to run level 2 Damsel in Distress in a Vexor.
 ```
 
-<details>
-<summary>MCP tool calls (collapsed)</summary>
-
 ```text
-Read 2 files
-Found it in the cache. Let me pull the detailed intel.
-Read 2 files
-```
-</details>
+Damsel in Distress L2 — Mission Brief
 
-```text
-Damsel in Distress L2 - Vexor Briefing
+| | Details |
+|---|---|
+| Tank | Thermal / Kinetic |
+| Deal | Kinetic & Thermal |
+| EWAR | None noted |
+| Objective | Destroy Kruul's Pleasure Hub, loot "The Damsel" |
 
-Mission Profile
-Faction: Mercenaries
-Incoming Damage: Thermal/Kinetic
-Deal Damage: Thermal > Kinetic
-Objective: Destroy Kruul's Pleasure Hub, loot "The Damsel"
-
-Enemy Forces
-Initial Spawn (auto-aggro, 10-20km):
-- 8x Frigate (Kruul's Henchman)
-- 1x Cruiser (Kruul) ⚠️ Trigger
-
-Reinforcements (if you attack Kruul):
-- 10x Elite Frigate (Mercenary Elite Fighter)
-
-Drone Loadout
-Vexor: 75 Mbit bandwidth, 125 m³ bay
-- Hammerhead II x5 (Thermal)
-- Hobgoblin II x5 (Thermal)
-Carry spares - 50 m³ bay remaining for 5 more Hobgoblins.
-
-Tank Priority
-Thermal > Kinetic - Fit thermal hardener(s) or rig for thermal resist. An Adaptive Invulnerability Field or Medium Armor Repairer with thermal membranes works well.
-
-Blitz Strategy
-1. Warp in, ignore Kruul (attacking him spawns 10 elite frigates)
-2. Destroy Kruul's Pleasure Hub - ⚠️ it deals AoE damage when it pops, keep 5-10km range
+Blitz
+1. Warp in — do not shoot Kruul (triggers 10x elite frigates)
+2. Destroy Kruul's Pleasure Hub — stay 5–10 km (AoE on destruction)
 3. Loot "The Damsel" from the wreck
 4. Warp out
 
-If you engage everything instead of blitzing, clear frigates first with Hobgoblins, then switch to Hammerheads for Kruul.
+Spawns
+- Initial (10–20 km, auto-aggro): 8x Frigate (Kruul's Henchman), 1x Cruiser (Kruul)
+- Reinforcement (triggered by attacking Kruul): 10x Elite Frigate (Mercenary Elite Fighter)
+
+Tactical Notes
+- Blitz avoids the reinforcement wave entirely — ignore Kruul
+- Pleasure Hub AoE can hurt at close range; orbit at 5–10 km while destroying it
+- Cruiser-class ship recommended; a Vexor handles this comfortably
+
+Sources: Wiki:fetched (EVE University Wiki — The Damsel in Distress L2)
+Tip: /mission-brief Damsel in Distress --fit for a tailored ship fitting
 ```
 
 <details>
@@ -214,49 +199,77 @@ If you engage everything instead of blitzing, clear frigates first with Hobgobli
 #### Route Planning
 
 ```text
-❯ I just filamented into 7BIX-A. Find me a ~20 jump route through goon ratting systems, avoiding hotspots.
+❯ Route from Dodixie to Jita, safest route.
 ```
 
 ```text
-You're in Fountain - Imperium territory. Threat level: LOW.
+Route: Dodixie → Jita
 
-Recommended ~20-jump loop (ratting-heavy systems):
-7BIX-A → G-UTHL → A-1CON → YZ-LQL → Z30S-A → V6-NY1 → 9DQW-W → PXF-RF → return
+Mode: Safest | Jumps: 15 | Threat: ELEVATED
 
-Hotspots to avoid:
-- 75FA-Z (recent kills)
-- L7-APB (recent kills)
+| System      | Sec | Ships | Pods | Jumps | Notes                          |
+|-------------|-----|------:|-----:|------:|--------------------------------|
+| Dodixie     | 0.9 |     1 |    0 |   561 | Trade hub                      |
+| Botane      | 0.9 |     0 |    0 |   691 |                                |
+| Erme        | 0.8 |     0 |    0 |   383 |                                |
+| Grinacanne  | 0.8 |     0 |    0 |   115 |                                |
+| Renyn       | 0.9 |     0 |    0 |   692 | Region border                  |
+| Algogille   | 0.9 |     1 |    0 |   778 |                                |
+| Kassigainen | 0.9 |     0 |    0 |   946 | Caldari border                 |
+| Hatakani    | 0.9 |     1 |    0 | 1,042 |                                |
+| Sivala      | 0.5 |     0 |    0 | 1,038 | Adjacent low-sec               |
+| Uedama      | 0.5 |     2 |    1 | 1,007 | Gank pipe — 3 kills last hour  |
+| Haatomo     | 0.6 |     1 |    0 |   183 |                                |
+| Suroken     | 0.7 |     0 |    0 |   461 |                                |
+| Kusomonmon  | 0.8 |     0 |    0 |   414 |                                |
+| Urlen       | 1.0 |     0 |    1 | 1,750 |                                |
+| Perimeter   | 1.0 |     6 |    0 | 2,085 | Jita gate                      |
+| Jita        | 0.9 |    21 |    8 | 2,729 | Trade hub                      |
+
+Security: 15 high-sec jumps. Lowest: Uedama (0.5) — known ganking system.
+Fly aligned, don't autopilot through Sivala/Uedama.
+
+Activity data from last hour.
+Sources: ESI route, ESI activity (real-time healthy)
 ```
 
 #### Fit Recommendation
 
 ```text
-❯ Give me a vexor fit for level 2 damsel using t1/meta modules.
+❯ Give me a Vexor fit for level 2 missions using T1/meta modules.
 ```
 
 ```text
-[Vexor, Damsel L2 - T1/Meta]
-Medium Armor Repairer I
-Drone Damage Amplifier I
-Drone Damage Amplifier I
-Thermal Armor Hardener I
-Kinetic Armor Hardener I
+[Vexor, L2 Missions - T1/Meta]
 
-10MN Afterburner I
+Drone Damage Amplifier I
+Drone Damage Amplifier I
+Medium Armor Repairer I
+Multispectrum Energized Membrane I
+Reactive Armor Hardener
+
+10MN Y-S8 Compact Afterburner
+Large Compact Pb-Acid Cap Battery
 Cap Recharger I
-Omnidirectional Tracking Link I
 Drone Navigation Computer I
 
 Drone Link Augmentor I
+[Empty High slot]
+[Empty High slot]
+[Empty High slot]
 
 Medium Auxiliary Nano Pump I
-Medium Capacitor Control Circuit I
-Medium Capacitor Control Circuit I
+Medium Auxiliary Nano Pump I
+Medium Nanobot Accelerator I
+
 
 Hammerhead I x5
 Hobgoblin I x5
 
-Stats (All V): 380 DPS | 8,952 EHP | Cost: 17.7M ISK
+Fitting engine: 124 DPS | 10,284 EHP | CPU 73.7% | PG 60.3%
+Orbit at 30–40 km, drones do the work. Hammerheads for cruisers,
+swap to Hobgoblins for frigates. AB keeps you cap stable.
+Sources: Archetype library (Vexor L2/meta), EOS validation (pilot skills)
 ```
 
 </details>
