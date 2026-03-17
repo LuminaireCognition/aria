@@ -1,7 +1,6 @@
 ---
 name: contracts
 description: Personal contract management. View item exchange, courier, and auction contracts - both issued and received.
-model: haiku
 category: financial
 triggers:
   - "/contracts"

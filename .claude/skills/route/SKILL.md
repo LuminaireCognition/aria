@@ -1,7 +1,6 @@
 ---
 name: route
 description: Calculate safe travel routes between EVE Online systems. Use for route planning, security analysis, or navigation assistance.
-model: sonnet
 category: tactical
 triggers:
   - "/route"

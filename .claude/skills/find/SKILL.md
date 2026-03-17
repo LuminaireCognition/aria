@@ -1,7 +1,6 @@
 ---
 name: find
 description: Find market sources near your location. Use for finding blueprints, items, or specific market sources by proximity.
-model: sonnet
 category: financial
 triggers:
   - "/find"

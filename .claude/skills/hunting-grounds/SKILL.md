@@ -1,7 +1,6 @@
 ---
 name: hunting-grounds
 description: Hunting ground analysis for Eve Online. Analyze systems for target availability, traffic patterns, and competition.
-model: sonnet
 category: tactical
 triggers:
   - "/hunting-grounds"

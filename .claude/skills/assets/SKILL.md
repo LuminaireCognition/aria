@@ -1,7 +1,6 @@
 ---
 name: assets
 description: Asset inventory with valuation. View assets across stations with market value calculations.
-model: haiku
 category: financial
 triggers:
   - "/assets"

@@ -1,7 +1,6 @@
 ---
 name: orders
 description: View active market orders and order history. Track buy/sell orders, escrow, and fill status.
-model: haiku
 category: financial
 triggers:
   - "/orders"

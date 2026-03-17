@@ -1,7 +1,6 @@
 ---
 name: pilot
 description: View pilot identity and configuration. Shows full data for authenticated pilot, public data for others.
-model: haiku
 category: identity
 triggers:
   - "/pilot"

@@ -1,7 +1,6 @@
 ---
 name: isk-compare
 description: Compare ISK/hour across activities you can do with your current skills and ships. Find the most efficient way to earn ISK at your level.
-model: sonnet
 category: financial
 triggers:
   - "/isk-compare"

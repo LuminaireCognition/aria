@@ -1,7 +1,6 @@
 ---
 name: clones
 description: Clone and implant status tracking. Safety-critical for knowing your medical clone location and active implants before risky operations.
-model: haiku
 category: tactical
 triggers:
   - "/clones"

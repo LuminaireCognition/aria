@@ -1,7 +1,6 @@
 ---
 name: gatecamp
 description: Real-time gatecamp detection and intel. Check for active camps in systems or along routes.
-model: sonnet
 category: tactical
 triggers:
   - "/gatecamp"

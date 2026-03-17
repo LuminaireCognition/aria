@@ -1,7 +1,6 @@
 ---
 name: standings
 description: Standings tracker and progression planner for agent access, faction requirements, and standing repair strategies.
-model: haiku
 category: identity
 triggers:
   - "/standings"

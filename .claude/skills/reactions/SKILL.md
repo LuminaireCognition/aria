@@ -1,7 +1,6 @@
 ---
 name: reactions
 description: Moon material reactions and fuel block reference data. Authoritative source for fuel block types, factions, and recipes. Calculate costs, profits, and production times.
-model: sonnet
 category: industry
 triggers:
   - "/reactions"

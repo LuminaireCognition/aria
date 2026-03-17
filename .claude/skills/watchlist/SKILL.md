@@ -1,7 +1,6 @@
 ---
 name: watchlist
 description: Manage entity watchlists for tracking corporations and alliances. Monitor war targets and get alerts when watched entities appear in kills.
-model: sonnet
 category: tactical
 triggers:
   - "/watchlist"

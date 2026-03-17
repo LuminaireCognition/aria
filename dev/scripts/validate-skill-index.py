@@ -338,11 +338,14 @@ def check_category_enum(skills: list[dict]) -> list[CheckResult]:
 
 
 def check_model_enum(skills: list[dict]) -> list[CheckResult]:
-    """Check 9: model must be one of the valid enum values."""
+    """Check 9: model enum (optional, deprecated)."""
     results: list[CheckResult] = []
     for skill in skills:
         name = skill.get("name", "?")
-        model = skill.get("model", "")
+        model = skill.get("model")
+        if model is None:
+            # model field is optional (deprecated)
+            continue
         subject = f"{name} -> {model}"
         if model in VALID_MODELS:
             results.append(CheckResult("model_enum", subject, "PASS"))

@@ -1,7 +1,6 @@
 ---
 name: aria-review
 description: Run standardized review prompts against skills, codebases, and other targets. Use when the user wants to audit, review, or analyze a skill or code directory using a named review template. Supports individual targets and ALL for batch execution.
-model: sonnet
 category: system
 triggers:
   - "/aria-review"

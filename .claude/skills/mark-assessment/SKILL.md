@@ -1,7 +1,6 @@
 ---
 name: mark-assessment
 description: Target evaluation for Eve Online. Assess potential marks based on ship type, likely cargo, and engagement viability.
-model: sonnet
 category: tactical
 triggers:
   - "/mark-assessment"

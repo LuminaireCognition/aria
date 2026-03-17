@@ -1,7 +1,6 @@
 ---
 name: mail
 description: Read EVE mail headers and bodies. View inbox, filter unread, and read specific messages.
-model: haiku
 category: operations
 triggers:
   - "/mail"

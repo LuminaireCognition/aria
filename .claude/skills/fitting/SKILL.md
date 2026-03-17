@@ -1,7 +1,6 @@
 ---
 name: fitting
 description: ARIA ship fitting assistance for Eve Online. Use for fitting exports, EFT format generation, module recommendations, tank analysis, or fitting optimization.
-model: sonnet
 category: tactical
 triggers:
   - "/fitting"

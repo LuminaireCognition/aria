@@ -1,7 +1,6 @@
 ---
 name: escape-route
 description: Escape route planning for Eve Online. Find fastest routes to safe harbor from current position.
-model: sonnet
 category: tactical
 triggers:
   - "/escape-route"

@@ -1,7 +1,6 @@
 ---
 name: threat-assessment
 description: ARIA security and threat analysis for Eve Online. Use for system safety evaluation, activity risk assessment, or travel route analysis.
-model: sonnet
 category: tactical
 triggers:
   - "/threat-assessment"

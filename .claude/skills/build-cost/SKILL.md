@@ -1,7 +1,6 @@
 ---
 name: build-cost
 description: Manufacturing cost calculator. Use for 'cost to build', profit margins, build-vs-buy, and ME efficiency.
-model: sonnet
 category: industry
 triggers:
   - "/build-cost"

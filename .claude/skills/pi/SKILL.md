@@ -1,7 +1,6 @@
 ---
 name: pi
 description: Planetary Interaction guide for production chains, planet resources, and colony planning.
-model: sonnet
 category: operations
 triggers:
   - "/pi"

@@ -1,7 +1,6 @@
 ---
 name: mining
 description: View mining ledger with ore extraction history. Track what you've mined, where, and when over the past 30 days.
-model: haiku
 category: operations
 triggers:
   - "/mining"

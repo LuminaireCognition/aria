@@ -1,7 +1,6 @@
 ---
 name: killmail
 description: Analyze individual killmails with enriched tactical context
-model: sonnet
 category: tactical
 triggers:
   - "/killmail"

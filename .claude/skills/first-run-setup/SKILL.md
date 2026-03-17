@@ -1,7 +1,6 @@
 ---
 name: first-run-setup
 description: Conversational first-run configuration for new ARIA users. Guides capsuleer through profile setup via dialogue.
-model: sonnet
 category: system
 triggers:
   - "/setup"

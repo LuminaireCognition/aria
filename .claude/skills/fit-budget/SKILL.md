@@ -1,7 +1,6 @@
 ---
 name: fit-budget
 description: Downgrade a T2/expensive fit to match your current skills while maintaining the fit's purpose. Shows performance comparison between original and budget versions.
-model: sonnet
 category: tactical
 triggers:
   - "/fit-budget"
