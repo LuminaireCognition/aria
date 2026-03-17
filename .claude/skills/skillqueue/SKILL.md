@@ -1,7 +1,6 @@
 ---
 name: skillqueue
 description: Monitor EVE Online skill training queue and ETA. View current training progress and upcoming skills.
-model: haiku
 category: tactical
 triggers:
   - "/skillqueue"

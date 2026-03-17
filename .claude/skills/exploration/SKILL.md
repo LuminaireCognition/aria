@@ -1,7 +1,6 @@
 ---
 name: exploration
 description: ARIA exploration and hacking guidance for Eve Online. Use for relic/data site analysis, hacking tips, or exploration loot identification.
-model: sonnet
 category: operations
 triggers:
   - "/exploration"

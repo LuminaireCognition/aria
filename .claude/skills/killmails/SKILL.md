@@ -1,7 +1,6 @@
 ---
 name: killmails
 description: Kill and loss history analysis. Post-mortem on ship losses to understand what killed you and how to improve survivability.
-model: haiku
 category: tactical
 triggers:
   - "/killmails"

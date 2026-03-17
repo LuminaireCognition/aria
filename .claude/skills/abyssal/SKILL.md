@@ -1,7 +1,6 @@
 ---
 name: abyssal
 description: Abyssal Deadspace guide for weather types, tiers, ship fits, and NPC threats.
-model: sonnet
 category: tactical
 triggers:
   - "/abyssal"

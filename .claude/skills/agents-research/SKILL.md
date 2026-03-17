@@ -1,7 +1,6 @@
 ---
 name: agents-research
 description: Monitor research agent partnerships and accumulated research points. Track passive RP generation from R&D agents.
-model: haiku
 category: industry
 triggers:
   - "/agents-research"

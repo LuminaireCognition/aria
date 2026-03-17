@@ -1,7 +1,6 @@
 ---
 name: esi-query
 description: Query EVE Online ESI API for live character data. Use when capsuleer asks for current location, skills, wallet, or standings.
-model: haiku
 category: system
 triggers:
   - "/esi-query"

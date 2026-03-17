@@ -1,7 +1,6 @@
 ---
 name: lp-store
 description: Track LP balances and browse LP store offers. Essential for self-sufficient gameplay where LP store is the primary source of faction items.
-model: haiku
 category: financial
 triggers:
   - "/lp-store"

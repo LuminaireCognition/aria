@@ -15,7 +15,6 @@ This document defines the standard frontmatter schema for ARIA skills.
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `model` | string | (inherited) | Model hint: `haiku` for fast/simple, `sonnet` for complex |
 | `triggers` | string[] | [] | Natural language phrases that invoke this skill |
 | `requires_pilot` | boolean | false | Whether skill needs active pilot context |
 | `data_sources` | string[] | [] | Local files the skill reads (supports `{active_pilot}` placeholder) |
@@ -72,7 +71,6 @@ prerequisite_files: []
 ---
 name: help
 description: Display available ARIA commands and capabilities.
-model: haiku
 ---
 ```
 
@@ -82,7 +80,6 @@ model: haiku
 ---
 name: mission-brief
 description: ARIA tactical intelligence briefing for Eve Online missions.
-model: sonnet
 category: tactical
 triggers:
   - "mission brief"

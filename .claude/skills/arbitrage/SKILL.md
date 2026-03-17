@@ -1,7 +1,6 @@
 ---
 name: arbitrage
 description: Cross-region arbitrage opportunity scanner. Find profitable trade routes between trade hubs with hauling score analysis.
-model: sonnet
 category: financial
 triggers:
   - "/arbitrage"

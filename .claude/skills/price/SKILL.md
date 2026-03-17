@@ -1,7 +1,6 @@
 ---
 name: price
 description: Market price lookups. Use for 'how much is [item]', price checks, buy/sell spreads, or item valuation.
-model: sonnet
 category: financial
 triggers:
   - "/price"

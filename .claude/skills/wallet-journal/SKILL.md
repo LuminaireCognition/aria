@@ -1,7 +1,6 @@
 ---
 name: wallet-journal
 description: View wallet transaction history and ISK flow analysis. Use for financial tracking, profit/loss analysis, or identifying income sources.
-model: haiku
 category: financial
 triggers:
   - "/wallet-journal"

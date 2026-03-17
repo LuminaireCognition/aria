@@ -1,7 +1,6 @@
 ---
 name: journal
 description: Log mission completions and exploration discoveries to operational records.
-model: haiku
 category: operations
 triggers:
   - "/journal"

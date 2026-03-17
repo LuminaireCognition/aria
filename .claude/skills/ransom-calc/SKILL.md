@@ -1,7 +1,6 @@
 ---
 name: ransom-calc
 description: Ransom calculation for Eve Online. Calculate appropriate ransom amounts based on ship value, cargo, and implants.
-model: sonnet
 category: financial
 triggers:
   - "/ransom-calc"

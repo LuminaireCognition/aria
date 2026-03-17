@@ -1,7 +1,6 @@
 ---
 name: corp
 description: Corporation management and queries. Use for corp status, wallet, assets, blueprints, or industry jobs.
-model: haiku
 category: identity
 triggers:
   - "/corp"

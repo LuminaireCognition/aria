@@ -1,7 +1,6 @@
 ---
 name: fittings
 description: View saved ship fittings from ESI. List fittings, filter by hull, and export to EFT format.
-model: haiku
 category: operations
 triggers:
   - "/fittings"

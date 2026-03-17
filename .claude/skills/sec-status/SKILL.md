@@ -1,7 +1,6 @@
 ---
 name: sec-status
 description: Security status tracking for Eve Online. Monitor sec status, calculate tag costs, and track empire access restrictions.
-model: haiku
 category: identity
 triggers:
   - "/sec-status"

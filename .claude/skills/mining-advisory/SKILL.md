@@ -1,7 +1,6 @@
 ---
 name: mining-advisory
 description: ARIA mining operations guidance for Eve Online. Use for ore recommendations, belt intel, Venture fitting, or mining optimization.
-model: sonnet
 category: operations
 triggers:
   - "/mining-advisory"

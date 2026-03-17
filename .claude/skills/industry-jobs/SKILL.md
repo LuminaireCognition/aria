@@ -1,7 +1,6 @@
 ---
 name: industry-jobs
 description: Monitor personal manufacturing, research, copying, and invention jobs. View active jobs, completion times, and recent history.
-model: haiku
 category: industry
 triggers:
   - "/industry-jobs"

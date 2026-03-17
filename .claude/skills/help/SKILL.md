@@ -1,7 +1,6 @@
 ---
 name: help
 description: Display available ARIA commands and capabilities. Use when capsuleer needs guidance on what ARIA can do.
-model: haiku
 category: system
 triggers:
   - "/help"

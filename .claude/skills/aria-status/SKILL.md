@@ -1,7 +1,6 @@
 ---
 name: aria-status
 description: ARIA operational status report. Use when capsuleer requests status, sitrep, or operational summary.
-model: haiku
 category: identity
 triggers:
   - "/aria-status"
