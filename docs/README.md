@@ -92,7 +92,7 @@ For developer documentation (testing, typing, MCP internals, AI runtime instruct
 | Document | Description |
 |----------|-------------|
 | [../SECURITY.md](../SECURITY.md) | Security policy and implemented controls |
-| [../dev/reviews/archive/SECURITY_000.md](../dev/reviews/archive/SECURITY_000.md) | Full security review with mitigation status |
+| [../dev/reviews/SECURITY_2026-02-24.md](../dev/reviews/SECURITY_2026-02-24.md) | Full security review with mitigation status |
 
 **Key security features:**
 - Path validation prevents traversal attacks on persona files
