@@ -35,6 +35,7 @@ class TestParameterSchemas:
             "fw_frontlines",
             "local_area",
             "territory_analysis",
+            "roam_route",
         }
         assert set(UNIVERSE_ACTION_PARAMS.keys()) == expected_actions
 

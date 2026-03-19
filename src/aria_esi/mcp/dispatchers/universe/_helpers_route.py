@@ -89,18 +89,41 @@ async def _generate_fw_route_warnings(universe: UniverseGraph, path: list[int]) 
     return warnings
 
 
-def _build_route_result(
+async def _build_route_result(
     universe: UniverseGraph,
     path: list[int],
     origin: str,
     destination: str,
     mode: str,
     corrections: dict[str, str] | None = None,
+    include_activity: bool = False,
 ) -> RouteResult:
     """Build complete RouteResult from path."""
+    from aria_esi.store.activity import classify_activity
+
     systems = [build_system_info(universe, idx) for idx in path]
     summary = _svc_compute_security_summary(universe, path)
     warnings = _svc_generate_warnings(universe, path, mode)
+
+    if include_activity:
+        cache = get_activity_cache()
+        enriched = []
+        for system_info in systems:
+            activity = await cache.get_activity(system_info.system_id)
+            enriched.append(
+                system_info.model_copy(
+                    update={
+                        "npc_kills": activity.npc_kills,
+                        "ship_kills": activity.ship_kills,
+                        "pod_kills": activity.pod_kills,
+                        "ship_jumps": activity.ship_jumps,
+                        "activity_level": classify_activity(
+                            activity.ship_kills + activity.pod_kills, "kills"
+                        ),
+                    }
+                )
+            )
+        systems = enriched
 
     return RouteResult(
         origin=origin,

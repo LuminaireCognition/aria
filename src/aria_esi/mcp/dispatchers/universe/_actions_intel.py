@@ -781,6 +781,10 @@ async def _local_area(
             ("borders", 10),
             ("fw_systems", 10),
         ],
+        covers=[
+            f"hotspots(origin='{origin_resolved.canonical_name}', activity_type='ratting', max_jumps<={effective_max_jumps})",
+            f"hotspots(origin='{origin_resolved.canonical_name}', activity_type='kills', max_jumps<={effective_max_jumps})",
+        ],
     )
 
 

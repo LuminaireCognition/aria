@@ -27,6 +27,7 @@ UNIVERSE_ACTION_PARAMS: dict[str, set[str]] = {
         "avoid_systems",
         "prefer_territory",
         "avoid_territory",
+        "include_activity",
     },
     "systems": {"systems"},
     "borders": {"origin", "limit", "max_jumps"},
@@ -66,6 +67,7 @@ UNIVERSE_ACTION_PARAMS: dict[str, set[str]] = {
         "return_to_origin",
         "security_filter",
         "avoid_systems",
+        "linear",
     },
     "activity": {"systems", "include_realtime"},
     "hotspots": {
@@ -87,6 +89,15 @@ UNIVERSE_ACTION_PARAMS: dict[str, set[str]] = {
         "ratting_threshold",
     },
     "territory_analysis": {"coalition", "alliance_id"},
+    "roam_route": {
+        "origin",
+        "target_jumps",
+        "activity_type",
+        "mode",
+        "avoid_systems",
+        "destination",
+        "hotspot_threshold",
+    },
 }
 
 
@@ -257,7 +268,9 @@ def get_default_values(dispatcher: str) -> dict[str, Any]:
             "optimize": "density",
             "security_filter": "highsec",
             "return_to_origin": True,
+            "linear": False,
             "activity_type": "kills",
+            "include_activity": False,
             "include_realtime": False,
             "hotspot_threshold": 5,
             "quiet_threshold": 0,

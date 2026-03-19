@@ -169,8 +169,24 @@ Some queries map to knowledge-only skills that don't use MCP tools (so the skill
 | "budget fit", "make this cheaper", "downgrade fit" | `/fit-budget` |
 | "what ship next", "upgrade path", "ship progression" | `/ship-next` |
 | "best ISK", "ISK per hour", "compare money making" | `/isk-compare` |
+| "roam through", "hunting route", "sweep through [space]" | `roam_route` action (or `local_area` + `route` if `roam_route` unavailable) |
+| "route through ratting systems", "find ratters" | `roam_route` with `activity_type="ratting"` |
+| "avoid backtracking", "linear route", "no doubling back" | `roam_route` with `mode="linear"` (or `optimize_waypoints` with `linear=true`) |
 
 Knowledge-only skills have no MCP calls to gate, so they rely on prompt-level routing rather than hook enforcement. ESI-dependent skills are also listed here because the model often pre-fetches data before invoking the Skill tool, triggering skill-gate violations.
+
+### Composite Query Patterns
+
+| Query type | Optimal call | Do NOT also call |
+|------------|-------------|------------------|
+| Orientation / local intel | `local_area` | `hotspots`, `activity` for same area |
+| Route with activity data | `route` with `include_activity=true` | `activity` for route systems |
+| Roaming / hunting route | `roam_route` | `local_area`, `hotspots`, `optimize_waypoints` |
+
+**Query composition for roaming (if `roam_route` not yet available):**
+1. `local_area(origin, max_jumps=25, include_realtime=true)` -- gives ratting banks + threats + escapes
+2. `route(origin, destination=<farthest ratting target>)` -- gives backbone with neighbor topology
+3. Design detours from backbone neighbor data. Do NOT call `hotspots`, `activity`, or `systems` separately.
 
 ## Skill Loading
 

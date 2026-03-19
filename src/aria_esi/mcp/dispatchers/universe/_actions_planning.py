@@ -120,6 +120,7 @@ async def _optimize_waypoints(
     return_to_origin: bool,
     security_filter: str,
     avoid_systems: list[str] | None,
+    linear: bool = False,
 ) -> dict:
     """Optimize waypoints action."""
     if not waypoints:
@@ -195,6 +196,7 @@ async def _optimize_waypoints(
         unresolved_waypoints=unresolved,
         unresolved_avoids=unresolved_avoids,
         corrections=corrections,
+        linear=linear,
     )
 
     return wrap_output(result, "route", max_items=UNIVERSE.OUTPUT_MAX_ROUTE)

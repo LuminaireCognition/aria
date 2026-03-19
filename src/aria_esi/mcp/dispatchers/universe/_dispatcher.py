@@ -18,6 +18,7 @@ from ._actions_intel import (
 )
 from ._actions_navigation import _borders, _nearest, _route, _search, _systems
 from ._actions_planning import _analyze, _loop, _optimize_waypoints
+from ._actions_roaming import _roam_route
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import FastMCP
@@ -40,6 +41,7 @@ UniverseAction = Literal[
     "fw_frontlines",
     "local_area",
     "territory_analysis",
+    "roam_route",
 ]
 
 VALID_ACTIONS: set[str] = {
@@ -57,6 +59,7 @@ VALID_ACTIONS: set[str] = {
     "fw_frontlines",
     "local_area",
     "territory_analysis",
+    "roam_route",
 }
 
 
@@ -102,6 +105,8 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
         # waypoints params
         waypoints: list[str] | None = None,
         return_to_origin: bool = True,
+        # waypoints params - linear mode
+        linear: bool = False,
         # hotspots params
         activity_type: str = "kills",
         # gatecamp_risk params
@@ -110,6 +115,8 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
         faction: str | None = None,
         # activity params - realtime
         include_realtime: bool = False,
+        # route/roam_route params - activity enrichment
+        include_activity: bool = False,
         # local_area params
         hotspot_threshold: int = 5,
         quiet_threshold: int = 0,
@@ -139,6 +146,7 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
         - fw_frontlines: Get Faction Warfare contested systems
         - local_area: Consolidated local intel for orientation in unknown space
         - territory_analysis: Analyze sovereignty territory for coalition/alliance
+        - roam_route: Build a linear hunting/roaming route through active systems
 
         Args:
             action: The operation to perform (see Actions above)
@@ -150,6 +158,8 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 avoid_systems: Systems to avoid
                 prefer_territory: Coalition alias to prefer (e.g., "imperium")
                 avoid_territory: Coalition alias to avoid (e.g., "panfam")
+                include_activity: Embed NPC/ship kill data per system (default False).
+                                  Eliminates need for separate activity() call on route systems.
 
             Systems params (action="systems"):
                 systems: List of system names to look up
@@ -194,6 +204,10 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 return_to_origin: Return to start (default True)
                 security_filter: "any", "highsec", "lowsec"
                 avoid_systems: Systems to avoid
+                linear: If true, find longest non-repeating path instead of TSP loop.
+                        Use for roaming routes where backtracking is unacceptable.
+                        Some waypoints may be skipped if unreachable without repeat.
+                        Overrides return_to_origin if both are set. (default False)
 
             Activity params (action="activity"):
                 systems: Systems to query
@@ -222,15 +236,31 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 quiet_threshold: Max kills for quiet zone
                 ratting_threshold: Min NPC kills for ratting
 
+                NOTE: local_area is a composite query that supersedes separate calls to:
+                - hotspots (ratting): covered by ratting_banks in response
+                - hotspots (kills): covered by hotspots in response
+                - activity (for systems in radius): covered by per-system data in all lists
+                Do NOT call hotspots or activity separately when local_area covers the same origin/radius.
+
             Territory analysis params (action="territory_analysis"):
                 coalition: Coalition ID or alias
                 alliance_id: Alliance ID to analyze
+
+            Roam route params (action="roam_route"):
+                origin: Starting system
+                target_jumps: Desired route length (default 20, max 40)
+                activity_type: "ratting" or "kills" - systems to route through
+                mode: "linear" (no backtrack) or "sweep" (minimal retrace ok)
+                avoid_systems: Systems to skip
+                destination: Optional system to bias route direction
+                hotspot_threshold: PVP kill count to auto-avoid (default 5)
 
         Returns:
             Action-specific result dictionary
 
         Examples:
             universe(action="route", origin="Jita", destination="Amarr", mode="safe")
+            universe(action="route", origin="Jita", destination="Amarr", include_activity=True)
             universe(action="systems", systems=["Jita", "Perimeter"])
             universe(action="borders", origin="Dodixie", limit=5)
             universe(action="loop", origin="Masalle", target_jumps=25)
@@ -238,6 +268,7 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
             universe(action="hotspots", origin="Hek", activity_type="kills")
             universe(action="local_area", origin="ZZ-TOP", max_jumps=10, include_realtime=True)
             universe(action="territory_analysis", coalition="imperium")
+            universe(action="roam_route", origin="7BIX-A", target_jumps=20, activity_type="ratting")
         """
         if action not in VALID_ACTIONS:
             raise InvalidParameterError(
@@ -284,10 +315,12 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 "security_filter": security_filter,
                 "waypoints": waypoints,
                 "return_to_origin": return_to_origin,
+                "linear": linear,
                 "activity_type": activity_type,
                 "route": route,
                 "faction": faction,
                 "include_realtime": include_realtime,
+                "include_activity": include_activity,
                 "hotspot_threshold": hotspot_threshold,
                 "quiet_threshold": quiet_threshold,
                 "ratting_threshold": ratting_threshold,
@@ -308,6 +341,7 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                     avoid_systems,
                     prefer_territory,
                     avoid_territory,
+                    include_activity,
                 )
 
             case "systems":
@@ -356,7 +390,7 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
 
             case "optimize_waypoints":
                 result = await _optimize_waypoints(
-                    waypoints, origin, return_to_origin, security_filter, avoid_systems
+                    waypoints, origin, return_to_origin, security_filter, avoid_systems, linear
                 )
 
             case "activity":
@@ -385,6 +419,22 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
 
             case "territory_analysis":
                 result = await _territory_analysis(coalition, alliance_id)
+
+            case "roam_route":
+                # Remap shared dispatcher defaults to roam_route-specific defaults:
+                # - mode="shortest" (route default) -> "linear" (roam default)
+                # - activity_type="kills" (hotspots default) -> "ratting" (roam default)
+                roam_mode = mode if mode in ("linear", "sweep") else "linear"
+                roam_activity = activity_type if activity_type in ("ratting", "kills") else "ratting"
+                result = await _roam_route(
+                    origin,
+                    target_jumps,
+                    roam_activity,
+                    roam_mode,
+                    avoid_systems,
+                    hotspot_threshold=hotspot_threshold,
+                    direction=destination,
+                )
 
             case _:
                 raise InvalidParameterError(
