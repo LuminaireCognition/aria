@@ -22,8 +22,16 @@ def _do_optimize_waypoints(
     unresolved_waypoints: list[str] | None = None,
     unresolved_avoids: list[str] | None = None,
     corrections: dict[str, str] | None = None,
+    linear: bool = False,
 ) -> dict[str, Any]:
-    """Optimize waypoint visit order using TSP approximation."""
+    """Optimize waypoint visit order using TSP approximation or linear path."""
+    extra_warnings: list[str] = []
+
+    # linear=True overrides return_to_origin
+    if linear and return_to_origin:
+        extra_warnings.append("linear=True overrides return_to_origin — linear paths cannot loop")
+        return_to_origin = False
+
     if origin_idx is not None and origin_idx not in waypoint_indices:
         all_vertices = [origin_idx] + waypoint_indices
     else:
@@ -48,7 +56,11 @@ def _do_optimize_waypoints(
     else:
         to_visit = [v for v in waypoint_indices if v != start_idx]
 
-    tour = _nearest_neighbor_tsp(start_idx, to_visit, matrix)
+    if linear:
+        tour, skipped = _linear_path(start_idx, to_visit, matrix)
+    else:
+        tour = _nearest_neighbor_tsp(start_idx, to_visit, matrix)
+        skipped = []
 
     full_route: list[int] = []
     for i in range(len(tour) - 1):
@@ -61,6 +73,16 @@ def _do_optimize_waypoints(
     if tour:
         full_route.append(tour[-1])
 
+    # In linear mode, verify no duplicate systems in full route
+    if linear:
+        seen: set[int] = set()
+        deduped: list[int] = []
+        for idx in full_route:
+            if idx not in seen:
+                seen.add(idx)
+                deduped.append(idx)
+        full_route = deduped
+
     is_loop = False
     if return_to_origin and origin_idx is not None:
         return_segment = matrix.path(tour[-1], origin_idx)
@@ -68,7 +90,7 @@ def _do_optimize_waypoints(
             full_route.extend(return_segment[1:])
         is_loop = True
 
-    return _build_optimization_result(
+    result = _build_optimization_result(
         universe=universe,
         tour=tour,
         full_route=full_route,
@@ -79,6 +101,17 @@ def _do_optimize_waypoints(
         unresolved_avoids=unresolved_avoids,
         corrections=corrections,
     )
+
+    if linear:
+        result["mode"] = "linear"
+        result["skipped_waypoints"] = [universe.idx_to_name[idx] for idx in skipped]
+    else:
+        result["mode"] = "tsp"
+
+    if extra_warnings:
+        result["warnings"] = result.get("warnings", []) + extra_warnings
+
+    return result
 
 
 def _find_best_start(waypoints: list[int], matrix: DistanceMatrix) -> int:
@@ -115,6 +148,73 @@ def _nearest_neighbor_tsp(
         current = nearest
 
     return tour
+
+
+def _linear_path(
+    start: int,
+    waypoints: list[int],
+    matrix: DistanceMatrix,
+) -> tuple[list[int], list[int]]:
+    """
+    Find longest non-repeating path through waypoints from start.
+
+    Uses a greedy heuristic: at each step, pick the next unvisited waypoint
+    that maximizes remaining reachable waypoints (avoid painting into corners).
+
+    Returns:
+        (tour, skipped): tour is the ordered path, skipped are unreachable waypoints
+    """
+    tour = [start]
+    unvisited = set(waypoints)
+    visited_set = {start}
+
+    current = start
+    while unvisited:
+        # Score candidates by how many remaining waypoints they can still reach
+        best_candidate = None
+        best_score = -1
+        best_dist = float("inf")
+
+        for wp in unvisited:
+            dist = matrix.distance(current, wp)
+            if dist == float("inf"):
+                continue
+
+            # Check path doesn't go through already-visited waypoints
+            path = matrix.path(current, wp)
+            path_waypoints = set(path) & visited_set
+            # Allow current (start of path) but no others
+            if len(path_waypoints - {current}) > 0:
+                # Path backtracks through visited waypoints — skip
+                continue
+
+            # Count how many remaining waypoints are reachable from this candidate
+            reachable = 0
+            for other in unvisited:
+                if other == wp:
+                    continue
+                if matrix.distance(wp, other) < float("inf"):
+                    reachable += 1
+
+            # Prefer: more reachable options, then shorter distance as tiebreaker
+            if reachable > best_score or (reachable == best_score and dist < best_dist):
+                best_score = reachable
+                best_candidate = wp
+                best_dist = dist
+
+        if best_candidate is None:
+            # No reachable unvisited waypoints — remaining are skipped
+            break
+
+        tour.append(best_candidate)
+        unvisited.remove(best_candidate)
+        # Mark all intermediate systems in the path as visited too
+        path = matrix.path(current, best_candidate)
+        visited_set.update(path)
+        current = best_candidate
+
+    skipped = list(unvisited)
+    return tour, skipped
 
 
 def _build_optimization_result(

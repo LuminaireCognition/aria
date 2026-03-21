@@ -28,6 +28,7 @@ async def _route(
     avoid_systems: list[str] | None,
     prefer_territory: str | None = None,
     avoid_territory: str | None = None,
+    include_activity: bool = False,
 ) -> dict:
     """Route action."""
     if not origin:
@@ -109,13 +110,14 @@ async def _route(
     if not path:
         raise RouteNotFoundError(origin_resolved.canonical_name, dest_resolved.canonical_name)
 
-    result = _build_route_result(
+    result = await _build_route_result(
         universe,
         path,
         origin_resolved.canonical_name,
         dest_resolved.canonical_name,
         mode,
         corrections,
+        include_activity=include_activity,
     )
 
     if unresolved_avoids:

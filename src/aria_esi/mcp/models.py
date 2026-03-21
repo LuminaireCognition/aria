@@ -93,6 +93,14 @@ class SystemInfo(MCPModel):
     sovereignty: SovereigntyInfo | None = Field(
         default=None, description="Sovereignty info for null-sec systems"
     )
+    # Optional activity fields (populated when include_activity=True on route)
+    npc_kills: int | None = Field(default=None, description="Last-hour NPC kills")
+    ship_kills: int | None = Field(default=None, description="Last-hour ship kills")
+    pod_kills: int | None = Field(default=None, description="Last-hour pod kills")
+    ship_jumps: int | None = Field(default=None, description="Last-hour traffic")
+    activity_level: ActivityLevel | None = Field(
+        default=None, description="Classified activity level"
+    )
 
 
 # =============================================================================
@@ -483,6 +491,46 @@ class FWLocalStatus(MCPModel):
     occupier_faction: str
     contested: FWContestedStatus
     contested_percentage: float = Field(ge=0.0, le=100.0)
+
+
+class RoamRouteSystem(MCPModel):
+    """A system in a roaming route with activity data."""
+
+    name: str
+    system_id: int
+    security: float = Field(ge=-1.0, le=1.0)
+    region: str
+    jump_number: int = Field(ge=1, description="Position in route (1-indexed)")
+    phase: Literal["transit", "hunt", "retrace"] = Field(
+        description="Route phase: transit (connecting), hunt (active target area), retrace (revisited in sweep)"
+    )
+    npc_kills: int = Field(default=0, ge=0)
+    ship_kills: int = Field(default=0, ge=0)
+    pod_kills: int = Field(default=0, ge=0)
+    ship_jumps: int = Field(default=0, ge=0)
+    neighbors: list[NeighborInfo] = Field(default_factory=list)
+
+
+class RoamRouteResult(MCPModel):
+    """Result of a roaming route computation."""
+
+    origin: str
+    systems: list[RoamRouteSystem] = Field(description="Full route with activity data")
+    total_jumps: int = Field(ge=0)
+    hunting_systems: int = Field(ge=0, description="Count of systems classified as hunt")
+    total_npc_kills: int = Field(ge=0, description="Sum of NPC kills along route")
+    total_pvp_kills: int = Field(ge=0, description="Sum of PVP kills along route")
+    retrace_systems: list[str] = Field(
+        default_factory=list, description="Systems visited twice (empty if mode=linear)"
+    )
+    escape_routes: list[EscapeRoute] = Field(
+        default_factory=list, description="Nearest exits from route endpoint"
+    )
+    warnings: list[str] = Field(default_factory=list)
+    corrections: dict[str, str] = Field(
+        default_factory=dict,
+        description="Auto-corrected system names: {input: canonical}",
+    )
 
 
 class LocalAreaResult(MCPModel):

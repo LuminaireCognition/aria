@@ -90,7 +90,7 @@ class TestRouteToolIntegration:
         dest_idx = universe.resolve_name("Sivala")
 
         path = _calculate_route(universe, origin_idx, dest_idx, "shortest")
-        result = _build_route_result(universe, path, "Jita", "Sivala", "shortest")
+        result = await _build_route_result(universe, path, "Jita", "Sivala", "shortest")
 
         assert result.origin == "Jita"
         assert result.destination == "Sivala"

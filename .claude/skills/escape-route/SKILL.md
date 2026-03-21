@@ -40,10 +40,13 @@ Every route and destination in the response MUST come from an actual tool call. 
 | 1 | `universe(action="route", origin="...", destination="...", mode="safe")` | Every named route with jump count |
 | 2 | `universe(action="nearest", origin="...", security_min=..., security_max=...)` | Finding nearest safe harbors |
 | 3 | `universe(action="activity", systems=[...], include_realtime=True)` | Activity data for route systems |
+| 4 | `universe(action="systems", systems=["..."])` | Verify gate connectivity of any system before recommending as escape destination |
 
 **Every system name in the response MUST appear in a tool call response.** If a system was not returned by any MCP call, it cannot appear in the output.
 
 > **HALLUCINATION GUARD:** Every route, system name, jump count, and security status in the response MUST come from MCP/CLI calls made in this session. NEVER name systems from training data memory. If you cannot make the route call, say so — do not guess a route.
+
+> **TOPOLOGY GUARD:** Before recommending any system as an escape destination or alternate route, verify its gate neighbors via tool call. A system with all gates leading back to the current route is NOT an escape — it is a trap. Show the gate neighbor list in the output so the FC can verify.
 
 If `nearest` returns no results, increase `max_jumps` to 50 and retry. If still empty, report "No safe harbor found within range."
 

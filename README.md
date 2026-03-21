@@ -166,6 +166,7 @@ uv run aria-esi --help
 
 ```text
 Damsel in Distress L2 — Mission Brief
+```
 
 | | Details |
 |---|---|
@@ -174,6 +175,7 @@ Damsel in Distress L2 — Mission Brief
 | EWAR | None noted |
 | Objective | Destroy Kruul's Pleasure Hub, loot "The Damsel" |
 
+```text
 Blitz
 1. Warp in — do not shoot Kruul (triggers 10x elite frigates)
 2. Destroy Kruul's Pleasure Hub — stay 5–10 km (AoE on destruction)
@@ -193,45 +195,64 @@ Sources: Wiki:fetched (EVE University Wiki — The Damsel in Distress L2)
 Tip: /mission-brief Damsel in Distress --fit for a tailored ship fitting
 ```
 
+### Route Planning
+
+```text
+❯ I just filamented into 7BIX-A. Find me a ~10 jump route through ratting systems,
+  avoiding high populations and pvp hotspots. Avoid backtracking.
+```
+
+```text
+Roam Route: 7BIX-A → F-88PJ (Fountain)
+
+Mode: Linear (no backtracking) | Jumps: 8 | Hunt systems: 4
+```
+
+| # | System  | Sec   | NPC Kills | Ships | Pods | Jumps | Notes           |
+|---|---------|-------|----------:|------:|-----:|------:|-----------------|
+| 1 | 7BIX-A  | -0.60 |       565 |     0 |    0 |     2 | hunt            |
+| 2 | G-UTHL  | -0.12 |        50 |     0 |    0 |     8 | transit         |
+| 3 | LIWW-P  | -0.16 |       147 |     0 |    0 |    15 | transit         |
+| 4 | A-1CON  | -0.08 |         4 |     0 |    0 |    33 | transit, pipe   |
+| 5 | YZ-LQL  | -0.11 |        52 |     0 |    0 |   113 | transit, 6 gates|
+| 6 | D-Q04X  | -0.46 |        51 |     0 |    0 |    13 | transit         |
+| 7 | O-PNSN  | -0.65 |       981 |     0 |    0 |    43 | hunt            |
+| 8 | 1-5GBW  | -0.73 |     1,820 |     0 |    0 |    48 | hunt            |
+| 9 | F-88PJ  | -0.90 |     1,266 |     0 |    0 |    24 | hunt, dead end  |
+
+```text
+Totals: 4,936 NPC kills across route | 0 PVP kills | All null-sec
+
+GATE TOPOLOGY (terminus + decision points)
+  F-88PJ (-0.90): 1-5GBW (-0.73) [dead end]
+  YZ-LQL (-0.11): Z30S-A (-0.09), MN5N-X (-0.28), A-1CON (-0.08),
+                   75FA-Z (-0.08), D-Q04X (-0.46), Serpentis Prime (-0.12) [hub]
+  O-PNSN (-0.65): D-Q04X (-0.46), 1-5GBW (-0.73), C-FER9 (-0.56), F2-2C3 (-0.56)
+  A-1CON (-0.08): YZ-LQL (-0.11), LIWW-P (-0.16) [pipe]
+
+Activity data from last hour. Sources: roam_route
+```
+
 <details>
-<summary>More examples: Route Planning, Fit Recommendation</summary>
+<summary>MCP tool call behind this response</summary>
 
-#### Route Planning
-
-```text
-❯ Route from Dodixie to Jita, safest route.
+```python
+universe(
+    action="roam_route",
+    origin="7BIX-A",
+    target_jumps=10,
+    activity_type="ratting",
+    mode="linear",
+    hotspot_threshold=5
+)
 ```
 
-```text
-Route: Dodixie → Jita
+ARIA's MCP universe server builds a linear route through systems with high NPC kill activity (ratting), automatically avoiding systems with PVP hotspot activity above the threshold. The `mode="linear"` flag ensures no backtracking.
 
-Mode: Safest | Jumps: 15 | Threat: ELEVATED
+</details>
 
-| System      | Sec | Ships | Pods | Jumps | Notes                          |
-|-------------|-----|------:|-----:|------:|--------------------------------|
-| Dodixie     | 0.9 |     1 |    0 |   561 | Trade hub                      |
-| Botane      | 0.9 |     0 |    0 |   691 |                                |
-| Erme        | 0.8 |     0 |    0 |   383 |                                |
-| Grinacanne  | 0.8 |     0 |    0 |   115 |                                |
-| Renyn       | 0.9 |     0 |    0 |   692 | Region border                  |
-| Algogille   | 0.9 |     1 |    0 |   778 |                                |
-| Kassigainen | 0.9 |     0 |    0 |   946 | Caldari border                 |
-| Hatakani    | 0.9 |     1 |    0 | 1,042 |                                |
-| Sivala      | 0.5 |     0 |    0 | 1,038 | Adjacent low-sec               |
-| Uedama      | 0.5 |     2 |    1 | 1,007 | Gank pipe — 3 kills last hour  |
-| Haatomo     | 0.6 |     1 |    0 |   183 |                                |
-| Suroken     | 0.7 |     0 |    0 |   461 |                                |
-| Kusomonmon  | 0.8 |     0 |    0 |   414 |                                |
-| Urlen       | 1.0 |     0 |    1 | 1,750 |                                |
-| Perimeter   | 1.0 |     6 |    0 | 2,085 | Jita gate                      |
-| Jita        | 0.9 |    21 |    8 | 2,729 | Trade hub                      |
-
-Security: 15 high-sec jumps. Lowest: Uedama (0.5) — known ganking system.
-Fly aligned, don't autopilot through Sivala/Uedama.
-
-Activity data from last hour.
-Sources: ESI route, ESI activity (real-time healthy)
-```
+<details>
+<summary>More examples: Fit Recommendation</summary>
 
 #### Fit Recommendation
 

@@ -346,8 +346,10 @@ class TestBuildRouteResult:
 
     def test_route_result_structure(self, mock_universe: UniverseGraph):
         """RouteResult has all required fields."""
+        import asyncio
+
         path = [0, 1, 3]  # Jita -> Perimeter -> Urlen
-        result = _build_route_result(mock_universe, path, "Jita", "Urlen", "shortest")
+        result = asyncio.run(_build_route_result(mock_universe, path, "Jita", "Urlen", "shortest"))
 
         assert result.origin == "Jita"
         assert result.destination == "Urlen"
@@ -358,8 +360,10 @@ class TestBuildRouteResult:
 
     def test_systems_order(self, mock_universe: UniverseGraph):
         """Systems are in correct order."""
+        import asyncio
+
         path = [0, 2, 4, 5]
-        result = _build_route_result(mock_universe, path, "Jita", "Ala", "shortest")
+        result = asyncio.run(_build_route_result(mock_universe, path, "Jita", "Ala", "shortest"))
 
         system_names = [s.name for s in result.systems]
         assert system_names == ["Jita", "Maurasi", "Sivala", "Ala"]

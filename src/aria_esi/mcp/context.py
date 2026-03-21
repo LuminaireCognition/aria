@@ -441,6 +441,7 @@ def wrap_output_multi(
     items_config: list[tuple[str, int]],
     source: str | None = None,
     as_of: str | None = None,
+    covers: list[str] | None = None,
 ) -> dict[str, Any]:
     """
     Wrap tool output with metadata for multiple truncatable lists.
@@ -546,6 +547,10 @@ def wrap_output_multi(
     if byte_meta.get("byte_limit_enforced"):
         meta["byte_limit_enforced"] = True
         meta["original_bytes"] = byte_meta.get("original_bytes")
+
+    # Add covers metadata for composite query deduplication
+    if covers:
+        meta["_covers"] = covers
 
     data["_meta"] = meta
 

@@ -111,9 +111,9 @@ Add FW context to the route table Notes column (e.g., "FW warzone (contested)").
 **Mode:** [Route mode description]
 **Jumps:** [N]
 
-| System | Sec | Ships | Pods | Jumps | Notes |
-|--------|-----|------:|-----:|------:|-------|
-| [system] | [sec] | [n] | [n] | [n] | [trade hub / border / FW / gatecamp] |
+| # | System | Sec | Gates | Ships | Pods | Jumps | Notes |
+|---|--------|-----|-------|------:|-----:|------:|-------|
+| [n] | [system] | [sec] | [count: A, B, C] | [n] | [n] | [n] | [trade hub / border / FW / gatecamp] |
 
 **Security Summary:**
 - High-sec (1.0-0.5): [N] systems
@@ -128,6 +128,20 @@ Add FW context to the route table Notes column (e.g., "FW warzone (contested)").
 **Gatecamp warning block:** When active gatecamps detected, prepend a warning block before the route table showing the camped system, kill count, attacker info, and suggested alternative route.
 
 **Compact format (routes <= 5 jumps):** Use inline: `Route: A -> B -> C (3 jumps, all high-sec)`
+
+### Gate Topology Appendix (routes >5 jumps)
+
+For routes with more than 5 waypoints, append a gate topology block after the main table listing full gate neighbors (with security status) for the terminus system, dead ends, pipes, and decision points (3+ gates):
+
+```
+GATE TOPOLOGY (terminus + decision points)
+  C1XD-X (-0.45): 00GD-D (-0.20), G95F-H (-0.68), B32-14 (-0.72)
+  CHA2-Q (-0.85): G95F-H (-0.68), B32-14 (-0.72) [dead end]
+```
+
+**Gates column format:** `3: A, B, C` for systems with ≤4 gates, or just the count `6` for hub systems (neighbor names in appendix).
+
+**Annotations:** `[dead end]` (≤2 gates, all neighbors on-route), `[pipe]` (2 gates, both on-route), `[hub]` (5+ gates). These are structural facts from gate data, not tactical advice.
 
 ## Threat Level Integration
 
@@ -194,3 +208,6 @@ uv run aria-esi route Dodixie Jita --avoid Uedama
 - **DO NOT** assume wormhole routes exist (J-space has no stargates)
 - **DO NOT** cache route results locally (ESI handles caching)
 - **DO NOT** fetch activity or system data one system at a time -- always use bulk calls
+- **DO NOT** generate tactical commentary, strategic advice, or prescriptive language — see `docs/ROUTE_OUTPUT_SPEC.md`
+- **DO NOT** recommend escape routes without verifying terminus system gate connectivity against actual neighbor data
+- **DO NOT** describe a system as offering "alternate routing" or "deeper options" without showing its gate neighbors

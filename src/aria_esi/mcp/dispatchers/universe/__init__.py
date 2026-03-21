@@ -46,6 +46,7 @@ from ._actions_planning import (
     _loop,  # noqa: F401
     _optimize_waypoints,  # noqa: F401
 )
+from ._actions_roaming import _roam_route  # noqa: F401
 
 # Dispatcher
 from ._dispatcher import (
@@ -75,6 +76,13 @@ from ._helpers_loop import (
     _plan_loop,  # noqa: F401
     _select_diverse_borders_matrix,  # noqa: F401
 )
+from ._helpers_roam import (
+    classify_systems,  # noqa: F401
+    collect_bfs_data,  # noqa: F401
+    fetch_activity_for_systems,  # noqa: F401
+    greedy_forward_walk,  # noqa: F401
+    sweep_retrace,  # noqa: F401
+)
 from ._helpers_route import (
     _build_route_result,  # noqa: F401
     _calculate_route,  # noqa: F401
@@ -99,5 +107,6 @@ from ._helpers_waypoints import (
     _build_optimization_result,  # noqa: F401
     _do_optimize_waypoints,  # noqa: F401
     _find_best_start,  # noqa: F401
+    _linear_path,  # noqa: F401
     _nearest_neighbor_tsp,  # noqa: F401
 )

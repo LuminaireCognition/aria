@@ -20,4 +20,5 @@ MCP tools are preferred when available. If `universe` appears in your tool list,
 | `/lp-store` | `pilot(action="lp_balance")` / `pilot(action="lp_offers", ...)` | `aria-esi lp` / `aria-esi lp-offers` |
 | `/build-cost` | `market(action="build_cost", ...)` | `aria-esi build-cost` |
 | `/hunting-grounds` | `universe(action="territory_analysis", ...)` | `aria-esi territory` |
+| (roaming route) | `universe(action="roam_route", ...)` | `aria-esi roam-route` |
 | `/find` (proximity) | `market(action="find_nearby", proximity=...)` | `aria-esi find --proximity` |
