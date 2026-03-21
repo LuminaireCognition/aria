@@ -209,7 +209,9 @@ def _score_candidate(
     depth: int = 3,
 ) -> float:
     """Score a candidate next-hop by reachable activity."""
-    reachable = _bfs_unvisited(candidate_idx, visited, g, avoid_hotspots, classification, avoid, max_depth=depth)
+    reachable = _bfs_unvisited(
+        candidate_idx, visited, g, avoid_hotspots, classification, avoid, max_depth=depth
+    )
 
     activity_score = sum(
         hunt_metrics.get(idx, 0) / math.sqrt(max(hop_dist, 1))
@@ -334,8 +336,7 @@ def sweep_retrace(
                 current = beyond
                 while len(route) - 1 < target_jumps:
                     neighbors = [
-                        n for n in g.neighbors(current)
-                        if n not in visited and n not in avoid
+                        n for n in g.neighbors(current) if n not in visited and n not in avoid
                     ]
                     if avoid_hotspots:
                         neighbors = [n for n in neighbors if classification.get(n) != "threat"]

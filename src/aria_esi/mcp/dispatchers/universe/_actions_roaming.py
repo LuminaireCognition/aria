@@ -37,9 +37,7 @@ async def _roam_route(
         raise InvalidParameterError("origin", origin, "Required for action='roam_route'")
 
     if activity_type not in ("ratting", "kills"):
-        raise InvalidParameterError(
-            "activity_type", activity_type, "Must be 'ratting' or 'kills'"
-        )
+        raise InvalidParameterError("activity_type", activity_type, "Must be 'ratting' or 'kills'")
 
     if mode not in ("linear", "sweep"):
         raise InvalidParameterError("mode", mode, "Must be 'linear' or 'sweep'")

@@ -425,7 +425,9 @@ def register_universe_dispatcher(server: FastMCP, graph: UniverseGraph) -> None:
                 # - mode="shortest" (route default) -> "linear" (roam default)
                 # - activity_type="kills" (hotspots default) -> "ratting" (roam default)
                 roam_mode = mode if mode in ("linear", "sweep") else "linear"
-                roam_activity = activity_type if activity_type in ("ratting", "kills") else "ratting"
+                roam_activity = (
+                    activity_type if activity_type in ("ratting", "kills") else "ratting"
+                )
                 result = await _roam_route(
                     origin,
                     target_jumps,
