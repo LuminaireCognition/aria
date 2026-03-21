@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from aria_esi.store.activity import ActivityData
 
 from ...errors import InvalidParameterError
@@ -125,6 +127,7 @@ async def _roam_route(
         act = activity_data.get(system_id, ActivityData(system_id=system_id))
 
         # Determine phase
+        phase: Literal["transit", "hunt", "retrace"]
         if idx in retrace_set and jump_num > route_indices.index(idx):
             phase = "retrace"
         elif classification.get(idx) == "hunt":
