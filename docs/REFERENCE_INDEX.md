@@ -12,3 +12,4 @@
 | Context-aware topology | `docs/CONTEXT_AWARE_TOPOLOGY.md` |
 | Real-time intel config | `docs/REALTIME_CONFIGURATION.md` |
 | Notification profiles | `docs/NOTIFICATION_PROFILES.md` |
+| Route output formatting | `docs/ROUTE_OUTPUT_SPEC.md` |

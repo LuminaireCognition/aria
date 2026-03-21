@@ -280,7 +280,9 @@
       ],
       "path": ".claude/skills/escape-route/SKILL.md",
       "directory": "escape-route",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "docs/ROUTE_OUTPUT_SPEC.md"
+      ],
       "external_sources": [],
       "required_tools": [
         "universe.route"
@@ -994,7 +996,9 @@
       "requires_pilot": false,
       "path": ".claude/skills/orient/SKILL.md",
       "directory": "orient",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "docs/ROUTE_OUTPUT_SPEC.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],
@@ -1158,7 +1162,9 @@
       "requires_pilot": false,
       "path": ".claude/skills/route/SKILL.md",
       "directory": "route",
-      "prerequisite_files": [],
+      "prerequisite_files": [
+        "docs/ROUTE_OUTPUT_SPEC.md"
+      ],
       "data_sources": [],
       "external_sources": [],
       "esi_scopes": [],

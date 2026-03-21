@@ -203,6 +203,8 @@ When a skill is invoked:
 
 **Path security:** All persona/overlay paths must start with `personas/` or `.claude/skills/`, end with `.md`/`.yaml`/`.json`, contain no `..` traversal, and be relative. See `personas/_shared/skill-loading.md`.
 
+**Route output constraint:** All route-producing skills declare `docs/ROUTE_OUTPUT_SPEC.md` as a prerequisite file. See that document for banned commentary patterns and mandatory topology display rules.
+
 ## Reference Documentation
 
 @docs/REFERENCE_INDEX.md

@@ -1,7 +1,7 @@
 # Route Output Grounding: Eliminating Generated Tactical Commentary
 
-**Status:** PROPOSED (2026-03-18)
-**Related:** `docs/ROUTE_OUTPUT_SPEC.md` (new), `.claude/skills/route/SKILL.md`, `.claude/skills/escape-route/SKILL.md`, `.claude/skills/orient/SKILL.md`, `personas/paria/skill-overlays/route.md`, `CLAUDE.md` routing hints
+**Status:** IMPLEMENTED (2026-03-20) — revised 2026-03-20 per readiness review
+**Related:** `docs/ROUTE_OUTPUT_SPEC.md` (new), `.claude/skills/route/SKILL.md`, `.claude/skills/escape-route/SKILL.md`, `.claude/skills/orient/SKILL.md`, `personas/paria/skill-overlays/route.md`, `CLAUDE.md` routing hints, `.claude/skills/_index.json`
 
 ---
 
@@ -11,7 +11,7 @@ Route-family skill outputs currently mix verified topology data with generated t
 
 This proposal introduces two layers to eliminate generated tactical judgments from route outputs while preserving all grounded data:
 
-1. **Constraint spec** (`docs/ROUTE_OUTPUT_SPEC.md`) — universal output rules for all route-producing skills, referenced from CLAUDE.md
+1. **Constraint spec** (`docs/ROUTE_OUTPUT_SPEC.md`) — universal output rules for all route-producing skills, loaded as a mandatory prerequisite before output generation
 2. **Skill-level output template changes** — structural modifications to route, escape-route, orient, and persona overlays that make compliance the path of least resistance
 
 ---
@@ -54,7 +54,13 @@ No output rule in any route-family skill prohibits generated tactical commentary
 **Effort:** Low
 **Scope:** All route-producing outputs regardless of entry point
 
-This document defines universal output rules for any response containing route data. It is referenced from CLAUDE.md so it loads into every session.
+This document defines universal output rules for any response containing route data. It is loaded as a mandatory prerequisite via `prerequisite_files` in each route-family skill's `_index.json` entry, guaranteeing it is read before any output is generated.
+
+#### Spec Document Scope
+
+The runtime spec (`docs/ROUTE_OUTPUT_SPEC.md`) must contain **only actionable constraints** — the four principles, the banned patterns table, and the annotation rules. Target: **40–50 lines**.
+
+The error taxonomy, CHA2-Q case study, root cause analysis, and rationale belong in this proposal document (`dev/proposals/ROUTE_OUTPUT_GROUNDING.md`), not in the runtime spec. Claude does not need to understand *why* commentary is dangerous to follow the constraint; loading rationale into context wastes tokens and reduces adherence per the guidance in the Claude Code `memory.md` documentation ("target under 200 lines... Longer files consume more context and reduce adherence").
 
 #### Content
 
@@ -62,6 +68,17 @@ The spec establishes four principles:
 
 **Principle 1: Show topology, don't narrate it.**
 Every named waypoint must include its full gate neighbor list with security status. Dead ends, pipe systems, and hub systems become self-evident from the data. The FC reads "CHA2-Q: gates to G95F-H (-0.68), B32-14 (-0.72)" and immediately sees a dead end — no commentary needed.
+
+Sovereignty-derived territory labels follow these derivation rules (also used by `/orient`):
+
+| Sov Data | Territory Label |
+|----------|----------------|
+| Alliance in known coalition (`sovereignty.coalition_name` present) | Show: `[TICKER] Alliance — Coalition Name` |
+| Alliance without coalition | Show: `[TICKER] Alliance` |
+| No sovereignty holder | `NPC Null-sec` |
+| No holder + recent sov changes in constellation | `Contested` |
+
+Do not generate behavioral predictions from territory type. The FC knows their opponents.
 
 **Principle 2: No prescriptive language.**
 Route outputs may contain system names, security statuses, constellation names, gate neighbors, sovereignty, and timestamped activity numbers. They may not contain verbs that prescribe FC behavior: "burn through," "stay aligned," "take the X gate," "push deeper," "expect caps." The one permitted imperative is safety-critical warnings derived from data (e.g., "pipe system" for 2-gate systems, "ACTIVE CAMP" from real-time detection).
@@ -89,7 +106,15 @@ Any route-producing output with more than 5 waypoints must include a gate topolo
 
 #### Integration Point
 
-Add to CLAUDE.md under Reference Documentation:
+**Primary (mandatory prerequisite gate):** Add `docs/ROUTE_OUTPUT_SPEC.md` to `prerequisite_files` in `_index.json` for all three route-family skills:
+
+```json
+"prerequisite_files": ["docs/ROUTE_OUTPUT_SPEC.md"]
+```
+
+This leverages the existing ARIA skill-loading mechanism: "If the skill declares `prerequisite_files`, read ALL listed files before producing any output. This is a **blocking requirement**." The spec is guaranteed to be in context before any route output is generated.
+
+**Secondary (defense-in-depth):** Add to CLAUDE.md under Reference Documentation:
 
 ```markdown
 | Route output formatting | `docs/ROUTE_OUTPUT_SPEC.md` |
@@ -98,8 +123,10 @@ Add to CLAUDE.md under Reference Documentation:
 And add a one-line reference in the Prime Directives or Skill Loading section:
 
 ```markdown
-**Route output constraint:** All route-producing skills must comply with `docs/ROUTE_OUTPUT_SPEC.md`. See that document for banned commentary patterns and mandatory topology display rules.
+**Route output constraint:** All route-producing skills declare `docs/ROUTE_OUTPUT_SPEC.md` as a prerequisite file. See that document for banned commentary patterns and mandatory topology display rules.
 ```
+
+The CLAUDE.md reference is secondary — the `prerequisite_files` gate is the enforcement mechanism. The CLAUDE.md line exists so that `roam_route` queries (which may bypass skill invocation) still encounter the constraint.
 
 ---
 
@@ -108,6 +135,10 @@ And add a one-line reference in the Prime Directives or Skill Loading section:
 **Priority:** P0
 **Effort:** Low
 **Files:** `.claude/skills/route/SKILL.md`
+
+#### Schema verification (resolved)
+
+Verified 2026-03-20: `universe(action="roam_route")` returns a `neighbors` field per system via `RoamRouteSystem.neighbors: list[NeighborInfo]` (see `src/aria_esi/mcp/models.py:511`, built at `src/aria_esi/mcp/dispatchers/universe/_actions_roaming.py:141-148`). Each `NeighborInfo` contains `name`, `security`, and `security_class` — the same structure used by `route` and `systems` actions. No additional MCP calls are needed to populate the gate topology appendix for `roam_route` outputs.
 
 #### Modification: Response Format table schema
 
@@ -134,7 +165,7 @@ GATE TOPOLOGY (terminus + decision points)
   CHA2-Q (-0.85): G95F-H (-0.68), B32-14 (-0.72) [dead end]
 ```
 
-This is sourced from the `neighbors` field already present in `universe(action="route")` and `universe(action="systems")` responses. No additional MCP calls needed.
+This is sourced from the `neighbors` field in `universe(action="route")`, `universe(action="systems")`, and `universe(action="roam_route")` responses.
 
 **Annotation rules for the appendix:**
 - Systems with exactly 1 non-route neighbor: no annotation
@@ -162,10 +193,10 @@ These annotations are structural facts derived from gate count, not tactical adv
 
 #### Modification: Add verification requirement
 
-In the "Required Tool Calls (MANDATORY)" section, add:
+In the "Required Tool Calls (MANDATORY)" section, add before the existing steps (verification must occur before recommending, not after displaying):
 
 ```markdown
-| 4 | `universe(action="systems", systems=["..."])` | Verify gate connectivity of any system recommended as escape destination |
+| 4 | `universe(action="systems", systems=["..."])` | Verify gate connectivity of any system before recommending as escape destination |
 ```
 
 And add to the hallucination guard:
@@ -190,9 +221,9 @@ Orient already has strong hallucination guards for data sourcing. Add a parallel
 > **COMMENTARY GUARD:** Orientation output presents data for FC decision-making. Do not generate strategic advice ("expect organized response," "you should leave," "good place to set up"). Show sovereignty, activity numbers, and gate topology. The FC interprets.
 ```
 
-The existing "Threat Implications by Territory Type" table (lines 117-124) contains generated inferences ("Organized standing fleets, rapid response," "Variable response capability") that violate the commentary guard being added in the same change. **Decision: Remove the Implication column entirely.** The territory type categories (Major Coalition, Smaller Alliance, NPC Null-sec, Unclaimed) are useful structural labels derivable from sov data, but the implications are speculation.
+The existing "Threat Implications by Territory Type" section (under "### Threat Implications by Territory Type") contains generated inferences ("Organized standing fleets, rapid response," "Variable response capability") that violate the commentary guard being added in the same change. **Decision: Remove the Implication column entirely.** The territory type categories (Major Coalition, Smaller Alliance, NPC Null-sec, Unclaimed) are useful structural labels derivable from sov data, but the implications are speculation.
 
-Replace the table with:
+Replace the section with the territory-type derivation rules from the constraint spec (`docs/ROUTE_OUTPUT_SPEC.md`, Principle 1). This ensures the rules exist both in the spec (for cross-cutting enforcement) and in the skill (for direct reference during orient output generation):
 
 ```markdown
 ### Territory Type Labels
@@ -208,6 +239,8 @@ Derive territory type from sovereignty data returned by `local_area` or `systems
 
 Do not generate behavioral predictions from territory type. The FC knows their opponents.
 ```
+
+**Authority note:** The territory derivation table appears in both `docs/ROUTE_OUTPUT_SPEC.md` (Principle 1) and orient's SKILL.md. If these copies ever diverge, `docs/ROUTE_OUTPUT_SPEC.md` is authoritative — it is the cross-cutting spec loaded via `prerequisite_files` before any skill output. The orient copy is a convenience reference for direct skill reading.
 
 ---
 
@@ -232,7 +265,7 @@ The overlay should:
 
 #### Specific Changes
 
-**Section 1 — "PARIA-Specific Route Analysis" (lines 57-74): Replace entirely.**
+**Section: "PARIA-Specific Route Analysis" — Replace entirely.**
 
 The current section contains ungrounded camp-spot recommendations and escape route claims without tool-call verification. Replace with:
 
@@ -249,15 +282,15 @@ For pirate pilots, the same grounded data is presented with operational framing:
 All data comes from MCP calls. Persona changes labels, not facts.
 ```
 
-This removes the "Escape Route Planning" sub-section (lines 72-74) which recommends "Nearest NPC null station" and "Alternate routes if primary is camped" without mandating tool-call verification. Those capabilities belong to `/escape-route`, not to route commentary.
+This removes the "Escape Route Planning" sub-section which recommends "Nearest NPC null station" and "Alternate routes if primary is camped" without mandating tool-call verification. Those capabilities belong to `/escape-route`, not to route commentary.
 
-**Section 2 — "PARIA Response Format" example (lines 30-54): Update for compliance.**
+**Section: "PARIA Response Format" example — Update for compliance.**
 
 The example output block contains two banned patterns:
 - `Known camp spot: Old Man Star gate in Villore` — unverified camp-spot claim from training data
 - `HUNTING OPPORTUNITIES` section with generated intel
 
-Replace lines 45-52 of the example with:
+Replace the `HUNTING OPPORTUNITIES` and `ESCAPE ROUTES` blocks in the example with:
 
 ```
 ───────────────────────────────────────────────────────────────────
@@ -272,11 +305,11 @@ TACTICAL TOPOLOGY (decision points)
 Your call, Captain.
 ```
 
-**Section 3 — "PARIA Route with Competition" example (lines 101-127): Update entity claim.**
+**Section: "PARIA Route with Competition" example — Update entity claim.**
 
-Line 114 reads `Competition: CODE. (Tornado fleet)` — this is a training-data entity claim. The real-time gatecamp detection response provides attacker ship types and kill counts, but not corporation identification by name from training data.
+The competition block reads `Competition: CODE. (Tornado fleet)` — this is a training-data entity claim. The real-time gatecamp detection response provides attacker ship types and kill counts, but not corporation identification by name from training data.
 
-Replace lines 111-115 with:
+Replace the competition detail block with:
 
 ```
 🎯 COMPETITION WORKING THIS ROUTE
@@ -288,9 +321,9 @@ Replace lines 111-115 with:
 
 The attacker ship types come from the real-time kill data fields. The corporation/alliance name may appear in the kill data — if present, show it. If not, omit rather than guess.
 
-**Section 4 — "Example: Same Route, Different Personas" (lines 143-149): Replace PARIA example.**
+**Section: "Example: Same Route, Different Personas" — Replace PARIA example.**
 
-The current PARIA example contains entity claims (`"Snuffed Out and locals work that pipe"`) and unverified camp-spot recommendations (`"The Villore gate is a known camp spot if you want to set up"`). Replace lines 148-149 with:
+The current PARIA example contains entity claims (`"Snuffed Out and locals work that pipe"`) and unverified camp-spot recommendations (`"The Villore gate is a known camp spot if you want to set up"`). Replace with:
 
 ```markdown
 **PARIA (Pirate pilot, Jita -> Old Man Star):**
@@ -312,14 +345,31 @@ No changes needed now — this is a reminder for when overlays are created for o
 
 ---
 
+### ~~Change 7: Skill-scoped `Stop` hook for banned pattern detection~~ (descoped)
+
+**Priority:** Descoped from initial implementation
+**Original priority:** P2
+
+The original proposal specified a skill-scoped `Stop` hook via a `hooks` frontmatter field in SKILL.md files, citing `skills.md` and `hooks-reference.md`. **Readiness review (2026-03-20) confirmed that this infrastructure does not exist:** no SKILL.md in the repository uses a `hooks` frontmatter field, and neither referenced document exists.
+
+If skill-scoped hooks become available in the Claude Code harness, deterministic enforcement via a `prompt`-type `Stop` hook would provide valuable defense-in-depth — catching banned commentary patterns that slip past prompt-level constraints without fragile regex parsing. The original specification in this proposal (semantic evaluation of output for prescriptive FC advice, entity claims, and unverified camp-spot recommendations) remains valid as a design intent.
+
+**For initial implementation, Changes 1–5 provide sufficient enforcement** through mandatory `prerequisite_files` loading (Change 1), skill-level DO NOT rules (Changes 2–4), and persona overlay grounding (Change 5). The CLAUDE.md defense-in-depth reference (Change 1) provides an additional catch for `roam_route` queries that bypass skill invocation.
+
+**Alternative considered:** A project-level hook in `settings.json` could approximate this behavior, but it would fire on all responses — not just route outputs — adding latency and false-positive risk. Not recommended unless prompt-level constraints prove insufficient in testing.
+
+---
+
 ## Implementation Order
 
-| Phase | Changes | Validates |
-|-------|---------|-----------|
-| **1. Spec + route skill** | #1 (spec), #2 (route SKILL.md) | Run `/route` and `roam_route` queries against live data, verify no commentary in output, verify gate topology appendix appears |
-| **2. Safety-critical skills** | #3 (escape-route) | Run `/escape-route` from dead-end systems, verify tool-call verification of escape destinations |
-| **3. Orient + overlay** | #4 (orient), #5 (PARIA overlay) | Run `/orient` in null-sec, verify no strategic inference; run PARIA `/route`, verify persona voice without fabrication |
-| **4. Index hygiene** | #6 (_index.json) | Verify overlay loading works for modified skills |
+| Phase | Changes | Pre-gates | Validates |
+|-------|---------|-----------|-----------|
+| **1. Spec + route skill** | #1 (spec + `prerequisite_files`), #2 (route SKILL.md) | — | Run `/route` and `roam_route` queries against live data, verify no commentary in output, verify gate topology appendix appears with correct neighbor data |
+| **2. Safety-critical skills** | #3 (escape-route) | — | Run `/escape-route` from dead-end systems, verify tool-call verification of escape destinations |
+| **3. Orient + overlay** | #4 (orient), #5 (PARIA overlay) | — | Run `/orient` in null-sec, verify no strategic inference; run PARIA `/route`, verify persona voice without fabrication |
+| **4. Index hygiene** | #6 (_index.json) | — | Verify overlay loading works for modified skills |
+
+**Note:** Phase 0 (schema verification) from the original proposal is resolved — `roam_route` returns `neighbors` per system in the same `NeighborInfo` format as `route` and `systems` actions (verified 2026-03-20, see Change 2). No additional MCP calls are needed.
 
 ---
 
@@ -339,7 +389,7 @@ Expected: Gate topology appendix shows CHA2-Q with `[dead end]` annotation. No m
 Roaming route from 7BIX-A through Fountain ratting systems, 20 jumps
 ```
 
-Expected: Route table with gates column, activity data with timestamps, gate topology appendix for terminus and decision points. No "burn through," "stay aligned," "expect caps," or strategic advice.
+Expected: Route table with gates column, activity data with timestamps, gate topology appendix for terminus and decision points. No "burn through," "stay aligned," "expect caps," or strategic advice. **Positive assertion:** Gate topology appendix is present and shows terminus system neighbors with security status and structural annotations (`[dead end]`, `[pipe]`, or `[hub]` where applicable).
 
 ### Test 3: Escape Route Topology Verification
 
@@ -356,7 +406,7 @@ Expected: Tool calls verify CHA2-Q neighbors before recommending escape. Output 
 /route Jita Old Man Star
 ```
 
-Expected: Persona voice in labels and framing ("hunting grounds," "competition"), but no unverified entity claims ("Snuffed Out works this pipe"), no camp-spot recommendations without real-time data, gate topology appendix present.
+Expected: Persona voice in labels and framing ("hunting grounds," "competition"), but no unverified entity claims ("Snuffed Out works this pipe"), no camp-spot recommendations without real-time data. **Positive assertion:** `TACTICAL TOPOLOGY` header appears with grounded gate neighbor data sourced from MCP response.
 
 ### Test 5: Orient Commentary Guard
 
@@ -364,13 +414,31 @@ Expected: Persona voice in labels and framing ("hunting grounds," "competition")
 /orient 7BIX-A
 ```
 
-Expected: Threat level, sovereignty, activity tables, escape routes — all from `local_area` response. No "expect organized response" or "rapid response capability" unless tied to specific data field.
+Expected: Threat level, sovereignty, activity tables, escape routes — all from `local_area` response. No "expect organized response" or "rapid response capability" unless tied to specific data field. Territory labels use derivation rules from spec, not generated implications.
+
+### Test 6: Staleness Indicator Format
+
+```
+/route Jita Amarr
+```
+
+Expected: Activity figures include staleness indicator — current-hour data shows as-is, data older than 1 hour shows `(>1h)`. Validates Principle 3 compliance.
+
+### Test 7: Gate Topology Appendix Threshold
+
+```
+/route Jita Perimeter
+```
+
+Expected: Route of <=5 jumps does NOT include a gate topology appendix. Validates the >5 jump threshold from Principle 4.
 
 ---
 
 ## Success Criteria
 
-- [ ] `docs/ROUTE_OUTPUT_SPEC.md` exists and is referenced from CLAUDE.md
+- [ ] `docs/ROUTE_OUTPUT_SPEC.md` exists (40–50 lines, actionable constraints only)
+- [ ] `docs/ROUTE_OUTPUT_SPEC.md` is listed in `prerequisite_files` for route, escape-route, and orient in `_index.json`
+- [ ] `docs/ROUTE_OUTPUT_SPEC.md` is referenced from CLAUDE.md (defense-in-depth)
 - [ ] Route outputs include gate neighbor data for all named waypoints
 - [ ] No route-family output contains prescriptive verbs (burn, align, push, expect, avoid-as-imperative)
 - [ ] Dead-end systems are annotated `[dead end]` in gate topology, never recommended as escapes
@@ -385,11 +453,12 @@ Expected: Threat level, sovereignty, activity tables, escape routes — all from
 
 | # | Change | Priority | Effort | Files |
 |---|--------|----------|--------|-------|
-| 1 | Route output constraint spec | P0 | Low | `docs/ROUTE_OUTPUT_SPEC.md`, `CLAUDE.md` |
+| 1 | Route output constraint spec + prerequisite gate | P0 | Low | `docs/ROUTE_OUTPUT_SPEC.md`, `CLAUDE.md`, `.claude/skills/_index.json` |
 | 2 | Gate topology in route skill | P0 | Low | `.claude/skills/route/SKILL.md` |
 | 3 | Escape topology verification | P0 | Trivial | `.claude/skills/escape-route/SKILL.md` |
-| 4 | Orient commentary guard | P1 | Trivial | `.claude/skills/orient/SKILL.md` |
+| 4 | Orient commentary guard + territory labels | P1 | Trivial | `.claude/skills/orient/SKILL.md` |
 | 5 | PARIA overlay grounding | P1 | Medium | `personas/paria/skill-overlays/route.md` |
 | 6 | Index hygiene | P2 | Trivial | `.claude/skills/_index.json` |
+| 7 | ~~Skill-scoped Stop hook enforcement~~ | Descoped | — | Blocked on skill-scoped hook infrastructure |
 
 **Core principle:** If the output can't be wrong, it doesn't need review. Gate topology can't be wrong (SDE). Activity numbers can be stale but not invented. The only things that can be dangerously wrong are generated tactical judgments — so eliminate them structurally.

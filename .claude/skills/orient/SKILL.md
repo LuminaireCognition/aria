@@ -39,6 +39,8 @@ Orientation intel MUST come from tool calls. Do NOT fabricate sovereignty, activ
 
 > **Failure handling:** If `local_area` fails or returns an error, surface the failure explicitly: "Orientation data unavailable: [error]. Cannot assess this system without live MCP data." Do NOT fabricate threat levels, sovereignty, or escape routes from training knowledge.
 
+> **COMMENTARY GUARD:** Orientation output presents data for FC decision-making. Do not generate strategic advice ("expect organized response," "you should leave," "good place to set up"). Show sovereignty, activity numbers, and gate topology. The FC interprets.
+
 All output fields come from the `local_area` response. Key response fields: `origin`, `threat_summary`, `sovereignty`, `hotspots`, `quiet_zones`, `ratting_banks`, `escape_routes`, `fw_systems`. If `sovereignty` is absent from `local_area`, supplement via `universe(action="systems", systems=[...])`.
 
 ## Output Format
@@ -111,17 +113,22 @@ When the origin system is in null-sec (security <= 0.0), include sovereignty inf
 ```
 SOVEREIGNTY: [GSF] Goonswarm Federation
   Coalition: The Imperium
-  Status: Hostile territory - expect organized response
 ```
 
-### Threat Implications by Territory Type
+### Territory Type Labels
 
-| Territory | Implication |
-|-----------|-------------|
-| Major Coalition (Imperium, PanFam, FIRE) | Organized standing fleets, rapid response |
-| Smaller Alliance | Variable response capability |
-| NPC Null-sec | No player sovereignty - NPC presence only |
-| Unclaimed | Disputed or recently lost - may be contested |
+Derive territory type from sovereignty data returned by `local_area` or `systems`:
+
+| Sov Data | Territory Label |
+|----------|----------------|
+| Alliance in known coalition (`sovereignty.coalition_name` present) | `[TICKER] Alliance — Coalition Name` |
+| Alliance without coalition | `[TICKER] Alliance` |
+| No sovereignty holder | `NPC Null-sec` |
+| No holder + recent sov changes in constellation | `Contested` |
+
+Do not generate behavioral predictions from territory type. The FC knows their opponents.
+
+*Authority: If this table diverges from `docs/ROUTE_OUTPUT_SPEC.md`, the spec is authoritative.*
 
 ## Faction Warfare Context
 
