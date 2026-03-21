@@ -166,6 +166,7 @@ uv run aria-esi --help
 
 ```text
 Damsel in Distress L2 — Mission Brief
+```
 
 | | Details |
 |---|---|
@@ -174,6 +175,7 @@ Damsel in Distress L2 — Mission Brief
 | EWAR | None noted |
 | Objective | Destroy Kruul's Pleasure Hub, loot "The Damsel" |
 
+```text
 Blitz
 1. Warp in — do not shoot Kruul (triggers 10x elite frigates)
 2. Destroy Kruul's Pleasure Hub — stay 5–10 km (AoE on destruction)
@@ -204,6 +206,7 @@ Tip: /mission-brief Damsel in Distress --fit for a tailored ship fitting
 Roam Route: 7BIX-A → F-88PJ (Fountain)
 
 Mode: Linear (no backtracking) | Jumps: 8 | Hunt systems: 4
+```
 
 | # | System  | Sec   | NPC Kills | Ships | Pods | Jumps | Notes           |
 |---|---------|-------|----------:|------:|-----:|------:|-----------------|
@@ -217,6 +220,7 @@ Mode: Linear (no backtracking) | Jumps: 8 | Hunt systems: 4
 | 8 | 1-5GBW  | -0.73 |     1,820 |     0 |    0 |    48 | hunt            |
 | 9 | F-88PJ  | -0.90 |     1,266 |     0 |    0 |    24 | hunt, dead end  |
 
+```text
 Totals: 4,936 NPC kills across route | 0 PVP kills | All null-sec
 
 GATE TOPOLOGY (terminus + decision points)
