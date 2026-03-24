@@ -15,7 +15,7 @@ ARIA is a Claude Code extension that turns Claude into a tactical EVE Online ass
    /   |  / __ \/  _/   |   Adaptive Reasoning & Intelligence Array
   / /| | / /_/ // // /| |   Tactical Advisory System
  / ___ |/ _, _// // ___ |
-/_/  |_/_/ |_/___/_/  |_|   by Luminaire Cognition [LUCOS]
+/_/  |_/_/ |_/___/_/  |_|   by Luminaire Cognition [LUCOG]
 ```
 
 <p><strong>Quick Docs:</strong>
@@ -438,4 +438,4 @@ See [ATTRIBUTION.md](ATTRIBUTION.md) for complete attribution details.
 
 ---
 
-*by Luminaire Cognition [LUCOS]*
+*by Luminaire Cognition [LUCOG]*
