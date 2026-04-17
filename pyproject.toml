@@ -20,7 +20,7 @@ dependencies = [
     "anthropic>=0.76.0",
     "keyring>=25.7.0",  # Secure credential storage (Tier II security)
     "mcp>=1.0.0",  # MCP server for Claude Code integration
-    "aiosqlite>=0.20.0",  # Async SQLite for MCP server
+    "aiosqlite>=0.22.1",  # Async SQLite for MCP server
 ]
 
 [project.urls]
